@@ -1,6 +1,4 @@
-
-https://github.com/user-attachments/assets/11b42201-3d70-4893-ad65-93c3e1f55ea6
-<img width="460" height="259" alt="shell" src="https://github.com/user-attachments/assets/a8ff1ec6-55ec-4a3c-be02-5c6cf6be8d68" /><div align="center">
+<div align="center">
 
 # ✧ C A E L E S T I A <img src="assets/caelestia.svg" width="35" align="top"> ✧
 ### A KDE adaptation of the celestial aesthetic
@@ -12,7 +10,7 @@ https://github.com/user-attachments/assets/11b42201-3d70-4893-ad65-93c3e1f55ea6
 ![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&color=86dbce)
 
 <br/>
-<img src="assets/logo.gif" alt="caelestia logo" width="300px">
+<img width="1280" height="720" alt="logo" src="https://github.com/user-attachments/assets/5662c83d-7181-4846-9fb8-79d0363c8c4f" />
 
 <br/>
 <br/>
