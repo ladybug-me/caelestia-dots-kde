@@ -1,4 +1,6 @@
-<div align="center">
+
+https://github.com/user-attachments/assets/11b42201-3d70-4893-ad65-93c3e1f55ea6
+<img width="460" height="259" alt="shell" src="https://github.com/user-attachments/assets/a8ff1ec6-55ec-4a3c-be02-5c6cf6be8d68" /><div align="center">
 
 # ✧ C A E L E S T I A <img src="assets/caelestia.svg" width="35" align="top"> ✧
 ### A KDE adaptation of the celestial aesthetic
@@ -109,19 +111,16 @@
     <h2>✦ Visuals ✦</h2>
 </div>
 
-| Caelestia on KDE Plasma Shell |
-|:---:|
-| <img width="900" alt="Shell" src="assets/Shell.gif" /> |
-
-| Theming in Action |
-|:---:|
-| <img width="900" alt="Rengoku Theme" src="assets/Rengoku.gif" /> |
+| Caelestia on KDE Plasma Shell | Theming in Action |
+|:---:|:---:|
+| <img width="460" height="259" alt="shell" src="https://github.com/user-attachments/assets/14681aaf-77d9-4a65-af7d-8a4fc0b795cc" /> | <img width="460" height="259" alt="Rengoku" src="https://github.com/user-attachments/assets/d1b73dcb-82c9-465d-ba7e-da79ce263917" /> |
 
 ---
 
 <div align="center">
     <h2>✦ Software Stack ✦</h2>
 </div>
+
 
 | Component | Purpose | Notes |
 | --- | --- | --- |
