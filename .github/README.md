@@ -10,7 +10,7 @@
 ![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&color=86dbce)
 
 <br/>
-<img width="1280" height="720" alt="logo" src="https://github.com/user-attachments/assets/5662c83d-7181-4846-9fb8-79d0363c8c4f" />
+<img width="400" height="230" alt="logo" src="https://github.com/user-attachments/assets/5662c83d-7181-4846-9fb8-79d0363c8c4f" />
 
 <br/>
 <br/>
