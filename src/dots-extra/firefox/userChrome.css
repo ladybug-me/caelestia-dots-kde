@@ -1,0 +1,38 @@
+/* Remove window controls */
+.titlebar-buttonbox-container {
+    display: none !important;
+}
+
+/* Center url bar text when not focused */
+#urlbar:not([focused]) .urlbar-input {
+    text-align: center !important;
+}
+
+/* Url bar rounding */
+#urlbar-background,
+#searchbar {
+    border-radius: 10px !important;
+}
+
+/* Url bar buttons */
+.urlbar-page-action,
+#urlbar-go-button,
+.search-go-button,
+#tracking-protection-icon-container,
+#identity-icon-box,
+#identity-permission-box,
+.notification-anchor-icon,
+#userContext-icons,
+#urlbar-zoom-button,
+#page-action-buttons,
+.search-one-offs,
+#urlbar-search-mode-indicator {
+    border-radius: 10px !important;
+}
+
+/* Keep url bar in place when expanding */
+#urlbar[breakout][breakout-extend] {
+    margin-top: 5px !important;
+    margin-left: 0 !important;
+    width: var(--urlbar-width) !important;
+}

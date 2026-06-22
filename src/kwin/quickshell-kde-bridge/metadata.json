@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Name": "Quickshell KDE Bridge",
+        "Description": "Exposes active window title to a file for Quickshell",
+        "Id": "quickshell-kde-bridge",
+        "Version": "1.0",
+        "License": "MIT",
+        "Category": "Window Management"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js"
+}

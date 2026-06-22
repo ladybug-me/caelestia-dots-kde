@@ -1,0 +1,22 @@
+name: Comment on Discussion When sdata/arch-dist/ Changes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sdata/arch-dist/**"
+      - "!sdata/arch-dist/README.md"
+
+jobs:
+  comment_on_discussion:
+    runs-on: ubuntu-latest
+    if: github.repository == 'ladybug-me/end-4dotsKDE'
+    steps:
+      - name: Notify about package updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Package definitions in sdata/arch-dist/ have been updated."
+          echo "Commit: ${{ github.sha }}"
+          echo "Message: ${{ github.event.head_commit.message }}"

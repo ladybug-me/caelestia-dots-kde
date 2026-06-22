@@ -1,0 +1,13 @@
+[Unit]
+Description=ydotoold - ydotool daemon for virtual keyboard input injection
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/home/johnlol/.local/bin/ydotoold-wrapper
+Restart=on-failure
+RestartSec=3
+Environment=YDOTOOL_SOCKET=/run/user/%U/.ydotool_socket
+
+[Install]
+WantedBy=graphical-session.target

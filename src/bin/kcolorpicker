@@ -1,0 +1,33 @@
+#!/bin/bash
+# Mock hyprpicker that uses KDE's DBus color picker
+# Replaces hyprpicker on KDE systems.
+#
+# KDE's /ColorPicker returns a struct (u) = packed ARGB uint32.
+# qdbus6 can't display this type natively — use dbus-send instead.
+
+set -euo pipefail
+
+# Launch the KDE color picker via dbus-send; waits for user to pick a color
+RAW=$(dbus-send --session --print-reply \
+    --dest=org.kde.KWin \
+    /ColorPicker \
+    org.kde.kwin.ColorPicker.pick \
+    2>/dev/null | awk '/uint32/ {print $2}')
+
+if [[ -z "$RAW" ]]; then
+    exit 1
+fi
+
+# RAW is a decimal uint32 encoding ARGB (0xAARRGGBB)
+# Extract RGB components
+R=$(( (RAW >> 16) & 0xFF ))
+G=$(( (RAW >> 8) & 0xFF ))
+B=$(( RAW & 0xFF ))
+
+HEX=$(printf "#%02x%02x%02x" "$R" "$G" "$B")
+echo "$HEX"
+
+# -a flag: copy to clipboard (matches hyprpicker behaviour)
+if [[ "${1:-}" == "-a" ]]; then
+    printf '%s' "$HEX" | wl-copy
+fi

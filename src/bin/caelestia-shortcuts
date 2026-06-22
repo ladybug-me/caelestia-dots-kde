@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+import sys
+import os
+
+def main():
+    try:
+        # Run hyprctl binds -j to fetch the shortcuts
+        output = subprocess.check_output([os.path.expanduser("~/.local/bin/hyprctl"), "binds", "-j"], text=True)
+        binds = json.loads(output)
+    except Exception as e:
+        print(f"Error fetching binds: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    entries = []
+    entry_map = {}
+
+    for b in binds:
+        desc = b.get("description", "Unknown")
+        modmask = b.get("modmask", 0)
+        key = b.get("key", "")
+        cmd = b.get("command", "")
+        
+        mods = []
+        if modmask & 64: mods.append("Super")
+        if modmask & 4: mods.append("Ctrl")
+        if modmask & 8: mods.append("Alt")
+        if modmask & 1: mods.append("Shift")
+        
+        shortcut = "+".join(mods) + ("+" + key if (mods and key) else key)
+        
+        line = f"{shortcut:<25} | {desc}"
+        entries.append(line)
+        entry_map[line] = cmd
+
+    if not entries:
+        sys.exit(0)
+
+    try:
+        # Pass the formatted shortcuts to fuzzel
+        chosen = subprocess.check_output(
+            ["fuzzel", "--dmenu", "--placeholder=Type to search shortcuts", "-l", "15", "-w", "80"],
+            input="\n".join(entries),
+            text=True
+        ).strip()
+    except subprocess.CalledProcessError:
+        # User canceled the fuzzel menu
+        sys.exit(0)
+
+    if chosen in entry_map:
+        cmd = entry_map[chosen]
+        # Execute the selected command
+        os.system(cmd)
+
+if __name__ == "__main__":
+    main()
