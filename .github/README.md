@@ -179,6 +179,7 @@
 - **Keyboard Shortcuts:** Modify [`src/keyboardshortcuts/shortcuts.md`](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/src/keyboardshortcuts/shortcuts.md) and execute [`src/keyboardshortcuts/register.sh`](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/src/keyboardshortcuts/register.sh) to apply them.
   - *Note:* You may need to update `~/.local/bin/hyprctl` for `Super + /` keybindings display.
 - **The Greeter:** The gifs that play on popout of `Good Morning, User` can be customized by going to [`shell/assets/`](https://github.com/ladybug-me/caelestia-dots-kde/tree/main/shell/assets/) and replacing the [morning.gif](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/shell/assets/morning.gif), [evening.gif](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/shell/assets/evening.gif), [afternoon.gif](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/shell/assets/afternoon.gif) and [night.gif](https://github.com/ladybug-me/caelestia-dots-kde/blob/main/shell/assets/night.gif) files.
+Then rebuild the shell by running setup.sh again.
 ---
 
 <div align="center">
