@@ -4,7 +4,7 @@ labels: ["FEATURE"]
 body:
   - type: markdown
     attributes:
-      value: "**Before suggesting a feature:**\n- Please search in [existing issues](https://github.com/ladybug-me/end-4dotsKDE/issues?q=is%3Aissue) to avoid duplicates\n- This is a **KDE Plasma port**. For Hyprland features, see [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)\n- Please write in **English**"
+      value: "**Before suggesting a feature:**\n- Please search in [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) to avoid duplicates\n- This is a **KDE Plasma port**. For Hyprland features, see [caelestia-dots/caelestia](https://github.com/caelestia-dots/caelestia)\n- Please write in **English**"
 
   - type: textarea
     attributes:

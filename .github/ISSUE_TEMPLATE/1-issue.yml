@@ -4,13 +4,13 @@ labels: ["ISSUE"]
 body:
   - type: markdown
     attributes:
-      value: "**Welcome to submit a new issue!**\n- Please search in [existing issues](https://github.com/ladybug-me/end-4dotsKDE/issues?q=is%3Aissue) before continuing.\n- It takes only 3 steps, thanks for your patience :)\n- NOTE 1: General questions like \"how do I customize this widget\" should use [Discussions](https://github.com/ladybug-me/end-4dotsKDE/discussions) instead.\n- NOTE 2: This is a **KDE Plasma port**. For Hyprland issues, see [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)."
+      value: "**Welcome to submit a new issue!**\n- Please search in [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) before continuing.\n- It takes only 3 steps, thanks for your patience :)\n- NOTE 1: General questions like \"how do I customize this widget\" should use [Discussions](https://github.com/ladybug-me/caelestia-dots-kde/discussions) instead.\n- NOTE 2: This is a **KDE Plasma port**. For Hyprland issues, see [caelestia-dots/caelestia](https://github.com/caelestia-dots/caelestia)."
   - type: checkboxes
     attributes:
       label: "Step 1. Before you submit"
       description: "Hint: The 2nd and 3rd checkbox is **not** forcely required as you may have failed to do so."
       options:
-        - label: I have read the [troubleshooting guide](https://github.com/ladybug-me/end-4dotsKDE#troubleshooting) and checked [existing discussions](https://github.com/ladybug-me/end-4dotsKDE/discussions).
+        - label: I have read the [troubleshooting guide](https://github.com/ladybug-me/caelestia-dots-kde#troubleshooting) and checked [existing discussions](https://github.com/ladybug-me/caelestia-dots-kde/discussions).
           required: true
         - label: I've pulled the latest changes and re-run the installer (`bash ./setup.sh`).
           required: false # Not required cuz user may have failed to do so

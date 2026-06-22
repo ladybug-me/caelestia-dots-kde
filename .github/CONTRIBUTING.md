@@ -1,4 +1,4 @@
-# Contributing to end-4dotsKDE
+# Contributing to caelestia-dots-kde
 
 Thanks for your interest in contributing to the KDE Plasma port!
 
@@ -31,7 +31,7 @@ See `src/config/quickshell/ii/translations/tools` for translation files.
 - Spaces
   - Space properties and children data into meaningful groups. (but of course, don't use 2+ blanks in a row)
   - Put spaces between text and operators: `if (condition) { ... } else { ... }` instead of `if(condition){ ... }else{ ... }`
-- As you can see, it's pretty easy to use lots of nesting. There's no hard limit, end-4 himself nests a lot too, but avoid/mitigate that:
+- As you can see, it's pretty easy to use lots of nesting. There's no hard limit, the original author nests a lot too, but avoid/mitigate that:
   - Prefer early return: Use something like `if (!condition) return; doStuff();` instead of `if (condition) { doStuff() }`
   - If you feel it's a bother to refractor something into a new file, remember there's `component` to declare reusable components in the same file.
 
@@ -41,8 +41,8 @@ These instructions assume **Arch Linux** or an Arch-based distro.
 
 ### Full Installation (Recommended)
 
-- Clone this repo: `git clone https://github.com/ladybug-me/end-4dotsKDE ~/end-4dotsKDE`
-- Run the installer: `bash ~/end-4dotsKDE/setup.sh`
+- Clone this repo: `git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde`
+- Run the installer: `bash ~/caelestia-dots-kde/setup.sh`
 - Make your changes in the cloned repo
 - Test locally, then push to your fork and create a PR
 

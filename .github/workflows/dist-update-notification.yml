@@ -11,7 +11,7 @@ on:
 jobs:
   comment_on_discussion:
     runs-on: ubuntu-latest
-    if: github.repository == 'ladybug-me/end-4dotsKDE'
+    if: github.repository == 'ladybug-me/caelestia-dots-kde'
     steps:
       - name: Notify about package updates
         env:

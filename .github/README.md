@@ -10,7 +10,7 @@
 ![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&color=86dbce)
 
 <br/>
-<img src="assets/logo.gif" alt="caelestia logo" width="300px">
+<img width="400" height="230" alt="logo" src="https://github.com/user-attachments/assets/5662c83d-7181-4846-9fb8-79d0363c8c4f" />
 
 <br/>
 <br/>
@@ -109,19 +109,16 @@
     <h2>✦ Visuals ✦</h2>
 </div>
 
-| Caelestia on KDE Plasma Shell |
-|:---:|
-| <img width="900" alt="Shell" src="assets/Shell.gif" /> |
-
-| Theming in Action |
-|:---:|
-| <img width="900" alt="Rengoku Theme" src="assets/Rengoku.gif" /> |
+| Caelestia on KDE Plasma Shell | Theming in Action |
+|:---:|:---:|
+| <img width="460" height="259" alt="shell" src="https://github.com/user-attachments/assets/14681aaf-77d9-4a65-af7d-8a4fc0b795cc" /> | <img width="460" height="259" alt="Rengoku" src="https://github.com/user-attachments/assets/d1b73dcb-82c9-465d-ba7e-da79ce263917" /> |
 
 ---
 
 <div align="center">
     <h2>✦ Software Stack ✦</h2>
 </div>
+
 
 | Component | Purpose | Notes |
 | --- | --- | --- |
