@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✧ C A E L E S T I A <img src=".github/assets/caelestia.svg" width="35" align="top"> ✧
+# ✧ C A E L E S T I A <img src="assets/caelestia.svg" width="35" align="top"> ✧
 ### A KDE adaptation of the celestial aesthetic
 
 ![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793d1?logo=arch-linux&logoColor=white&style=for-the-badge)
@@ -10,7 +10,7 @@
 ![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&color=86dbce)
 
 <br/>
-<img src=".github/assets/logo.gif" alt="caelestia logo" width="300px">
+<img src="assets/logo.gif" alt="caelestia logo" width="300px">
 
 <br/>
 <br/>
@@ -111,11 +111,11 @@
 
 | Caelestia on KDE Plasma Shell |
 |:---:|
-| <img width="900" alt="Shell" src=".github/assets/Shell.gif" /> |
+| <img width="900" alt="Shell" src="assets/Shell.gif" /> |
 
 | Theming in Action |
 |:---:|
-| <img width="900" alt="Rengoku Theme" src=".github/assets/Rengoku.gif" /> |
+| <img width="900" alt="Rengoku Theme" src="assets/Rengoku.gif" /> |
 
 ---
 
