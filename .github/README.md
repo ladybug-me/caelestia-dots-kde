@@ -218,7 +218,7 @@ Then rebuild the shell by running setup.sh again.
 </details>
 
 <details>
-  <summary><b>⏪ Reverting changes & backup restoration</b></summary>
+  <summary><b>⏪ Uninstallation & Reverting Changes</b></summary>
   <br/>
 
   The easiest way to revert changes and uninstall the Caelestia KDE theme is to use the dedicated uninstallation script (kindly contributed by **[0xSolanaceae](https://github.com/0xSolanaceae)**):
