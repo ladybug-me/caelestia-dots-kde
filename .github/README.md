@@ -61,6 +61,7 @@
   - **Custom KDE Bridge:** Quickshell-KDE integration via a custom KWin script for fluid widget interaction.
   - **Custom Hyprctl:** Rewritten to integrate Hyprland-like calls seamlessly via Quickshell.
   - **Transparent Installation:** Every command is printed before execution. Safe and idempotent.
+  - **Easy Uninstallation:** Cleanly remove the setup with a dedicated uninstallation script (thanks to [0xSolanaceae](https://github.com/0xSolanaceae)).
   - **QoL Features:** Dino Game with Kuru Kuru Runner 🦖 , Google lens 📸 , Screenshot tool 📷 , Screen recording with sound 📹 , Color picker 🎨 , Emoji picker 😂 , Clipboard history , Shortcuts Cheatsheet 📝.
   - **Window Tiling:** Optional *Polonium* support for dynamic tiling window management on Plasma.
   
@@ -220,25 +221,13 @@ Then rebuild the shell by running setup.sh again.
   <summary><b>⏪ Reverting changes & backup restoration</b></summary>
   <br/>
 
-  The installer creates automatic backups before modifying critical KDE configuration files. These are stored in `caelestia-dots-kde/backups/`.
+  The easiest way to revert changes and uninstall the Caelestia KDE theme is to use the dedicated uninstallation script (kindly contributed by **[0xSolanaceae](https://github.com/0xSolanaceae)**):
+  ```bash
+  bash ./uninstall.sh
+  ```
 
-  **To safely restore your previous configuration:**
-
-  1. **Rename current configs:**
-     ```bash
-     mv ~/.config ~/.configBACKUP
-     mv ~/.local ~/.localBACKUP
-     ```
-  2. **Restore backed-up folders:**
-     ```bash
-     cp -r caelestia-dots-kde/backups/config ~/.config
-     cp -r caelestia-dots-kde/backups/local ~/.local
-     ```
-  3. **Restore specific settings:**
-     ```bash
-     cp caelestia-dots-kde/backups/kglobalshortcutsrc ~/.config/
-     cp caelestia-dots-kde/backups/kwinrc ~/.config/
-     ```
+  > [!WARNING]  
+  > At Remove packages step (optional), the script will prompt for your confirmation before proceeding. Once confirmed, it will **remove all packages** associated with the Caelestia setup. This includes any packages that were already pre-installed on your system but happen to match the setup requirements. Please review the **Software Stack** section above for the comprehensive list of packages that will be uninstalled.
 
 </details>
 
@@ -271,6 +260,7 @@ Then rebuild the shell by running setup.sh again.
 
 - **[Caelestia](https://github.com/caelestia)** for the incredible, otherworldly design language and the original dotfiles.
 - **[ladybug-me](https://github.com/ladybug-me)** for meticulously adapting the dotfiles to KDE Plasma.
+- **[0xSolanaceae](https://github.com/0xSolanaceae)** for contributing the uninstallation feature.
 - **[Quickshell](https://quickshell.outfoxxed.me/)** — The robust Qt widget framework.
 - **[Darkly](https://github.com/vinceliuice/Darkly)** — For the gorgeous KDE theme base.
 - **[KDE Plasma](https://kde.org/plasma/)** — The powerhouse desktop environment.
