@@ -130,15 +130,27 @@ echo "[OK]  KDE settings applied."
 echo "  Setting default wallpaper to Minimal-Paper.png..."
 WALLPAPER_PATH="$BUNDLE_DIR/shell/assets/wallpapers/Minimal-Paper.png"
 if [[ -f "$WALLPAPER_PATH" ]]; then
-    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
-        var allDesktops = desktops();
-        for (i=0; i < allDesktops.length; i++) {
-            d = allDesktops[i];
-            d.wallpaperPlugin = 'org.kde.image';
-            d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');
-            d.writeConfig('Image', 'file://' + '$WALLPAPER_PATH');
-        }
-    " 2>/dev/null || true
+    if command -v qdbus6 &>/dev/null; then
+      qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+          var allDesktops = desktops();
+          for (i=0; i < allDesktops.length; i++) {
+              d = allDesktops[i];
+              d.wallpaperPlugin = 'org.kde.image';
+              d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');
+              d.writeConfig('Image', 'file://' + '$WALLPAPER_PATH');
+          }
+      " 2>/dev/null || true
+    elif [ command -v qdbus &>/dev/null; then
+      qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+          var allDesktops = desktops();
+          for (i=0; i < allDesktops.length; i++) {
+              d = allDesktops[i];
+              d.wallpaperPlugin = 'org.kde.image';
+              d.currentConfigGroup = Array('Wallpaper', 'org.kde.image', 'General');
+              d.writeConfig('Image', 'file://' + '$WALLPAPER_PATH');
+          }
+      " 2>/dev/null || true
+    fi
     # Also save it for Caelestia
     mkdir -p "$HOME/.local/share/caelestia/state/wallpaper"
     echo "$WALLPAPER_PATH" > "$HOME/.local/share/caelestia/state/wallpaper/path.txt"
