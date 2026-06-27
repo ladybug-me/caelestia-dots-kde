@@ -1,3 +1,0 @@
-module QMLTermWidget
-plugin qmltermwidget
-QMLTermScrollbar 2.0 QMLTermScrollbar.qml

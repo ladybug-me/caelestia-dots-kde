@@ -1,6 +1,0 @@
-[Common]
-ShadowStrength=255
-
-[Windeco]
-DrawBackgroundGradient=true
-OtherCornerRadius=8

@@ -1,9 +1,0 @@
-2026-06-28 02:59:39.062 [error] Failed to set Cloud Code URL on Language Server: Language server client has not been initialized!
-2026-06-28 02:59:42.197 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: e17aa43eee5ffe56
-2026-06-28 02:59:42.197 [error] Failed to set Cloud Code URL on Language Server: Language server client has not been initialized!
-2026-06-28 02:59:42.324 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 34f431b772e6e97
-2026-06-28 02:59:42.324 [error] Failed to set Cloud Code URL on Language Server: Language server client has not been initialized!
-2026-06-28 02:59:43.602 [info] [CloudCode] POST v1internal:fetchAvailableModels traceId: 60dc406d7ca1ec82
-2026-06-28 02:59:44.515 [info] [CloudCode] POST v1internal:onboardUser traceId: de867ef22890de06
-2026-06-28 02:59:46.855 [info] [CloudCode] POST v1internal:loadCodeAssist traceId: 5769e3700a3fb10e
-2026-06-28 02:59:47.584 [info] [CloudCode] POST v1internal:fetchAvailableModels traceId: 3f180b72bee04d11

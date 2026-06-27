@@ -1,4 +1,0 @@
-[General]
-Certificate=/home/ladybug-me/.local/share/krdpserver/krdp.crt
-CertificateKey=/home/ladybug-me/.local/share/krdpserver/krdp.key
-SystemUserEnabled=true
