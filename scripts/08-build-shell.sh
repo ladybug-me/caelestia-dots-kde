@@ -263,7 +263,11 @@ systemctl --user daemon-reload
 systemctl --user enable --now qs-kwin-bridge.service &>/dev/null || true
 
 # Load and start KWin script
-qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript ~/.local/share/kwin/scripts/quickshell-kde-bridge/contents/code/main.js quickshell-kde-bridge &>/dev/null || true
-qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start &>/dev/null || true
-
+if command -v qdbus6 &>/dev/null; then
+  qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript ~/.local/share/kwin/scripts/quickshell-kde-bridge/contents/code/main.js quickshell-kde-bridge &>/dev/null || true
+  qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start &>/dev/null || true
+elif command -v qdbus &>/dev/null; then
+  qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript ~/.local/share/kwin/scripts/quickshell-kde-bridge/contents/code/main.js quickshell-kde-bridge &>/dev/null || true
+  qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.start &>/dev/null || true
+fi
 ok "Caelestia Shell and KDE Bridges built and installed successfully to user directory."
