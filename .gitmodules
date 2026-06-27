@@ -1,0 +1,3 @@
+[submodule "shell/plugin/src/QMLTermWidget"]
+	path = shell/plugin/src/QMLTermWidget
+	url = https://github.com/Swordfish90/qmltermwidget.git

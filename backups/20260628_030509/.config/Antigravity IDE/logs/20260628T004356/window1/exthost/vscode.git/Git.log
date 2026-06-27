@@ -1,0 +1,201 @@
+2026-06-28 00:43:59.533 [info] [main] Log level: Info
+2026-06-28 00:43:59.533 [info] [main] Validating found git in: "git"
+2026-06-28 00:43:59.533 [info] [main] Using git "2.54.0" from "git"
+2026-06-28 00:43:59.533 [info] [Model][doInitialScan] Initial repository scan started
+2026-06-28 00:43:59.533 [info] > git rev-parse --show-toplevel [12ms]
+2026-06-28 00:43:59.533 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [6ms]
+2026-06-28 00:43:59.533 [info] [Model][openRepository] Opened repository (path): /home/ladybug-me/caelestia-dots-kde
+2026-06-28 00:43:59.533 [info] [Model][openRepository] Opened repository (real path): /home/ladybug-me/caelestia-dots-kde
+2026-06-28 00:43:59.533 [info] [Model][openRepository] Opened repository (kind): repository
+2026-06-28 00:43:59.533 [info] > git rev-parse --show-toplevel [2ms]
+2026-06-28 00:43:59.533 [info] > git config --get commit.template [6ms]
+2026-06-28 00:43:59.533 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [25ms]
+2026-06-28 00:43:59.533 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/refs/remotes/origin/main'
+2026-06-28 00:43:59.533 [info] > git rev-parse --show-toplevel [54ms]
+2026-06-28 00:43:59.536 [info] > git rev-parse refs/remotes/origin/main [36ms]
+2026-06-28 00:43:59.550 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [7ms]
+2026-06-28 00:43:59.551 [info] > git rev-parse --show-toplevel [16ms]
+2026-06-28 00:43:59.794 [info] > git rev-parse --show-toplevel [240ms]
+2026-06-28 00:43:59.802 [info] > git rev-parse --show-toplevel [2ms]
+2026-06-28 00:43:59.807 [info] > git rev-parse --show-toplevel [2ms]
+2026-06-28 00:43:59.814 [info] > git rev-parse --show-toplevel [1ms]
+2026-06-28 00:43:59.932 [info] > git status -z -uall [393ms] (cancelled)
+2026-06-28 00:43:59.933 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [11ms]
+2026-06-28 00:43:59.938 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [120ms]
+2026-06-28 00:43:59.943 [info] [Model][openRepository] Opened repository (path): /home/ladybug-me/caelestia-dots-kde/shell-new
+2026-06-28 00:43:59.943 [info] [Model][openRepository] Opened repository (real path): /home/ladybug-me/caelestia-dots-kde/shell-new
+2026-06-28 00:43:59.943 [info] [Model][openRepository] Opened repository (kind): repository
+2026-06-28 00:43:59.953 [info] > git config --get --local branch.main.vscode-merge-base [15ms]
+2026-06-28 00:43:59.957 [info] > git config --get commit.template [25ms]
+2026-06-28 00:44:00.584 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/origin/main refs/remotes/origin/main [627ms]
+2026-06-28 00:44:00.591 [info] > git rev-parse --show-toplevel [638ms]
+2026-06-28 00:44:00.591 [info] > git config --get commit.template [642ms]
+2026-06-28 00:44:00.639 [info] > git check-ignore -v -z --stdin [43ms]
+2026-06-28 00:44:00.640 [info] > git merge-base refs/heads/main refs/remotes/origin/main [50ms]
+2026-06-28 00:44:00.650 [info] > git rev-parse --show-toplevel [11ms]
+2026-06-28 00:44:00.653 [info] [Model][doInitialScan] Initial repository scan completed - repositories (2), closed repositories (0), parent repositories (0), unsafe repositories (0)
+2026-06-28 00:44:00.661 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [27ms]
+2026-06-28 00:44:00.667 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/refs/remotes/origin/main'
+2026-06-28 00:44:00.667 [info] > git show --textconv :scripts/03-deploy-configs.sh [9ms]
+2026-06-28 00:44:00.668 [info] > git diff --name-status -z --diff-filter=ADMR --find-renames=50% 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4...refs/remotes/origin/main -- [24ms]
+2026-06-28 00:44:00.670 [info] > git rev-parse refs/remotes/origin/main [3ms]
+2026-06-28 00:44:00.677 [info] > git rev-parse --show-toplevel [12ms]
+2026-06-28 00:44:00.677 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [28ms]
+2026-06-28 00:44:00.677 [info] > git ls-files --stage -- scripts/03-deploy-configs.sh [16ms]
+2026-06-28 00:44:00.687 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/shell-new/.git/refs/remotes/origin/main'
+2026-06-28 00:44:00.688 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [12ms]
+2026-06-28 00:44:00.766 [info] > git rev-parse refs/remotes/origin/main [79ms]
+2026-06-28 00:44:00.777 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [94ms]
+2026-06-28 00:44:00.782 [info] [Model][openRepository] Opened repository (path): /home/ladybug-me/caelestia-dots-kde/shell/plugin/src/QMLTermWidget
+2026-06-28 00:44:00.782 [info] [Model][openRepository] Opened repository (real path): /home/ladybug-me/caelestia-dots-kde/shell/plugin/src/QMLTermWidget
+2026-06-28 00:44:00.782 [info] [Model][openRepository] Opened repository (kind): submodule
+2026-06-28 00:44:00.783 [info] > git cat-file -s e177204ae02bc7f396c7e547cba7fa6c9f36cbea [103ms]
+2026-06-28 00:44:00.791 [info] > git config --get commit.template [3ms]
+2026-06-28 00:44:00.879 [info] > git status -z -uall [206ms] (cancelled)
+2026-06-28 00:44:00.879 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [85ms]
+2026-06-28 00:44:00.884 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/modules/shell/plugin/src/QMLTermWidget/refs/remotes/origin/master'
+2026-06-28 00:44:00.884 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [107ms]
+2026-06-28 00:44:00.887 [info] > git rev-parse refs/remotes/origin/master [3ms]
+2026-06-28 00:44:00.898 [info] > git status -z -uall [8ms]
+2026-06-28 00:44:00.898 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [3ms]
+2026-06-28 00:44:00.915 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [11ms]
+2026-06-28 00:44:01.494 [info] > git status -z -uall [724ms]
+2026-06-28 00:44:01.494 [info] > git config --get --local branch.master.vscode-merge-base [576ms]
+2026-06-28 00:44:01.498 [info] > git config --get commit.template [584ms]
+2026-06-28 00:44:01.535 [info] > git check-ignore -v -z --stdin [26ms]
+2026-06-28 00:44:01.536 [info] > git check-ignore -v -z --stdin [24ms]
+2026-06-28 00:44:01.536 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [32ms]
+2026-06-28 00:44:01.545 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/origin/master refs/remotes/origin/master [46ms]
+2026-06-28 00:44:01.556 [info] > git config --get --local branch.main.vscode-merge-base [12ms]
+2026-06-28 00:44:01.561 [info] > git config --get commit.template [27ms]
+2026-06-28 00:44:01.562 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [7ms]
+2026-06-28 00:44:01.562 [info] > git merge-base refs/heads/master refs/remotes/origin/master [13ms]
+2026-06-28 00:44:01.576 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/modules/shell/plugin/src/QMLTermWidget/refs/remotes/origin/master'
+2026-06-28 00:44:01.576 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/origin/main refs/remotes/origin/main [15ms]
+2026-06-28 00:44:01.580 [info] > git rev-parse refs/remotes/origin/master [4ms]
+2026-06-28 00:44:01.588 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [15ms]
+2026-06-28 00:44:01.588 [info] > git diff --name-status -z --diff-filter=ADMR --find-renames=50% 8913504fa2ebd220ebe7c680c32954e1b3c035c5...refs/remotes/origin/master -- [21ms]
+2026-06-28 00:44:01.592 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/shell-new/.git/refs/remotes/origin/main'
+2026-06-28 00:44:01.593 [info] > git status -z -uall [9ms]
+2026-06-28 00:44:01.593 [info] > git merge-base refs/heads/main refs/remotes/origin/main [14ms]
+2026-06-28 00:44:01.598 [info] > git rev-parse refs/remotes/origin/main [5ms]
+2026-06-28 00:44:01.607 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [19ms]
+2026-06-28 00:44:01.611 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [4ms]
+2026-06-28 00:44:01.611 [info] > git diff --name-status -z --diff-filter=ADMR --find-renames=50% b9fac609e0064b4691734845dbea76dff2a13491...refs/remotes/origin/main -- [14ms]
+2026-06-28 00:44:01.711 [info] > git status -z -uall [108ms]
+2026-06-28 00:44:01.900 [info] > git blame --root --incremental 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4 -- scripts/03-deploy-configs.sh [12ms]
+2026-06-28 00:44:06.571 [info] > git check-ignore -v -z --stdin [0ms]
+2026-06-28 00:44:06.871 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:45:49.854 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:46:24.574 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:46:30.128 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 00:46:31.031 [info] > git check-ignore -v -z --stdin [9ms]
+2026-06-28 00:46:31.032 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:46:32.265 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:46:33.451 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:46:50.567 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:46:53.278 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 00:46:54.968 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:46:55.097 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:46:55.183 [info] > git show --textconv :shell/plugin/src/Caelestia/Config/config.cpp [5ms]
+2026-06-28 00:46:55.184 [info] > git ls-files --stage -- shell/plugin/src/Caelestia/Config/config.cpp [2ms]
+2026-06-28 00:46:55.188 [info] > git cat-file -s b09ddb831659e525a6a0b900bdc4931b64f466de [1ms]
+2026-06-28 00:47:21.722 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:47:28.510 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:47:42.284 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:47:43.269 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:10.708 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:13.876 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:15.702 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:17.765 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:24.039 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:48:25.166 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:48:28.492 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:48:33.534 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:48:36.685 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:48:41.359 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 00:48:44.536 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 00:48:52.859 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 00:48:54.314 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:49:02.167 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:49:02.234 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:49:02.393 [info] > git show --textconv :shell/modules/nexus/pages/AboutPage.qml [3ms]
+2026-06-28 00:49:02.393 [info] > git ls-files --stage -- shell/modules/nexus/pages/AboutPage.qml [1ms]
+2026-06-28 00:49:02.396 [info] > git cat-file -s c3c7b5d5ab7b4fa368e3fc701435a811bca790d1 [0ms]
+2026-06-28 00:51:42.654 [info] > git blame --root --incremental 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4 -- shell/modules/nexus/pages/AboutPage.qml [3ms]
+2026-06-28 00:55:29.041 [info] > git check-ignore -v -z --stdin [4ms]
+2026-06-28 00:55:31.241 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:56:05.616 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:56:05.665 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:56:05.827 [info] > git show --textconv :shell/modules/nexus/pages/AppsPage.qml [3ms]
+2026-06-28 00:56:05.831 [info] > git ls-files --stage -- shell/modules/nexus/pages/AppsPage.qml [4ms]
+2026-06-28 00:56:05.834 [info] > git hash-object -t tree /dev/null [4ms]
+2026-06-28 00:56:05.834 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:56:05.834 [info] > git hash-object -t tree /dev/null [0ms]
+2026-06-28 00:56:05.834 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:57:09.571 [info] > git blame --root --incremental 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4 -- shell/modules/nexus/pages/AppsPage.qml [2ms]
+2026-06-28 00:57:09.571 [info] fatal: no such path shell/modules/nexus/pages/AppsPage.qml in 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4
+2026-06-28 00:59:08.433 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:08.461 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:08.639 [info] > git show --textconv :diff_summary.txt [4ms]
+2026-06-28 00:59:08.639 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/diff_summary.txt.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fdiff_summary.txt%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:08.640 [info] > git ls-files --stage -- diff_summary.txt [1ms]
+2026-06-28 00:59:08.640 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/diff_summary.txt.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fdiff_summary.txt%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:14.468 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:14.544 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:14.681 [info] > git show --textconv :shell/modules/nexus/pages/AppsPage.qml [4ms]
+2026-06-28 00:59:14.681 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:14.681 [info] > git ls-files --stage -- shell/modules/nexus/pages/AppsPage.qml [1ms]
+2026-06-28 00:59:14.682 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:24.695 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 00:59:24.722 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:24.908 [info] > git show --textconv :install_kwin_script.sh [4ms]
+2026-06-28 00:59:24.908 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/install_kwin_script.sh.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Finstall_kwin_script.sh%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:24.908 [info] > git ls-files --stage -- install_kwin_script.sh [1ms]
+2026-06-28 00:59:24.909 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/install_kwin_script.sh.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Finstall_kwin_script.sh%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:34.253 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:34.340 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:34.466 [info] > git show --textconv :shell/modules/nexus/pages/AppsPage.qml [4ms]
+2026-06-28 00:59:34.466 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:34.467 [info] > git ls-files --stage -- shell/modules/nexus/pages/AppsPage.qml [1ms]
+2026-06-28 00:59:34.467 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:38.479 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:38.506 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:38.685 [info] > git show --textconv :scratch.qml [4ms]
+2026-06-28 00:59:38.686 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/scratch.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fscratch.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:38.686 [info] > git ls-files --stage -- scratch.qml [1ms]
+2026-06-28 00:59:38.686 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/scratch.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fscratch.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:45.025 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 00:59:45.096 [info] > git check-ignore -v -z --stdin [0ms]
+2026-06-28 00:59:45.230 [info] > git show --textconv :shell/modules/nexus/pages/AppsPage.qml [4ms]
+2026-06-28 00:59:45.231 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 00:59:45.231 [info] > git ls-files --stage -- shell/modules/nexus/pages/AppsPage.qml [1ms]
+2026-06-28 00:59:45.231 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 01:00:03.242 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:00:03.379 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:00:03.463 [info] > git show --textconv :shell/plugin/src/Caelestia/appdb.cpp [8ms]
+2026-06-28 01:00:03.464 [info] > git ls-files --stage -- shell/plugin/src/Caelestia/appdb.cpp [2ms]
+2026-06-28 01:00:03.470 [info] > git cat-file -s 8d80ced971b9e860a6ba08bab2d380330684bdc9 [1ms]
+2026-06-28 01:00:10.466 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:00:10.594 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:00:10.690 [info] > git show --textconv :shell/plugin/src/Caelestia/appdb.hpp [5ms]
+2026-06-28 01:00:10.690 [info] > git ls-files --stage -- shell/plugin/src/Caelestia/appdb.hpp [1ms]
+2026-06-28 01:00:10.694 [info] > git cat-file -s ce5f27062e60ae827595ed671480beb618da54a5 [1ms]
+2026-06-28 01:02:06.183 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 01:02:06.239 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:02:06.914 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 01:02:44.494 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:02:45.599 [info] > git check-ignore -v -z --stdin [3ms]
+2026-06-28 01:02:47.211 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 01:02:52.358 [info] > git check-ignore -v -z --stdin [0ms]
+2026-06-28 01:02:52.438 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 01:02:52.583 [info] > git show --textconv :shell/plugin/src/Caelestia/appdb.hpp [4ms]
+2026-06-28 01:02:52.583 [info] > git ls-files --stage -- shell/plugin/src/Caelestia/appdb.hpp [0ms]
+2026-06-28 01:02:52.587 [info] > git cat-file -s ce5f27062e60ae827595ed671480beb618da54a5 [1ms]
+2026-06-28 01:03:13.347 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:03:13.432 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 01:03:13.556 [info] > git show --textconv :shell/modules/nexus/pages/AppsPage.qml [4ms]
+2026-06-28 01:03:13.557 [warning] [GitFileSystemProvider][readFile] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 01:03:13.557 [info] > git ls-files --stage -- shell/modules/nexus/pages/AppsPage.qml [1ms]
+2026-06-28 01:03:13.558 [warning] [GitFileSystemProvider][stat] File not found - git:/home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml.git?%7B%22path%22%3A%22%2Fhome%2Fladybug-me%2Fcaelestia-dots-kde%2Fshell%2Fmodules%2Fnexus%2Fpages%2FAppsPage.qml%22%2C%22ref%22%3A%22%22%7D
+2026-06-28 01:12:23.369 [info] > git check-ignore -v -z --stdin [1ms]

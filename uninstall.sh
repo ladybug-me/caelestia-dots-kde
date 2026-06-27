@@ -12,14 +12,22 @@ set -uo pipefail
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
-RED="\033[0;31m"; GREEN="\033[0;32m"; YELLOW="\033[1;33m"
-CYAN="\033[0;36m"; BOLD="\033[1m"; RST="\033[0m"
+RST="\033[0m"
+BOLD="\033[1m"
+PURPLE="\033[38;5;135m"
+BLUE="\033[38;5;75m"
+CYAN="\033[38;5;87m"
+PINK="\033[38;5;213m"
+GREEN="\033[38;5;84m"
+RED="\033[38;5;196m"
+YELLOW="\033[38;5;220m"
+DIM="\033[2m"
 
-die()  { echo -e "${RED}[FATAL] $*${RST}" >&2; exit 1; }
-info() { echo -e "${CYAN}[INFO]  $*${RST}"; }
-ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
-warn() { echo -e "${YELLOW}[WARN]  $*${RST}"; }
-skip() { echo -e "        [SKIP]  $*"; }
+die()  { echo -e "${RED} ☄️  [FATAL] $*${RST}" >&2; exit 1; }
+info() { echo -e "${BLUE} 🔭 [INFO]  $*${RST}"; }
+ok()   { echo -e "${GREEN} ✨ [OK]    $*${RST}"; }
+warn() { echo -e "${YELLOW} ⚠️  [WARN]  $*${RST}"; }
+skip() { echo -e "${DIM} 💨 [SKIP]  $*${RST}"; }
 
 # ── OS detection ───────────────────────────────────────────────────────────────
 if [ -f /etc/os-release ]; then
@@ -49,15 +57,26 @@ if [[ "$BASE_DISTRO" == "unknown" ]]; then
 fi
 
 # ── Banner ─────────────────────────────────────────────────────────────────────
+echo -e "${PURPLE}${BOLD}"
+cat << 'EOF'
+ ✧･ﾟ: *✧･ﾟ:*  Caelestia KDE Port  *:･ﾟ✧*:･ﾟ✧
+EOF
+echo -ne "${BLUE}"
+cat << 'EOF'
+     __  __       _           __        ____
+    / / / /____  (_)___  ____/ /_____ _/ / /
+   / / / / __ \ / / __ \/ ___/ __/ __ `/ / /
+  / /_/ / / / // / / / (__  ) /_/ /_/ / / /
+  \____/_/ /_//_/_/ /_/____/\__/\__,_/_/_/
+
+EOF
+echo -e "${RST}"
+echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════╗${RST}"
+echo -e "${CYAN}║${RST}  ${BOLD}${PURPLE}🌌 Caelestia Uninstaller${RST}                                        ${CYAN}║${RST}"
+echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════╝${RST}"
 echo
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${BOLD}${CYAN}   Caelestia KDE Port — Uninstaller${RST}"
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo
-echo -e "${YELLOW}This will remove the Caelestia KDE shell, all installed${RST}"
-echo -e "${YELLOW}config files, services, and shell customisations.${RST}"
-echo -e "${YELLOW}Backups created by the installer (in $BUNDLE_DIR/backups/)${RST}"
-echo -e "${YELLOW}will be offered for restoration where available.${RST}"
+echo -e " ${YELLOW}⚠️  This will remove the Caelestia KDE shell and config files.${RST}"
+echo -e " ${BLUE}🔭 Backups (in $BUNDLE_DIR/backups/) will be offered for restoration.${RST}"
 echo
 
 # ── Sudo setup ─────────────────────────────────────────────────────────────────
@@ -88,21 +107,69 @@ read -r _remove_pkgs
 REMOVE_PACKAGES=false
 [[ "${_remove_pkgs,,}" == "y" || "${_remove_pkgs,,}" == "yes" ]] && REMOVE_PACKAGES=true
 
-# ── Helper: find most-recent backup dir ───────────────────────────────────────
-latest_backup() {
-    # Prints the most recent timestamped backup dir, or empty string
-    local newest
-    newest="$(ls -dt "$BUNDLE_DIR"/backups/[0-9]*_[0-9]* 2>/dev/null | head -1)"
-    echo "$newest"
-}
+# ── Backup Selection ───────────────────────────────────────────────────────────
+SELECTED_BACKUP=""
+if [[ -d "$BUNDLE_DIR/backups" ]]; then
+    mapfile -t backups < <(ls -dt "$BUNDLE_DIR"/backups/[0-9]*_[0-9]* 2>/dev/null)
+    if [[ ${#backups[@]} -gt 0 ]]; then
+        echo
+        echo -e "${CYAN}Available backups to restore from:${RST}"
+        for i in "${!backups[@]}"; do
+            bname="$(basename "${backups[$i]}")"
+            formatted_date=$(echo "$bname" | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1-\2-\3 \4:\5:\6/')
+            
+            tag=""
+            if [[ -f "${backups[$i]}/config/quickshell/caelestia/shell.qml" ]]; then
+                if diff -qr "${backups[$i]}/config/quickshell/caelestia" "$BUNDLE_DIR/src/dots/quickshell/caelestia" >/dev/null 2>&1; then
+                    tag="${CYAN} [Caelestia]${RST}"
+                else
+                    tag="${YELLOW} [Caelestia (Modified)]${RST}"
+                fi
+            fi
+            
+            if [[ -f "${backups[$i]}/previous_shell.txt" ]]; then
+                prev_shell="$(cat "${backups[$i]}/previous_shell.txt")"
+                prev_shell_name="$(basename "$prev_shell")"
+                tag="${tag}${CYAN} [Shell: ${prev_shell_name}]${RST}"
+            fi
+            
+            echo -e "  $((i+1))) $formatted_date$tag"
+        done
+        echo "  0) None (Do not restore from backup)"
+        
+        while true; do
+            read -r -p "Select a backup to restore [1]: " _bsel
+            _bsel="${_bsel:-1}"
+            if [[ "$_bsel" == "0" ]]; then
+                SELECTED_BACKUP=""
+                break
+            elif [[ "$_bsel" -ge 1 ]] && [[ "$_bsel" -le "${#backups[@]}" ]]; then
+                SELECTED_BACKUP="${backups[$((_bsel-1))]}"
+                if [[ -f "$SELECTED_BACKUP/config/quickshell/caelestia/shell.qml" ]]; then
+                    echo
+                    warn "The selected backup contains Caelestia configurations."
+                    echo -e "${YELLOW} ⚠️  Restoring this backup will NOT revert to a clean KDE desktop!${RST}"
+                    echo -e "${YELLOW}    Instead, it will restore a previous Caelestia state.${RST}"
+                    read -r -p "Are you sure you want to restore this backup? [y/N]: " _cwarn
+                    if [[ "${_cwarn,,}" != "y" && "${_cwarn,,}" != "yes" ]]; then
+                        echo -e "${DIM} 💨 Backup selection cancelled. Please select again.${RST}"
+                        continue
+                    fi
+                fi
+                break
+            else
+                echo -e "${RED}Invalid selection.${RST}"
+            fi
+        done
+    fi
+fi
 
 # ── Helper: restore a config dir/file from backup ─────────────────────────────
 restore_or_remove() {
     local name="$1"           # e.g. "fish"
     local target="$2"         # full destination path
     local backup_subdir="$3"  # "config" or "local"
-    local backup_dir
-    backup_dir="$(latest_backup)"
+    local backup_dir="$SELECTED_BACKUP"
 
     rm -rf "$target"
 
@@ -293,20 +360,40 @@ kwriteconfig6 --file powerdevilrc     --group "BrightnessControl"--key "showOSD"
 kwriteconfig6 --file powerdevilrc     --group "AC"               --key "brightnessosd"       "true"  2>/dev/null || true
 ok "Re-enabled KDE OSD notifications"
 
-# Reset Plasma theme to Breeze
-kwriteconfig6 --file plasmarc --group "Theme" --key "name" "default"  2>/dev/null || true
-kwriteconfig6 --file kdeglobals --group "KDE"     --key "widgetStyle"  "Breeze" 2>/dev/null || true
-kwriteconfig6 --file kdeglobals --group "General" --key "ColorScheme"  "BreezeLight" 2>/dev/null || true
-ok "Reset Plasma theme to Breeze"
-
-# Reset window decoration to Breeze
-kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" --key "library" "org.kde.breeze" 2>/dev/null || true
-kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" --key "theme"   "@breeze"        2>/dev/null || true
-ok "Reset window decoration to Breeze"
-
-# Reset cursor theme to breeze_cursors
-kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "breeze_cursors" 2>/dev/null || true
-ok "Reset cursor theme to breeze_cursors"
+# ── Restore KDE Theme Settings ──────────────────────────────────────────────────
+if [[ -n "$SELECTED_BACKUP" ]]; then
+    info "Restoring core KDE configuration files from backup..."
+    for kde_cfg in kdeglobals ksplashrc plasmarc kwinrc kcminputrc plasma-org.kde.plasma.desktop-appletsrc; do
+        if [[ -f "$SELECTED_BACKUP/config/$kde_cfg" ]]; then
+            cp "$SELECTED_BACKUP/config/$kde_cfg" "$HOME/.config/$kde_cfg"
+        fi
+    done
+    ok "Restored core KDE configuration files (including wallpaper and splash)."
+else
+    BACKUP_FILE="$HOME/.config/caelestia-theme-backup.conf"
+    if [[ -f "$BACKUP_FILE" ]]; then
+        info "Restoring KDE themes from $BACKUP_FILE..."
+        while IFS='=' read -r key val; do
+            if [[ -n "$key" && -n "$val" ]]; then
+                cfg_file=$(echo "$key" | cut -d'|' -f1)
+                cfg_group=$(echo "$key" | cut -d'|' -f2)
+                cfg_key=$(echo "$key" | cut -d'|' -f3)
+                cfg_decoded_val=$(echo "$val" | base64 -d)
+                kwriteconfig6 --file "$cfg_file" --group "$cfg_group" --key "$cfg_key" "$cfg_decoded_val" 2>/dev/null || true
+            fi
+        done < "$BACKUP_FILE"
+        ok "Restored previous KDE theme settings."
+    else
+        info "No theme backup found. Reverting to default Breeze theme..."
+        kwriteconfig6 --file plasmarc --group "Theme" --key "name" "default"  2>/dev/null || true
+        kwriteconfig6 --file kdeglobals --group "KDE"     --key "widgetStyle"  "Breeze" 2>/dev/null || true
+        kwriteconfig6 --file kdeglobals --group "General" --key "ColorScheme"  "BreezeLight" 2>/dev/null || true
+        kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" --key "library" "org.kde.breeze" 2>/dev/null || true
+        kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" --key "theme"   "@breeze"        2>/dev/null || true
+        kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "breeze_cursors" 2>/dev/null || true
+        ok "Reset KDE theme settings to Breeze."
+    fi
+fi
 
 # Disable Caelestia KWin plugins
 kwriteconfig6 --file kwinrc --group "Plugins" --key "quickshell-kde-bridgeEnabled" "false" 2>/dev/null || true
@@ -331,7 +418,7 @@ done
 ok "Cleared installer workspace shortcuts from kglobalshortcutsrc"
 
 # Restore backed-up kglobalshortcutsrc if available
-_bk_dir="$(latest_backup)"
+_bk_dir="$SELECTED_BACKUP"
 if [[ -n "$_bk_dir" ]] && [[ -f "$_bk_dir/config/kglobalshortcutsrc" ]]; then
     cp "$_bk_dir/config/kglobalshortcutsrc" "$HOME/.config/kglobalshortcutsrc"
     ok "Restored kglobalshortcutsrc from backup"
@@ -342,6 +429,13 @@ elif ls "$BUNDLE_DIR/backups/kglobalshortcutsrc_"* >/dev/null 2>&1; then
         ok "Restored kglobalshortcutsrc from $( basename "$_bk_file")"
     fi
 fi
+
+# Clean up generated Konsole profiles
+rm -f "$HOME/.local/share/konsole/MaterialYou.colorscheme"
+rm -f "$HOME/.local/share/konsole/MaterialYouAlt.colorscheme"
+rm -f "$HOME/.local/share/konsole/TempMyou.profile"
+rm -f "$HOME/.local/share/color-schemes/MaterialYou"*.colors
+ok "Removed Konsole profiles generated by Caelestia"
 
 # Restore Konsole config if backed up
 if [[ -n "$_bk_dir" ]]; then
@@ -364,12 +458,29 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${CYAN}  Step 7 — Revert shell changes${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 
-# Revert default login shell back to bash (unless user explicitly chose fish beforehand)
-if command -v bash >/dev/null 2>&1; then
-    _BASH_PATH="$(command -v bash)"
-    printf '%s\n' "$SUDO_PASS" | sudo -S chsh -s "$_BASH_PATH" "$USER" 2>/dev/null || \
-        warn "Could not change login shell back to bash. Run: chsh -s $_BASH_PATH"
-    ok "Login shell reverted to bash"
+# Revert login shell
+_RESTORE_SHELL=""
+if [[ -n "$SELECTED_BACKUP" ]] && [[ -f "$SELECTED_BACKUP/previous_shell.txt" ]]; then
+    _PREV_SHELL="$(cat "$SELECTED_BACKUP/previous_shell.txt")"
+    if grep -x -q "$_PREV_SHELL" /etc/shells 2>/dev/null; then
+        _RESTORE_SHELL="$_PREV_SHELL"
+    else
+        warn "Previous shell ($_PREV_SHELL) is not listed in /etc/shells. Falling back to bash."
+    fi
+fi
+
+if [[ -z "$_RESTORE_SHELL" ]]; then
+    if command -v bash >/dev/null 2>&1; then
+        _RESTORE_SHELL="$(command -v bash)"
+    else
+        _RESTORE_SHELL="/bin/bash"
+    fi
+fi
+
+if [[ -n "$_RESTORE_SHELL" ]]; then
+    printf '%s\n' "$SUDO_PASS" | sudo -S chsh -s "$_RESTORE_SHELL" "$USER" 2>/dev/null || \
+        warn "Could not change login shell to $_RESTORE_SHELL. Run: chsh -s $_RESTORE_SHELL"
+    ok "Login shell reverted to $_RESTORE_SHELL"
 fi
 
 # Remove env var lines appended to ~/.bashrc by the installer

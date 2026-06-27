@@ -1,0 +1,126 @@
+
+### GENERAL
+[General]
+Description=Falcon
+Author=Alberto Salvia Novella (es20490446e)
+Opacity=1
+
+### BACKGROUND (#223333)
+[Background]
+Color=34,51,51
+Bold=false
+Transparency=false
+
+### BACKGROUND INTENSE (#223333)
+[BackgroundIntense]
+Color=34,51,51
+Bold=true
+Transparency=false
+
+### FOREGROUND (#C2C2C2)
+[Foreground]
+Color=194,194,194
+Bold=false
+Transparency=false
+
+### FOREGROUND INTENSE (#C2C2C2)
+[ForegroundIntense]
+Color=194,194,194
+Bold=true
+Transparency=false
+
+### BLACK (#959595)
+[Color0]
+Color=149,149,149
+Bold=false
+Transparency=false
+
+### BLACK BOLD (#959595)
+[Color0Intense]
+Color=149,149,149
+Bold=true
+Transparency=false
+
+### RED (#FF6565)
+[Color1]
+Color=255,101,101
+Bold=false
+Transparency=false
+
+### RED BOLD (#FF6565)
+[Color1Intense]
+Color=255,101,101
+Bold=true
+Transparency=false
+
+### GREEN (#84C24E)
+[Color2]
+Color=132,194,78
+Bold=false
+Transparency=false
+
+### GREEN BOLD (#84C24E)
+[Color2Intense]
+Color=132,194,78
+Bold=true
+Transparency=false
+
+### YELLOW (#CFBF29)
+[Color3]
+Color=207,191,41
+Bold=false
+Transparency=false
+
+### YELLOW BOLD (#CFBF29)
+[Color3Intense]
+Color=207,191,41
+Bold=true
+Transparency=false
+
+### BLUE (#6ED7FF)
+[Color4]
+Color=110,215,255
+Bold=false
+Transparency=false
+
+### BLUE BOLD (#6ED7FF)
+[Color4Intense]
+Color=110,215,255
+Bold=true
+Transparency=false
+
+### ORANGE (#FCAF3E)
+[Color5]
+Color=252,175,62
+Bold=false
+Transparency=false
+
+### ORANGE BOLD (#FCAF3E)
+[Color5Intense]
+Color=252,175,62
+Bold=true
+Transparency=false
+
+### PURPLE (#B7B0E8)
+[Color6]
+Color=183,176,232
+Bold=false
+Transparency=false
+
+### PURPLE BOLD (#B7B0E8)
+[Color6Intense]
+Color=183,176,232
+Bold=true
+Transparency=false
+
+### WHITE (#FFFFFF)
+[Color7]
+Color=255,255,255
+Bold=false
+Transparency=false
+
+### WHITE BOLD (#FFFFFF)
+[Color7Intense]
+Color=255,255,255
+Bold=true
+Transparency=false

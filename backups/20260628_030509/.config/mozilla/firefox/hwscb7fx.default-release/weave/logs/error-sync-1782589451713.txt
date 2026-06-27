@@ -1,0 +1,340 @@
+1782589446598	FirefoxAccounts	TRACE	initializing new storage manager
+1782589446598	FirefoxAccounts	TRACE	starting fetch of json user data
+1782589446764	FirefoxAccounts	TRACE	finished fetch of json user data - took: 166
+1782589446765	FirefoxAccounts	DEBUG	reading secure storage with existing: []
+1782589446765	FirefoxAccounts	TRACE	starting fetch of user data from the login manager
+1782589446766	FirefoxAccounts	DEBUG	secure read fetched items: ["scopedKeys"]
+1782589446766	FirefoxAccounts	TRACE	initializing of new storage manager done
+1782589446767	FirefoxAccounts	DEBUG	FxAccountsProfileClient: Initialized
+1782589446767	FirefoxAccounts	DEBUG	FxAccountsProfileClient: Requested profile
+1782589446767	FirefoxAccounts	DEBUG	getOAuthToken enter
+1782589446767	FirefoxAccounts	TRACE	getCachedToken returning cached token
+1782589446767	FirefoxAccounts	DEBUG	getOAuthToken returning a cached token
+1782589446768	Services.Common.RESTRequest	DEBUG	GET request to https://profile.accounts.firefox.com/v1/profile
+1782589446807	Sync.Status	INFO	Resetting Status.
+1782589446807	Sync.Status	DEBUG	Status.service: undefined => success.status_ok
+1782589446807	Sync.SyncScheduler	TRACE	Setting SyncScheduler policy values to defaults.
+1782589446807	Sync.SyncScheduler	DEBUG	Clearing sync triggers and the global score.
+1782589446807	Sync.Service	INFO	Loading Weave 1.154.0
+1782589446807	Sync.Engine.Clients	DEBUG	Engine constructed
+1782589446808	Sync.Engine.Clients	DEBUG	Resetting clients last sync time
+1782589446809	Sync.Engine.Addons	DEBUG	Engine constructed
+1782589446837	FirefoxAccounts	DEBUG	FxAccountsWebChannel registered: account_updates with origin https://accounts.firefox.com
+1782589446930	Sync.Engine.Addons	DEBUG	SyncEngine initialized: addons
+1782589446964	Sync.Engine.Passwords	DEBUG	Engine constructed
+1782589446974	Sync.Engine.Passwords	DEBUG	SyncEngine initialized: passwords
+1782589446975	Sync.Engine.Prefs	DEBUG	Engine constructed
+1782589446976	Sync.Engine.Prefs	DEBUG	SyncEngine initialized: prefs
+1782589446976	Sync.Engine.Bookmarks	DEBUG	Engine constructed
+1782589446977	Sync.Engine.Bookmarks	DEBUG	SyncEngine initialized: bookmarks
+1782589446977	Sync.Engine.Forms	DEBUG	Engine constructed
+1782589446977	Sync.Engine.Forms	DEBUG	SyncEngine initialized: forms
+1782589446978	Sync.Engine.History	DEBUG	Engine constructed
+1782589446979	Sync.Engine.History	DEBUG	SyncEngine initialized: history
+1782589446979	Sync.Engine.Tabs	DEBUG	Engine constructed
+1782589447006	Sync.Engine.Tabs	DEBUG	SyncEngine initialized: tabs
+1782589447008	Sync.Engine.Tabs	INFO	Got a bridged engine!
+1782589447008	Sync.Engine.Addresses	DEBUG	Engine constructed
+1782589447009	Sync.Engine.Addresses	DEBUG	SyncEngine initialized: addresses
+1782589447009	Sync.Engine.CreditCards	DEBUG	Engine constructed
+1782589447009	Sync.Engine.CreditCards	DEBUG	SyncEngine initialized: creditcards
+1782589447010	Sync.Engine.Extension-Storage	DEBUG	Engine constructed
+1782589447010	Sync.Engine.Extension-Storage	DEBUG	SyncEngine initialized: extension-storage
+1782589447010	Sync.Engine.Tabs	DEBUG	webext storage db: opening database
+1782589447026	Sync.Engine.Tabs	DEBUG	webext storage db: checking if initialization is necessary
+1782589447026	Sync.Engine.Tabs	DEBUG	webext storage db: preparing
+1782589447026	Sync.Engine.Tabs	DEBUG	webext storage db: finishing writable database open
+1782589447026	Sync.Engine.Tabs	DEBUG	webext storage db: database open successful
+1782589447027	Sync.Engine.Extension-Storage	INFO	Got a bridged engine!
+1782589447027	Sync.Service	INFO	Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0
+1782589447028	Sync.AddonsReconciler	INFO	Registering as Add-on Manager listener.
+1782589447028	Sync.AddonsReconciler	DEBUG	Adding change listener.
+1782589447028	Sync.Engine.History.Tracker	INFO	Adding Places observer.
+1782589447031	FirefoxAccounts	TRACE	Command queue observer created
+1782589447031	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/open-uri
+1782589447031	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/close-uri/v1
+1782589447034	FirefoxAccounts	INFO	fetching updated device list
+1782589447119	Sync.Service	DEBUG	User-Agent: Firefox/152.0.3 (Linux x86_64) FxSync/1.154.0.20260625132349.desktop
+1782589447119	Sync.Service	INFO	Starting sync at 2026-06-28 01:14:07 in browser session mVxEI4KTpDpc
+1782589447119	Sync.Service	DEBUG	In sync: should login.
+1782589447119	Sync.Service	INFO	User logged in successfully - verifying login.
+1782589447120	Sync.SyncAuthManager	DEBUG	unlockAndVerifyAuthState already has (or can fetch) sync keys
+1782589447120	Sync.Status	DEBUG	Status.login: success.login => success.status_ok
+1782589447120	Sync.Status	DEBUG	Status.service: success.status_ok => error.login.failed
+1782589447120	Sync.Service	DEBUG	Fetching unlocked auth state returned success.status_ok
+1782589447120	Sync.SyncAuthManager	INFO	Getting sync key
+1782589447120	FirefoxAccounts	DEBUG	getOAuthToken enter
+1782589447120	FirefoxAccounts	TRACE	getCachedToken returning cached token
+1782589447120	FirefoxAccounts	DEBUG	getOAuthToken returning a cached token
+1782589447120	Sync.SyncAuthManager	INFO	Getting a sync token from: https://token.services.mozilla.com/1.0/sync/1.5
+1782589447120	Sync.SyncAuthManager	DEBUG	Getting a token using OAuth
+1782589447120	Services.Common.TokenServerClient	DEBUG	Beginning OAuth token exchange: https://token.services.mozilla.com/1.0/sync/1.5
+1782589447120	Services.Common.RESTRequest	DEBUG	GET request to https://token.services.mozilla.com/1.0/sync/1.5
+1782589447129	Services.Common.RESTRequest	DEBUG	GET request to https://api.accounts.firefox.com/v1/account/attached_clients
+1782589447130	Services.Common.RESTRequest	DEBUG	GET request to https://api.accounts.firefox.com/v1/account/devices?filterIdleDevicesTimestamp=1780775047099
+1782589447132	FirefoxAccounts	INFO	Already fetching device list, return existing promise
+1782589447133	Services.Common.RESTRequest	DEBUG	GET request to https://api.accounts.firefox.com/v1/account/attached_clients
+1782589447261	Services.Common.RESTRequest	DEBUG	GET https://profile.accounts.firefox.com/v1/profile 304
+1782589447312	Sync.Engine.Tabs.Tracker	DEBUG	Detected a tab change: scheduling a quick-write in 5000ms
+1782589447328	Services.Common.RESTRequest	DEBUG	GET request to https://api.accounts.firefox.com/v1/account/attached_clients
+1782589447541	Services.Common.RESTRequest	DEBUG	GET https://token.services.mozilla.com/1.0/sync/1.5 200
+1782589447541	Services.Common.TokenServerClient	DEBUG	Got token response: 200
+1782589447541	Services.Common.TokenServerClient	DEBUG	Successful token response
+1782589447541	Sync.BulkKeyBundle	INFO	BulkKeyBundle being created for undefined
+1782589447541	Sync.Status	DEBUG	Status.login: success.status_ok => success.login
+1782589447541	Sync.Status	DEBUG	Status.service: error.login.failed => success.status_ok
+1782589447541	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/open-uri
+1782589447541	Sync.SyncAuthManager	DEBUG	_findCluster returning https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/
+1782589447541	Sync.SyncAuthManager	DEBUG	Cluster value = https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/
+1782589447541	Sync.SyncAuthManager	DEBUG	Setting cluster to https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/
+1782589447541	Sync.Service	DEBUG	Caching URLs under storage user base: https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/
+1782589447542	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589447542	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/close-uri/v1
+1782589447542	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589447542	FirefoxAccounts	INFO	Already fetching device list, return existing promise
+1782589447543	Services.Common.RESTRequest	DEBUG	GET request to https://api.accounts.firefox.com/v1/account/attached_clients
+1782589447652	Sync.SyncScheduler	DEBUG	Next sync in 3600000 ms. (why=schedule)
+1782589447757	Services.Common.RESTRequest	DEBUG	GET https://api.accounts.firefox.com/v1/account/devices?filterIdleDevicesTimestamp=1780775047099 200
+1782589447757	Hawk	DEBUG	(Response) /account/devices?filterIdleDevicesTimestamp=1780775047099: code: 200 - Status text: 
+1782589447758	Hawk	DEBUG	Clock offset vs https://api.accounts.firefox.com/v1: -758
+1782589447758	FirefoxAccounts	INFO	Got new device list: 36031e7ab27e624e971f7e450deee9c8, 845399e76f3d505b8457880957a4d17e, 8478d9422fa8c96fd29de0b070eca22d, af43d5a7fa42f5305d2c0780427ad83f, db2c4aab6d5799fa6d24a731b6e7d340, f29cea8e50a2a7a4a2032c977d836e90, f5007ae1dfd88836905cf8d0aa14355f
+1782589447758	FirefoxAccounts	DEBUG	FxAccountsPush loading service
+1782589447758	FirefoxAccounts	DEBUG	FxAccountsPush initialized
+1782589447777	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/open-uri
+1782589447777	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/close-uri/v1
+1782589447777	FirefoxAccounts	TRACE	Our push subscription looks OK
+1782589447777	FirefoxAccounts	INFO	updating the cache
+1782589447888	Services.Common.RESTRequest	DEBUG	GET https://api.accounts.firefox.com/v1/account/attached_clients 200
+1782589447888	Hawk	DEBUG	(Response) /account/attached_clients: code: 200 - Status text: 
+1782589447888	Hawk	DEBUG	Clock offset vs https://api.accounts.firefox.com/v1: -888
+1782589447891	Sync.Engine.Tabs	DEBUG	breach alerts db: opening database
+1782589447891	Sync.Engine.Tabs	DEBUG	breach alerts db: checking if initialization is necessary
+1782589447891	Sync.Engine.Tabs	DEBUG	breach alerts db: preparing
+1782589447891	Sync.Engine.Tabs	DEBUG	breach alerts db: finishing writable database open
+1782589447891	Sync.Engine.Tabs	DEBUG	breach alerts db: database open successful
+1782589447958	Services.Common.RESTRequest	DEBUG	GET https://api.accounts.firefox.com/v1/account/attached_clients 200
+1782589447958	Hawk	DEBUG	(Response) /account/attached_clients: code: 200 - Status text: 
+1782589447958	Hawk	DEBUG	Clock offset vs https://api.accounts.firefox.com/v1: -958
+1782589447967	Services.Common.RESTRequest	DEBUG	GET https://api.accounts.firefox.com/v1/account/attached_clients 200
+1782589447967	Hawk	DEBUG	(Response) /account/attached_clients: code: 200 - Status text: 
+1782589447967	Hawk	DEBUG	Clock offset vs https://api.accounts.firefox.com/v1: -967
+1782589447995	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589447997	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589448056	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/collections
+1782589448056	Sync.Service	DEBUG	Fetching server configuration: https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/configuration
+1782589448056	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589448183	Services.Common.RESTRequest	DEBUG	GET https://api.accounts.firefox.com/v1/account/attached_clients 200
+1782589448183	Hawk	DEBUG	(Response) /account/attached_clients: code: 200 - Status text: 
+1782589448183	Hawk	DEBUG	Clock offset vs https://api.accounts.firefox.com/v1: -183
+1782589448199	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589448200	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589448367	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/configuration
+1782589448367	Sync.Service	DEBUG	Fetching global metadata record
+1782589448367	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589448736	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/storage/meta/global
+1782589448737	Sync.Service	DEBUG	Clearing cached meta record. metaModified is undefined, setting to 1696754686.57
+1782589448737	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589449147	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/storage/meta/global
+1782589449147	Sync.Service	DEBUG	Weave Version: 1.154.0 Local Storage: 5 Remote Storage: 5
+1782589449147	Sync.Service	DEBUG	Fetching and verifying -- or generating -- symmetric keys.
+1782589449147	Sync.Service	INFO	Testing info/collections: {"history":1782589044.87,"forms":1782569732.39,"tabs":1782589044.42,"crypto":1696754436.8,"passwords":1782184070.37,"extension-storage":1781715460.69,"prefs":1782224955.95,"meta":1696754686.57,"addons":1782367644.38,"bookmarks":1782367636.77,"clients":1782588441.56}
+1782589449147	Sync.CollectionKeyManager	INFO	Testing for updateNeeded. Last modified: 0
+1782589449147	Sync.Service	INFO	collection keys reports that a key update is needed.
+1782589449147	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589449162	Sync.Engine.Tabs.Tracker	DEBUG	Detected a tab change, but a quick-write is already scheduled
+1782589449473	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/storage/crypto/keys
+1782589449473	Sync.CollectionKeyManager	INFO	Updating collection keys...
+1782589449473	Sync.CollectionKeyManager	INFO	Setting collection keys contents. Our last modified: 0, input modified: 1696754436.8.
+1782589449473	Sync.BulkKeyBundle	INFO	BulkKeyBundle being created for [default]
+1782589449473	Sync.CollectionKeyManager	INFO	Processing downloaded per-collection keys.
+1782589449473	Sync.CollectionKeyManager	INFO	Clearing collection keys...
+1782589449473	Sync.CollectionKeyManager	INFO	Saving downloaded keys.
+1782589449473	Sync.CollectionKeyManager	INFO	Bumping last modified to 1696754436.8
+1782589449473	Sync.CollectionKeyManager	INFO	Collection keys updated.
+1782589449473	Sync.Status	DEBUG	Status.login: success.login => success.login
+1782589449473	Sync.Status	DEBUG	Status.service: success.status_ok => success.status_ok
+1782589449473	Sync.Service	DEBUG	Caching URLs under storage user base: https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/
+1782589449473	Sync.SyncScheduler	DEBUG	Clearing sync triggers and the global score.
+1782589449474	Sync.Status	INFO	Resetting Status.
+1782589449474	Sync.Status	DEBUG	Status.service: success.status_ok => success.status_ok
+1782589449475	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589449886	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/collections
+1782589449886	Sync.Service	DEBUG	Fetching server configuration: https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/configuration
+1782589449886	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589450277	Sync.Resource	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/info/configuration
+1782589450277	Sync.Service	DEBUG	Fetching global metadata record
+1782589450277	Sync.Service	DEBUG	Weave Version: 1.154.0 Local Storage: 5 Remote Storage: 5
+1782589450277	Sync.Service	DEBUG	Fetching and verifying -- or generating -- symmetric keys.
+1782589450277	Sync.Service	INFO	Testing info/collections: {"history":1782589044.87,"clients":1782588441.56,"forms":1782569732.39,"prefs":1782224955.95,"bookmarks":1782367636.77,"tabs":1782589044.42,"passwords":1782184070.37,"extension-storage":1781715460.69,"addons":1782367644.38,"crypto":1696754436.8,"meta":1696754686.57}
+1782589450277	Sync.CollectionKeyManager	INFO	Testing for updateNeeded. Last modified: 1696754436.8
+1782589450277	Sync.Synchronizer	DEBUG	Refreshing client list.
+1782589450277	Sync.Engine.Clients	DEBUG	First sync, uploading all items
+1782589450278	Sync.Engine.Clients	DEBUG	Resetting clients last sync time
+1782589450278	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589451012	Sync.Collection	DEBUG	GET success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/storage/clients?full=1&limit=1000
+1782589451238	Sync.Engine.Clients	INFO	Records: 92 applied, 92 successfully, 0 failed to apply, 0 newly failed to apply, 1 reconciled.
+1782589451238	FirefoxAccounts	INFO	Device list cache is fresh, re-using it
+1782589451238	Sync.Engine.Clients	DEBUG	Refreshing the known stale clients list
+1782589451239	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/open-uri
+1782589451239	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/close-uri/v1
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client Clwg7ij94YwT with age 831054.8299999237
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client bHeAKBwaYiH4 with age 1609023.620000124
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client gJwuzzm1FZ5c - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client gJwuzzm1FZ5c with age 1846036.6300001144
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 1_AY6Pmj8Bk0 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 1_AY6Pmj8Bk0 with age 1943255.519999981
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client DM-z7PQqbbZk - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client Pu8BxBQ-x_Vf - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client Pu8BxBQ-x_Vf with age 2213565.690000057
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client D9r8GdtPwW3b - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client NlQg5ynsXz_8 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client NlQg5ynsXz_8 with age 2427630.0499999523
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client mWdqFDek6sEN - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client WinUeSmllIhU - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client WinUeSmllIhU with age 2737526.519999981
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client ubKACfUwandQ - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client ubKACfUwandQ with age 3140042.1300001144
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client o8Yem236PQPD - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 9COG_30VQ_3H - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 9COG_30VQ_3H with age 3409324.7999999523
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client FB-n7wXDSTh2 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 5NqvZjcMcaQt - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client RoPeWpzoWyuF - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 0a-HRGc-4xxR - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client 0a-HRGc-4xxR with age 5209296.950000048
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client EyxEAg1XlbOa - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client YaqFSV_KoD9u - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client YaqFSV_KoD9u with age 5476400.069999933
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client IgzJ6uxxaYY2 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client IgzJ6uxxaYY2 with age 5579408.150000095
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client HdRfCIP3MJe1 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client HdRfCIP3MJe1 with age 5750056
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client dboyEgyrQMa2 - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client dboyEgyrQMa2 with age 5971177.49000001
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client PVd6jcuU2-ox - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client PVd6jcuU2-ox with age 6012678.400000095
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client HZ-i4EgD_WFY - in known stale clients list
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client HZ-i4EgD_WFY with age 6071602.579999924
+1782589451239	Sync.Engine.Clients	INFO	Hiding stale client N6k5bEcnN_Wt - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client WcYZTOmomXvp - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client AhDd4kZYQ3A- - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client AhDd4kZYQ3A- with age 6840999.059999943
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client oWAVEygBX9G4 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client TJW3E4VKPO3O - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1NLj4esu-JLl - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1NLj4esu-JLl with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1a_wUy2q6KAG - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1a_wUy2q6KAG with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1mGQ85dURIMu - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 1mGQ85dURIMu with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 2Hs9EsDYgJ7Z - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 35k4jhBPzccG - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 36FIxKuAZewC - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 36FIxKuAZewC with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 5D0XIZx_5ibL - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 5D0XIZx_5ibL with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 5HcUMwW3rvUw - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 5HcUMwW3rvUw with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 6YycY5QP9Njd - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 6m-jKuJ8hHij - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 6m-jKuJ8hHij with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 75OoeSUcRiSf - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 8M53ak9NlMc7 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 8O2-lLqqmeUe - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 8O2-lLqqmeUe with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 9U1vnvvv-Nzp - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client 9U1vnvvv-Nzp with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client BHhwxYe2fEer - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client BHhwxYe2fEer with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client BIR1aBr3mfRh - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Bm5tMkJfBahn - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Bm5tMkJfBahn with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Fe8ZucpIrLsS - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client GxE79WOUh15V - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client GxE79WOUh15V with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client IKpNu_o2x_ED - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client IKpNu_o2x_ED with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client IOj-hEp7jB4b - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client I_xO_WNNF_yB - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client I_xO_WNNF_yB with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client IuIdp8GP60Xh - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client JaI9EEa5UJlT - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Lg9BarYo-yTq - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client MrMgHv4n6Mq2 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client QM1zpCcvbf9y - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client QM1zpCcvbf9y with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Slor16KDknO7 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Slor16KDknO7 with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client StJcODTzdEb- - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client U52ZFG4osCOD - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client U52ZFG4osCOD with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client UE_wP3wI95ML - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client UE_wP3wI95ML with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client UbXpkyO-6oGt - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client VrLG0agUBIL9 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client WkBeOp4IZ6lg - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client WkBeOp4IZ6lg with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Y62wzhM15sIE - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client Y62wzhM15sIE with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ZoXv_ZptsxUB - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client b1MkZpAjUmBf - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client dgnHZqV08R3t - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ec-CZ-RsR5VE - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ec-CZ-RsR5VE with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client fXBtM-ZNBiJo - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client fXBtM-ZNBiJo with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client fuhPbBAkY0rW - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client fuhPbBAkY0rW with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client g8Gvd9NoUm6l - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client g8Gvd9NoUm6l with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client h19wKP-9ciHr - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client h19wKP-9ciHr with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client hK7vPwEmTIgC - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client hK7vPwEmTIgC with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ijzBKR6jBz9L - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ijzBKR6jBz9L with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client lDGC6UY3h7ev - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client lDGC6UY3h7ev with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client nfXmfCwgyWV4 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client nfXmfCwgyWV4 with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client o6nA6zklWAGI - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client o6nA6zklWAGI with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client pqMDgZsClAJc - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client q-WjLnkVZVWW - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qO9Q1ZO3mK3I - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qT_DJnNcPHus - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qT_DJnNcPHus with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qYVe6OLSPIRu - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qYVe6OLSPIRu with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client qyvjPKmiGM_2 - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ri7493-l87AY - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ri7493-l87AY with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client sgM1oDpqRRkR - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client sgM1oDpqRRkR with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client uLL6DPadjm7_ - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client uLL6DPadjm7_ with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client udo7Y0eh2ARb - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client udo7Y0eh2ARb with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client ujzeMbcEFUTI - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client vbs4EEx3Nsub - in known stale clients list
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client vbs4EEx3Nsub with age 7266659.220000029
+1782589451240	Sync.Engine.Clients	INFO	Hiding stale client wUCcTHOckwWw - in known stale clients list
+1782589451241	Sync.Engine.Clients	INFO	Uploading 1 outgoing records
+1782589451241	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/open-uri
+1782589451241	FirefoxAccounts	TRACE	Getting command keys: https://identity.mozilla.com/cmd/close-uri/v1
+1782589451242	Sync.Engine.Clients	INFO	Posting 1 records of 550 bytes with batch=true
+1782589451242	FirefoxAccounts	TRACE	not checking freshness of profile as it remains recent
+1782589451243	Sync.Collection	DEBUG	POST Length: 550
+1782589451664	FirefoxAccounts	DEBUG	CommandQueue shutdown is flushing the queue with a timer=false
+1782589451702	Sync.Collection	DEBUG	POST success 200 https://sync-1-us-west1-g.sync.services.mozilla.com/1.5/208956513/storage/clients?batch=true&commit=true
+1782589451712	Sync.Status	DEBUG	Status for engine clients: error.engine.reason.unknown_fail
+1782589451712	Sync.Status	DEBUG	Status.service: success.status_ok => error.sync.failed_partial
+1782589451712	Sync.ErrorHandler	DEBUG	clients was interrupted due to the application shutting down
+1782589451712	Sync.Synchronizer	INFO	clients was interrupted by shutdown; no other engines will sync
+1782589451712	Sync.Synchronizer	WARN	Client engine sync failed. Aborting.
+1782589451713	Sync.Declined	DEBUG	Handling remote declined: []
+1782589451713	Sync.Declined	DEBUG	Handling local declined: []
+1782589451713	Sync.Declined	DEBUG	Declined changed? false
+1782589451713	Sync.Service	INFO	No change to declined engines. Not reuploading meta/global.
+1782589451713	Sync.ErrorHandler	ERROR	Some engines did not sync correctly.
+1782589451713	Sync.SyncScheduler	DEBUG	Next sync in 90000 ms. (why=schedule)

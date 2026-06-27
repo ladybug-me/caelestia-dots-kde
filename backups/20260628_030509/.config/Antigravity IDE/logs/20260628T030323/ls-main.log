@@ -1,0 +1,490 @@
+2026-06-28 03:03:23.829 [info] [LS Main] Starting language server from: /opt/antigravity-ide/resources/app/extensions/antigravity/bin/language_server_linux_x64
+2026-06-28 03:03:23.862 [info] [LS Main] Args: --csrf_token 7281daa6-832c-4b41-a4fb-82ceff38114b --extension_server_port 39307 --extension_server_csrf_token de06c2ef-c3e3-43b7-a727-500e9ccdc8f6 --app_data_dir antigravity-ide --subclient_type ide --cloud_code_endpoint https://cloudcode-pa.googleapis.com
+2026-06-28 03:03:23.868 [info] [LS Main] Process spawned with PID: 609823
+2026-06-28 03:03:23.918 [error] [LS Main stderr] I0628 03:03:23.917127 609823 server.go:1296] Starting language server process with pid 609823
+I0628 03:03:23.917175 609823 server.go:336] Setting GOMAXPROCS to 4
+I0628 03:03:23.917776 609823 server.go:479] Language server will attempt to listen on host localhost
+
+2026-06-28 03:03:23.919 [error] [LS Main stderr] I0628 03:03:23.918629 609823 server.go:493] Language server listening on random port at 35045 for HTTPS (gRPC)
+I0628 03:03:23.918855 609823 server.go:500] Language server listening on random port at 38171 for HTTP
+
+2026-06-28 03:03:24.378 [error] [LS Main stderr] I0628 03:03:24.378530 609823 server.go:472] Created extension server client at port 39307
+
+2026-06-28 03:03:24.390 [error] [LS Main stderr] I0628 03:03:24.390421 609823 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+
+2026-06-28 03:03:24.851 [error] No LS client info found for local authority
+2026-06-28 03:03:27.248 [error] [LS Main stderr] I0628 03:03:27.247863 609823 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x62f19f90696dcd77
+
+2026-06-28 03:03:27.391 [error] [LS Main stderr] E0628 03:03:27.391545 609823 log.go:398] WaitForReady failed: context deadline exceeded
+
+2026-06-28 03:03:27.392 [error] [LS Main stderr] I0628 03:03:27.391837 609823 server.go:2283] Auth succeeded, refreshing features and managers
+
+2026-06-28 03:03:28.230 [error] No LS client info found for local authority
+2026-06-28 03:03:28.234 [error] [LS Main stderr] I0628 03:03:28.234643 609823 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x7c56ce2dce97c176
+
+2026-06-28 03:03:28.349 [error] [LS Main stderr] I0628 03:03:28.338368 609823 server.go:2289] State refresh took 946ms
+
+2026-06-28 03:03:28.358 [info] [LS Main] LS started on port 35045
+2026-06-28 03:03:28.367 [error] [LS Main stderr] I0628 03:03:28.362393 609823 server.go:1944] initialized server successfully in 4.445198268s
+
+2026-06-28 03:03:28.449 [error] [LS Main stderr] 2026/06/28 03:03:28 http: TLS handshake error from 127.0.0.1:49732: EOF
+2026/06/28 03:03:28 http: TLS handshake error from 127.0.0.1:49752: EOF
+2026/06/28 03:03:28 http: TLS handshake error from 127.0.0.1:49750: EOF
+2026/06/28 03:03:28 http: TLS handshake error from 127.0.0.1:49736: EOF
+2026/06/28 03:03:28 http: TLS handshake error from 127.0.0.1:49734: EOF
+
+2026-06-28 03:03:28.797 [error] [LS Main stderr] E0628 03:03:28.797409 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.800 [error] [LS Main stderr] E0628 03:03:28.799943 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.800 [error] [LS Main stderr] E0628 03:03:28.800095 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.803 [error] [LS Main stderr] E0628 03:03:28.803034 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.804 [error] [LS Main stderr] E0628 03:03:28.803034 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.805 [error] [LS Main stderr] E0628 03:03:28.805452 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.806 [error] [LS Main stderr] E0628 03:03:28.806333 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.808 [error] [LS Main stderr] E0628 03:03:28.808229 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 03:03:28.808437 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.809 [error] [LS Main stderr] E0628 03:03:28.809244 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.815 [error] [LS Main stderr] E0628 03:03:28.815031 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 03:03:28.815133 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.815 [error] [LS Main stderr] E0628 03:03:28.815498 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.816 [error] [LS Main stderr] E0628 03:03:28.815989 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.816 [error] [LS Main stderr] E0628 03:03:28.816618 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.816 [error] [LS Main stderr] E0628 03:03:28.816777 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.817 [error] [LS Main stderr] E0628 03:03:28.817020 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.817 [error] [LS Main stderr] E0628 03:03:28.817320 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.817 [error] [LS Main stderr] E0628 03:03:28.817657 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:28.818 [error] [LS Main stderr] E0628 03:03:28.818102 609823 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 03:03:31.295 [error] [LS Main stderr] I0628 03:03:31.295833 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x8d8ff3f038d73dca
+
+2026-06-28 03:03:32.268 [error] [LS Main stderr] I0628 03:03:32.267831 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x560385005a6ed4e
+
+2026-06-28 03:03:32.288 [error] [LS Main stderr] E0628 03:03:32.288266 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.290 [error] [LS Main stderr] E0628 03:03:32.290249 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.294 [error] [LS Main stderr] E0628 03:03:32.293582 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.297 [error] [LS Main stderr] E0628 03:03:32.297332 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.299 [error] [LS Main stderr] E0628 03:03:32.299057 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.303 [error] [LS Main stderr] E0628 03:03:32.301610 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.304 [error] [LS Main stderr] E0628 03:03:32.304325 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.307 [error] [LS Main stderr] E0628 03:03:32.307426 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.310 [error] [LS Main stderr] E0628 03:03:32.309967 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.312 [error] [LS Main stderr] E0628 03:03:32.311930 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.313 [error] [LS Main stderr] E0628 03:03:32.313514 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.316 [error] [LS Main stderr] E0628 03:03:32.316144 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.318 [error] [LS Main stderr] E0628 03:03:32.317821 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.320 [error] [LS Main stderr] E0628 03:03:32.319854 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.322 [error] [LS Main stderr] E0628 03:03:32.322002 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.324 [error] [LS Main stderr] E0628 03:03:32.324060 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.325 [error] [LS Main stderr] E0628 03:03:32.325574 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.327 [error] [LS Main stderr] E0628 03:03:32.327304 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.329 [error] [LS Main stderr] E0628 03:03:32.329396 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.331 [error] [LS Main stderr] E0628 03:03:32.331206 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.333 [error] [LS Main stderr] E0628 03:03:32.333169 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.335 [error] [LS Main stderr] E0628 03:03:32.335034 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.337 [error] [LS Main stderr] E0628 03:03:32.336830 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.338 [error] [LS Main stderr] E0628 03:03:32.338395 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.342 [error] [LS Main stderr] E0628 03:03:32.341690 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.345 [error] [LS Main stderr] E0628 03:03:32.344637 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.347 [error] [LS Main stderr] E0628 03:03:32.346971 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.349 [error] [LS Main stderr] E0628 03:03:32.349307 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.351 [error] [LS Main stderr] E0628 03:03:32.351384 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.353 [error] [LS Main stderr] E0628 03:03:32.353002 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.355 [error] [LS Main stderr] E0628 03:03:32.355396 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.357 [error] [LS Main stderr] E0628 03:03:32.357543 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.359 [error] [LS Main stderr] E0628 03:03:32.359152 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.361 [error] [LS Main stderr] E0628 03:03:32.361375 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.364 [error] [LS Main stderr] E0628 03:03:32.364332 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.366 [error] [LS Main stderr] E0628 03:03:32.366249 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.369 [error] [LS Main stderr] E0628 03:03:32.369318 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.371 [error] [LS Main stderr] E0628 03:03:32.371077 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.373 [error] [LS Main stderr] E0628 03:03:32.373200 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.375 [error] [LS Main stderr] E0628 03:03:32.375234 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.377 [error] [LS Main stderr] E0628 03:03:32.377092 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.379 [error] [LS Main stderr] E0628 03:03:32.379148 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.382 [error] [LS Main stderr] E0628 03:03:32.382099 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.384 [error] [LS Main stderr] E0628 03:03:32.384905 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.387 [error] [LS Main stderr] E0628 03:03:32.386810 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.394 [error] [LS Main stderr] E0628 03:03:32.388136 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.396 [error] [LS Main stderr] E0628 03:03:32.396625 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.398 [error] [LS Main stderr] E0628 03:03:32.397969 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.400 [error] [LS Main stderr] E0628 03:03:32.400283 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.401 [error] [LS Main stderr] E0628 03:03:32.401679 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.405 [error] [LS Main stderr] E0628 03:03:32.403743 609823 log.go:398] failed to check terminal shell support: internal: internal error
+E0628 03:03:32.405492 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.407 [error] [LS Main stderr] E0628 03:03:32.407356 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.409 [error] [LS Main stderr] E0628 03:03:32.409327 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.411 [error] [LS Main stderr] E0628 03:03:32.410769 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.412 [error] [LS Main stderr] E0628 03:03:32.412695 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.414 [error] [LS Main stderr] E0628 03:03:32.413960 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.415 [error] [LS Main stderr] E0628 03:03:32.415484 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.417 [error] [LS Main stderr] E0628 03:03:32.417394 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.418 [error] [LS Main stderr] E0628 03:03:32.418639 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.421 [error] [LS Main stderr] E0628 03:03:32.420400 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.424 [error] [LS Main stderr] E0628 03:03:32.424375 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.427 [error] [LS Main stderr] E0628 03:03:32.427367 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.432 [error] [LS Main stderr] E0628 03:03:32.429342 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.434 [error] [LS Main stderr] E0628 03:03:32.432278 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.435 [error] [LS Main stderr] E0628 03:03:32.434907 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.440 [error] [LS Main stderr] E0628 03:03:32.437825 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.442 [error] [LS Main stderr] E0628 03:03:32.440457 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.445 [error] [LS Main stderr] E0628 03:03:32.443011 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.446 [error] [LS Main stderr] E0628 03:03:32.446377 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.457 [error] [LS Main stderr] E0628 03:03:32.457551 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.460 [error] [LS Main stderr] E0628 03:03:32.460463 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.463 [error] [LS Main stderr] E0628 03:03:32.462375 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.464 [error] [LS Main stderr] E0628 03:03:32.464141 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.465 [error] [LS Main stderr] E0628 03:03:32.465614 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.467 [error] [LS Main stderr] E0628 03:03:32.467321 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.469 [error] [LS Main stderr] E0628 03:03:32.469199 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.471 [error] [LS Main stderr] E0628 03:03:32.470349 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.472 [error] [LS Main stderr] E0628 03:03:32.472340 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.474 [error] [LS Main stderr] E0628 03:03:32.474198 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.477 [error] [LS Main stderr] E0628 03:03:32.476355 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.479 [error] [LS Main stderr] E0628 03:03:32.479274 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.482 [error] [LS Main stderr] E0628 03:03:32.482005 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.483 [error] [LS Main stderr] E0628 03:03:32.483283 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.484 [error] [LS Main stderr] E0628 03:03:32.484656 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:32.487 [error] [LS Main stderr] E0628 03:03:32.487046 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.321 [error] [LS Main stderr] E0628 03:03:33.321747 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.324 [error] [LS Main stderr] E0628 03:03:33.324335 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.326 [error] [LS Main stderr] E0628 03:03:33.326427 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.332 [error] [LS Main stderr] E0628 03:03:33.331446 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.347 [error] [LS Main stderr] E0628 03:03:33.346457 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.350 [error] [LS Main stderr] E0628 03:03:33.349115 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.352 [error] [LS Main stderr] E0628 03:03:33.352262 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.354 [error] [LS Main stderr] E0628 03:03:33.354393 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.358 [error] [LS Main stderr] E0628 03:03:33.356548 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.359 [error] [LS Main stderr] E0628 03:03:33.359360 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.361 [error] [LS Main stderr] E0628 03:03:33.361386 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:33.364 [error] [LS Main stderr] E0628 03:03:33.363320 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:34.599 [error] [LS Main stderr] I0628 03:03:34.599150 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x6f7523086506cca3
+
+2026-06-28 03:03:51.665 [error] [LS Main stderr] E0628 03:03:51.665921 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.667 [error] [LS Main stderr] E0628 03:03:51.667096 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.671 [error] [LS Main stderr] E0628 03:03:51.669435 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.672 [error] [LS Main stderr] E0628 03:03:51.672330 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.674 [error] [LS Main stderr] E0628 03:03:51.674333 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.686 [error] [LS Main stderr] E0628 03:03:51.685857 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.722 [error] [LS Main stderr] E0628 03:03:51.722240 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.723 [error] [LS Main stderr] E0628 03:03:51.723675 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.725 [error] [LS Main stderr] E0628 03:03:51.725709 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.738 [error] [LS Main stderr] E0628 03:03:51.738353 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.740 [error] [LS Main stderr] E0628 03:03:51.740351 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.747 [error] [LS Main stderr] E0628 03:03:51.747348 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.749 [error] [LS Main stderr] E0628 03:03:51.749348 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.759 [error] [LS Main stderr] E0628 03:03:51.759400 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.761 [error] [LS Main stderr] E0628 03:03:51.761329 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.773 [error] [LS Main stderr] E0628 03:03:51.773375 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.774 [error] [LS Main stderr] E0628 03:03:51.774896 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.781 [error] [LS Main stderr] E0628 03:03:51.781087 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.783 [error] [LS Main stderr] E0628 03:03:51.783392 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.795 [error] [LS Main stderr] E0628 03:03:51.795329 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.797 [error] [LS Main stderr] E0628 03:03:51.797085 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:51.798 [error] [LS Main stderr] E0628 03:03:51.798164 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime1.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.798 [error] [LS Main stderr] E0628 03:03:51.798753 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime10.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.799 [error] [LS Main stderr] E0628 03:03:51.799447 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime11.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.800 [error] [LS Main stderr] E0628 03:03:51.800026 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime12.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.800 [error] [LS Main stderr] E0628 03:03:51.800577 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime13.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.801 [error] [LS Main stderr] E0628 03:03:51.801019 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime14.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.801 [error] [LS Main stderr] E0628 03:03:51.801555 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime15.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.802 [error] [LS Main stderr] E0628 03:03:51.802189 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime16.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.802 [error] [LS Main stderr] E0628 03:03:51.802815 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime17.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.803 [error] [LS Main stderr] E0628 03:03:51.803292 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime18.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.808 [error] [LS Main stderr] E0628 03:03:51.808587 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime19.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.809 [error] [LS Main stderr] E0628 03:03:51.809117 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime2.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.809 [error] [LS Main stderr] E0628 03:03:51.809659 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime20.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.810 [error] [LS Main stderr] E0628 03:03:51.810109 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime21.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.810 [error] [LS Main stderr] E0628 03:03:51.810620 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime22.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.811 [error] [LS Main stderr] E0628 03:03:51.811003 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime23.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.811 [error] [LS Main stderr] E0628 03:03:51.811496 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime24.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.812 [error] [LS Main stderr] E0628 03:03:51.811990 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime25.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.812 [error] [LS Main stderr] E0628 03:03:51.812529 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime26.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.813 [error] [LS Main stderr] E0628 03:03:51.813006 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime27.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.813 [error] [LS Main stderr] E0628 03:03:51.813450 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime28.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.814 [error] [LS Main stderr] E0628 03:03:51.814028 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime29.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.814 [error] [LS Main stderr] E0628 03:03:51.814517 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime3.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.815 [error] [LS Main stderr] E0628 03:03:51.815029 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime30.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.815 [error] [LS Main stderr] E0628 03:03:51.815458 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime31.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.815 [error] [LS Main stderr] E0628 03:03:51.815830 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime32.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.816 [error] [LS Main stderr] E0628 03:03:51.816176 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime33.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.816 [error] [LS Main stderr] E0628 03:03:51.816593 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime34.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.817 [error] [LS Main stderr] E0628 03:03:51.817072 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime35.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.817 [error] [LS Main stderr] E0628 03:03:51.817516 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime36.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.817 [error] [LS Main stderr] E0628 03:03:51.817926 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime37.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.818 [error] [LS Main stderr] E0628 03:03:51.818346 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime38.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.818 [error] [LS Main stderr] E0628 03:03:51.818798 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime39.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.819 [error] [LS Main stderr] E0628 03:03:51.819254 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime4.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.819 [error] [LS Main stderr] E0628 03:03:51.819723 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime40.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.820 [error] [LS Main stderr] E0628 03:03:51.820231 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime41.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.820 [error] [LS Main stderr] E0628 03:03:51.820642 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime42.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.821 [error] [LS Main stderr] E0628 03:03:51.821046 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime43.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.821 [error] [LS Main stderr] E0628 03:03:51.821485 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime44.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.821 [error] [LS Main stderr] E0628 03:03:51.821873 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime45.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.822 [error] [LS Main stderr] E0628 03:03:51.822283 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime46.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.822 [error] [LS Main stderr] E0628 03:03:51.822692 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime5.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.823 [error] [LS Main stderr] E0628 03:03:51.823103 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime6.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.823 [error] [LS Main stderr] E0628 03:03:51.823476 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime7.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.823 [error] [LS Main stderr] E0628 03:03:51.823913 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime8.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.824 [error] [LS Main stderr] E0628 03:03:51.824329 609823 repo.go:340] failed to create patch for untracked file shell/assets/shimeji/pusheen/shime9.png: bytes are not valid utf8
+
+2026-06-28 03:03:51.824 [error] [LS Main stderr] E0628 03:03:51.824743 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/Effect_Tick.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.825 [error] [LS Main stderr] E0628 03:03:51.825214 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/Lock.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.825 [error] [LS Main stderr] E0628 03:03:51.825682 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/Unlock.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.828 [error] [LS Main stderr] E0628 03:03:51.828399 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/VideoRecord.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.829 [error] [LS Main stderr] E0628 03:03:51.829571 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/VideoStop.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.831 [error] [LS Main stderr] E0628 03:03:51.831058 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/camera_click.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.832 [error] [LS Main stderr] E0628 03:03:51.832004 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/Aldebaran.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.833 [error] [LS Main stderr] E0628 03:03:51.833154 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/Betelgeuse.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.834 [error] [LS Main stderr] E0628 03:03:51.834191 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/Cricket.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.834 [error] [LS Main stderr] E0628 03:03:51.834924 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/Doink.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.835 [error] [LS Main stderr] E0628 03:03:51.835820 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/Plastic_Pipe.wav: bytes are not valid utf8
+
+2026-06-28 03:03:51.837 [error] [LS Main stderr] E0628 03:03:51.837010 609823 repo.go:340] failed to create patch for untracked file shell/assets/sounds/notifications/arcturus.wav: bytes are not valid utf8
+
+2026-06-28 03:03:52.404 [error] [LS Main stderr] E0628 03:03:52.404425 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:52.407 [error] [LS Main stderr] E0628 03:03:52.407580 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:52.411 [error] [LS Main stderr] E0628 03:03:52.411493 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:52.414 [error] [LS Main stderr] E0628 03:03:52.414178 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:55.877 [error] [LS Main stderr] I0628 03:03:55.877239 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x4adb07ce4f3b8f3d
+
+2026-06-28 03:03:55.929 [error] [LS Main stderr] E0628 03:03:55.929074 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:55.931 [error] [LS Main stderr] E0628 03:03:55.930987 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.609 [error] [LS Main stderr] E0628 03:03:56.609305 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.617 [error] [LS Main stderr] E0628 03:03:56.617191 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.620 [error] [LS Main stderr] E0628 03:03:56.618607 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.622 [error] [LS Main stderr] E0628 03:03:56.622293 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.630 [error] [LS Main stderr] E0628 03:03:56.629703 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.633 [error] [LS Main stderr] E0628 03:03:56.632132 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.638 [error] [LS Main stderr] E0628 03:03:56.637973 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:56.639 [error] [LS Main stderr] E0628 03:03:56.639776 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:57.369 [error] [LS Main stderr] I0628 03:03:57.368368 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x2c0ad71ac00ff78e
+
+2026-06-28 03:03:58.413 [error] [LS Main stderr] E0628 03:03:58.413442 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:58.418 [error] [LS Main stderr] E0628 03:03:58.416368 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:58.419 [error] [LS Main stderr] E0628 03:03:58.418957 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:03:58.420 [error] [LS Main stderr] E0628 03:03:58.420345 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:01.140 [error] [LS Main stderr] I0628 03:04:01.140012 609823 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xa2906da9f3d34b68
+
+2026-06-28 03:04:01.180 [error] [LS Main stderr] E0628 03:04:01.179200 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:01.182 [error] [LS Main stderr] E0628 03:04:01.182216 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.264 [error] [LS Main stderr] E0628 03:04:03.264279 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.266 [error] [LS Main stderr] E0628 03:04:03.266402 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.429 [error] [LS Main stderr] E0628 03:04:03.429691 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.432 [error] [LS Main stderr] E0628 03:04:03.431493 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.435 [error] [LS Main stderr] E0628 03:04:03.435157 609823 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 03:04:03.438 [error] [LS Main stderr] E0628 03:04:03.437385 609823 log.go:398] failed to check terminal shell support: internal: internal error
+

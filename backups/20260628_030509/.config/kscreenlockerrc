@@ -1,0 +1,3 @@
+[Daemon]
+Autolock=false
+Timeout=0

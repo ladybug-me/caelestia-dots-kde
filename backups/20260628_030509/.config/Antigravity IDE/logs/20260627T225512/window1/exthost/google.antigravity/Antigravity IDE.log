@@ -1,0 +1,37 @@
+2026-06-27 22:55:16.808 [info] I0627 22:55:16.631601  1878 server.go:1296] Starting language server process with pid 1878
+2026-06-27 22:55:16.809 [info] I0627 22:55:16.631654  1878 server.go:336] Setting GOMAXPROCS to 4
+2026-06-27 22:55:16.809 [info] I0627 22:55:16.632153  1878 server.go:479] Language server will attempt to listen on host localhost
+2026-06-27 22:55:16.809 [info] I0627 22:55:16.632937  1878 server.go:493] Language server listening on random port at 44057 for HTTPS (gRPC)
+2026-06-27 22:55:16.809 [info] I0627 22:55:16.633150  1878 server.go:500] Language server listening on random port at 40369 for HTTP
+2026-06-27 22:55:17.071 [info] I0627 22:55:17.071004  1878 server.go:472] Created extension server client at port 37127
+2026-06-27 22:55:17.099 [info] I0627 22:55:17.094824  1878 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+2026-06-27 22:55:20.095 [info] E0627 22:55:20.095354  1878 log.go:398] WaitForReady failed: context deadline exceeded
+2026-06-27 22:55:20.097 [info] I0627 22:55:20.096852  1878 server.go:2283] Auth succeeded, refreshing features and managers
+2026-06-27 22:55:20.625 [info] I0627 22:55:20.624919  1878 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc57a34b780fd96bf
+2026-06-27 22:55:22.176 [info] I0627 22:55:22.175978  1878 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x13e82fcd98e0fb9e
+2026-06-27 22:55:22.180 [info] I0627 22:55:22.179770  1878 server.go:2289] State refresh took 2082ms
+2026-06-27 22:55:22.194 [info] (Antigravity IDE) 2026-06-27 22:55:22.193 [INFO]: Language server started
+2026-06-27 22:55:22.205 [info] I0627 22:55:22.205147  1878 server.go:1944] initialized server successfully in 5.57347022s
+2026-06-27 22:55:22.220 [info] (Antigravity IDE) 2026-06-27 22:55:22.220 [INFO]: LS lspClient started successfully
+2026-06-27 22:55:22.259 [info] I0627 22:55:22.259463  1878 server.go:2149] Got signal terminated, shutting down
+2026-06-27 22:55:22.259 [info] I0627 22:55:22.259487  1878 server.go:2190] Language server shutting down
+2026-06-27 22:55:22.515 [info] (Antigravity IDE) 2026-06-27 22:55:22.515 [INFO]: Language server exited with code 0
+2026-06-27 22:55:22.559 [info] I0627 22:55:22.559598  1962 server.go:1296] Starting language server process with pid 1962
+2026-06-27 22:55:22.560 [info] I0627 22:55:22.559647  1962 server.go:336] Setting GOMAXPROCS to 4
+2026-06-27 22:55:22.561 [info] I0627 22:55:22.560769  1962 server.go:479] Language server will attempt to listen on host localhost
+2026-06-27 22:55:22.561 [info] I0627 22:55:22.561652  1962 server.go:493] Language server listening on fixed port at 44057 for HTTPS (gRPC)
+2026-06-27 22:55:22.562 [info] I0627 22:55:22.561937  1962 server.go:500] Language server listening on fixed port at 42317 for HTTP
+2026-06-27 22:55:23.099 [info] I0627 22:55:23.098320  1962 server.go:472] Created extension server client at port 37127
+2026-06-27 22:55:23.110 [info] I0627 22:55:23.109945  1962 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+2026-06-27 22:55:25.875 [info] I0627 22:55:25.874958  1962 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xfb329050e8a380d7
+2026-06-27 22:55:26.112 [info] E0627 22:55:26.111384  1962 log.go:398] WaitForReady failed: context deadline exceeded
+2026-06-27 22:55:26.113 [info] I0627 22:55:26.113417  1962 server.go:2283] Auth succeeded, refreshing features and managers
+2026-06-27 22:55:27.090 [info] I0627 22:55:27.089621  1962 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x8102b64503fa89b9
+2026-06-27 22:55:27.094 [info] I0627 22:55:27.093611  1962 server.go:2289] State refresh took 980ms
+2026-06-27 22:55:27.102 [info] (Antigravity IDE) 2026-06-27 22:55:27.101 [INFO]: Language server started
+2026-06-27 22:55:27.105 [info] I0627 22:55:27.105024  1962 server.go:1944] initialized server successfully in 4.545350506s
+2026-06-27 22:55:27.110 [info] (Antigravity IDE) 2026-06-27 22:55:27.110 [INFO]: LS lspClient started successfully
+2026-06-27 22:58:49.771 [info] (Antigravity IDE) 2026-06-27 22:58:49.771 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-27 22:59:06.598 [info] (Antigravity IDE) 2026-06-27 22:59:06.598 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-27 23:01:24.962 [info] I0627 23:01:24.961707  1962 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xfac30fcd4bb71f6
+2026-06-27 23:01:26.689 [info] I0627 23:01:26.688517  1962 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x3c596be56687ce88

@@ -2,9 +2,8 @@
 
 #include "configobject.hpp"
 
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qvariant.h>
+#include <QFileInfo>
+#include <QStandardPaths>
 
 namespace caelestia::config {
 
@@ -14,8 +13,8 @@ class GeneralApps : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_GLOBAL_PROPERTY(QStringList, terminal, { u"foot"_s })
-    CONFIG_GLOBAL_PROPERTY(QStringList, audio, { u"pavucontrol"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, terminal, { u"xdg-open"_s })
+    CONFIG_GLOBAL_PROPERTY(QStringList, audio, { u"xdg-open"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, playback, { u"xdg-open"_s })
     CONFIG_GLOBAL_PROPERTY(QStringList, explorer, { u"xdg-open"_s })
 
@@ -43,7 +42,7 @@ class GeneralIdle : public ConfigObject {
             }),
             vmap({
                 { u"timeout"_s, 600 },
-                { u"idleAction"_s, QStringList{ u"systemctl"_s, u"suspend-then-hibernate"_s } },
+                { u"idleAction"_s, QStringList{ u"suspendThenHibernate"_s } },
             }),
         })
 

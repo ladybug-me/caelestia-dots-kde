@@ -34,6 +34,7 @@ class QSKWinBridge(dbus.service.Object):
             except Exception:
                 pass
             scripting_iface.loadScript(KWIN_SCRIPT_PATH)
+            scripting_iface.start()
         except Exception:
             pass
         return False  # Don't repeat

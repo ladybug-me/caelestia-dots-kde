@@ -1,0 +1,584 @@
+2026-06-27 22:55:12.789 [info] [LS Main] Starting language server from: /opt/antigravity-ide/resources/app/extensions/antigravity/bin/language_server_linux_x64
+2026-06-27 22:55:12.985 [info] [LS Main] Args: --csrf_token 2b0eb6de-80cf-4376-a0a8-0ffdca83eeb7 --extension_server_port 33361 --extension_server_csrf_token aa74f410-d0f7-4d03-9ea4-4f6dd3a7c9d9 --app_data_dir antigravity-ide --subclient_type ide --cloud_code_endpoint https://cloudcode-pa.googleapis.com
+2026-06-27 22:55:13.027 [info] [LS Main] Process spawned with PID: 1644
+2026-06-27 22:55:13.588 [error] [LS Main stderr] I0627 22:55:13.588457  1644 server.go:1296] Starting language server process with pid 1644
+I0627 22:55:13.588513  1644 server.go:336] Setting GOMAXPROCS to 4
+
+2026-06-27 22:55:13.589 [error] [LS Main stderr] I0627 22:55:13.589134  1644 server.go:479] Language server will attempt to listen on host localhost
+
+2026-06-27 22:55:13.590 [error] [LS Main stderr] I0627 22:55:13.589972  1644 server.go:493] Language server listening on random port at 39565 for HTTPS (gRPC)
+
+2026-06-27 22:55:13.590 [error] [LS Main stderr] I0627 22:55:13.590191  1644 server.go:500] Language server listening on random port at 33739 for HTTP
+
+2026-06-27 22:55:14.192 [error] [LS Main stderr] I0627 22:55:14.192376  1644 server.go:472] Created extension server client at port 33361
+
+2026-06-27 22:55:14.204 [error] [LS Main stderr] I0627 22:55:14.204794  1644 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+
+2026-06-27 22:55:14.308 [error] No LS client info found for local authority
+2026-06-27 22:55:17.215 [error] [LS Main stderr] E0627 22:55:17.215325  1644 log.go:398] WaitForReady failed: context deadline exceeded
+
+2026-06-27 22:55:17.215 [error] [LS Main stderr] I0627 22:55:17.215596  1644 server.go:2283] Auth succeeded, refreshing features and managers
+
+2026-06-27 22:55:17.780 [error] [LS Main stderr] I0627 22:55:17.779766  1644 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x44a09d10c9c25285
+
+2026-06-27 22:55:19.731 [error] [LS Main stderr] I0627 22:55:19.731073  1644 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xe5fa31df4090b4dd
+
+2026-06-27 22:55:19.739 [error] [LS Main stderr] I0627 22:55:19.738752  1644 server.go:2289] State refresh took 2523ms
+
+2026-06-27 22:55:19.752 [info] [LS Main] LS started on port 39565
+2026-06-27 22:55:19.755 [error] [LS Main stderr] I0627 22:55:19.755214  1644 server.go:1944] initialized server successfully in 6.166678083s
+
+2026-06-27 22:55:19.892 [error] [LS Main stderr] E0627 22:55:19.890088  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.939 [error] [LS Main stderr] E0627 22:55:19.939030  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.940 [error] [LS Main stderr] E0627 22:55:19.940367  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.944 [error] [LS Main stderr] E0627 22:55:19.944490  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.945 [error] [LS Main stderr] E0627 22:55:19.945276  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.947 [error] [LS Main stderr] E0627 22:55:19.947059  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.949 [error] [LS Main stderr] E0627 22:55:19.949237  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.952 [error] [LS Main stderr] E0627 22:55:19.952610  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.954 [error] [LS Main stderr] E0627 22:55:19.954743  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:19.957 [error] [LS Main stderr] E0627 22:55:19.956342  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-27 22:55:22.725 [error] [LS Main stderr] I0627 22:55:22.725219  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x989d515b0b5fb32d
+
+2026-06-27 22:55:23.663 [error] [LS Main stderr] I0627 22:55:23.663799  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xfe5e3b30f0cc927a
+
+2026-06-27 22:55:23.684 [error] [LS Main stderr] E0627 22:55:23.684694  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.689 [error] [LS Main stderr] E0627 22:55:23.689198  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.691 [error] [LS Main stderr] E0627 22:55:23.691646  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.693 [error] [LS Main stderr] E0627 22:55:23.693699  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.695 [error] [LS Main stderr] E0627 22:55:23.695330  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.697 [error] [LS Main stderr] E0627 22:55:23.697282  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.699 [error] [LS Main stderr] E0627 22:55:23.699031  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.700 [error] [LS Main stderr] E0627 22:55:23.700434  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.702 [error] [LS Main stderr] E0627 22:55:23.701890  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.703 [error] [LS Main stderr] E0627 22:55:23.703159  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.705 [error] [LS Main stderr] E0627 22:55:23.705759  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.707 [error] [LS Main stderr] E0627 22:55:23.707093  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.708 [error] [LS Main stderr] E0627 22:55:23.708887  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.710 [error] [LS Main stderr] E0627 22:55:23.710087  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.711 [error] [LS Main stderr] E0627 22:55:23.711767  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.713 [error] [LS Main stderr] E0627 22:55:23.713532  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.715 [error] [LS Main stderr] E0627 22:55:23.715002  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.717 [error] [LS Main stderr] E0627 22:55:23.716698  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.718 [error] [LS Main stderr] E0627 22:55:23.718207  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.720 [error] [LS Main stderr] E0627 22:55:23.719947  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.722 [error] [LS Main stderr] E0627 22:55:23.721734  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.723 [error] [LS Main stderr] E0627 22:55:23.723539  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.725 [error] [LS Main stderr] E0627 22:55:23.725205  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.727 [error] [LS Main stderr] E0627 22:55:23.726879  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.729 [error] [LS Main stderr] E0627 22:55:23.729127  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.730 [error] [LS Main stderr] E0627 22:55:23.730569  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.732 [error] [LS Main stderr] E0627 22:55:23.732181  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.733 [error] [LS Main stderr] E0627 22:55:23.733910  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.735 [error] [LS Main stderr] E0627 22:55:23.735553  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.737 [error] [LS Main stderr] E0627 22:55:23.737441  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.739 [error] [LS Main stderr] E0627 22:55:23.739610  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.741 [error] [LS Main stderr] E0627 22:55:23.741067  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.743 [error] [LS Main stderr] E0627 22:55:23.742889  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.744 [error] [LS Main stderr] E0627 22:55:23.744574  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.746 [error] [LS Main stderr] E0627 22:55:23.746361  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.749 [error] [LS Main stderr] E0627 22:55:23.747710  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.750 [error] [LS Main stderr] E0627 22:55:23.749593  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.751 [error] [LS Main stderr] E0627 22:55:23.750846  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.760 [error] [LS Main stderr] E0627 22:55:23.753783  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.761 [error] [LS Main stderr] E0627 22:55:23.761691  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.767 [error] [LS Main stderr] E0627 22:55:23.766806  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.769 [error] [LS Main stderr] E0627 22:55:23.769371  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.771 [error] [LS Main stderr] E0627 22:55:23.771062  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.773 [error] [LS Main stderr] E0627 22:55:23.773072  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.775 [error] [LS Main stderr] E0627 22:55:23.775128  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.778 [error] [LS Main stderr] E0627 22:55:23.778373  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.781 [error] [LS Main stderr] E0627 22:55:23.781113  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.783 [error] [LS Main stderr] E0627 22:55:23.783518  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.793 [error] [LS Main stderr] E0627 22:55:23.793143  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.795 [error] [LS Main stderr] E0627 22:55:23.795075  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.798 [error] [LS Main stderr] E0627 22:55:23.798007  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.799 [error] [LS Main stderr] E0627 22:55:23.799126  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.800 [error] [LS Main stderr] E0627 22:55:23.800419  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.802 [error] [LS Main stderr] E0627 22:55:23.802049  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.803 [error] [LS Main stderr] E0627 22:55:23.803253  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.805 [error] [LS Main stderr] E0627 22:55:23.804914  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.807 [error] [LS Main stderr] E0627 22:55:23.807187  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.808 [error] [LS Main stderr] E0627 22:55:23.808396  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.810 [error] [LS Main stderr] E0627 22:55:23.809943  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.811 [error] [LS Main stderr] E0627 22:55:23.811417  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.812 [error] [LS Main stderr] E0627 22:55:23.812781  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.814 [error] [LS Main stderr] E0627 22:55:23.814025  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.815 [error] [LS Main stderr] E0627 22:55:23.815155  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.817 [error] [LS Main stderr] E0627 22:55:23.817414  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.818 [error] [LS Main stderr] E0627 22:55:23.818637  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.820 [error] [LS Main stderr] E0627 22:55:23.820040  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.821 [error] [LS Main stderr] E0627 22:55:23.821055  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:55:23.822 [error] [LS Main stderr] E0627 22:55:23.822429  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:51.369 [error] [LS Main stderr] E0627 22:58:51.369821  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:51.375 [error] [LS Main stderr] E0627 22:58:51.375076  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:51.928 [error] [LS Main stderr] E0627 22:58:51.928755  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:51.933 [error] [LS Main stderr] E0627 22:58:51.933326  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.807 [error] [LS Main stderr] E0627 22:58:52.806784  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.810 [error] [LS Main stderr] E0627 22:58:52.810766  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.873 [error] [LS Main stderr] E0627 22:58:52.873279  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.874 [error] [LS Main stderr] E0627 22:58:52.874816  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.878 [error] [LS Main stderr] E0627 22:58:52.878418  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.880 [error] [LS Main stderr] E0627 22:58:52.880740  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.882 [error] [LS Main stderr] E0627 22:58:52.882113  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.891 [error] [LS Main stderr] E0627 22:58:52.889946  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.893 [error] [LS Main stderr] E0627 22:58:52.893016  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.975 [error] [LS Main stderr] E0627 22:58:52.975594  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.976 [error] [LS Main stderr] E0627 22:58:52.976854  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:52.997 [error] [LS Main stderr] E0627 22:58:52.997722  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.002 [error] [LS Main stderr] E0627 22:58:53.002111  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.016 [error] [LS Main stderr] E0627 22:58:53.016697  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.020 [error] [LS Main stderr] E0627 22:58:53.018625  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.028 [error] [LS Main stderr] E0627 22:58:53.027884  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.030 [error] [LS Main stderr] E0627 22:58:53.030627  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.212 [error] [LS Main stderr] E0627 22:58:53.211977  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:53.213 [error] [LS Main stderr] E0627 22:58:53.213159  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:58.741 [error] [LS Main stderr] I0627 22:58:58.740807  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x36d141cb96f2d32f
+
+2026-06-27 22:58:58.796 [error] [LS Main stderr] E0627 22:58:58.796244  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:58.802 [error] [LS Main stderr] E0627 22:58:58.802621  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:59.231 [error] [LS Main stderr] E0627 22:58:59.231217  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:59.233 [error] [LS Main stderr] E0627 22:58:59.233283  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:59.272 [error] [LS Main stderr] E0627 22:58:59.271805  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:58:59.274 [error] [LS Main stderr] E0627 22:58:59.274112  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.474 [error] [LS Main stderr] I0627 22:59:04.474147  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x55cf5d178791f15b
+
+2026-06-27 22:59:04.523 [error] [LS Main stderr] E0627 22:59:04.521934  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.525 [error] [LS Main stderr] E0627 22:59:04.525076  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.730 [error] [LS Main stderr] E0627 22:59:04.730165  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.734 [error] [LS Main stderr] E0627 22:59:04.733465  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.768 [error] [LS Main stderr] E0627 22:59:04.767156  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:04.770 [error] [LS Main stderr] E0627 22:59:04.769855  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:10.617 [error] [LS Main stderr] I0627 22:59:10.617455  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xc58cfa6a26a62598
+
+2026-06-27 22:59:10.667 [error] [LS Main stderr] E0627 22:59:10.666560  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:10.669 [error] [LS Main stderr] E0627 22:59:10.668888  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:11.521 [error] [LS Main stderr] E0627 22:59:11.521711  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:11.523 [error] [LS Main stderr] E0627 22:59:11.523108  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:11.560 [error] [LS Main stderr] E0627 22:59:11.559176  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:11.564 [error] [LS Main stderr] E0627 22:59:11.564019  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:17.580 [error] [LS Main stderr] I0627 22:59:17.580106  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x88e384cca086f172
+
+2026-06-27 22:59:17.625 [error] [LS Main stderr] E0627 22:59:17.625106  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:17.627 [error] [LS Main stderr] E0627 22:59:17.627874  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:18.146 [error] [LS Main stderr] E0627 22:59:18.146188  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:18.156 [error] [LS Main stderr] E0627 22:59:18.156150  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:18.193 [error] [LS Main stderr] E0627 22:59:18.193093  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:18.199 [error] [LS Main stderr] E0627 22:59:18.199873  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:24.133 [error] [LS Main stderr] I0627 22:59:24.133470  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x57bfe2f2fa2c5f30
+
+2026-06-27 22:59:24.181 [error] [LS Main stderr] E0627 22:59:24.181637  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:24.183 [error] [LS Main stderr] E0627 22:59:24.183712  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:27.421 [error] [LS Main stderr] E0627 22:59:27.421021  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:27.424 [error] [LS Main stderr] E0627 22:59:27.424039  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:27.427 [error] [LS Main stderr] E0627 22:59:27.426728  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:27.429 [error] [LS Main stderr] E0627 22:59:27.428699  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:33.555 [error] [LS Main stderr] I0627 22:59:33.554884  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x888d69f1ed32f347
+
+2026-06-27 22:59:33.623 [error] [LS Main stderr] E0627 22:59:33.622958  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:33.629 [error] [LS Main stderr] E0627 22:59:33.629539  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:40.847 [error] [LS Main stderr] E0627 22:59:40.847192  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:40.850 [error] [LS Main stderr] E0627 22:59:40.850158  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:42.920 [error] [LS Main stderr] E0627 22:59:42.920141  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:42.921 [error] [LS Main stderr] E0627 22:59:42.921613  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:48.301 [error] [LS Main stderr] I0627 22:59:48.301156  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x53150b8d6bdc66d9
+
+2026-06-27 22:59:48.351 [error] [LS Main stderr] E0627 22:59:48.351093  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:48.354 [error] [LS Main stderr] E0627 22:59:48.354140  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:48.418 [error] [LS Main stderr] E0627 22:59:48.418591  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:48.421 [error] [LS Main stderr] E0627 22:59:48.421103  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:50.475 [error] [LS Main stderr] E0627 22:59:50.474655  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:50.478 [error] [LS Main stderr] E0627 22:59:50.478153  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:55.775 [error] [LS Main stderr] I0627 22:59:55.774564  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xe7bafaa8fa21c2a4
+
+2026-06-27 22:59:55.818 [error] [LS Main stderr] E0627 22:59:55.818343  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:55.820 [error] [LS Main stderr] E0627 22:59:55.820066  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:59.162 [error] [LS Main stderr] E0627 22:59:59.162651  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 22:59:59.164 [error] [LS Main stderr] E0627 22:59:59.164029  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:01.240 [error] [LS Main stderr] E0627 23:00:01.240680  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:01.242 [error] [LS Main stderr] E0627 23:00:01.242348  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:07.756 [error] [LS Main stderr] I0627 23:00:07.755884  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x8d26f356532d9eac
+
+2026-06-27 23:00:07.798 [error] [LS Main stderr] E0627 23:00:07.798773  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:07.804 [error] [LS Main stderr] E0627 23:00:07.804501  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:11.726 [error] [LS Main stderr] E0627 23:00:11.726045  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:11.727 [error] [LS Main stderr] E0627 23:00:11.727634  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:11.812 [error] [LS Main stderr] E0627 23:00:11.812073  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:11.815 [error] [LS Main stderr] E0627 23:00:11.815009  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:16.765 [error] [LS Main stderr] I0627 23:00:16.765190  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x11e2f0217ce6991e
+
+2026-06-27 23:00:17.994 [error] [LS Main stderr] I0627 23:00:17.993984  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x4332db0287f97e0
+
+2026-06-27 23:00:18.691 [error] [LS Main stderr] I0627 23:00:18.691126  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x135d59c57d5ea592
+
+2026-06-27 23:00:18.718 [error] [LS Main stderr] E0627 23:00:18.716485  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.718 [error] [LS Main stderr] E0627 23:00:18.718401  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.719 [error] [LS Main stderr] E0627 23:00:18.719858  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.722 [error] [LS Main stderr] E0627 23:00:18.721984  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.724 [error] [LS Main stderr] E0627 23:00:18.724859  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.728 [error] [LS Main stderr] E0627 23:00:18.727852  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.734 [error] [LS Main stderr] E0627 23:00:18.734022  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.741 [error] [LS Main stderr] E0627 23:00:18.739803  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.807 [error] [LS Main stderr] E0627 23:00:18.807237  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:18.809 [error] [LS Main stderr] E0627 23:00:18.809184  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.550 [error] [LS Main stderr] I0627 23:00:24.550128  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x1586bfe3dc38a309
+
+2026-06-27 23:00:24.604 [error] [LS Main stderr] E0627 23:00:24.604042  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.605 [error] [LS Main stderr] E0627 23:00:24.605268  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.924 [error] [LS Main stderr] E0627 23:00:24.924085  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.928 [error] [LS Main stderr] E0627 23:00:24.928139  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.954 [error] [LS Main stderr] E0627 23:00:24.953866  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:24.955 [error] [LS Main stderr] E0627 23:00:24.955493  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.077 [error] [LS Main stderr] I0627 23:00:30.077298  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x9b523d02a200c6a8
+
+2026-06-27 23:00:30.132 [error] [LS Main stderr] E0627 23:00:30.132619  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.134 [error] [LS Main stderr] E0627 23:00:30.134516  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.174 [error] [LS Main stderr] E0627 23:00:30.173981  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.175 [error] [LS Main stderr] E0627 23:00:30.175463  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.185 [error] [LS Main stderr] E0627 23:00:30.185795  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:30.188 [error] [LS Main stderr] E0627 23:00:30.188418  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:35.913 [error] [LS Main stderr] I0627 23:00:35.912974  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xef273ba14c5b7062
+
+2026-06-27 23:00:35.960 [error] [LS Main stderr] E0627 23:00:35.960042  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:35.962 [error] [LS Main stderr] E0627 23:00:35.962260  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:36.946 [error] [LS Main stderr] E0627 23:00:36.945984  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:36.948 [error] [LS Main stderr] E0627 23:00:36.947944  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:36.967 [error] [LS Main stderr] E0627 23:00:36.967272  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:36.973 [error] [LS Main stderr] E0627 23:00:36.973055  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:42.982 [error] [LS Main stderr] I0627 23:00:42.981415  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xa4fb6c651b98c8cc
+
+2026-06-27 23:00:43.031 [error] [LS Main stderr] E0627 23:00:43.031336  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:43.034 [error] [LS Main stderr] E0627 23:00:43.034148  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:44.457 [error] [LS Main stderr] E0627 23:00:44.457547  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:44.459 [error] [LS Main stderr] E0627 23:00:44.459651  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:44.499 [error] [LS Main stderr] E0627 23:00:44.498778  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:44.501 [error] [LS Main stderr] E0627 23:00:44.501104  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.739 [error] [LS Main stderr] I0627 23:00:49.738713  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x4d5d132eb7f23d49
+
+2026-06-27 23:00:49.805 [error] [LS Main stderr] E0627 23:00:49.805258  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.808 [error] [LS Main stderr] E0627 23:00:49.808170  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.839 [error] [LS Main stderr] E0627 23:00:49.839281  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.843 [error] [LS Main stderr] E0627 23:00:49.843091  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.875 [error] [LS Main stderr] E0627 23:00:49.875143  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:49.878 [error] [LS Main stderr] E0627 23:00:49.877836  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:56.701 [error] [LS Main stderr] I0627 23:00:56.701052  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xa8b945185ddf32f3
+
+2026-06-27 23:00:56.756 [error] [LS Main stderr] E0627 23:00:56.755786  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:56.757 [error] [LS Main stderr] E0627 23:00:56.757375  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:56.945 [error] [LS Main stderr] E0627 23:00:56.945725  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:56.947 [error] [LS Main stderr] E0627 23:00:56.947103  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:59.016 [error] [LS Main stderr] E0627 23:00:59.015847  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:00:59.017 [error] [LS Main stderr] E0627 23:00:59.017100  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:04.898 [error] [LS Main stderr] I0627 23:01:04.897938  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x17e97d2f38fe4faa
+
+2026-06-27 23:01:04.939 [error] [LS Main stderr] E0627 23:01:04.939412  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:04.941 [error] [LS Main stderr] E0627 23:01:04.941055  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:08.998 [error] [LS Main stderr] E0627 23:01:08.997959  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:09.001 [error] [LS Main stderr] E0627 23:01:09.001114  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:09.026 [error] [LS Main stderr] E0627 23:01:09.025502  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:09.030 [error] [LS Main stderr] E0627 23:01:09.029710  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:09.039 [error] [LS Main stderr] E0627 23:01:09.038792  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:01:09.042 [error] [LS Main stderr] E0627 23:01:09.040888  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.208 [error] [LS Main stderr] E0627 23:03:34.208111  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.209 [error] [LS Main stderr] E0627 23:03:34.209736  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.226 [error] [LS Main stderr] E0627 23:03:34.224132  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.228 [error] [LS Main stderr] E0627 23:03:34.228739  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.239 [error] [LS Main stderr] E0627 23:03:34.238106  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.242 [error] [LS Main stderr] E0627 23:03:34.242052  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:34.386 [error] [LS Main stderr] E0627 23:03:34.386313  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/AcknowledgeCascadeCodeEdit (unknown): no unacknowledged steps for file file:///home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/pages/AppsPage.qml
+
+2026-06-27 23:03:34.499 [error] [LS Main stderr] E0627 23:03:34.499193  1644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/AcknowledgeCascadeCodeEdit (unknown): no unacknowledged steps for file file:///home/ladybug-me/caelestia-dots-kde/shell/modules/nexus/common/PopupRow.qml
+
+2026-06-27 23:03:35.877 [error] [LS Main stderr] E0627 23:03:35.877075  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.881 [error] [LS Main stderr] E0627 23:03:35.881102  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.883 [error] [LS Main stderr] E0627 23:03:35.883728  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.905 [error] [LS Main stderr] E0627 23:03:35.904711  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.909 [error] [LS Main stderr] E0627 23:03:35.908162  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.923 [error] [LS Main stderr] E0627 23:03:35.923721  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.926 [error] [LS Main stderr] E0627 23:03:35.926687  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:35.979 [error] [LS Main stderr] E0627 23:03:35.979372  1644 log.go:398] segment must have agent indices
+
+2026-06-27 23:03:35.979 [error] [LS Main stderr] E0627 23:03:35.979473  1644 log.go:398] segment must have agent indices
+
+2026-06-27 23:03:36.040 [error] [LS Main stderr] E0627 23:03:36.040864  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:36.043 [error] [LS Main stderr] E0627 23:03:36.043245  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:36.213 [error] [LS Main stderr] E0627 23:03:36.213618  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:36.215 [error] [LS Main stderr] E0627 23:03:36.215020  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:41.980 [error] [LS Main stderr] I0627 23:03:41.979937  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xcbbb001ad6c077b6
+
+2026-06-27 23:03:42.029 [error] [LS Main stderr] E0627 23:03:42.029363  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:42.035 [error] [LS Main stderr] E0627 23:03:42.034988  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:42.660 [error] [LS Main stderr] E0627 23:03:42.658888  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:42.661 [error] [LS Main stderr] E0627 23:03:42.661091  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:42.694 [error] [LS Main stderr] E0627 23:03:42.693954  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:42.699 [error] [LS Main stderr] E0627 23:03:42.698498  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:48.740 [error] [LS Main stderr] I0627 23:03:48.740039  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xaf51d7766caa7b49
+
+2026-06-27 23:03:48.779 [error] [LS Main stderr] E0627 23:03:48.778971  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:48.785 [error] [LS Main stderr] E0627 23:03:48.785006  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:50.692 [error] [LS Main stderr] E0627 23:03:50.692105  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:50.693 [error] [LS Main stderr] E0627 23:03:50.693850  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:50.707 [error] [LS Main stderr] E0627 23:03:50.706657  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:50.708 [error] [LS Main stderr] E0627 23:03:50.708682  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:57.342 [error] [LS Main stderr] I0627 23:03:57.342362  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xa9170bf13ffe983f
+
+2026-06-27 23:03:57.390 [error] [LS Main stderr] E0627 23:03:57.390762  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:57.392 [error] [LS Main stderr] E0627 23:03:57.392847  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:58.385 [error] [LS Main stderr] E0627 23:03:58.385738  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:58.387 [error] [LS Main stderr] E0627 23:03:58.387331  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:58.425 [error] [LS Main stderr] E0627 23:03:58.425119  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:03:58.427 [error] [LS Main stderr] E0627 23:03:58.427097  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:04:04.715 [error] [LS Main stderr] I0627 23:04:04.715067  1644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xa398c69b36bc308d
+
+2026-06-27 23:04:04.763 [error] [LS Main stderr] E0627 23:04:04.763243  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:04:04.766 [error] [LS Main stderr] E0627 23:04:04.766291  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:04:07.374 [error] [LS Main stderr] E0627 23:04:07.374507  1644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-27 23:04:07.386 [error] [LS Main stderr] E0627 23:04:07.386596  1644 log.go:398] failed to check terminal shell support: internal: internal error
+

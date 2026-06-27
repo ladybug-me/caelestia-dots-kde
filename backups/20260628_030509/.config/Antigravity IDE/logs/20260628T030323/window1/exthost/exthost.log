@@ -1,0 +1,16 @@
+2026-06-28 03:03:25.513 [info] Extension host with pid 609942 started
+2026-06-28 03:03:25.513 [info] Skipping acquiring lock for /home/ladybug-me/.config/Antigravity IDE/User/workspaceStorage/f1671a9b340882f003db9332658ae3cc.
+2026-06-28 03:03:25.538 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*', root cause: google.antigravity
+2026-06-28 03:03:25.555 [info] ExtensionService#_doActivateExtension vscode.git, startup: true, activationEvent: '*', root cause: google.antigravity
+2026-06-28 03:03:25.594 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2026-06-28 03:03:25.647 [info] ExtensionService#_doActivateExtension google.antigravity, startup: true, activationEvent: '*'
+2026-06-28 03:03:25.674 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2026-06-28 03:03:25.961 [warning] [Decorations] CAPPING events from decorations provider vscode.git 878
+2026-06-28 03:03:26.032 [info] ExtensionService#_doActivateExtension vscode.github-authentication, startup: false, activationEvent: 'onAuthenticationRequest:github'
+2026-06-28 03:03:26.143 [warning] [Decorations] CAPPING events from decorations provider vscode.git 878
+2026-06-28 03:03:26.420 [info] ExtensionService#_doActivateExtension vscode.terminal-suggest, startup: false, activationEvent: 'onTerminalShellIntegration:*'
+2026-06-28 03:03:31.385 [info] Eager extensions activated
+2026-06-28 03:03:31.387 [info] ExtensionService#_doActivateExtension google.antigravity-dev-containers, startup: false, activationEvent: 'onStartupFinished'
+2026-06-28 03:03:31.392 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2026-06-28 03:03:31.393 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2026-06-28 03:03:52.964 [warning] [Decorations] CAPPING events from decorations provider vscode.git 878

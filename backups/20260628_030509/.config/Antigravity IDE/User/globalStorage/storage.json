@@ -1,0 +1,133 @@
+{
+    "telemetry.sqmId": "",
+    "telemetry.machineId": "15353631f405ff005ce746aed4be5d42b694f673ce2a893ba980fb8e5da022dd",
+    "telemetry.devDeviceId": "4c84675c-69bd-4d2c-a1bc-0e48f4abc1b5",
+    "backupWorkspaces": {
+        "workspaces": [],
+        "folders": [
+            {
+                "folderUri": "file:///home/ladybug-me/caelestia-dots-kde"
+            }
+        ],
+        "emptyWindows": [
+            {
+                "backupFolder": "1782596007329"
+            }
+        ]
+    },
+    "windowControlHeight": 35,
+    "profileAssociations": {
+        "workspaces": {
+            "file:///home/ladybug-me/Downloads/caelestia-dots-kde-main%20%282%29/caelestia-dots-kde-main": "__default__profile__",
+            "file:///home/ladybug-me/caelestia-dots-kde": "__default__profile__",
+            "file:///home/ladybug-me/caelestia-kde-dots": "__default__profile__"
+        },
+        "emptyWindows": {
+            "1782596007329": "__default__profile__"
+        }
+    },
+    "unifiedStateSync.hasTrajectorySummariesMigrated": true,
+    "overrideStore.migratedSecureMode": true,
+    "antigravityUnifiedStateSync.browserPreferences.hasAddedLocalhostToAllowlist": true,
+    "unifiedStateSync.hasWindowPreferencesMigrated": true,
+    "antigravityUnifiedStateSync.oauthToken.hasLegacyMigrated": true,
+    "antigravityUnifiedStateSync.browserPreferences.hasBrowserAllowlistMigrated": true,
+    "unifiedStateSync.hasUserStatusMigrated": true,
+    "sidebarWorkspaces.migratedFromInitState": true,
+    "sidebarWorkspaces.cleanedUpEmptyScratchWorkspaces": true,
+    "antigravityUnifiedStateSync.seenNuxOneTimeMigration": true,
+    "artifactReviewState.migratedFromInitState": true,
+    "theme": "vs-dark",
+    "themeBackground": "#1f1f1f",
+    "windowSplash": {
+        "zoomLevel": 0,
+        "baseTheme": "vs-dark",
+        "colorInfo": {
+            "foreground": "#cccccc",
+            "background": "#1f1f1f",
+            "editorBackground": "#1f1f1f",
+            "titleBarBackground": "#181818",
+            "titleBarBorder": "#2b2b2b",
+            "activityBarBackground": "#181818",
+            "activityBarBorder": "#2b2b2b",
+            "sideBarBackground": "#181818",
+            "sideBarBorder": "#2b2b2b",
+            "statusBarBackground": "#181818",
+            "statusBarBorder": "#2b2b2b",
+            "statusBarNoFolderBackground": "#1f1f1f"
+        },
+        "layoutInfo": {
+            "sideBarSide": "left",
+            "editorPartMinWidth": 220,
+            "titleBarHeight": 35,
+            "activityBarWidth": 42,
+            "sideBarWidth": 232,
+            "auxiliaryBarWidth": 354,
+            "statusBarHeight": 22,
+            "windowBorder": false
+        }
+    },
+    "windowsState": {
+        "lastActiveWindow": {
+            "backupPath": "/home/ladybug-me/.config/Antigravity IDE/Backups/1782596007329",
+            "uiState": {
+                "mode": 1,
+                "x": 0,
+                "y": 0,
+                "width": 1200,
+                "height": 800
+            }
+        },
+        "openedWindows": [
+            {
+                "folder": "file:///home/ladybug-me/caelestia-dots-kde",
+                "backupPath": "/home/ladybug-me/.config/Antigravity IDE/Backups/bfe3a373d5772cb58e1ee5ebb1b65cad",
+                "uiState": {
+                    "mode": 0,
+                    "x": 0,
+                    "y": 0,
+                    "width": 1200,
+                    "height": 800
+                }
+            },
+            {
+                "backupPath": "/home/ladybug-me/.config/Antigravity IDE/Backups/1782596007329",
+                "uiState": {
+                    "mode": 1,
+                    "x": 0,
+                    "y": 0,
+                    "width": 1200,
+                    "height": 800
+                }
+            }
+        ]
+    },
+    "windowSplashWorkspaceOverride": {
+        "layoutInfo": {
+            "sideBarWidth": 232,
+            "auxiliaryBarWidth": 354,
+            "workspaces": {
+                "2f4ed8a52bfa917a2656312febcf488f": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "f88dacfc8c3aa6431f8d31c3a4c52aea": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "e4956fff55cbc1566f29125f5fc56544": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "48dee0af0a7ade50dd6f2f28e680cb1c": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                },
+                "f1671a9b340882f003db9332658ae3cc": {
+                    "sideBarVisible": true,
+                    "auxiliaryBarVisible": true
+                }
+            }
+        }
+    }
+}

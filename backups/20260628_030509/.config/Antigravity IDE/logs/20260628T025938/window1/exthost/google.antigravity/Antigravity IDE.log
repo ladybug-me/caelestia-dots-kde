@@ -1,0 +1,15 @@
+2026-06-28 02:59:42.658 [info] I0628 02:59:42.631742 598856 server.go:1296] Starting language server process with pid 598856
+2026-06-28 02:59:42.658 [info] I0628 02:59:42.631799 598856 server.go:336] Setting GOMAXPROCS to 4
+2026-06-28 02:59:42.658 [info] I0628 02:59:42.632564 598856 server.go:479] Language server will attempt to listen on host localhost
+2026-06-28 02:59:42.658 [info] I0628 02:59:42.633913 598856 server.go:493] Language server listening on random port at 38573 for HTTPS (gRPC)
+2026-06-28 02:59:42.658 [info] I0628 02:59:42.634230 598856 server.go:500] Language server listening on random port at 36445 for HTTP
+2026-06-28 02:59:43.119 [info] I0628 02:59:43.119239 598856 server.go:472] Created extension server client at port 41507
+2026-06-28 02:59:43.136 [info] I0628 02:59:43.136177 598856 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+2026-06-28 02:59:45.851 [info] I0628 02:59:45.851137 598856 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xa0333d3722e144dc
+2026-06-28 02:59:46.136 [info] E0628 02:59:46.136769 598856 log.go:398] WaitForReady failed: context deadline exceeded
+2026-06-28 02:59:46.137 [info] I0628 02:59:46.137324 598856 server.go:2283] Auth succeeded, refreshing features and managers
+2026-06-28 02:59:46.663 [info] I0628 02:59:46.663227 598856 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x2f9bacbd53c3d6ce
+2026-06-28 02:59:46.670 [info] I0628 02:59:46.669986 598856 server.go:2289] State refresh took 532ms
+2026-06-28 02:59:46.678 [info] (Antigravity IDE) 2026-06-28 02:59:46.677 [INFO]: Language server started
+2026-06-28 02:59:46.688 [info] I0628 02:59:46.686101 598856 server.go:1944] initialized server successfully in 4.054274495s
+2026-06-28 02:59:46.699 [info] (Antigravity IDE) 2026-06-28 02:59:46.699 [INFO]: LS lspClient started successfully

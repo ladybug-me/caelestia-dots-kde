@@ -1,0 +1,29 @@
+2026-06-27 23:08:10.028 [info] Extension host with pid 21458 started
+2026-06-27 23:08:10.028 [info] Skipping acquiring lock for /home/ladybug-me/.config/Antigravity IDE/User/workspaceStorage/48dee0af0a7ade50dd6f2f28e680cb1c.
+2026-06-27 23:08:10.302 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2026-06-27 23:08:10.327 [info] ExtensionService#_doActivateExtension vscode.extension-editing, startup: false, activationEvent: 'onLanguage:markdown'
+2026-06-27 23:08:10.338 [info] ExtensionService#_doActivateExtension vscode.markdown-language-features, startup: false, activationEvent: 'onLanguage:markdown'
+2026-06-27 23:08:10.514 [info] ExtensionService#_doActivateExtension vscode.terminal-suggest, startup: false, activationEvent: 'onTerminalShellIntegration:*'
+2026-06-27 23:08:10.648 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*', root cause: google.antigravity
+2026-06-27 23:08:10.719 [info] ExtensionService#_doActivateExtension vscode.git, startup: true, activationEvent: '*', root cause: google.antigravity
+2026-06-27 23:08:10.755 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2026-06-27 23:08:10.852 [info] ExtensionService#_doActivateExtension google.antigravity, startup: true, activationEvent: '*'
+2026-06-27 23:08:11.241 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:08:11.753 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:08:11.775 [info] ExtensionService#_doActivateExtension vscode.github-authentication, startup: false, activationEvent: 'onAuthenticationRequest:github'
+2026-06-27 23:08:16.199 [info] Eager extensions activated
+2026-06-27 23:08:16.253 [info] ExtensionService#_doActivateExtension google.antigravity-dev-containers, startup: false, activationEvent: 'onStartupFinished'
+2026-06-27 23:08:16.257 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2026-06-27 23:08:16.259 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2026-06-27 23:21:17.448 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:21:27.411 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:21:36.502 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:21:44.740 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:21:55.302 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:22:13.327 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:23:45.663 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:23:54.474 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:26:52.288 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:32:34.512 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:33:03.949 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554
+2026-06-27 23:33:20.979 [warning] [Decorations] CAPPING events from decorations provider vscode.git 5554

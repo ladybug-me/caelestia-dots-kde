@@ -1,0 +1,64 @@
+2026-06-28 02:59:41.831 [info] [main] Log level: Info
+2026-06-28 02:59:41.831 [info] [main] Validating found git in: "git"
+2026-06-28 02:59:41.831 [info] [main] Using git "2.54.0" from "git"
+2026-06-28 02:59:41.831 [info] [Model][doInitialScan] Initial repository scan started
+2026-06-28 02:59:41.831 [info] > git rev-parse --show-toplevel [4ms]
+2026-06-28 02:59:41.831 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [29ms]
+2026-06-28 02:59:41.831 [info] [Model][openRepository] Opened repository (path): /home/ladybug-me/caelestia-dots-kde
+2026-06-28 02:59:41.831 [info] [Model][openRepository] Opened repository (real path): /home/ladybug-me/caelestia-dots-kde
+2026-06-28 02:59:41.831 [info] [Model][openRepository] Opened repository (kind): repository
+2026-06-28 02:59:41.831 [info] > git rev-parse --show-toplevel [14ms]
+2026-06-28 02:59:41.831 [info] > git config --get commit.template [20ms]
+2026-06-28 02:59:41.843 [info] > git rev-parse --show-toplevel [8ms]
+2026-06-28 02:59:41.849 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [8ms]
+2026-06-28 02:59:41.854 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/refs/remotes/origin/main'
+2026-06-28 02:59:42.013 [info] > git rev-parse refs/remotes/origin/main [159ms]
+2026-06-28 02:59:42.025 [info] > git rev-parse --show-toplevel [177ms]
+2026-06-28 02:59:42.039 [info] > git status -z -uall [20ms]
+2026-06-28 02:59:42.040 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [16ms]
+2026-06-28 02:59:42.305 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [238ms]
+2026-06-28 02:59:42.309 [info] > git rev-parse --show-toplevel [272ms]
+2026-06-28 02:59:42.360 [info] > git config --get --local branch.main.vscode-merge-base [50ms]
+2026-06-28 02:59:42.364 [info] > git config --get commit.template [287ms]
+2026-06-28 02:59:42.382 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/origin/main refs/remotes/origin/main [19ms]
+2026-06-28 02:59:42.386 [info] > git rev-parse --show-toplevel [30ms]
+2026-06-28 02:59:42.389 [info] [Model][doInitialScan] Initial repository scan completed - repositories (1), closed repositories (0), parent repositories (0), unsafe repositories (0)
+2026-06-28 02:59:42.412 [info] > git merge-base refs/heads/main refs/remotes/origin/main [26ms]
+2026-06-28 02:59:42.429 [info] > git diff --name-status -z --diff-filter=ADMR --find-renames=50% 7c3fe8902858fe57c8d188e3dc1d69fe73bb2cb4...refs/remotes/origin/main -- [13ms]
+2026-06-28 02:59:42.430 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/main refs/remotes/main [19ms]
+2026-06-28 02:59:42.434 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/refs/remotes/origin/main'
+2026-06-28 02:59:42.436 [info] > git rev-parse refs/remotes/origin/main [1ms]
+2026-06-28 02:59:42.463 [info] > git status -z -uall [24ms]
+2026-06-28 02:59:42.463 [info] > git show --textconv :.gitignore [16ms]
+2026-06-28 02:59:42.463 [info] > git ls-files --stage -- .gitignore [12ms]
+2026-06-28 02:59:42.468 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [25ms]
+2026-06-28 02:59:42.477 [info] > git cat-file -s ef2c3f45de1e36fba525816105dded80b6bb1c53 [12ms]
+2026-06-28 02:59:42.536 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 02:59:42.974 [info] > git rev-parse --show-toplevel [1ms]
+2026-06-28 02:59:42.980 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [2ms]
+2026-06-28 02:59:42.984 [info] [Model][openRepository] Opened repository (path): /home/ladybug-me/caelestia-dots-kde/shell/plugin/src/QMLTermWidget
+2026-06-28 02:59:42.984 [info] [Model][openRepository] Opened repository (real path): /home/ladybug-me/caelestia-dots-kde/shell/plugin/src/QMLTermWidget
+2026-06-28 02:59:42.984 [info] [Model][openRepository] Opened repository (kind): submodule
+2026-06-28 02:59:42.994 [info] > git config --get commit.template [5ms]
+2026-06-28 02:59:42.995 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [1ms]
+2026-06-28 02:59:42.999 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/modules/shell/plugin/src/QMLTermWidget/refs/remotes/origin/master'
+2026-06-28 02:59:43.000 [info] > git rev-parse refs/remotes/origin/master [1ms]
+2026-06-28 02:59:43.007 [info] > git status -z -uall [4ms]
+2026-06-28 02:59:43.008 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [1ms]
+2026-06-28 02:59:43.030 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [15ms]
+2026-06-28 02:59:43.036 [info] > git config --get --local branch.master.vscode-merge-base [3ms]
+2026-06-28 02:59:43.039 [info] > git config --get commit.template [10ms]
+2026-06-28 02:59:43.043 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/origin/master refs/remotes/origin/master [4ms]
+2026-06-28 02:59:43.048 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [6ms]
+2026-06-28 02:59:43.051 [warning] [Git][revParse] Unable to read file: ENOENT: no such file or directory, open '/home/ladybug-me/caelestia-dots-kde/.git/modules/shell/plugin/src/QMLTermWidget/refs/remotes/origin/master'
+2026-06-28 02:59:43.051 [info] > git merge-base refs/heads/master refs/remotes/origin/master [4ms]
+2026-06-28 02:59:43.055 [info] > git rev-parse refs/remotes/origin/master [4ms]
+2026-06-28 02:59:43.060 [info] > git status -z -uall [3ms]
+2026-06-28 02:59:43.060 [info] > git diff --name-status -z --diff-filter=ADMR --find-renames=50% 8913504fa2ebd220ebe7c680c32954e1b3c035c5...refs/remotes/origin/master -- [6ms]
+2026-06-28 02:59:43.061 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [1ms]
+2026-06-28 02:59:43.539 [info] > git check-ignore -v -z --stdin [2ms]
+2026-06-28 02:59:47.443 [info] > git check-ignore -v -z --stdin [1ms]
+2026-06-28 03:00:03.275 [info] > git log --format=%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B -z --shortstat --diff-merges=first-parent -n50 --skip=0 --topo-order --decorate=full --stdin [35ms]
+2026-06-28 03:00:04.572 [info] > git merge-base master origin/master [1ms]
+2026-06-28 03:00:21.637 [info] > git log --format=%H%n%aN%n%aE%n%at%n%ct%n%P%n%D%n%B -z --shortstat --diff-merges=first-parent -n50 --skip=0 --topo-order --decorate=full --stdin [38ms]
+2026-06-28 03:00:21.686 [info] > git merge-base master origin/master [1ms]

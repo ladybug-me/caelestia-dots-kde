@@ -1,0 +1,15 @@
+[AC]
+brightnessosd=false
+
+[AC][Display]
+DimDisplayIdleTimeoutSec=-1
+DimDisplayWhenIdle=false
+TurnOffDisplayIdleTimeoutSec=-1
+TurnOffDisplayWhenIdle=false
+
+[AC][SuspendAndShutdown]
+AutoSuspendAction=0
+LidAction=0
+
+[BrightnessControl]
+showOSD=false

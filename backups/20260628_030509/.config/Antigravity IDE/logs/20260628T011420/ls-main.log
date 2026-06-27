@@ -1,0 +1,185 @@
+2026-06-28 01:14:20.480 [info] [LS Main] Starting language server from: /opt/antigravity-ide/resources/app/extensions/antigravity/bin/language_server_linux_x64
+2026-06-28 01:14:20.647 [info] [LS Main] Args: --csrf_token 25f58b6f-d622-4539-b50b-519ea6673a74 --extension_server_port 43367 --extension_server_csrf_token 91be5b15-ef2c-45b3-9a61-f70ea1cf046d --app_data_dir antigravity-ide --subclient_type ide --cloud_code_endpoint https://cloudcode-pa.googleapis.com
+2026-06-28 01:14:20.686 [info] [LS Main] Process spawned with PID: 283173
+2026-06-28 01:14:20.837 [error] [LS Main stderr] I0628 01:14:20.834802 283173 server.go:1296] Starting language server process with pid 283173
+I0628 01:14:20.834906 283173 server.go:336] Setting GOMAXPROCS to 4
+I0628 01:14:20.836146 283173 server.go:479] Language server will attempt to listen on host localhost
+
+2026-06-28 01:14:20.886 [error] [LS Main stderr] I0628 01:14:20.886115 283173 server.go:493] Language server listening on random port at 45251 for HTTPS (gRPC)
+
+2026-06-28 01:14:20.886 [error] [LS Main stderr] I0628 01:14:20.886545 283173 server.go:500] Language server listening on random port at 38755 for HTTP
+
+2026-06-28 01:14:21.351 [error] [LS Main stderr] I0628 01:14:21.351707 283173 server.go:472] Created extension server client at port 43367
+
+2026-06-28 01:14:21.366 [error] [LS Main stderr] I0628 01:14:21.365960 283173 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+
+2026-06-28 01:14:22.496 [error] No LS client info found for local authority
+2026-06-28 01:14:24.536 [error] [LS Main stderr] E0628 01:14:24.536642 283173 log.go:398] WaitForReady failed: context deadline exceeded
+
+2026-06-28 01:14:24.536 [error] [LS Main stderr] I0628 01:14:24.536825 283173 server.go:2283] Auth succeeded, refreshing features and managers
+
+2026-06-28 01:14:24.627 [error] [LS Main stderr] I0628 01:14:24.626928 283173 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xb912a53eea9f5950
+
+2026-06-28 01:14:26.287 [error] [LS Main stderr] I0628 01:14:26.192971 283173 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xcd8d5b583f6394e5
+I0628 01:14:26.200397 283173 server.go:2289] State refresh took 1663ms
+
+2026-06-28 01:14:26.292 [info] [LS Main] LS started on port 45251
+2026-06-28 01:14:26.298 [error] [LS Main stderr] I0628 01:14:26.297221 283173 server.go:1944] initialized server successfully in 5.462296477s
+
+2026-06-28 01:14:26.365 [error] [LS Main stderr] 2026/06/28 01:14:26 http: TLS handshake error from 127.0.0.1:43298: remote error: tls: unknown certificate
+
+2026-06-28 01:14:26.525 [error] [LS Main stderr] E0628 01:14:26.513512 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 01:14:26.516814 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 01:14:26.516995 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 01:14:26.517742 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 01:14:26.519392 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:26.559 [error] [LS Main stderr] E0628 01:14:26.516814 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:26.560 [error] [LS Main stderr] E0628 01:14:26.560381 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:26.593 [error] [LS Main stderr] E0628 01:14:26.593747 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:26.594 [error] [LS Main stderr] E0628 01:14:26.594464 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:26.595 [error] [LS Main stderr] E0628 01:14:26.594912 283173 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 01:14:29.368 [error] [LS Main stderr] I0628 01:14:29.368390 283173 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x624fe0a563980b7
+
+2026-06-28 01:14:30.619 [error] [LS Main stderr] I0628 01:14:30.618809 283173 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x29860d073ffbc729
+
+2026-06-28 01:14:30.640 [error] [LS Main stderr] E0628 01:14:30.640542 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.645 [error] [LS Main stderr] E0628 01:14:30.644991 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.649 [error] [LS Main stderr] E0628 01:14:30.649302 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.656 [error] [LS Main stderr] E0628 01:14:30.655433 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.657 [error] [LS Main stderr] E0628 01:14:30.657692 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.660 [error] [LS Main stderr] E0628 01:14:30.659822 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.661 [error] [LS Main stderr] E0628 01:14:30.661310 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.666 [error] [LS Main stderr] E0628 01:14:30.664421 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.667 [error] [LS Main stderr] E0628 01:14:30.666150 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.668 [error] [LS Main stderr] E0628 01:14:30.667509 283173 log.go:398] failed to check terminal shell support: internal: internal error
+E0628 01:14:30.668886 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.672 [error] [LS Main stderr] E0628 01:14:30.670726 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.673 [error] [LS Main stderr] E0628 01:14:30.673189 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.674 [error] [LS Main stderr] E0628 01:14:30.674641 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.676 [error] [LS Main stderr] E0628 01:14:30.676001 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.678 [error] [LS Main stderr] E0628 01:14:30.677908 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.680 [error] [LS Main stderr] E0628 01:14:30.679525 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.682 [error] [LS Main stderr] E0628 01:14:30.680909 283173 log.go:398] failed to check terminal shell support: internal: internal error
+E0628 01:14:30.682601 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.685 [error] [LS Main stderr] E0628 01:14:30.685034 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.687 [error] [LS Main stderr] E0628 01:14:30.686996 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.688 [error] [LS Main stderr] E0628 01:14:30.688188 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.690 [error] [LS Main stderr] E0628 01:14:30.689755 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.692 [error] [LS Main stderr] E0628 01:14:30.691769 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.693 [error] [LS Main stderr] E0628 01:14:30.693639 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.694 [error] [LS Main stderr] E0628 01:14:30.694644 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.696 [error] [LS Main stderr] E0628 01:14:30.696324 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.697 [error] [LS Main stderr] E0628 01:14:30.697705 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.699 [error] [LS Main stderr] E0628 01:14:30.699077 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.701 [error] [LS Main stderr] E0628 01:14:30.700697 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.702 [error] [LS Main stderr] E0628 01:14:30.702324 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.703 [error] [LS Main stderr] E0628 01:14:30.703374 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.705 [error] [LS Main stderr] E0628 01:14:30.705086 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.708 [error] [LS Main stderr] E0628 01:14:30.706829 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.709 [error] [LS Main stderr] E0628 01:14:30.708297 283173 log.go:398] failed to check terminal shell support: internal: internal error
+E0628 01:14:30.709403 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.710 [error] [LS Main stderr] E0628 01:14:30.710781 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.712 [error] [LS Main stderr] E0628 01:14:30.711880 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.714 [error] [LS Main stderr] E0628 01:14:30.714039 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.715 [error] [LS Main stderr] E0628 01:14:30.715328 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.717 [error] [LS Main stderr] E0628 01:14:30.716907 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.719 [error] [LS Main stderr] E0628 01:14:30.719014 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.720 [error] [LS Main stderr] E0628 01:14:30.720090 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.721 [error] [LS Main stderr] E0628 01:14:30.721314 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.723 [error] [LS Main stderr] E0628 01:14:30.722978 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.725 [error] [LS Main stderr] E0628 01:14:30.724637 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.726 [error] [LS Main stderr] E0628 01:14:30.726341 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.728 [error] [LS Main stderr] E0628 01:14:30.728323 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.731 [error] [LS Main stderr] E0628 01:14:30.729989 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:30.731 [error] [LS Main stderr] E0628 01:14:30.731474 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.315 [error] [LS Main stderr] E0628 01:14:31.315785 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.318 [error] [LS Main stderr] E0628 01:14:31.318063 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.324 [error] [LS Main stderr] E0628 01:14:31.324719 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.326 [error] [LS Main stderr] E0628 01:14:31.326135 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.333 [error] [LS Main stderr] E0628 01:14:31.333346 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.335 [error] [LS Main stderr] E0628 01:14:31.334785 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.344 [error] [LS Main stderr] E0628 01:14:31.344025 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.347 [error] [LS Main stderr] E0628 01:14:31.347163 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:31.947 [error] [LS Main stderr] I0628 01:14:31.947111 283173 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x23ff6818b304420b
+
+2026-06-28 01:14:34.769 [error] [LS Main stderr] I0628 01:14:34.768812 283173 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x15e0d3d35fbb5f4c
+
+2026-06-28 01:14:36.079 [error] [LS Main stderr] I0628 01:14:36.078858 283173 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xb586280f073e16b2
+
+2026-06-28 01:14:36.087 [error] [LS Main stderr] E0628 01:14:36.087137 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.090 [error] [LS Main stderr] E0628 01:14:36.090424 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.093 [error] [LS Main stderr] E0628 01:14:36.093264 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.097 [error] [LS Main stderr] E0628 01:14:36.097275 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.100 [error] [LS Main stderr] E0628 01:14:36.100063 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.102 [error] [LS Main stderr] E0628 01:14:36.102314 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.375 [error] [LS Main stderr] E0628 01:14:36.375279 283173 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 01:14:36.378 [error] [LS Main stderr] E0628 01:14:36.378368 283173 log.go:398] failed to check terminal shell support: internal: internal error
+

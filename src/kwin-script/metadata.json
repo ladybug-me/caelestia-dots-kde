@@ -1,7 +1,7 @@
 {
     "KPlugin": {
         "Name": "Quickshell KDE Bridge",
-        "Description": "Exposes active window data for Quickshell",
+        "Description": "Exposes active window title to a file for Quickshell",
         "Id": "quickshell-kde-bridge",
         "Version": "1.0",
         "License": "MIT",

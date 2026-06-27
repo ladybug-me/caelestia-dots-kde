@@ -1,0 +1,201 @@
+2026-06-28 00:20:08.649 [info] [LS Main] Starting language server from: /opt/antigravity-ide/resources/app/extensions/antigravity/bin/language_server_linux_x64
+2026-06-28 00:20:08.781 [info] [LS Main] Args: --csrf_token 5e6dcc99-2f1e-428d-b534-8b5d77ff3b58 --extension_server_port 43393 --extension_server_csrf_token 97aee9aa-0f89-4b81-8e37-96e3e27ff560 --app_data_dir antigravity-ide --subclient_type ide --cloud_code_endpoint https://cloudcode-pa.googleapis.com
+2026-06-28 00:20:08.807 [info] [LS Main] Process spawned with PID: 113644
+2026-06-28 00:20:09.498 [error] [LS Main stderr] I0628 00:20:09.497454 113644 server.go:1296] Starting language server process with pid 113644
+I0628 00:20:09.497538 113644 server.go:336] Setting GOMAXPROCS to 4
+
+2026-06-28 00:20:09.498 [error] [LS Main stderr] I0628 00:20:09.498500 113644 server.go:479] Language server will attempt to listen on host localhost
+
+2026-06-28 00:20:09.499 [error] [LS Main stderr] I0628 00:20:09.499715 113644 server.go:493] Language server listening on random port at 41475 for HTTPS (gRPC)
+
+2026-06-28 00:20:09.500 [error] [LS Main stderr] I0628 00:20:09.500129 113644 server.go:500] Language server listening on random port at 42879 for HTTP
+
+2026-06-28 00:20:09.992 [error] [LS Main stderr] I0628 00:20:09.991744 113644 server.go:472] Created extension server client at port 43393
+
+2026-06-28 00:20:10.012 [error] [LS Main stderr] I0628 00:20:10.012179 113644 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+
+2026-06-28 00:20:10.153 [error] No LS client info found for local authority
+2026-06-28 00:20:13.038 [error] [LS Main stderr] E0628 00:20:13.012430 113644 log.go:398] WaitForReady failed: context deadline exceeded
+I0628 00:20:13.012616 113644 server.go:2283] Auth succeeded, refreshing features and managers
+
+2026-06-28 00:20:13.578 [error] [LS Main stderr] I0628 00:20:13.494885 113644 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x8daa658038194268
+
+2026-06-28 00:20:14.851 [error] [LS Main stderr] I0628 00:20:14.851644 113644 http_helpers.go:183] URL: https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xe1a07bec7a0f9d4d
+
+2026-06-28 00:20:14.858 [error] [LS Main stderr] I0628 00:20:14.857853 113644 server.go:2289] State refresh took 1845ms
+
+2026-06-28 00:20:14.866 [info] [LS Main] LS started on port 41475
+2026-06-28 00:20:14.870 [error] [LS Main stderr] I0628 00:20:14.869722 113644 server.go:1944] initialized server successfully in 5.372165679s
+
+2026-06-28 00:20:15.029 [error] [LS Main stderr] E0628 00:20:15.029497 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.058 [error] [LS Main stderr] E0628 00:20:15.058063 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.060 [error] [LS Main stderr] E0628 00:20:15.060451 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.061 [error] [LS Main stderr] E0628 00:20:15.061102 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.061 [error] [LS Main stderr] E0628 00:20:15.061559 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.062 [error] [LS Main stderr] E0628 00:20:15.062329 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.063 [error] [LS Main stderr] E0628 00:20:15.063425 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.064 [error] [LS Main stderr] E0628 00:20:15.064274 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:15.065 [error] [LS Main stderr] E0628 00:20:15.065302 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+E0628 00:20:15.065358 113644 interceptor.go:74] /exa.language_server_pb.LanguageServerService/GetSlashCommands (unknown): failed to resolve cascade config: neither PlanModel nor RequestedModel specified. You must specify a valid model.
+
+2026-06-28 00:20:17.637 [error] [LS Main stderr] I0628 00:20:17.637662 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd85f527e5facea79
+
+2026-06-28 00:20:18.278 [error] [LS Main stderr] I0628 00:20:18.278421 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xe0fc126ce8878401
+
+2026-06-28 00:20:18.294 [error] [LS Main stderr] E0628 00:20:18.294351 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.296 [error] [LS Main stderr] E0628 00:20:18.296599 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.298 [error] [LS Main stderr] E0628 00:20:18.298504 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.302 [error] [LS Main stderr] E0628 00:20:18.301394 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.304 [error] [LS Main stderr] E0628 00:20:18.304372 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.306 [error] [LS Main stderr] E0628 00:20:18.305838 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.307 [error] [LS Main stderr] E0628 00:20:18.307307 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.311 [error] [LS Main stderr] E0628 00:20:18.309362 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.313 [error] [LS Main stderr] E0628 00:20:18.311656 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.316 [error] [LS Main stderr] E0628 00:20:18.313602 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.316 [error] [LS Main stderr] E0628 00:20:18.316420 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.320 [error] [LS Main stderr] E0628 00:20:18.318365 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.320 [error] [LS Main stderr] E0628 00:20:18.320836 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.323 [error] [LS Main stderr] E0628 00:20:18.323335 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.325 [error] [LS Main stderr] E0628 00:20:18.325038 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.326 [error] [LS Main stderr] E0628 00:20:18.326491 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.328 [error] [LS Main stderr] E0628 00:20:18.328293 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.330 [error] [LS Main stderr] E0628 00:20:18.329808 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.331 [error] [LS Main stderr] E0628 00:20:18.331319 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.333 [error] [LS Main stderr] E0628 00:20:18.333628 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.335 [error] [LS Main stderr] E0628 00:20:18.335193 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.337 [error] [LS Main stderr] E0628 00:20:18.336831 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.339 [error] [LS Main stderr] E0628 00:20:18.339085 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.340 [error] [LS Main stderr] E0628 00:20:18.340787 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.343 [error] [LS Main stderr] E0628 00:20:18.343157 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.345 [error] [LS Main stderr] E0628 00:20:18.345350 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.347 [error] [LS Main stderr] E0628 00:20:18.346821 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.348 [error] [LS Main stderr] E0628 00:20:18.348306 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.350 [error] [LS Main stderr] E0628 00:20:18.350313 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.352 [error] [LS Main stderr] E0628 00:20:18.351993 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.354 [error] [LS Main stderr] E0628 00:20:18.354391 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.359 [error] [LS Main stderr] E0628 00:20:18.357114 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.361 [error] [LS Main stderr] E0628 00:20:18.359163 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.363 [error] [LS Main stderr] E0628 00:20:18.361138 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.365 [error] [LS Main stderr] E0628 00:20:18.363355 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.367 [error] [LS Main stderr] E0628 00:20:18.365396 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.367 [error] [LS Main stderr] E0628 00:20:18.367371 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.370 [error] [LS Main stderr] E0628 00:20:18.369720 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.372 [error] [LS Main stderr] E0628 00:20:18.372153 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.379 [error] [LS Main stderr] E0628 00:20:18.373747 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.381 [error] [LS Main stderr] E0628 00:20:18.379906 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.382 [error] [LS Main stderr] E0628 00:20:18.382346 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.383 [error] [LS Main stderr] E0628 00:20:18.383781 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.386 [error] [LS Main stderr] E0628 00:20:18.386359 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.387 [error] [LS Main stderr] E0628 00:20:18.387739 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.389 [error] [LS Main stderr] E0628 00:20:18.389190 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.390 [error] [LS Main stderr] E0628 00:20:18.390692 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.392 [error] [LS Main stderr] E0628 00:20:18.392410 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.394 [error] [LS Main stderr] E0628 00:20:18.393726 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.395 [error] [LS Main stderr] E0628 00:20:18.395285 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.398 [error] [LS Main stderr] E0628 00:20:18.397207 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:18.400 [error] [LS Main stderr] E0628 00:20:18.400186 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:21.459 [error] [LS Main stderr] I0628 00:20:21.458581 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x2fdd2959bbeb0c36
+
+2026-06-28 00:20:22.453 [error] [LS Main stderr] I0628 00:20:22.453004 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x129c87e6e70269fd
+
+2026-06-28 00:20:22.470 [error] [LS Main stderr] E0628 00:20:22.470648 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:22.473 [error] [LS Main stderr] E0628 00:20:22.473612 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:22.476 [error] [LS Main stderr] E0628 00:20:22.476401 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:22.479 [error] [LS Main stderr] E0628 00:20:22.479001 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:22.481 [error] [LS Main stderr] E0628 00:20:22.480683 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:22.483 [error] [LS Main stderr] E0628 00:20:22.483334 113644 log.go:398] failed to check terminal shell support: internal: internal error
+
+2026-06-28 00:20:33.340 [error] [LS Main stderr] I0628 00:20:33.340153 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x1ff1b77a52c29868
+
+2026-06-28 00:20:33.541 [error] [LS Main stderr] I0628 00:20:33.541413 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x448dc74bd0f43d77
+
+2026-06-28 00:20:35.380 [error] [LS Main stderr] I0628 00:20:35.380611 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x3e613e5abca34d9d
+
+2026-06-28 00:20:45.153 [error] [LS Main stderr] I0628 00:20:45.153458 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x1156cdd337ba50b6
+
+2026-06-28 00:20:45.238 [error] [LS Main stderr] I0628 00:20:45.238117 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x354f803531fe5dfc
+
+2026-06-28 00:20:46.651 [error] [LS Main stderr] I0628 00:20:46.651096 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x172a15d34c70324e
+
+2026-06-28 00:21:11.417 [error] [LS Main stderr] I0628 00:21:11.417504 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x6551313db9b65ec0
+
+2026-06-28 00:21:11.596 [error] [LS Main stderr] I0628 00:21:11.594970 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x87f968a6d03de0ae
+
+2026-06-28 00:21:12.866 [error] [LS Main stderr] I0628 00:21:12.865949 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0xd65b1656233fa34f
+
+2026-06-28 00:21:43.997 [error] [LS Main stderr] I0628 00:21:43.996874 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x324633cc270b40e2
+I0628 00:21:43.996947 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x15121e53355c3263
+
+2026-06-28 00:21:45.301 [error] [LS Main stderr] I0628 00:21:45.300676 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x2746a40404812e06
+
+2026-06-28 00:21:47.225 [error] [LS Main stderr] I0628 00:21:47.224917 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x532ce9aebf171429
+
+2026-06-28 00:21:47.404 [error] [LS Main stderr] I0628 00:21:47.404156 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x43a1d20f464f5686
+
+2026-06-28 00:21:48.503 [error] [LS Main stderr] I0628 00:21:48.503040 113644 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse Trace: 0x6f5d4869757300ea
+

@@ -55,18 +55,22 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 
 # ── kde-material-you-colors ───────────────────────────────────────────────────
-if [[ "$BASE_DISTRO" == "arch" ]]; then
-    install_if_missing kde-material-you-colors
-elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-    if ! command -v kde-material-you-colors >/dev/null 2>&1; then
-        echo "  Installing kde-material-you-colors via uv..."
-        sudo dnf install -y dbus-devel dbus-glib-devel python3-devel
-        uv tool install kde-material-you-colors >/dev/null 2>&1 || {
-            echo -e "  \033[0;31m[FAIL] Could not install kde-material-you-colors — skipping.\033[0m"
-        }
-    else
-        echo "  [SKIP] kde-material-you-colors already installed."
+if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
+    if [[ "$BASE_DISTRO" == "arch" ]]; then
+        install_if_missing kde-material-you-colors
+    elif [[ "$BASE_DISTRO" == "fedora" ]]; then
+        if ! command -v kde-material-you-colors >/dev/null 2>&1; then
+            echo "  Installing kde-material-you-colors via uv..."
+            sudo dnf install -y dbus-devel dbus-glib-devel python3-devel
+            uv tool install kde-material-you-colors >/dev/null 2>&1 || {
+                echo -e "  \033[0;31m[FAIL] Could not install kde-material-you-colors — skipping.\033[0m"
+            }
+        else
+            echo "  [SKIP] kde-material-you-colors already installed."
+        fi
     fi
+else
+    echo "  [SKIP] Skipping kde-material-you-colors installation."
 fi
 
 # ── darkly (plasma theme) ─────────────────────────────────────────────────────

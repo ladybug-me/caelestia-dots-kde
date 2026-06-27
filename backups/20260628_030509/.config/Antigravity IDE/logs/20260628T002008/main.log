@@ -1,0 +1,8 @@
+2026-06-28 00:20:08.576 [info] [BrowserOnboardingClientMainService] Starting browser onboarding server
+2026-06-28 00:20:08.576 [info] [BrowserOnboardingClientServer] Browser onboarding server started on http://localhost:34663
+2026-06-28 00:20:08.576 [info] update#setState idle
+2026-06-28 00:20:38.576 [info] update#setState checking for updates
+2026-06-28 00:20:38.970 [info] update#setState idle
+2026-06-28 00:23:49.471 [warning] [perf] profiling STARTED f1cb0e8d-ebdf-43ac-860b-4047812ca5dd
+2026-06-28 00:23:54.503 [warning] [perf] profiling DONE f1cb0e8d-ebdf-43ac-860b-4047812ca5dd
+2026-06-28 00:23:54.653 [info] Extension host with pid 113771 exited with code: 0, signal: unknown.

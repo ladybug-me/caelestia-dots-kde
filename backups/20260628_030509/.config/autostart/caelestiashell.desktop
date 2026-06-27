@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Caelestia Shell
+Comment=Start Caelestia Shell
+Exec=bash -c 'sleep 2 && caelestia shell -d &'
+Icon=quickshell
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+X-KDE-AutostartPhase=2

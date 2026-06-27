@@ -1,0 +1,23 @@
+[Added Associations]
+application/x-extension-htm=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+application/x-extension-html=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+application/x-extension-shtml=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+application/x-extension-xht=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+application/x-extension-xhtml=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+application/xhtml+xml=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+text/html=zen.desktop;userapp-Zen-2NRZQ3.desktop;
+x-scheme-handler/chrome=userapp-Zen-2NRZQ3.desktop;zen.desktop;
+x-scheme-handler/http=firefox.desktop;userapp-Zen-2NRZQ3.desktop;zen.desktop;
+x-scheme-handler/https=firefox.desktop;userapp-Zen-2NRZQ3.desktop;zen.desktop;
+
+[Default Applications]
+application/x-extension-htm=userapp-Zen-2NRZQ3.desktop
+application/x-extension-html=userapp-Zen-2NRZQ3.desktop
+application/x-extension-shtml=userapp-Zen-2NRZQ3.desktop
+application/x-extension-xht=userapp-Zen-2NRZQ3.desktop
+application/x-extension-xhtml=userapp-Zen-2NRZQ3.desktop
+application/xhtml+xml=userapp-Zen-2NRZQ3.desktop
+text/html=userapp-Zen-2NRZQ3.desktop
+x-scheme-handler/chrome=userapp-Zen-2NRZQ3.desktop
+x-scheme-handler/http=firefox.desktop;
+x-scheme-handler/https=firefox.desktop;

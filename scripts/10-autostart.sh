@@ -32,22 +32,26 @@ echo "  [OK]  Quickshell autostart created."
 # Creates and enables a systemd user service for kde-material-you-colors.
 echo "  Deploying systemd service for KDE Material You Colors..."
 
-# Clean up old desktop autostart entry if it exists
-rm -f "$AUTOSTART_DIR/kde-material-you-colors.desktop" 2>/dev/null || true
+if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
+    # Clean up old desktop autostart entry if it exists
+    rm -f "$AUTOSTART_DIR/kde-material-you-colors.desktop" 2>/dev/null || true
 
-mkdir -p "$HOME/.config/systemd/user"
-# Determine the path of kde-material-you-colors
-if command -v kde-material-you-colors >/dev/null 2>&1; then
-    KMYC_PATH=$(command -v kde-material-you-colors)
-elif [ -f "$HOME/.local/bin/kde-material-you-colors" ]; then
-    KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
-elif [ -f "/usr/bin/kde-material-you-colors" ]; then
-    KMYC_PATH="/usr/bin/kde-material-you-colors"
-else
-    KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
-fi
+    # Clean up old Material You color schemes to prevent them from multiplying
+    rm -f "$HOME/.local/share/color-schemes/MaterialYou"*.colors 2>/dev/null || true
 
-cat > "$HOME/.config/systemd/user/kde-material-you-colors.service" << EOF
+    mkdir -p "$HOME/.config/systemd/user"
+    # Determine the path of kde-material-you-colors
+    if command -v kde-material-you-colors >/dev/null 2>&1; then
+        KMYC_PATH=$(command -v kde-material-you-colors)
+    elif [ -f "$HOME/.local/bin/kde-material-you-colors" ]; then
+        KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
+    elif [ -f "/usr/bin/kde-material-you-colors" ]; then
+        KMYC_PATH="/usr/bin/kde-material-you-colors"
+    else
+        KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
+    fi
+
+    cat > "$HOME/.config/systemd/user/kde-material-you-colors.service" << EOF
 [Unit]
 Description=KDE Material You Colors
 PartOf=graphical-session.target
@@ -63,8 +67,11 @@ RestartSec=3
 WantedBy=graphical-session.target
 EOF
 
-systemctl --user daemon-reload
-systemctl --user enable --now kde-material-you-colors.service 2>/dev/null || true
-echo "  [OK]  kde-material-you-colors systemd service enabled."
+    systemctl --user daemon-reload
+    systemctl --user enable --now kde-material-you-colors.service 2>/dev/null || true
+    echo "  [OK]  kde-material-you-colors systemd service enabled."
+else
+    echo "  [SKIP] Skipping kde-material-you-colors systemd service."
+fi
 
 echo "[OK]  Autostart entries configured."

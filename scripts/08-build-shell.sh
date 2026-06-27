@@ -224,6 +224,20 @@ try:
         with open(hypr_path, "r") as f: hcode = f.read()
         hcode = hcode.replace("def message(msg: str, is_json: bool = True) -> str | dict[str, Any]:\n    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:\n        sock.connect(socket_path)\n\n        if is_json:\n            msg = f\"j/{msg}\"\n        sock.send(msg.encode())\n\n        resp = sock.recv(8192).decode()\n        while True:\n            new_resp = sock.recv(8192)\n            if not new_resp:\n                break\n            resp += new_resp.decode()\n\n        return json.loads(resp) if is_json else resp", "import subprocess\ndef message(msg: str, is_json: bool = True) -> str | dict[str, Any]:\n    try:\n        cmd = [os.path.expanduser(\"~/.local/bin/hyprctl\"), *msg.split(), \"-j\" if is_json else \"\"]\n        cmd = [x for x in cmd if x]\n        res = subprocess.run(cmd, capture_output=True, text=True)\n        return json.loads(res.stdout) if is_json else res.stdout\n    except Exception as e:\n        print(f\"Mock hyprctl failed: {e}\")\n        return {} if is_json else \"\"")
         with open(hypr_path, "w") as f: f.write(hcode)
+        
+    # Patch screenshot.py to use spectacle
+    screenshot_path = None
+    for p in search_paths:
+        candidate = os.path.join(p, "caelestia", "subcommands", "screenshot.py")
+        if os.path.exists(candidate):
+            screenshot_path = candidate
+            break
+    if screenshot_path:
+        with open(screenshot_path, "r") as f: scode = f.read()
+        scode = scode.replace("cmd = [\"grim\"]", "cmd = [\"spectacle\", \"-b\", \"-f\", \"-n\", \"-o\"]")
+        scode = scode.replace("if focused_monitor:\n            cmd += [\"-o\", focused_monitor[\"name\"]]", "")
+        scode = scode.replace("cmd += [\"-\"]\n        sc_data = subprocess.check_output(cmd)", "tmp_file = \"/tmp/qs-screenshot.png\"\n        cmd += [tmp_file]\n        subprocess.run(cmd)\n        try:\n            with open(tmp_file, \"rb\") as f:\n                sc_data = f.read()\n        except Exception:\n            sc_data = b\"\"")
+        with open(screenshot_path, "w") as f: f.write(scode)
 except Exception as e:
     print(f"Failed to patch record.py: {e}")
     sys.exit(1)
@@ -232,8 +246,10 @@ except Exception as e:
 fi
 
 # Install kwin script
-if [ -d "$BUNDLE_DIR/src/kwin/quickshell-kde-bridge" ]; then
-    cp -r "$BUNDLE_DIR/src/kwin/quickshell-kde-bridge" ~/.local/share/kwin/scripts/
+if [ -d "$BUNDLE_DIR/src/kwin-script" ]; then
+    mkdir -p ~/.local/share/kwin/scripts/quickshell-kde-bridge/contents/code
+    cp "$BUNDLE_DIR/src/kwin-script/contents/code/main.js" ~/.local/share/kwin/scripts/quickshell-kde-bridge/contents/code/
+    cp "$BUNDLE_DIR/src/kwin-script/metadata.json" ~/.local/share/kwin/scripts/quickshell-kde-bridge/
 fi
 
 # Install systemd service

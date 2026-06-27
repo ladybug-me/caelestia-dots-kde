@@ -27,13 +27,20 @@ mkdir -p "$CACHE_DIR" "$BUILDDIR" "$PKGDEST" "$SRCDEST" "$SRCPKGDEST"
 rm -f "$CACHE_DIR/failed_steps.txt" "$CACHE_DIR/failed_packages.txt"
 
 # ── Colors ─────────────────────────────────────────────────────────────────────
-RED="\033[0;31m"; GREEN="\033[0;32m"; YELLOW="\033[1;33m"
-CYAN="\033[0;36m"; RST="\033[0m"
+RST="\033[0m"
+BOLD="\033[1m"
+PURPLE="\033[38;5;135m"
+BLUE="\033[38;5;75m"
+CYAN="\033[38;5;87m"
+PINK="\033[38;5;213m"
+GREEN="\033[38;5;84m"
+RED="\033[38;5;196m"
+YELLOW="\033[38;5;220m"
 
-die()  { echo -e "${RED}[FATAL] $*${RST}" >&2; exit 1; }
-info() { echo -e "${CYAN}[INFO]  $*${RST}"; }
-ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
-warn() { echo -e "${RED}[WARN]  $*${RST}"; }
+die()  { echo -e "${RED} ☄️  [FATAL] $*${RST}" >&2; exit 1; }
+info() { echo -e "${BLUE} 🔭 [INFO]  $*${RST}"; }
+ok()   { echo -e "${GREEN} ✨ [OK]    $*${RST}"; }
+warn() { echo -e "${YELLOW} ⚠️  [WARN]  $*${RST}"; }
 
 # ── Pre-flight checks & OS Detection ───────────────────────────────────────────
 if [ -f /etc/os-release ]; then
@@ -217,6 +224,40 @@ case "${clean_answer,,}" in
     *)     export REMOVE_CACHE="false"; echo "  → Downloaded packages/cache will be KEPT (default)." ;;
 esac
 
+# Warning about breaking custom setups
+echo
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${CYAN}  Theming Options${RST}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${YELLOW}Applying these settings will overwrite your current theme and may rarely break custom setups.${RST}"
+echo -e "${YELLOW}Make sure to keep the desktop environment clean before proceeding.${RST}"
+
+# Darkly theme — ask user
+echo
+echo -e "${YELLOW}Would you like to apply the Darkly theme (Plasma style, window decorations, Kvantum, Bibata cursors)? [Y/n]:${RST} "
+read -r -t 15 darkly_answer || darkly_answer="y"
+case "${darkly_answer,,}" in
+    n|no) export APPLY_DARKLY="false"; echo "  → Darkly theme will NOT be applied." ;;
+    *)    export APPLY_DARKLY="true";  echo "  → Darkly theme will be APPLIED." ;;
+esac
+
+# Material You colors — ask user
+echo
+echo -e "${YELLOW}Would you like to enable Material You colors (via kde-material-you-colors daemon)? [Y/n]:${RST} "
+read -r -t 15 my_answer || my_answer="y"
+case "${my_answer,,}" in
+    n|no) export APPLY_MATERIAL_YOU="false"; echo "  → Material You colors will NOT be enabled." ;;
+    *)    export APPLY_MATERIAL_YOU="true";  echo "  → Material You colors will be ENABLED." ;;
+esac
+
+# Included fonts — ask user
+echo
+echo -e "${YELLOW}Would you like to apply the included custom fonts (via lookandfeeltool)? [Y/n]:${RST} "
+read -r -t 15 fonts_answer || fonts_answer="y"
+case "${fonts_answer,,}" in
+    n|no) export APPLY_FONTS="false"; echo "  → Custom fonts will NOT be applied." ;;
+    *)    export APPLY_FONTS="true";  echo "  → Custom fonts will be APPLIED." ;;
+esac
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 1 — Ensure prerequisites
@@ -241,12 +282,13 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 run_step "Package installation" "$SCRIPTS_DIR/02-packages.sh"
 
 # ══════════════════════════════════════════════════════════════
-#  STEP 3 — Deploy configs
+#  STEP 3 — Backup and Deploy configs
 # ══════════════════════════════════════════════════════════════
 echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 3/11 — Config Deployment${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+run_step "Backup KDE Themes" "$SCRIPTS_DIR/00-backup-themes.sh"
 run_step "Config deployment" "$SCRIPTS_DIR/03-deploy-configs.sh"
 
 # ══════════════════════════════════════════════════════════════

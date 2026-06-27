@@ -1,0 +1,18 @@
+2026-06-28 00:43:56.623 [info] [BrowserOnboardingClientMainService] Starting browser onboarding server
+2026-06-28 00:43:56.623 [info] [BrowserOnboardingClientServer] Browser onboarding server started on http://localhost:45903
+2026-06-28 00:43:56.623 [info] update#setState idle
+2026-06-28 00:44:26.618 [info] update#setState checking for updates
+2026-06-28 00:44:27.049 [info] update#setState idle
+2026-06-28 00:45:50.865 [warning] [perf] profiling STARTED 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 00:45:55.904 [warning] [perf] profiling DONE 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 00:46:11.172 [warning] [perf] profiling STARTED 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 00:46:16.207 [warning] [perf] profiling DONE 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 00:46:31.424 [warning] [perf] profiling STARTED 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 00:46:36.446 [warning] [perf] profiling DONE 1647a1e3-781a-4861-9977-e79955e98c54
+2026-06-28 01:12:29.057 [warning] [perf] profiling STARTED d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:12:34.249 [warning] [perf] profiling DONE d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:12:50.710 [warning] [perf] profiling STARTED d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:12:55.740 [warning] [perf] profiling DONE d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:13:11.016 [warning] [perf] profiling STARTED d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:13:16.053 [warning] [perf] profiling DONE d8c71201-7343-465f-9372-022d1be16b25
+2026-06-28 01:13:19.507 [info] Extension host with pid 188442 exited with code: 0, signal: unknown.

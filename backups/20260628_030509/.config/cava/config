@@ -1,0 +1,55 @@
+# Cava Audio Visualizer Configuration Template
+# Optimized for smooth and responsive visualization
+
+[general]
+# Framerate (1-144) - higher = smoother but more CPU intensive
+framerate = 60
+
+[input]
+# Audio input method: pulse, alsa, fifo, or portaudio
+method = pulse
+# Audio device (leave as default for auto-detection)
+source = auto
+
+[output]
+# Output method: ncurses, terminal, raw, or circle
+method = ncurses
+# Terminal color scheme
+style = stereo
+
+[color]
+# Color gradient for bars using template variables
+gradient = 1
+gradient_count = 8
+gradient_color_1 = '#a8eaff'
+gradient_color_2 = '#b4e7ff'
+gradient_color_3 = '#afe2ff'
+gradient_color_4 = '#86d0fc'
+gradient_color_5 = '#79c4fb'
+gradient_color_6 = '#a0d2ff'
+gradient_color_7 = '#8fc4ff'
+gradient_color_8 = '#abbef0'
+
+[smoothing]
+# Noise reduction (0-100) - higher = smoother but less responsive
+# 77 is default, 85 provides good balance for smooth visualization
+noise_reduction = 85
+
+# Monstercat smoothing (0 or 1) - adds smoothing between adjacent bars
+monstercat = 1
+
+# Wave effect (0 or 1) - creates wave-like motion across bars
+waves = 0
+
+# Gravity (0-200) - controls how fast bars fall
+# 100 = normal gravity, 150 = faster fall, 50 = slower fall
+gravity = 120
+
+[eq]
+# Equalizer settings for frequency response
+# Lower frequencies tend to be louder, so reduce them slightly
+1 = 0.8
+2 = 0.9
+3 = 1.0
+4 = 1.1
+5 = 1.2

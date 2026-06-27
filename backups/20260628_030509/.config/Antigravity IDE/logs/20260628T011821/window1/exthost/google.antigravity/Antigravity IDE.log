@@ -1,0 +1,94 @@
+2026-06-28 01:18:27.038 [info] I0628 01:18:27.038469 302739 server.go:1296] Starting language server process with pid 302739
+2026-06-28 01:18:27.039 [info] I0628 01:18:27.038567 302739 server.go:336] Setting GOMAXPROCS to 4
+2026-06-28 01:18:27.040 [info] I0628 01:18:27.039838 302739 server.go:479] Language server will attempt to listen on host localhost
+2026-06-28 01:18:27.042 [info] I0628 01:18:27.042109 302739 server.go:493] Language server listening on random port at 44485 for HTTPS (gRPC)
+2026-06-28 01:18:27.042 [info] I0628 01:18:27.042758 302739 server.go:500] Language server listening on random port at 43063 for HTTP
+2026-06-28 01:18:27.522 [info] I0628 01:18:27.521939 302739 server.go:472] Created extension server client at port 42723
+2026-06-28 01:18:27.567 [info] I0628 01:18:27.567479 302739 manager.go:92] Creating trajectory store manager with proto store and SQLite store
+2026-06-28 01:18:30.164 [info] I0628 01:18:30.164607 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xfeaba3310ab41f8
+2026-06-28 01:18:30.568 [info] E0628 01:18:30.568293 302739 log.go:398] WaitForReady failed: context deadline exceeded
+2026-06-28 01:18:30.569 [info] I0628 01:18:30.569093 302739 server.go:2283] Auth succeeded, refreshing features and managers
+2026-06-28 01:18:31.081 [info] I0628 01:18:31.081622 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x6ed6e3649e2d5ac8
+2026-06-28 01:18:31.100 [info] I0628 01:18:31.100348 302739 server.go:2289] State refresh took 531ms
+2026-06-28 01:18:31.114 [info] (Antigravity IDE) 2026-06-28 01:18:31.113 [INFO]: Language server started
+2026-06-28 01:18:31.129 [info] I0628 01:18:31.125450 302739 server.go:1944] initialized server successfully in 4.086868232s
+2026-06-28 01:18:31.146 [info] (Antigravity IDE) 2026-06-28 01:18:31.146 [INFO]: LS lspClient started successfully
+2026-06-28 01:18:33.103 [info] I0628 01:18:33.103645 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x97e0888b40b91774
+2026-06-28 01:18:35.743 [info] I0628 01:18:35.743698 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x8be26e0813de0f24
+2026-06-28 01:18:37.080 [info] I0628 01:18:37.080526 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x5431ac27f8c41a31
+2026-06-28 01:23:29.986 [info] I0628 01:23:29.985796 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc39f1054fbc0d60
+2026-06-28 01:23:30.699 [info] I0628 01:23:30.699641 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9497c8fe2d150027
+2026-06-28 01:23:33.075 [info] (Antigravity IDE) 2026-06-28 01:23:33.074 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:23:38.303 [info] (Antigravity IDE) 2026-06-28 01:23:38.302 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:26:00.260 [info] (Antigravity IDE) 2026-06-28 01:26:00.260 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:26:02.499 [info] (Antigravity IDE) 2026-06-28 01:26:02.499 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:26:05.095 [info] (Antigravity IDE) 2026-06-28 01:26:05.095 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:27:03.438 [info] (Antigravity IDE) 2026-06-28 01:27:03.438 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:27:06.191 [info] (Antigravity IDE) 2026-06-28 01:27:06.191 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:27:34.619 [info] (Antigravity IDE) 2026-06-28 01:27:34.619 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:27:36.744 [info] (Antigravity IDE) 2026-06-28 01:27:36.744 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:27:53.977 [info] (Antigravity IDE) 2026-06-28 01:27:53.977 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:28:00.699 [info] (Antigravity IDE) 2026-06-28 01:28:00.698 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:28:25.252 [info] (Antigravity IDE) 2026-06-28 01:28:25.251 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:28:30.101 [info] (Antigravity IDE) 2026-06-28 01:28:30.100 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:28:35.104 [info] (Antigravity IDE) 2026-06-28 01:28:35.104 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:28:38.527 [info] (Antigravity IDE) 2026-06-28 01:28:38.527 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:29:29.537 [info] I0628 01:29:29.536662 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x273130d5f53c4a7b
+2026-06-28 01:29:31.113 [info] I0628 01:29:31.113177 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x93ef60ce0716ed09
+2026-06-28 01:29:56.150 [info] (Antigravity IDE) 2026-06-28 01:29:56.149 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:30:27.511 [info] (Antigravity IDE) 2026-06-28 01:30:27.511 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:30:31.096 [info] (Antigravity IDE) 2026-06-28 01:30:31.096 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:30:33.107 [info] (Antigravity IDE) 2026-06-28 01:30:33.107 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:31:26.931 [info] (Antigravity IDE) 2026-06-28 01:31:26.931 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:31:37.423 [info] (Antigravity IDE) 2026-06-28 01:31:37.423 [INFO]: [Terminal] Command completed: git --no-pager diff shell/modules/screenshot/ /home/ladybug-me/caelestia/shell/modules/screenshot/ exit code 1
+2026-06-28 01:32:54.968 [info] (Antigravity IDE) 2026-06-28 01:32:54.968 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:32:57.544 [info] (Antigravity IDE) 2026-06-28 01:32:57.544 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:33:18.949 [info] (Antigravity IDE) 2026-06-28 01:33:18.949 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:33:26.477 [info] (Antigravity IDE) 2026-06-28 01:33:26.476 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:33:35.029 [info] (Antigravity IDE) 2026-06-28 01:33:35.029 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:33:44.201 [info] (Antigravity IDE) 2026-06-28 01:33:44.201 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:33:49.330 [info] (Antigravity IDE) 2026-06-28 01:33:49.330 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:35:29.581 [info] I0628 01:35:29.580624 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x8092d6ee7d6803c2
+2026-06-28 01:35:30.951 [info] I0628 01:35:30.950676 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x612925e5abdbbc50
+2026-06-28 01:38:33.143 [info] (Antigravity IDE) 2026-06-28 01:38:33.142 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 01:41:29.522 [info] I0628 01:41:29.521415 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xcdba001b56c96bfe
+2026-06-28 01:41:31.467 [info] I0628 01:41:31.466653 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x6b54f0947ebe2fa2
+2026-06-28 01:47:29.462 [info] I0628 01:47:29.462332 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xba8ddc6375e67871
+2026-06-28 01:47:31.304 [info] I0628 01:47:31.304045 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x453ee218febb5489
+2026-06-28 01:53:28.660 [info] I0628 01:53:28.658211 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xa50650f1e85392b5
+2026-06-28 01:53:30.380 [info] I0628 01:53:30.380517 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x76388813a9a8759e
+2026-06-28 01:59:00.645 [info] (Antigravity IDE) 2026-06-28 01:59:00.645 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:59:06.143 [info] (Antigravity IDE) 2026-06-28 01:59:06.143 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 01:59:28.935 [info] I0628 01:59:28.935062 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x2a8b424e720a1589
+2026-06-28 01:59:30.573 [info] I0628 01:59:30.573603 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x797d1f23bd70bc31
+2026-06-28 02:00:40.605 [info] (Antigravity IDE) 2026-06-28 02:00:40.605 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:01:16.941 [info] (Antigravity IDE) 2026-06-28 02:01:16.941 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:01:51.137 [info] (Antigravity IDE) 2026-06-28 02:01:51.137 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:02:15.431 [info] (Antigravity IDE) 2026-06-28 02:02:15.431 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:05:28.585 [info] I0628 02:05:28.584982 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x8caebb74aebab01
+2026-06-28 02:05:30.417 [info] I0628 02:05:30.417464 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x74449b9ec294092f
+2026-06-28 02:10:27.239 [info] E0628 02:10:27.239512 302739 log.go:398] while decoding file, failed to detect charset with sufficient confidence
+2026-06-28 02:11:28.599 [info] I0628 02:11:28.598749 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xe3f7ae38d3c85d14
+2026-06-28 02:11:30.666 [info] I0628 02:11:30.666583 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x17ac97448452947e
+2026-06-28 02:17:28.662 [info] I0628 02:17:28.662105 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xb20cca082bf7e941
+2026-06-28 02:17:30.403 [info] I0628 02:17:30.403172 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xb70b90f9c4edcb11
+2026-06-28 02:18:30.090 [info] I0628 02:18:30.090464 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x3e71dce9bbaf39a7
+2026-06-28 02:18:31.235 [info] I0628 02:18:31.235183 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xcec627890e8dccfb
+2026-06-28 02:24:29.227 [info] I0628 02:24:29.226816 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xba1166bddf0560e9
+2026-06-28 02:24:30.761 [info] I0628 02:24:30.761558 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xab70a29a01f6386c
+2026-06-28 02:30:00.701 [info] (Antigravity IDE) 2026-06-28 02:30:00.701 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:30:29.475 [info] I0628 02:30:29.473958 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xfed2ce531ed88048
+2026-06-28 02:30:31.014 [info] I0628 02:30:31.014441 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x16415e685fcc276f
+2026-06-28 02:30:44.263 [info] (Antigravity IDE) 2026-06-28 02:30:44.263 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:36:28.647 [info] I0628 02:36:28.647459 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x9ad11773e952cbfc
+2026-06-28 02:36:30.845 [info] I0628 02:36:30.845472 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xc9c90d5ea9896585
+2026-06-28 02:40:09.924 [info] (Antigravity IDE) 2026-06-28 02:40:09.924 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:41:05.195 [info] (Antigravity IDE) 2026-06-28 02:41:05.195 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 02:41:12.193 [info] (Antigravity IDE) 2026-06-28 02:41:12.192 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 02:41:17.787 [info] (Antigravity IDE) 2026-06-28 02:41:17.787 [INFO]: [Terminal] Command completed:  exit code 1
+2026-06-28 02:41:22.697 [info] (Antigravity IDE) 2026-06-28 02:41:22.697 [INFO]: [Terminal] Command completed:  exit code 0
+2026-06-28 02:42:28.942 [info] I0628 02:42:28.941685 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0xcdd207b65f3dc816
+2026-06-28 02:42:31.216 [info] I0628 02:42:31.216286 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0xd17ed3503da8aaab
+2026-06-28 02:48:28.995 [info] I0628 02:48:28.994713 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels Trace: 0x246005c885e6ea28
+2026-06-28 02:48:30.723 [info] I0628 02:48:30.722905 302739 http_helpers.go:183] URL: https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist Trace: 0x90d49487759c9591
+2026-06-28 02:48:37.010 [info] (Antigravity IDE) 2026-06-28 02:48:37.010 [INFO]: [Terminal] Command completed:  exit code 0
