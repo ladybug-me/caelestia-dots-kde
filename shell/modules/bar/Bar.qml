@@ -10,7 +10,7 @@ import Caelestia.Config
 import qs.components
 import qs.services
 
-GridLayout {
+Item {
     id: root
 
     required property ShellScreen screen
@@ -22,26 +22,54 @@ GridLayout {
 
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
 
-    readonly property real spacing: isHorizontal ? columnSpacing : rowSpacing
+    property var leftEntries: {
+        let entries = Config.bar.entries || [];
+        return entries.filter(e => e.enabled && (!e.zone || e.zone === "left") && e.id !== "spacer");
+    }
+    property var middleEntries: {
+        let entries = Config.bar.entries || [];
+        return entries.filter(e => e.enabled && e.zone === "middle" && e.id !== "spacer");
+    }
+    property var rightEntries: {
+        let entries = Config.bar.entries || [];
+        return entries.filter(e => e.enabled && e.zone === "right" && e.id !== "spacer");
+    }
+
+    function getLoaderAt(x, y) {
+        let items = [leftLayout, middleLayout, rightLayout];
+        for (let i = 0; i < items.length; i++) {
+            let layout = items[i];
+            let localPos = mapToItem(layout, x, y);
+            if (localPos.x >= 0 && localPos.x <= layout.width && localPos.y >= 0 && localPos.y <= layout.height) {
+                let ch = layout.childAt(localPos.x, localPos.y);
+                if (ch && ch.hasOwnProperty("id")) return ch; 
+            }
+        }
+        return null;
+    }
 
     function closeTray(): void {
         if (!Config.bar.tray.compact)
             return;
 
-        for (let i = 0; i < repeater.count; i++) {
-            const loader = repeater.itemAt(i) as WrappedLoader;
-            if (loader?.enabled && loader.id === "tray") {
-                const tray = loader.item as Tray;
-                if (Config.bar.popouts.tray || !tray.pinned) {
-                    tray.expanded = false;
-                    tray.pinned = false;
+        let repeaters = [leftRepeater, middleRepeater, rightRepeater];
+        for (let r = 0; r < 3; r++) {
+            let rep = repeaters[r];
+            for (let i = 0; i < rep.count; i++) {
+                const loader = rep.itemAt(i) as WrappedLoader;
+                if (loader?.enabled && loader.id === "tray") {
+                    const tray = loader.item as Tray;
+                    if (Config.bar.popouts.tray || !tray.pinned) {
+                        tray.expanded = false;
+                        tray.pinned = false;
+                    }
                 }
             }
         }
     }
 
     function checkPopout(pos: real): void {
-        const ch = childAt(isHorizontal ? pos : width / 2, isHorizontal ? height / 2 : pos) as WrappedLoader;
+        const ch = getLoaderAt(isHorizontal ? pos : width / 2, isHorizontal ? height / 2 : pos) as WrappedLoader;
 
         if (ch?.id !== "tray")
             closeTray();
@@ -54,7 +82,9 @@ GridLayout {
         }
 
         const id = ch.id;
-        const top = isHorizontal ? ch.x : ch.y;
+        // top is absolute pos
+        let mappedChPos = mapFromItem(ch, 0, 0);
+        const top = isHorizontal ? mappedChPos.x : mappedChPos.y;
 
         if (id === "tray" && !Config.bar.popouts.tray) {
             return;
@@ -89,7 +119,7 @@ GridLayout {
         } else if (id === "activeWindow" && Config.bar.popouts.activeWindow && Config.bar.activeWindow.showOnHover) {
             const item = ch.item as Item;
             if (item) {
-                const relPos = pos - (isHorizontal ? ch.x : ch.y);
+                const relPos = pos - top;
                 const inside = isHorizontal ? (relPos >= 0 && relPos <= item.implicitWidth) : (relPos >= 0 && relPos <= item.implicitHeight);
                 if (inside) {
                     popouts.currentName = id.toLowerCase();
@@ -106,7 +136,7 @@ GridLayout {
             
             const item = ch.item;
             if (item && typeof item.handleHover === "function") {
-                const relPos = pos - (isHorizontal ? ch.x : ch.y);
+                const relPos = pos - top;
                 item.handleHover(relPos, isHorizontal, popouts);
                 return;
             }
@@ -114,7 +144,7 @@ GridLayout {
         } else if (id === "github") {
             const item = ch.item as Item;
             if (item) {
-                const relPos = pos - (isHorizontal ? ch.x : ch.y);
+                const relPos = pos - top;
                 const inside = isHorizontal ? (relPos >= 0 && relPos <= item.implicitWidth) : (relPos >= 0 && relPos <= item.implicitHeight);
                 if (inside) {
                     popouts.currentName = "github";
@@ -132,16 +162,17 @@ GridLayout {
     }
 
     function handleWheel(pos: real, angleDelta: point): void {
-        const ch = childAt(isHorizontal ? pos : width / 2, isHorizontal ? height / 2 : pos) as WrappedLoader;
+        const ch = getLoaderAt(isHorizontal ? pos : width / 2, isHorizontal ? height / 2 : pos) as WrappedLoader;
         
         if (ch?.id === "dock") {
-            const relPos = pos - (isHorizontal ? ch.x : ch.y);
+            let mappedChPos = mapFromItem(ch, 0, 0);
+            const top = isHorizontal ? mappedChPos.x : mappedChPos.y;
+            const relPos = pos - top;
             const dockHit = ch.item ? ch.item.childAt(isHorizontal ? relPos : ch.width / 2, isHorizontal ? ch.height / 2 : relPos) : null;
             if (dockHit) return;
         }
 
         if (ch?.id === "workspaces" && Config.bar.scrollActions.workspaces) {
-            // Workspace scroll
             const mon = (GlobalConfig.bar.workspaces.perMonitorWorkspaces ? Hypr.monitorFor(screen) : Hypr.focusedMonitor);
             const specialWs = mon?.lastIpcObject.specialWorkspace.name;
             if (specialWs?.length > 0)
@@ -149,13 +180,11 @@ GridLayout {
             else if (angleDelta.y < 0 || (GlobalConfig.bar.workspaces.perMonitorWorkspaces ? mon.activeWorkspace?.id : Hypr.activeWsId) > 1)
                 Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ workspace = "r${angleDelta.y > 0 ? "-" : "+"}1" })` : `workspace r${angleDelta.y > 0 ? "-" : "+"}1`);
         } else if ((isHorizontal ? pos < screen.width / 2 : pos < screen.height / 2) && Config.bar.scrollActions.volume) {
-            // Volume scroll on top half
             if (angleDelta.y > 0)
                 Audio.incrementVolume();
             else if (angleDelta.y < 0)
                 Audio.decrementVolume();
         } else if (Config.bar.scrollActions.brightness) {
-            // Brightness scroll on bottom half
             const monitor = Brightness.getMonitorForScreen(screen);
             if (angleDelta.y > 0)
                 monitor.setBrightness(monitor.brightness + GlobalConfig.services.brightnessIncrement);
@@ -164,32 +193,87 @@ GridLayout {
         }
     }
 
-    columns: isHorizontal ? -1 : 1
-    rows: isHorizontal ? 1 : -1
-    flow: isHorizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
-
-    columnSpacing: Tokens.spacing.medium
-    rowSpacing: Tokens.spacing.medium
-    
     clip: true
 
-    Repeater {
-        id: repeater
+    GridLayout {
+        id: leftLayout
+        anchors.left: isHorizontal ? parent.left : undefined
+        anchors.top: !isHorizontal ? parent.top : undefined
+        anchors.verticalCenter: isHorizontal ? parent.verticalCenter : undefined
+        anchors.horizontalCenter: !isHorizontal ? parent.horizontalCenter : undefined
+        
+        anchors.leftMargin: isHorizontal ? root.vPadding : 0
+        anchors.topMargin: !isHorizontal ? root.vPadding : 0
 
-        model: Config.bar.entries
+        columns: isHorizontal ? -1 : 1
+        rows: isHorizontal ? 1 : -1
+        flow: isHorizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
+        columnSpacing: Tokens.spacing.medium
+        rowSpacing: Tokens.spacing.medium
 
-        DelegateChooser {
-            role: "id"
+        Repeater {
+            id: leftRepeater
+            model: root.leftEntries
+            delegate: barDelegate
+        }
+    }
 
-            DelegateChoice {
-                roleValue: "spacer"
-                delegate: WrappedLoader {
-                    size: {
-                        let entries = Config.bar.entries;
-                        return (entries && entries[index] && entries[index].size !== undefined) ? entries[index].size : undefined;
-                    }
-                }
-            }
+    GridLayout {
+        id: middleLayout
+
+        anchors.verticalCenter: isHorizontal ? parent.verticalCenter : undefined
+        anchors.horizontalCenter: !isHorizontal ? parent.horizontalCenter : undefined
+
+        property real idealX: (parent.width - width) / 2
+        property real minX: leftLayout.x + leftLayout.width + Tokens.spacing.medium
+        property real maxX: rightLayout.x - width - Tokens.spacing.medium
+        x: isHorizontal ? Math.max(minX, Math.min(idealX, maxX)) : undefined
+
+        property real idealY: (parent.height - height) / 2
+        property real minY: leftLayout.y + leftLayout.height + Tokens.spacing.medium
+        property real maxY: rightLayout.y - height - Tokens.spacing.medium
+        y: !isHorizontal ? Math.max(minY, Math.min(idealY, maxY)) : undefined
+
+        columns: isHorizontal ? -1 : 1
+        rows: isHorizontal ? 1 : -1
+        flow: isHorizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
+        columnSpacing: Tokens.spacing.medium
+        rowSpacing: Tokens.spacing.medium
+
+        Repeater {
+            id: middleRepeater
+            model: root.middleEntries
+            delegate: barDelegate
+        }
+    }
+
+    GridLayout {
+        id: rightLayout
+        anchors.right: isHorizontal ? parent.right : undefined
+        anchors.bottom: !isHorizontal ? parent.bottom : undefined
+        anchors.verticalCenter: isHorizontal ? parent.verticalCenter : undefined
+        anchors.horizontalCenter: !isHorizontal ? parent.horizontalCenter : undefined
+        
+        anchors.rightMargin: isHorizontal ? root.vPadding : 0
+        anchors.bottomMargin: !isHorizontal ? root.vPadding : 0
+
+        columns: isHorizontal ? -1 : 1
+        rows: isHorizontal ? 1 : -1
+        flow: isHorizontal ? GridLayout.LeftToRight : GridLayout.TopToBottom
+        columnSpacing: Tokens.spacing.medium
+        rowSpacing: Tokens.spacing.medium
+
+        Repeater {
+            id: rightRepeater
+            model: root.rightEntries
+            delegate: barDelegate
+        }
+    }
+
+    DelegateChooser {
+        id: barDelegate
+        role: "id"
+
             DelegateChoice {
                 roleValue: "logo"
                 delegate: WrappedLoader {
@@ -200,8 +284,6 @@ GridLayout {
                 roleValue: "workspaces"
                 delegate: WrappedLoader {
                     visible: !root.fullscreen
-                    Layout.fillWidth: root.isHorizontal
-                    Layout.fillHeight: !root.isHorizontal
                     sourceComponent: Workspaces {
                         bar: root
                         screen: root.screen
@@ -213,8 +295,6 @@ GridLayout {
                 roleValue: "dock"
                 delegate: WrappedLoader {
                     visible: !root.fullscreen
-                    Layout.fillWidth: root.isHorizontal
-                    Layout.fillHeight: !root.isHorizontal
                     sourceComponent: Dock {
                         bar: root
                     }
@@ -223,7 +303,6 @@ GridLayout {
             DelegateChoice {
                 roleValue: "activeWindow"
                 delegate: WrappedLoader {
-                    Layout.fillWidth: true
                     visible: !root.fullscreen
                     sourceComponent: ActiveWindow {
                         bar: root
@@ -272,61 +351,31 @@ GridLayout {
                 }
             }
         }
-    }
 
     component WrappedLoader: Loader {
         required enabled
         required property string id
         required property int index
-        property var size
-
-        function findFirstEnabled(): Item {
-            const count = repeater.count;
-            for (let i = 0; i < count; i++) {
-                const item = repeater.itemAt(i);
-                if (item?.enabled)
-                    return item;
-            }
-            return null;
-        }
-
-        function findLastEnabled(): Item {
-            for (let i = repeater.count - 1; i >= 0; i--) {
-                const item = repeater.itemAt(i);
-                if (item?.enabled)
-                    return item;
-            }
-            return null;
-        }
 
         asynchronous: false
         Layout.alignment: root.isHorizontal ? Qt.AlignVCenter : Qt.AlignHCenter
 
-        Layout.leftMargin: (root.isHorizontal && findFirstEnabled() === this) ? root.vPadding : 0
-        Layout.rightMargin: (root.isHorizontal && findLastEnabled() === this) ? root.vPadding : 0
-        Layout.topMargin: (!root.isHorizontal && findFirstEnabled() === this) ? root.vPadding : 0
-        Layout.bottomMargin: (!root.isHorizontal && findLastEnabled() === this) ? root.vPadding : 0
+        
+        
+        
+        
+        
+        
+        
 
-        property bool isFlexible: (id === "spacer" && size === undefined) || id === "dock"
-        Layout.fillWidth: root.isHorizontal ? isFlexible : false
-        Layout.fillHeight: !root.isHorizontal ? isFlexible : false
-        
-        Layout.preferredWidth: root.isHorizontal ? (isFlexible ? -1 : (id === "spacer" && size !== undefined ? size : implicitWidth)) : implicitWidth
-        Layout.preferredHeight: !root.isHorizontal ? (isFlexible ? -1 : (id === "spacer" && size !== undefined ? size : implicitHeight)) : implicitHeight
-        
-        Layout.maximumWidth: root.isHorizontal ? (isFlexible ? -1 : (id === "spacer" && size !== undefined ? size : implicitWidth)) : implicitWidth
-        Layout.maximumHeight: !root.isHorizontal ? (isFlexible ? -1 : (id === "spacer" && size !== undefined ? size : implicitHeight)) : implicitHeight
-        
-        Layout.minimumWidth: root.isHorizontal ? (isFlexible ? 0 : (id === "spacer" && size !== undefined ? size : implicitWidth)) : implicitWidth
-        Layout.minimumHeight: !root.isHorizontal ? (isFlexible ? 0 : (id === "spacer" && size !== undefined ? size : implicitHeight)) : implicitHeight
+        Layout.preferredWidth: implicitWidth
+        Layout.preferredHeight: implicitHeight
+        Layout.maximumWidth: implicitWidth
+        Layout.maximumHeight: implicitHeight
+        Layout.minimumWidth: implicitWidth
+        Layout.minimumHeight: implicitHeight
 
         visible: enabled
         active: enabled
-
-        Component.onCompleted: {
-            if (id === "spacer") {
-                console.log("Spacer loaded with size:", size, "isFlexible:", isFlexible, "preferredWidth:", Layout.preferredWidth);
-            }
-        }
     }
 }

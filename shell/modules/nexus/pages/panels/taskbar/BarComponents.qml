@@ -20,7 +20,6 @@ PageBase {
         "logo": { icon: "rocket_launch", name: qsTr("Logo") },
         "workspaces": { icon: "workspaces", name: qsTr("Workspaces") },
         "github": { icon: "commit", name: qsTr("Github") },
-        "spacer": { icon: "space_bar", name: qsTr("Spacer") },
         "activeWindow": { icon: "dock_to_right", name: qsTr("Active window") },
         "tray": { icon: "expand_more", name: qsTr("System tray") },
         "clock": { icon: "schedule", name: qsTr("Clock") },
@@ -34,17 +33,33 @@ PageBase {
     property int globalDragSourceIndex: -1
     property string globalDragHoveredList: ""
 
+    function getModel(name) {
+        if (name === "left") return leftModel;
+        if (name === "middle") return middleModel;
+        if (name === "right") return rightModel;
+        if (name === "library") return libraryModel;
+        return null;
+    }
+
     function load() {
         let entries = Config.bar.entries;
-        activeModel.clear();
+        leftModel.clear();
+        middleModel.clear();
+        rightModel.clear();
         libraryModel.clear();
 
         let activeCounts = {};
         for (let i = 0; i < entries.length; i++) {
             let entry = entries[i];
+            if (entry.id === "spacer") continue;
+            
             activeCounts[entry.id] = (activeCounts[entry.id] || 0) + 1;
+            
             if (entry.enabled) {
-                activeModel.append({ "compId": entry.id, "isPlaceholder": false });
+                let zone = entry.zone || "left";
+                if (zone === "left") leftModel.append({ "compId": entry.id, "isPlaceholder": false });
+                else if (zone === "middle") middleModel.append({ "compId": entry.id, "isPlaceholder": false });
+                else if (zone === "right") rightModel.append({ "compId": entry.id, "isPlaceholder": false });
             } else {
                 libraryModel.append({ "compId": entry.id, "isPlaceholder": false });
             }
@@ -59,55 +74,44 @@ PageBase {
 
     function save() {
         let newEntries = [];
-        let oldEntries = JSON.parse(JSON.stringify(Config.bar.entries));
         
-        let spacerQueue = [];
-        for (let j = 0; j < oldEntries.length; j++) {
-            if (oldEntries[j] && oldEntries[j].id === "spacer") {
-                spacerQueue.push(oldEntries[j].size !== undefined ? oldEntries[j].size : undefined);
+        for (let i = 0; i < leftModel.count; i++) {
+            if (!leftModel.get(i).isPlaceholder) {
+                newEntries.push({ id: leftModel.get(i).compId, enabled: true, zone: "left" });
+            }
+        }
+        for (let i = 0; i < middleModel.count; i++) {
+            if (!middleModel.get(i).isPlaceholder) {
+                newEntries.push({ id: middleModel.get(i).compId, enabled: true, zone: "middle" });
+            }
+        }
+        for (let i = 0; i < rightModel.count; i++) {
+            if (!rightModel.get(i).isPlaceholder) {
+                newEntries.push({ id: rightModel.get(i).compId, enabled: true, zone: "right" });
+            }
+        }
+        for (let i = 0; i < libraryModel.count; i++) {
+            if (!libraryModel.get(i).isPlaceholder) {
+                newEntries.push({ id: libraryModel.get(i).compId, enabled: false, zone: "left" });
             }
         }
         
-        for (let i = 0; i < activeModel.count; i++) {
-            if (!activeModel.get(i).isPlaceholder) {
-                let compId = activeModel.get(i).compId;
-                
-                if (compId === "spacer") {
-                    let size = spacerQueue.length > 0 ? spacerQueue.shift() : undefined;
-                    newEntries.push({ id: "spacer", enabled: true, size: size });
-                } else {
-                    let foundIndex = -1;
-                    for (let j = 0; j < oldEntries.length; j++) {
-                        if (oldEntries[j] && oldEntries[j].id === compId) {
-                            foundIndex = j;
-                            break;
-                        }
-                    }
-                    if (foundIndex !== -1) {
-                        let entry = oldEntries[foundIndex];
-                        entry.enabled = true;
-                        newEntries.push(entry);
-                        oldEntries[foundIndex] = null;
-                    } else {
-                        newEntries.push({ id: compId, enabled: true });
-                    }
-                }
-            }
-        }
         GlobalConfig.bar.entries = newEntries;
     }
 
     Component.onCompleted: load()
 
     RowLayout {
-        ListModel { id: activeModel }
+        ListModel { id: leftModel }
+        ListModel { id: middleModel }
+        ListModel { id: rightModel }
         ListModel { id: libraryModel }
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.large
         spacing: Tokens.spacing.large
 
-        // Left Side: Active Components
+        // Left Side: Active Components Zones
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -125,12 +129,23 @@ PageBase {
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
-
+            
+            // Left Zone
             StyledRect {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 color: Colours.palette.m3surfaceContainer
                 radius: Tokens.rounding.large
+                
+                Text {
+                    text: qsTr("Left Zone")
+                    font: Tokens.font.label.large
+                    color: Colours.palette.m3onSurfaceVariant
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: Tokens.padding.small
+                    visible: leftModel.count === 0 || (leftModel.count === 1 && leftModel.get(0).isPlaceholder)
+                }
 
                 DropArea {
                     anchors.fill: parent
@@ -138,33 +153,136 @@ PageBase {
                     onEntered: drag => {
                         let sourceItem = drag.source;
                         if (!sourceItem) return;
+                        root.globalDragHoveredList = "left";
                         
-                        root.globalDragHoveredList = "active";
-                        
-                        if (sourceItem.sourceList === "library") {
+                        if (sourceItem.sourceList !== "left") {
                             let hasPlaceholder = false;
-                            for (let i = 0; i < activeModel.count; i++) {
-                                if (activeModel.get(i).isPlaceholder) hasPlaceholder = true;
+                            for (let i = 0; i < leftModel.count; i++) {
+                                if (leftModel.get(i).isPlaceholder) hasPlaceholder = true;
                             }
                             if (!hasPlaceholder) {
-                                activeModel.append({ compId: sourceItem.compId, isPlaceholder: true });
+                                leftModel.append({ compId: sourceItem.compId, isPlaceholder: true });
                             }
                         }
                     }
                 }
 
                 ListView {
-                    id: activeList
+                    id: leftList
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.medium
                     orientation: ListView.Vertical
                     spacing: Tokens.spacing.small
-                    model: activeModel
+                    model: leftModel
                     clip: true
 
                     move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
                     moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    delegate: root.panelDelegate
+                }
+            }
+            
+            // Middle Zone
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 1
+                color: Colours.palette.m3surfaceContainer
+                radius: Tokens.rounding.large
+                
+                Text {
+                    text: qsTr("Middle Zone")
+                    font: Tokens.font.label.large
+                    color: Colours.palette.m3onSurfaceVariant
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: Tokens.padding.small
+                    visible: middleModel.count === 0 || (middleModel.count === 1 && middleModel.get(0).isPlaceholder)
+                }
 
+                DropArea {
+                    anchors.fill: parent
+                    keys: ["component"]
+                    onEntered: drag => {
+                        let sourceItem = drag.source;
+                        if (!sourceItem) return;
+                        root.globalDragHoveredList = "middle";
+                        
+                        if (sourceItem.sourceList !== "middle") {
+                            let hasPlaceholder = false;
+                            for (let i = 0; i < middleModel.count; i++) {
+                                if (middleModel.get(i).isPlaceholder) hasPlaceholder = true;
+                            }
+                            if (!hasPlaceholder) {
+                                middleModel.append({ compId: sourceItem.compId, isPlaceholder: true });
+                            }
+                        }
+                    }
+                }
+
+                ListView {
+                    id: middleList
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    orientation: ListView.Vertical
+                    spacing: Tokens.spacing.small
+                    model: middleModel
+                    clip: true
+
+                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    delegate: root.panelDelegate
+                }
+            }
+            
+            // Right Zone
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: Colours.palette.m3surfaceContainer
+                radius: Tokens.rounding.large
+                
+                Text {
+                    text: qsTr("Right Zone")
+                    font: Tokens.font.label.large
+                    color: Colours.palette.m3onSurfaceVariant
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: Tokens.padding.small
+                    visible: rightModel.count === 0 || (rightModel.count === 1 && rightModel.get(0).isPlaceholder)
+                }
+
+                DropArea {
+                    anchors.fill: parent
+                    keys: ["component"]
+                    onEntered: drag => {
+                        let sourceItem = drag.source;
+                        if (!sourceItem) return;
+                        root.globalDragHoveredList = "right";
+                        
+                        if (sourceItem.sourceList !== "right") {
+                            let hasPlaceholder = false;
+                            for (let i = 0; i < rightModel.count; i++) {
+                                if (rightModel.get(i).isPlaceholder) hasPlaceholder = true;
+                            }
+                            if (!hasPlaceholder) {
+                                rightModel.append({ compId: sourceItem.compId, isPlaceholder: true });
+                            }
+                        }
+                    }
+                }
+
+                ListView {
+                    id: rightList
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    orientation: ListView.Vertical
+                    spacing: Tokens.spacing.small
+                    model: rightModel
+                    clip: true
+
+                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
                     delegate: root.panelDelegate
                 }
             }
@@ -198,22 +316,22 @@ PageBase {
                 }
 
                 Item { Layout.fillWidth: true }
-
-                IconTextButton {
-                    Layout.alignment: Qt.AlignVCenter
-                    icon: "add"
-                    text: qsTr("Add spacer")
-                    onClicked: {
-                        libraryModel.append({ compId: "spacer", isPlaceholder: false });
-                        save();
-                    }
-                }
             }
 
             StyledRect {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 color: "transparent"
+                
+                Text {
+                    text: qsTr("Empty")
+                    font: Tokens.font.label.large
+                    color: Colours.palette.m3onSurfaceVariant
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: Tokens.padding.small
+                    visible: libraryModel.count === 0 || (libraryModel.count === 1 && libraryModel.get(0).isPlaceholder)
+                }
 
                 DropArea {
                     anchors.fill: parent
@@ -224,7 +342,7 @@ PageBase {
                         
                         root.globalDragHoveredList = "library";
                         
-                        if (sourceItem.sourceList === "active") {
+                        if (sourceItem.sourceList !== "library") {
                             let hasPlaceholder = false;
                             for (let i = 0; i < libraryModel.count; i++) {
                                 if (libraryModel.get(i).isPlaceholder) hasPlaceholder = true;
@@ -262,7 +380,12 @@ PageBase {
             required property string compId
             required property bool isPlaceholder
             
-            property string sourceList: ListView.view === activeList ? "active" : "library"
+            property string sourceList: {
+                if (ListView.view === leftList) return "left";
+                if (ListView.view === middleList) return "middle";
+                if (ListView.view === rightList) return "right";
+                return "library";
+            }
             
             width: ListView.view.width
             height: (root.isGlobalDragging && root.globalDragSourceList === sourceList && root.globalDragSourceIndex === index && root.globalDragHoveredList !== sourceList) ? 0 : 50
@@ -282,7 +405,7 @@ PageBase {
                     
                     let from = -1;
                     let to = delegateWrapper.index;
-                    let targetModel = sourceList === "active" ? activeModel : libraryModel;
+                    let targetModel = root.getModel(sourceList);
                     
                     if (sourceItem.sourceList === sourceList) {
                         from = root.globalDragSourceIndex;
@@ -305,7 +428,7 @@ PageBase {
                 id: activeDelegate
                 width: delegateWrapper.width
                 height: 50
-                color: isDraggingThis ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 2) : (sourceList === "active" ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer)
+                color: isDraggingThis ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 2) : (sourceList !== "library" ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer)
                 radius: Tokens.rounding.medium
                 border.color: isDraggingThis ? Colours.palette.m3outline : (sourceList === "library" ? Colours.palette.m3outlineVariant : "transparent")
                 border.width: isDraggingThis ? 2 : (sourceList === "library" ? 1 : 0)
@@ -332,27 +455,35 @@ PageBase {
                         let finalHovered = root.globalDragHoveredList;
                         root.isGlobalDragging = false;
                         
-                        if (finalHovered !== sourceList && finalHovered !== "") {
-                            let targetModel = finalHovered === "active" ? activeModel : libraryModel;
-                            let sourceModel = sourceList === "active" ? activeModel : libraryModel;
-                            
+                        let targetModel = root.getModel(finalHovered);
+                        let sourceModel = root.getModel(sourceList);
+                        
+                        if (finalHovered !== sourceList && finalHovered !== "" && targetModel) {
                             let pIndex = -1;
                             for (let i = 0; i < targetModel.count; i++) {
                                 if (targetModel.get(i).isPlaceholder) { pIndex = i; break; }
                             }
                             
-                            if (pIndex !== -1) {
+                            let proceed = true;
+                            
+                            if (pIndex !== -1 && proceed) {
                                 targetModel.remove(pIndex);
                                 targetModel.insert(pIndex, { compId: compId, isPlaceholder: false });
                                 sourceModel.remove(root.globalDragSourceIndex);
                             }
                         }
                         
+                        for (let i = leftModel.count - 1; i >= 0; i--) {
+                            if (leftModel.get(i).isPlaceholder) leftModel.remove(i);
+                        }
+                        for (let i = middleModel.count - 1; i >= 0; i--) {
+                            if (middleModel.get(i).isPlaceholder) middleModel.remove(i);
+                        }
+                        for (let i = rightModel.count - 1; i >= 0; i--) {
+                            if (rightModel.get(i).isPlaceholder) rightModel.remove(i);
+                        }
                         for (let i = libraryModel.count - 1; i >= 0; i--) {
                             if (libraryModel.get(i).isPlaceholder) libraryModel.remove(i);
-                        }
-                        for (let i = activeModel.count - 1; i >= 0; i--) {
-                            if (activeModel.get(i).isPlaceholder) activeModel.remove(i);
                         }
                         
                         activeDelegate.x = 0;
@@ -378,78 +509,14 @@ PageBase {
                     
                     MaterialIcon {
                         text: componentMeta[compId]?.icon ?? "widgets"
-                        color: sourceList === "active" ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
+                        color: sourceList !== "library" ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
                     }
                     
                     Text {
                         Layout.fillWidth: true
                         text: componentMeta[compId]?.name ?? compId
                         font: Tokens.font.body.small
-                        color: sourceList === "active" ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
-                    }
-
-                    CustomSpinBox {
-                        visible: compId === "spacer" && !isPlaceholder && sourceList === "active"
-                        min: 1
-                        max: 9999
-                        step: 10
-                        value: {
-                            if (sourceList !== "active" || isPlaceholder) return undefined;
-                            let spacerIndex = 0;
-                            for (let i = 0; i < delegateWrapper.index; i++) {
-                                if (activeModel.get(i).compId === "spacer") spacerIndex++;
-                            }
-                            
-                            let configSpacerIndex = 0;
-                            let entries = Config.bar.entries;
-                            for (let i = 0; i < entries.length; i++) {
-                                if (entries[i].id === "spacer") {
-                                    if (configSpacerIndex === spacerIndex) {
-                                        return entries[i].size !== undefined ? entries[i].size : undefined;
-                                    }
-                                    configSpacerIndex++;
-                                }
-                            }
-                            return undefined;
-                        }
-                        onValueModified: v => {
-                            if (sourceList !== "active") return;
-                            let spacerIndex = 0;
-                            for (let i = 0; i < delegateWrapper.index; i++) {
-                                if (activeModel.get(i).compId === "spacer") spacerIndex++;
-                            }
-                            
-                            let entries = JSON.parse(JSON.stringify(Config.bar.entries));
-                            let configSpacerIndex = 0;
-                            for (let i = 0; i < entries.length; i++) {
-                                if (entries[i].id === "spacer") {
-                                    if (configSpacerIndex === spacerIndex) {
-                                        entries[i].size = v;
-                                        GlobalConfig.bar.entries = entries;
-                                        return;
-                                    }
-                                    configSpacerIndex++;
-                                }
-                            }
-                        }
-                    }
-
-                    IconButton {
-                        icon: "close"
-                        visible: compId === "spacer"
-                        type: IconButton.Text
-                        font: Tokens.font.icon.small
-                        padding: Tokens.padding.extraSmall
-                        inactiveColour: Colours.tPalette.m3surfaceContainerHigh
-                        inactiveOnColour: Colours.palette.m3onSurfaceVariant
-                        onClicked: {
-                            if (sourceList === "active") {
-                                activeModel.remove(delegateWrapper.index);
-                            } else {
-                                libraryModel.remove(delegateWrapper.index);
-                            }
-                            save();
-                        }
+                        color: sourceList !== "library" ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
                     }
 
                     MaterialIcon {

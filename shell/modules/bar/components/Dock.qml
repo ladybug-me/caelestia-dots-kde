@@ -65,16 +65,17 @@ Item {
     readonly property int padding: Tokens.padding.medium
     readonly property int spacing: Tokens.spacing.small
 
-    anchors.fill: parent
-
     StyledRect {
         id: container
 
-        color: root.modelDataArray.length > 0 ? Colours.tPalette.m3surfaceContainer : "transparent"
+        color: dockModel.count > 0 ? Colours.tPalette.m3surfaceContainer : "transparent"
         radius: Tokens.rounding.full
 
-        implicitWidth: bar.isHorizontal ? layout.implicitWidth + padding * 2 : Tokens.sizes.bar.innerWidth
-        implicitHeight: bar.isHorizontal ? Tokens.sizes.bar.innerWidth : layout.implicitHeight + padding * 2
+        property int __itemCount: dockModel.count
+        property real __computedContentWidth: __itemCount > 0 ? __itemCount * itemSize + (__itemCount - 1) * root.spacing : 0
+
+        implicitWidth: bar.isHorizontal ? (__computedContentWidth + padding * 2) : Tokens.sizes.bar.innerWidth
+        implicitHeight: bar.isHorizontal ? Tokens.sizes.bar.innerWidth : (__computedContentWidth + padding * 2)
         
         property real itemSize: Tokens.sizes.bar.innerWidth * 0.8
         property int maxHorizontalItems: Math.floor((root.width - padding * 2 - itemSize * 0.5) / (itemSize + spacing))
@@ -83,170 +84,24 @@ Item {
         property int maxVerticalItems: Math.floor((root.height - padding * 2 - itemSize * 0.5) / (itemSize + spacing))
         property real maxVerticalSize: maxVerticalItems >= 1 ? ((maxVerticalItems + 0.5) * itemSize + maxVerticalItems * spacing + padding * 2) : root.height
 
-        width: bar.isHorizontal ? (implicitWidth > root.width + 1 ? maxHorizontalSize : implicitWidth) : Math.min(implicitWidth, root.width)
-        height: !bar.isHorizontal ? (implicitHeight > root.height + 1 ? maxVerticalSize : implicitHeight) : Math.min(implicitHeight, root.height)
-
-        property bool monitorCenter: Config.bar.dock.monitorCenter ?? true
-
-        HoverHandler {
-            id: dockHover
-        }
-
-        // Minimum guaranteed gap (px) between the dock container and any adjacent
-        // bar element on either side. Uses bar.vPadding so it matches the outer
-        // padding the first/last bar items receive, plus one spacing step.
-        readonly property real _minGap: bar.vPadding + Tokens.spacing.medium
-
-        // Dock slot's left/top edge in bar (GridLayout) coordinate space.
-        // GridLayout sets root.parent.x after layout; Connections ensures we get
-        // the post-layout value even if the reactive binding evaluates too early.
-        property real _slotX: root.parent ? root.parent.x : 0
-        property real _slotY: root.parent ? root.parent.y : 0
-
-        // Dynamic bounds to prevent overlapping non-spacer siblings
-        property real _minBoundLeft: 0
-        property real _maxBoundRight: bar.width
-        property real _minBoundTop: 0
-        property real _maxBoundBottom: bar.height
-
-        function _updateBounds() {
-            if (!root.parent || !bar.children) return;
-            const children = bar.children;
-            let dockIdx = -1;
-            for (let i = 0; i < children.length; i++) {
-                if (children[i] === root.parent) {
-                    dockIdx = i;
-                    break;
-                }
-            }
-            if (dockIdx === -1) return;
-
-            const minG = bar.vPadding;
-            let minTop = minG;
-            let minLeft = minG;
-            let maxBottom = bar.height - minG;
-            let maxRight = bar.width - minG;
-
-            const idealAbsX = bar.isHorizontal ? (bar.width / 2) : 0;
-            const idealAbsY = !bar.isHorizontal ? (bar.height / 2) : 0;
-
-            for (let i = 0; i < children.length; i++) {
-                if (i === dockIdx) continue;
-                const child = children[i];
-                if (child.visible && child.width > 0 && child.height > 0 && child.sourceComponent) {
-                    const itemW = (child.item && child.item.implicitWidth > 0) ? child.item.implicitWidth : child.width;
-                    const itemH = (child.item && child.item.implicitHeight > 0) ? child.item.implicitHeight : child.height;
-
-                    if (bar.isHorizontal) {
-                        const childRight = child.x + itemW;
-                        const childLeft = child.x;
-                        
-                        if (childLeft < idealAbsX && childRight > idealAbsX) {
-                            // Sibling overlaps the screen center. Resolve using layout order.
-                            if (i < dockIdx) {
-                                minLeft = Math.max(minLeft, childRight + Tokens.spacing.medium);
-                            } else {
-                                maxRight = Math.min(maxRight, childLeft - Tokens.spacing.medium);
-                            }
-                        } else if (childRight <= idealAbsX) {
-                            // Sibling is strictly to the left of center
-                            minLeft = Math.max(minLeft, childRight + Tokens.spacing.medium);
-                        } else {
-                            // Sibling is strictly to the right of center
-                            maxRight = Math.min(maxRight, childLeft - Tokens.spacing.medium);
-                        }
-                    } else {
-                        const childBottom = child.y + itemH;
-                        const childTop = child.y;
-                        
-                        if (childTop < idealAbsY && childBottom > idealAbsY) {
-                            if (i < dockIdx) {
-                                minTop = Math.max(minTop, childBottom + Tokens.spacing.medium);
-                            } else {
-                                maxBottom = Math.min(maxBottom, childTop - Tokens.spacing.medium);
-                            }
-                        } else if (childBottom <= idealAbsY) {
-                            minTop = Math.max(minTop, childBottom + Tokens.spacing.medium);
-                        } else {
-                            maxBottom = Math.min(maxBottom, childTop - Tokens.spacing.medium);
-                        }
-                    }
-                }
-            }
-
-            _minBoundTop = minTop;
-            _maxBoundBottom = maxBottom;
-            _minBoundLeft = minLeft;
-            _maxBoundRight = maxRight;
-        }
-
-        Connections {
-            target: root.parent
-            function onXChanged() { container._slotX = root.parent ? root.parent.x : 0; Qt.callLater(container._updateBounds) }
-            function onYChanged() { container._slotY = root.parent ? root.parent.y : 0; Qt.callLater(container._updateBounds) }
-        }
-        Connections {
-            target: bar
-            function onWidthChanged()  { Qt.callLater(() => { container._slotX = root.parent ? root.parent.x : 0; container._updateBounds() }) }
-            function onHeightChanged() { Qt.callLater(() => { container._slotY = root.parent ? root.parent.y : 0; container._updateBounds() }) }
-        }
-
-        // Physical screen centre expressed in dock-slot-local coordinates.
-        readonly property real _centerInSlot: bar.isHorizontal
-            ? (bar.width  / 2 - _slotX)
-            : (bar.height / 2 - _slotY)
-
-        // Centre container at physical screen centre.
-        // Priority order (highest to lowest):
-        //   1. dynamic bounds — dock must NEVER overlap adjacent non-spacer widgets
-        //   2. ideal    — dock is centred at physical screen centre
-        // The container can overflow its GridLayout slot into adjacent spacers to
-        // reach screen centre; if it grows large, both sides expand from centre
-        // until one hits the dynamic bound, then only the other side keeps growing.
-        x: {
-            if (!bar.isHorizontal || !monitorCenter) return (root.parent ? root.parent.width : root.width) / 2 - width / 2;
-            const ideal = _centerInSlot - width / 2;
-            // Convert bar-coord bounds to slot-local coords
-            const minX = _minBoundLeft - _slotX;
-            const maxX = _maxBoundRight - _slotX - width;
-            return Math.max(minX, Math.min(ideal, maxX));
-        }
-        y: {
-            if (bar.isHorizontal || !monitorCenter) return (root.parent ? root.parent.height : root.height) / 2 - height / 2;
-            const ideal = _centerInSlot - height / 2;
-            const minY = _minBoundTop - _slotY;
-            const maxY = _maxBoundBottom - _slotY - height;
-            return Math.max(minY, Math.min(ideal, maxY));
-        }
-
         property var _appsValues: DesktopEntries.applications.values
         on_AppsValuesChanged: root.rebuildModel()
 
-        Behavior on implicitWidth {
-            enabled: bar.isHorizontal
 
-            Anim { type: Anim.DefaultSpatial }
-        }
-
-        Behavior on implicitHeight {
-            enabled: !bar.isHorizontal
-
-            Anim { type: Anim.DefaultSpatial }
-        }
 
         Item {
             id: layout
             
             anchors.centerIn: parent
-            implicitWidth: listView.contentWidth
-            implicitHeight: listView.contentHeight
+            implicitWidth: container.__computedContentWidth
+            implicitHeight: container.__computedContentWidth
 
             ListView {
                 id: listView
 
                 anchors.centerIn: parent
-                width: bar.isHorizontal ? Math.min(contentWidth, container.width - padding * 2) : Tokens.sizes.bar.innerWidth * 0.8
-                height: bar.isHorizontal ? Tokens.sizes.bar.innerWidth * 0.8 : Math.min(contentHeight, container.height - padding * 2)
+                width: bar.isHorizontal ? container.__computedContentWidth : Tokens.sizes.bar.innerWidth * 0.8
+                height: bar.isHorizontal ? Tokens.sizes.bar.innerWidth * 0.8 : container.__computedContentWidth
                 orientation: bar.isHorizontal ? ListView.Horizontal : ListView.Vertical
                 spacing: root.spacing
                 interactive: bar.isHorizontal ? contentWidth > width + 1 : contentHeight > height + 1
