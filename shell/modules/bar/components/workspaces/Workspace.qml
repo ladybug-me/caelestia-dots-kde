@@ -53,6 +53,7 @@ GridLayout {
         id: textComponent
 
         StyledText {
+            anchors.fill: parent
             animate: true
             text: {
                 const wsName = root.ws;
@@ -68,6 +69,7 @@ GridLayout {
                 return root.activeWsId === root.ws ? activeLabel : root.isOccupied ? occupiedLabel : label;
             }
             color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
+            horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
             font.family: Tokens.font.workspaces
         }
@@ -161,8 +163,15 @@ GridLayout {
             MaterialShape {
                 id: wsShape
 
+                readonly property real circleCenterOffsetX: 2
+                readonly property real circleCenterOffsetY: 0.5
+
                 anchors.centerIn: parent
+                anchors.horizontalCenterOffset: circleCenterOffsetX
+                anchors.verticalCenterOffset: circleCenterOffsetY
                 implicitSize: iconRoot.width
+                width: implicitWidth
+                height: implicitHeight
                 scale: iconRoot.active ? 2 / 3 : 1 / 3
                 color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
 
