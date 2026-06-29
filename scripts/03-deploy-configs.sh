@@ -1,49 +1,42 @@
 #!/usr/bin/env bash
-# 03-deploy-configs.sh — Deploy Caelestia configuration files to ~/.config
+# 03-deploy-configs.sh - Deploy Caelestia configuration files to ~/.config
 
-BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
+BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$BUNDLE_DIR/scripts/00-ui.sh"
 SRC_DIR="$BUNDLE_DIR/src"
 BACKUP_DIR="$BUNDLE_DIR/backups/$(date +%Y%m%d_%H%M%S)"
 
-echo
-echo "════════════════════════════════════════"
-echo "  Step 3/11 — Config Deployment"
-echo "════════════════════════════════════════"
+ui_section "Step 3/11 - Config Deployment"
 
 mkdir -p "$BACKUP_DIR/config" "$BACKUP_DIR/local"
 
-echo "  Recording previous login shell..."
+ui_info "Recording previous login shell..."
 getent passwd "$USER" | cut -d: -f7 > "$BACKUP_DIR/previous_shell.txt"
 
-echo "  Backing up the entire ~/.config folder..."
+ui_info "Backing up the entire ~/.config folder..."
 cp -r "$HOME/.config" "$BACKUP_DIR/" 2>/dev/null || true
 
-echo "  Deploying Caelestia configs..."
+ui_info "Deploying Caelestia configs..."
 for config in btop fastfetch fish foot hypr kitty micro thunar; do
     if [[ -d "$SRC_DIR/dots/$config" ]]; then
-        # Remove ((COMMENTED OUT FOR SOME REASON))
         rm -rf "$HOME/.config/$config"
-        # Deploy
         cp -r "$SRC_DIR/dots/$config" "$HOME/.config/$config"
-        echo "    Deployed: $config"
+        ui_ok "Deployed: $config"
     fi
 done
 
 # Deploy starship.toml
 if [[ -f "$SRC_DIR/dots/starship.toml" ]]; then
     cp "$SRC_DIR/dots/starship.toml" "$HOME/.config/starship.toml"
-    echo "    Deployed: starship.toml"
+    ui_ok "Deployed: starship.toml"
 fi
 
-# ── Backup Konsole ────────────────────────────────────────────────────────
-echo "  Backing up Konsole config..."
-# Note: konsolerc is already backed up with the entire ~/.config folder above
+ui_info "Backing up Konsole config..."
 if [[ -d "$HOME/.local/share/konsole" ]]; then
     cp -r "$HOME/.local/share/konsole" "$BACKUP_DIR/local/" 2>/dev/null || true
 fi
 
-# ── Deploy Bridge Files ───────────────────────────────────────────────
-echo "  Deploying bridge files (bin, applications, systemd, kwin script)..."
+ui_info "Deploying bridge files (bin, applications, systemd, kwin script)..."
 mkdir -p \
     "$HOME/.local/bin" \
     "$HOME/.local/share/applications" \
@@ -73,6 +66,6 @@ fi
 
 # Update desktop database
 update-desktop-database "$HOME/.local/share/applications/" 2>/dev/null || true
-echo "  [OK]  Bridge files deployed."
+ui_ok "Bridge files deployed."
 
-echo "[OK]  Config deployment complete."
+ui_ok "Config deployment complete."

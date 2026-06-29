@@ -1,20 +1,17 @@
 #!/usr/bin/env bash
-# 02-packages.sh — Install all packages: PKGBUILDs/RPMs + supplemental.
+# 02-packages.sh - Install all packages: PKGBUILDs/RPMs + supplemental.
 # Calls installDP.sh/installDP_fedora.sh for groups, then pkginstall.sh for extras.
 
-BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
+BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$BUNDLE_DIR/scripts/00-ui.sh"
 
-echo
-echo "════════════════════════════════════════"
-echo "  Step 2/11 — Packages"
-echo "════════════════════════════════════════"
+ui_section "Step 2/11 - Packages"
 
-echo
 if [[ "$BASE_DISTRO" == "arch" ]]; then
-    echo "--- 2a: Installing from local PKGBUILDs (sdata/arch-dist) ---"
+    ui_info "Installing from local PKGBUILDs (sdata/arch-dist)..."
     bash "$BUNDLE_DIR/sdata/arch-dist/installDP.sh"
 elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-    echo "--- 2a: Installing from local RPMs/groups (sdata/fedora-dist) ---"
+    ui_info "Installing from local RPMs/groups (sdata/fedora-dist)..."
     bash "$BUNDLE_DIR/sdata/fedora-dist/installDP_fedora.sh"
 fi
 
@@ -28,8 +25,7 @@ fi
 # bash "$BUNDLE_DIR/scripts/install-microtex.sh"
 #
 if [[ "$BASE_DISTRO" == "fedora" ]]; then
-    echo
-    echo "--- 2d: Compatibility Symlinks ---"
+    ui_info "Applying Fedora compatibility symlinks..."
     # Fix Arch -> Fedora compatibility for qdbus6
     if [ ! -L /usr/local/bin/qdbus6 ]; then
         sudo ln -s /usr/bin/qdbus-qt6 /usr/local/bin/qdbus6 2>/dev/null || true
@@ -38,9 +34,9 @@ fi
 
 echo
 if [[ "${POLONIUM_ENABLED:-false}" == "true" ]]; then
-    echo "--- Installing Polonium KWin Script ---"
+    ui_info "Installing Polonium KWin script..."
     if ! command -v kpackagetool6 >/dev/null 2>&1; then
-        echo "  [ERR] kpackagetool6 not found. Please ensure KDE Plasma development/package tools are installed."
+        ui_warn "kpackagetool6 not found. Ensure KDE Plasma development/package tools are installed."
     else
         tmpdir="$(mktemp -d)"
         if curl -sL "https://github.com/zeroxoneafour/polonium/releases/latest/download/polonium.kwinscript" -o "$tmpdir/polonium.kwinscript"; then
@@ -49,13 +45,12 @@ if [[ "${POLONIUM_ENABLED:-false}" == "true" ]]; then
             else
                 kpackagetool6 -t KWin/Script -i "$tmpdir/polonium.kwinscript" 2>/dev/null || true
             fi
-            echo "  [OK]  Polonium installed."
+            ui_ok "Polonium installed."
         else
-            echo "  [ERR] Failed to download Polonium."
+            ui_warn "Failed to download Polonium."
         fi
         rm -rf "$tmpdir"
     fi
 fi
 
-echo
-echo "[OK]  Package installation complete."
+ui_ok "Package installation complete."

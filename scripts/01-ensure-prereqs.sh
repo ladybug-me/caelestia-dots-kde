@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
-# 01-ensure-prereqs.sh — Ensure prerequisites are installed.
+# 01-ensure-prereqs.sh - Ensure prerequisites are installed.
 # Idempotent: exits immediately if present.
+
+BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$BUNDLE_DIR/scripts/00-ui.sh"
+
+ui_section "Step 1/11 - Prerequisites"
 
 if [[ "$BASE_DISTRO" == "arch" ]]; then
     ensure_yay() {
         if command -v yay >/dev/null 2>&1; then
-            echo "[OK]  yay is already installed."
+            ui_ok "yay is already installed."
             return 0
         fi
 
-        echo "==> yay not found — installing..."
+        ui_info "yay not found. Installing..."
 
         if ! command -v pacman >/dev/null 2>&1; then
-            echo -e "\033[0;31m[ERR] pacman not found. This installer requires Arch Linux.\033[0m"
-            exit 1
+            ui_die "pacman not found. This installer requires Arch Linux."
         fi
 
         sudo pacman -S --needed --noconfirm base-devel git
@@ -26,28 +30,27 @@ if [[ "$BASE_DISTRO" == "arch" ]]; then
             makepkg -si --noconfirm
         )
         rm -rf "$tmpdir"
-        echo "[OK]  yay installed."
+        ui_ok "yay installed."
     }
 
     ensure_yay
 
-    echo "==> Configuring yay sudo looping and disabling interactive menus..."
+    ui_info "Configuring yay sudo looping and disabling interactive menus..."
     yay -Y --sudoloop --nocleanmenu --nodiffmenu --save 2>/dev/null || true
-    echo "[OK]  yay configured."
+    ui_ok "yay configured."
 
 elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-    echo "==> Checking for Fedora prerequisites (dnf, yq, createrepo_c, jq)..."
+    ui_info "Checking for Fedora prerequisites (dnf, yq, createrepo_c, jq)..."
 
     if ! command -v dnf >/dev/null 2>&1; then
-        echo -e "\033[0;31m[ERR] dnf not found. This installer requires Fedora 42 or later.\033[0m"
-        exit 1
+        ui_die "dnf not found. This installer requires Fedora 42 or later."
     fi
 
     if command -v yq >/dev/null 2>&1 && command -v createrepo_c >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
-        echo "[OK]  Prerequisites are already installed."
+        ui_ok "Prerequisites are already installed."
     else
-        echo "==> Missing prerequisites — installing..."
+        ui_info "Missing prerequisites. Installing..."
         sudo dnf install -y yq createrepo_c jq
-        echo "[OK]  Prerequisites installed."
+        ui_ok "Prerequisites installed."
     fi
 fi

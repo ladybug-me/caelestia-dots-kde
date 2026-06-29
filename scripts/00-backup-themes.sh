@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# 00-backup-themes.sh — Backs up current KDE theme settings so uninstall.sh can restore them.
+# 00-backup-themes.sh - Back up current KDE theme settings for restoration.
 
-echo "  Backing up current KDE theme configurations..."
+BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$BUNDLE_DIR/scripts/00-ui.sh"
+
+ui_section "Backup KDE theme settings"
+ui_info "Backing up current KDE theme configurations..."
 
 BACKUP_FILE="$HOME/.config/caelestia-theme-backup.conf"
 
@@ -32,4 +36,4 @@ backup_config "kwinrc" "org.kde.kdecoration2" "library"
 backup_config "kwinrc" "org.kde.kdecoration2" "theme"
 backup_config "kcminputrc" "Mouse" "cursorTheme"
 
-echo "  [OK]  KDE theme settings backed up to $BACKUP_FILE"
+ui_ok "KDE theme settings backed up to $BACKUP_FILE"

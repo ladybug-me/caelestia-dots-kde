@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-# ╔══════════════════════════════════════════════════════════════╗
-# ║        Caelestia KDE Port — Unified Installer               ║
-# ║                                                              ║
-# ║  Original Hyprland dots: Caelestia                           ║
-# ║  KDE port & modifications: ladybug-me                        ║
-# ║                                                              ║
-# ║  Idempotent — safe to run multiple times.                    ║
-# ╚══════════════════════════════════════════════════════════════╝
+# Caelestia KDE Port - Unified Installer
+# Original Hyprland dots: Caelestia
+# KDE port and modifications: ladybug-me
+# Idempotent by design - safe to run multiple times.
 
 set -uo pipefail
 
@@ -14,6 +10,15 @@ set -uo pipefail
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
 export BUNDLE_DIR
+
+source "$SCRIPTS_DIR/00-ui.sh"
+
+die() { ui_die "$@"; }
+info() { ui_info "$@"; }
+ok() { ui_ok "$@"; }
+warn() { ui_warn "$@"; }
+section_header() { ui_section "$@"; }
+prompt_yes_no() { ui_prompt_yes_no "$@"; }
 
 # ── Download/Cache Configuration ───────────────────────────────────────────────
 export CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"
@@ -25,22 +30,6 @@ export SRCPKGDEST="$CACHE_DIR/makepkg-srcpackages"
 # Ensure cache subdirectories exist
 mkdir -p "$CACHE_DIR" "$BUILDDIR" "$PKGDEST" "$SRCDEST" "$SRCPKGDEST"
 rm -f "$CACHE_DIR/failed_steps.txt" "$CACHE_DIR/failed_packages.txt"
-
-# ── Colors ─────────────────────────────────────────────────────────────────────
-RST="\033[0m"
-BOLD="\033[1m"
-PURPLE="\033[38;5;135m"
-BLUE="\033[38;5;75m"
-CYAN="\033[38;5;87m"
-PINK="\033[38;5;213m"
-GREEN="\033[38;5;84m"
-RED="\033[38;5;196m"
-YELLOW="\033[38;5;220m"
-
-die()  { echo -e "${RED} ☄️  [FATAL] $*${RST}" >&2; exit 1; }
-info() { echo -e "${BLUE} 🔭 [INFO]  $*${RST}"; }
-ok()   { echo -e "${GREEN} ✨ [OK]    $*${RST}"; }
-warn() { echo -e "${YELLOW} ⚠️  [WARN]  $*${RST}"; }
 
 # ── Pre-flight checks & OS Detection ───────────────────────────────────────────
 if [ -f /etc/os-release ]; then
@@ -86,6 +75,153 @@ elif [[ "$BASE_DISTRO" == "fedora" ]] && ! command -v dnf >/dev/null 2>&1; then
     die "dnf not found. This installer requires Fedora or a Fedora-based distro."
 fi
 
+# ══════════════════════════════════════════════════════════════
+#  ASK USER PREFERENCES
+# ══════════════════════════════════════════════════════════════
+echo
+section_header "Installer preferences"
+
+# Automatic package confirmation is always enabled.
+export CONFIRM_ARG="--noconfirm"
+
+# Defaults requested by project maintainer.
+POLONIUM_ENABLED="false"
+REMOVE_CACHE="true"
+APPLY_DARKLY="true"
+APPLY_MATERIAL_YOU="true"
+APPLY_FONTS="true"
+
+toggle_bool() {
+    local var_name="$1"
+    if [[ "${!var_name}" == "true" ]]; then
+        printf -v "$var_name" '%s' "false"
+    else
+        printf -v "$var_name" '%s' "true"
+    fi
+}
+
+checkbox_mark() {
+    if [[ "$1" == "true" ]]; then
+        printf '[x]'
+    else
+        printf '[ ]'
+    fi
+}
+
+draw_preferences() {
+    echo
+    ui_separator
+    echo "  Configure installation options"
+    ui_separator
+    printf "  %s Enable Polonium tiling\n" "$(checkbox_mark "$POLONIUM_ENABLED")"
+    printf "  %s Remove downloaded packages and build files after installation\n" "$(checkbox_mark "$REMOVE_CACHE")"
+    printf "  %s Apply Darkly theme (Plasma, decorations, Kvantum, Bibata cursors)\n" "$(checkbox_mark "$APPLY_DARKLY")"
+    printf "  %s Enable Material You colors (kde-material-you-colors daemon)\n" "$(checkbox_mark "$APPLY_MATERIAL_YOU")"
+    printf "  %s Apply included custom fonts (lookandfeeltool)\n" "$(checkbox_mark "$APPLY_FONTS")"
+    echo
+    ui_info "Use Up/Down arrows to move. Press Enter to toggle a checkbox."
+    ui_info "Select Continue and press Enter when ready."
+}
+
+draw_preferences_tui() {
+    local selected="$1"
+    local marker
+
+    clear
+    ui_separator
+    echo "  Configure installation options"
+    ui_separator
+    echo
+
+    marker="  "
+    [[ "$selected" -eq 0 ]] && marker="> "
+    printf "%s%s Enable Polonium tiling\n" "$marker" "$(checkbox_mark "$POLONIUM_ENABLED")"
+
+    marker="  "
+    [[ "$selected" -eq 1 ]] && marker="> "
+    printf "%s%s Remove downloaded packages and build files after installation\n" "$marker" "$(checkbox_mark "$REMOVE_CACHE")"
+
+    marker="  "
+    [[ "$selected" -eq 2 ]] && marker="> "
+    printf "%s%s Apply Darkly theme (Plasma, decorations, Kvantum, Bibata cursors)\n" "$marker" "$(checkbox_mark "$APPLY_DARKLY")"
+
+    marker="  "
+    [[ "$selected" -eq 3 ]] && marker="> "
+    printf "%s%s Enable Material You colors (kde-material-you-colors daemon)\n" "$marker" "$(checkbox_mark "$APPLY_MATERIAL_YOU")"
+
+    marker="  "
+    [[ "$selected" -eq 4 ]] && marker="> "
+    printf "%s%s Apply included custom fonts (lookandfeeltool)\n" "$marker" "$(checkbox_mark "$APPLY_FONTS")"
+
+    marker="  "
+    [[ "$selected" -eq 5 ]] && marker="> "
+    printf "%s[ ] Continue\n" "$marker"
+
+    echo
+    ui_info "Use Up/Down arrows to move. Press Enter to toggle or continue."
+}
+
+selected_option=0
+max_option=5
+
+tput civis 2>/dev/null || true
+trap 'tput cnorm 2>/dev/null || true' RETURN
+
+while true; do
+    draw_preferences_tui "$selected_option"
+
+    IFS= read -rsn1 key
+    if [[ "$key" == $'\x1b' ]]; then
+        IFS= read -rsn1 key2
+        IFS= read -rsn1 key3
+        case "$key2$key3" in
+            "[A")
+                if [[ "$selected_option" -gt 0 ]]; then
+                    selected_option=$((selected_option - 1))
+                fi
+                ;;
+            "[B")
+                if [[ "$selected_option" -lt "$max_option" ]]; then
+                    selected_option=$((selected_option + 1))
+                fi
+                ;;
+        esac
+    elif [[ -z "$key" || "$key" == $'\n' ]]; then
+        case "$selected_option" in
+            0) toggle_bool POLONIUM_ENABLED ;;
+            1) toggle_bool REMOVE_CACHE ;;
+            2) toggle_bool APPLY_DARKLY ;;
+            3) toggle_bool APPLY_MATERIAL_YOU ;;
+            4) toggle_bool APPLY_FONTS ;;
+            5) break ;;
+        esac
+    fi
+done
+
+tput cnorm 2>/dev/null || true
+trap - RETURN
+clear
+draw_preferences
+
+if [[ "$POLONIUM_ENABLED" == "true" ]]; then
+    echo
+    ui_warn "Polonium may cause close, maximize, and minimize buttons to be unresponsive."
+    ui_warn "You may need to use Alt+F4 to close applications."
+    if ! prompt_yes_no "Keep Polonium enabled?"; then
+        POLONIUM_ENABLED="false"
+    fi
+fi
+
+export POLONIUM_ENABLED REMOVE_CACHE APPLY_DARKLY APPLY_MATERIAL_YOU APPLY_FONTS
+
+echo
+ui_section "Preference summary"
+echo "  Polonium tiling: $POLONIUM_ENABLED"
+echo "  Remove downloaded packages/cache: $REMOVE_CACHE"
+echo "  Apply Darkly theme: $APPLY_DARKLY"
+echo "  Enable Material You colors: $APPLY_MATERIAL_YOU"
+echo "  Apply included custom fonts: $APPLY_FONTS"
+
 # ── Step runner ────────────────────────────────────────────────────────────────
 # Runs a step script. On failure prints a warning and prompts for retry/ignore/exit.
 run_step() {
@@ -102,21 +238,27 @@ run_step() {
             break
         else
             warn "$name — encountered errors"
-            echo -e "${YELLOW}What would you like to do? [r]etry, [i]gnore, [e]xit:${RST} "
-            read -r -t 60 step_action || step_action="i"
-            case "${step_action,,}" in
-                r|retry)
-                    info "Retrying $name..."
-                    ;;
-                e|exit)
-                    die "Aborting installation."
-                    ;;
-                *)
-                    info "Ignoring error and continuing..."
-                    echo "$name" >> "$CACHE_DIR/failed_steps.txt"
-                    break
-                    ;;
-            esac
+            while true; do
+                echo -e "${YELLOW}Choose an action: [r]etry, [i]gnore, [e]xit:${RST} "
+                read -r step_action
+                case "${step_action,,}" in
+                    r|retry)
+                        info "Retrying $name..."
+                        break
+                        ;;
+                    e|exit)
+                        die "Aborting installation."
+                        ;;
+                    i|ignore)
+                        info "Ignoring error and continuing..."
+                        echo "$name" >> "$CACHE_DIR/failed_steps.txt"
+                        break
+                        ;;
+                    *)
+                        ui_warn "Please enter r, i, or e."
+                        ;;
+                esac
+            done
         fi
     done
 }
@@ -151,13 +293,11 @@ trap 'printf "%s\n" "$SUDO_PASS" | sudo -S rm -f /etc/sudoers.d/caelestia-instal
 #  STEP 0 — System update (first thing after auth)
 # ══════════════════════════════════════════════════════════════
 echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 if [[ "$BASE_DISTRO" == "arch" ]]; then
-    echo -e "${CYAN}  Step 0 — System Update (pacman -Syu)${RST}"
+    section_header "Step 0 — System Update" "pacman -Syu"
 else
-    echo -e "${CYAN}  Step 0 — System Update (dnf upgrade)${RST}"
+    section_header "Step 0 — System Update" "dnf upgrade"
 fi
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo
 if [[ "$BASE_DISTRO" == "arch" ]]; then
     info "Running sudo pacman -Syu to bring the system up to date first..."
@@ -176,182 +316,68 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════════
-#  ASK USER PREFERENCES
-# ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Installer preferences${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-
-# Polonium tiling WM — ask user
-echo
-echo -e "${YELLOW}Polonium is a KDE tiling window manager plugin.${RST}"
-echo -e "Would you like to enable Polonium tiling? [y/N]: "
-read -r -t 15 polonium_answer || polonium_answer="n"
-case "${polonium_answer,,}" in
-    y|yes)
-        echo -e "\n\033[1;5;31m[WARNING] The close button, maximize and minimize buttons will not respond!\033[0m"
-        echo -e "\033[1;31mYou will have to use Alt+F4 to close apps (bug of Polonium).\033[0m\n"
-        read -r -p "$(echo -e "${YELLOW}Are you sure you still want to enable Polonium? [y/N]: ${RST}")" polonium_confirm
-        case "${polonium_confirm,,}" in
-            y|yes) export POLONIUM_ENABLED="true";  echo "  → Polonium will be ENABLED." ;;
-            *)     export POLONIUM_ENABLED="false"; echo "  → Polonium will be DISABLED." ;;
-        esac
-        ;;
-    *)     export POLONIUM_ENABLED="false"; echo "  → Polonium will be DISABLED (default)." ;;
-esac
-
-# Auto-confirm package installation — ask user
-echo
-echo -e "${YELLOW}Would you like package installation to proceed automatically without confirmation?${RST}"
-if [[ "$BASE_DISTRO" == "arch" ]]; then
-    echo -e "If you select No, you will be prompted to confirm each pacman/yay transaction. [Y/n]: "
-else
-    echo -e "If you select No, you will be prompted to confirm each dnf transaction. [Y/n]: "
-fi
-read -r -t 15 confirm_answer || confirm_answer="y"
-case "${confirm_answer,,}" in
-    n|no) export CONFIRM_ARG="";            echo "  → Manual confirmation ENABLED." ;;
-    *)    export CONFIRM_ARG="--noconfirm"; echo "  → Automated installation ENABLED (--noconfirm)." ;;
-esac
-
-# Clean up downloaded package cache and build files — ask user
-echo
-echo -e "${YELLOW}Would you like to remove the downloaded packages and build files after a successful installation? [y/N]:${RST} "
-read -r -t 15 clean_answer || clean_answer="n"
-case "${clean_answer,,}" in
-    y|yes) export REMOVE_CACHE="true";  echo "  → Downloaded packages/cache will be REMOVED." ;;
-    *)     export REMOVE_CACHE="false"; echo "  → Downloaded packages/cache will be KEPT (default)." ;;
-esac
-
-# Warning about breaking custom setups
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Theming Options${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${YELLOW}Applying these settings will overwrite your current theme and may rarely break custom setups.${RST}"
-echo -e "${YELLOW}Make sure to keep the desktop environment clean before proceeding.${RST}"
-
-# Darkly theme — ask user
-echo
-echo -e "${YELLOW}Would you like to apply the Darkly theme (Plasma style, window decorations, Kvantum, Bibata cursors)? [Y/n]:${RST} "
-read -r -t 15 darkly_answer || darkly_answer="y"
-case "${darkly_answer,,}" in
-    n|no) export APPLY_DARKLY="false"; echo "  → Darkly theme will NOT be applied." ;;
-    *)    export APPLY_DARKLY="true";  echo "  → Darkly theme will be APPLIED." ;;
-esac
-
-# Material You colors — ask user
-echo
-echo -e "${YELLOW}Would you like to enable Material You colors (via kde-material-you-colors daemon)? [Y/n]:${RST} "
-read -r -t 15 my_answer || my_answer="y"
-case "${my_answer,,}" in
-    n|no) export APPLY_MATERIAL_YOU="false"; echo "  → Material You colors will NOT be enabled." ;;
-    *)    export APPLY_MATERIAL_YOU="true";  echo "  → Material You colors will be ENABLED." ;;
-esac
-
-# Included fonts — ask user
-echo
-echo -e "${YELLOW}Would you like to apply the included custom fonts (via lookandfeeltool)? [Y/n]:${RST} "
-read -r -t 15 fonts_answer || fonts_answer="y"
-case "${fonts_answer,,}" in
-    n|no) export APPLY_FONTS="false"; echo "  → Custom fonts will NOT be applied." ;;
-    *)    export APPLY_FONTS="true";  echo "  → Custom fonts will be APPLIED." ;;
-esac
-
-# ══════════════════════════════════════════════════════════════
 #  STEP 1 — Ensure prerequisites
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 if [[ "$BASE_DISTRO" == "arch" ]]; then
-    echo -e "${CYAN}  Step 1/11 — Prerequisites (yay)${RST}"
+    section_header "Step 1/11 — Prerequisites" "yay"
 else
-    echo -e "${CYAN}  Step 1/11 — Prerequisites (dnf, yq, createrepo_c)${RST}"
+    section_header "Step 1/11 — Prerequisites" "dnf, yq, createrepo_c"
 fi
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 run_step "Ensure prerequisites" "$SCRIPTS_DIR/01-ensure-prereqs.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 2 — Packages (PKGBUILDs + supplemental)
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 2/11 — Package Installation${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 2/11 — Package Installation"
 run_step "Package installation" "$SCRIPTS_DIR/02-packages.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 3 — Backup and Deploy configs
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 3/11 — Config Deployment${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 3/11 — Config Deployment"
 run_step "Backup KDE Themes" "$SCRIPTS_DIR/00-backup-themes.sh"
 run_step "Config deployment" "$SCRIPTS_DIR/03-deploy-configs.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 4 — Apply KDE settings (Darkly, Kvantum, polonium)
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 4/11 — KDE Settings${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 4/11 — KDE Settings"
 run_step "KDE settings" "$SCRIPTS_DIR/04-deploy-kde.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 5 — Keyboard shortcuts & workspaces
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 5/11 — Keyboard Shortcuts & Workspaces${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 5/11 — Keyboard Shortcuts & Workspaces"
 run_step "Keyboard shortcuts" "$BUNDLE_DIR/src/keyboardshortcuts/register.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 6 — Services
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 6/11 — Services${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 6/11 — Services"
 run_step "Services" "$SCRIPTS_DIR/06-services.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 7 — Install KDE extra apps (kvantum, darkly, kde-material-you-colors)
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 7/11 — KDE Theme Apps${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 7/11 — KDE Theme Apps"
 run_step "KDE theme apps" "$SCRIPTS_DIR/07-kde-apps.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 8 — Build and Install Caelestia Shell
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 8/11 — Build Caelestia Shell${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 8/11 — Build Caelestia Shell"
 run_step "Build Caelestia Shell" "$SCRIPTS_DIR/08-build-shell.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 9 — Apply live system tweaks
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 9/11 — System Tweaks${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 9/11 — System Tweaks"
 run_step "System tweaks" "$SCRIPTS_DIR/09-system-tweaks.sh"
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 10 — Autostart (Quickshell + kde-material-you-colors)
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 10/11 — Autostart${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 10/11 — Autostart"
 run_step "Autostart" "$SCRIPTS_DIR/10-autostart.sh"
 
 # ══════════════════════════════════════════════════════════════
@@ -367,8 +393,5 @@ fi
 # ══════════════════════════════════════════════════════════════
 #  STEP 11 — Finalize (summary + logout instructions)
 # ══════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 11/11 — Finalize${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section_header "Step 11/11 — Finalize"
 run_step "Finalize" "$SCRIPTS_DIR/11-finalize.sh"
