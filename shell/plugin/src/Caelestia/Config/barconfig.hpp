@@ -86,7 +86,7 @@ class BarTray : public ConfigObject {
 
     CONFIG_PROPERTY(bool, background, false)
     CONFIG_PROPERTY(bool, recolour, false)
-    CONFIG_PROPERTY(bool, compact, false)
+    CONFIG_PROPERTY(bool, compact, true)
     CONFIG_GLOBAL_PROPERTY(QVariantList, iconSubs)
     CONFIG_GLOBAL_PROPERTY(QStringList, hiddenIcons)
 
