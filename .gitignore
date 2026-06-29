@@ -11,3 +11,7 @@
 
 .SRCINFO
 backups/
+
+# Python cache artifacts
+__pycache__/
+*.py[cod]
