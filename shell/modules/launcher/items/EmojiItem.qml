@@ -16,9 +16,9 @@ Item {
         if (!root.modelData)
             return;
         root.list.visibilities.launcher = false;
-        Quickshell.execDetached(["wl-copy", root.modelData.char]);
-        Emojis.recordUsage(root.modelData.char);
-        Toaster.toast(qsTr("Copied to clipboard"), root.modelData.char + " " + root.modelData.name, "emoji_emotions");
+        Quickshell.execDetached(["wl-copy", root.modelData.ch]);
+        Emojis.recordUsage(root.modelData.ch);
+        Toaster.toast(qsTr("Copied to clipboard"), root.modelData.ch + " " + root.modelData.name, "emoji_emotions");
     }
 
     implicitHeight: Tokens.sizes.launcher.itemHeight
@@ -40,7 +40,7 @@ Item {
         StyledText {
             id: emojiChar
 
-            text: root.modelData?.char ?? ""
+            text: root.modelData?.ch ?? ""
             font.pixelSize: Tokens.font.icon.builders.large.scale(1.3).build().pixelSize
 
             anchors.verticalCenter: parent.verticalCenter
@@ -70,7 +70,7 @@ Item {
             anchors.right: parent.right
             hoverEnabled: true
             onClicked: {
-                const emojiChar = root.modelData?.char;
+                const emojiChar = root.modelData?.ch;
                 if (!emojiChar)
                     return;
                 const favEmojis = GlobalConfig.launcher.favouriteEmojis ? [...GlobalConfig.launcher.favouriteEmojis] : [];
@@ -86,8 +86,8 @@ Item {
 
             MaterialIcon {
                 anchors.centerIn: parent
-                text: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.char) ? "favorite" : "favorite_border"
-                fill: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.char) ? 1 : 0
+                text: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.ch) ? "favorite" : "favorite_border"
+                fill: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.ch) ? 1 : 0
                 color: favIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
             }
         }
