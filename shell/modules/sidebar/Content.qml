@@ -22,6 +22,7 @@ Item {
     Connections {
         target: GlobalConfig.ai
         function onEnableOllamaChanged() { checkAiTab(); }
+        function onShowNewsChanged() { checkAiTab(); }
     }
 
     Connections {
@@ -35,10 +36,11 @@ Item {
     }
 
     function checkAiTab() {
-        if (!GlobalConfig.ai.enableOllama) {
-            if (root.activeTab === "ai") {
-                root.activeTab = "notifications";
-            }
+        if (!GlobalConfig.ai.enableOllama && root.activeTab === "ai") {
+            root.activeTab = "notifications";
+        }
+        if (!GlobalConfig.ai.showNews && root.activeTab === "news") {
+            root.activeTab = "notifications";
         }
     }
 
@@ -67,7 +69,8 @@ Item {
                 Item {
                     id: headerContainer
                     Layout.fillWidth: true
-                    implicitHeight: 64
+                    implicitHeight: (!GlobalConfig.ai.enableOllama && !GlobalConfig.ai.showNews) ? 0 : 64
+                    visible: GlobalConfig.ai.enableOllama || GlobalConfig.ai.showNews
                     clip: true
 
                     RowLayout {
@@ -85,7 +88,9 @@ Item {
                                 if (GlobalConfig.ai.enableOllama) {
                                     tabs.push({ id: "ai", label: qsTr("AI Assistant"), icon: "smart_toy" });
                                 }
-                                tabs.push({ id: "news", label: qsTr("News"), icon: "newspaper" });
+                                if (GlobalConfig.ai.showNews) {
+                                    tabs.push({ id: "news", label: qsTr("News"), icon: "newspaper" });
+                                }
                                 return tabs;
                             }
 
@@ -167,6 +172,7 @@ Item {
                 StyledRect {
                     Layout.fillWidth: true
                     implicitHeight: 1
+                    visible: GlobalConfig.ai.enableOllama || GlobalConfig.ai.showNews
                     color: Colours.palette.m3outlineVariant
                 }
 

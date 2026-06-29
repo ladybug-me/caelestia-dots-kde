@@ -12,6 +12,7 @@ class OsdConfig : public ConfigObject {
     CONFIG_PROPERTY(int, hideDelay, 2000)
     CONFIG_PROPERTY(bool, enableBrightness, true)
     CONFIG_PROPERTY(bool, enableMicrophone, false)
+    CONFIG_PROPERTY(bool, enableVolume, true)
 
 public:
     explicit OsdConfig(QObject* parent = nullptr)

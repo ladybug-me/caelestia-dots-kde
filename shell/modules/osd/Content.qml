@@ -31,26 +31,31 @@ Item {
         spacing: Tokens.spacing.medium
 
         // Speaker volume
-        CustomMouseArea {
+        WrappedLoader {
             Layout.alignment: Qt.AlignHCenter
+            shouldBeActive: Config.osd.enableVolume !== false
+            targetWidth: Tokens.sizes.osd.sliderWidth
+            targetHeight: Tokens.sizes.osd.sliderHeight
 
-            function onWheel(event: WheelEvent) {
-                if (event.angleDelta.y > 0)
-                    Audio.incrementVolume();
-                else if (event.angleDelta.y < 0)
-                    Audio.decrementVolume();
-            }
+            sourceComponent: CustomMouseArea {
+                function onWheel(event: WheelEvent) {
+                    if (event.angleDelta.y > 0)
+                        Audio.incrementVolume();
+                    else if (event.angleDelta.y < 0)
+                        Audio.decrementVolume();
+                }
 
-            implicitWidth: Tokens.sizes.osd.sliderWidth
-            implicitHeight: Tokens.sizes.osd.sliderHeight
+                implicitWidth: Tokens.sizes.osd.sliderWidth
+                implicitHeight: Tokens.sizes.osd.sliderHeight
 
-            FilledSlider {
-                anchors.fill: parent
+                FilledSlider {
+                    anchors.fill: parent
 
-                icon: Icons.getVolumeIcon(value, root.muted)
-                value: root.volume
-                to: GlobalConfig.services.maxVolume
-                onMoved: Audio.setVolume(value)
+                    icon: Icons.getVolumeIcon(value, root.muted)
+                    value: root.volume
+                    to: GlobalConfig.services.maxVolume
+                    onMoved: Audio.setVolume(value)
+                }
             }
         }
 

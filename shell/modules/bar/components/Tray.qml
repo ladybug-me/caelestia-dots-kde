@@ -20,8 +20,6 @@ StyledRect {
     property bool expanded
     property bool pinned: false
     property var popouts
-
-
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
 
     readonly property real nonAnimHeight: {
@@ -67,6 +65,7 @@ StyledRect {
 
         opacity: root.expanded || !Config.bar.tray.compact ? 1 : 0
         enabled: root.expanded || !Config.bar.tray.compact
+        // Disable hit area when collapsed to prevent phantom clicks
 
         add: Transition {
             Anim {

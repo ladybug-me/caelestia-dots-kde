@@ -77,6 +77,7 @@ Item {
         if (!ch) {
             if (popouts.hasCurrent && (popouts.currentName === "dockcontext" || popouts.currentName === "dockhover" || popouts.currentName === "activewindow")) return;
             if (!Config.bar.popouts.tray && popouts.currentName.startsWith("traymenu")) return;
+            // skip hover-driven tray recalculation in click mode
             popouts.hasCurrent = false;
             return;
         }
@@ -90,7 +91,24 @@ Item {
             return;
         } else if (id === "statusIcons" && Config.bar.popouts.statusIcons) {
             const items = (ch.item as StatusIcons).items;
-            const icon = items.childAt(isHorizontal ? mapToItem(items, pos, 0).x : items.width / 2, isHorizontal ? items.height / 2 : mapToItem(items, 0, pos).y);
+            const localPos = isHorizontal ? mapToItem(items, pos, 0).x : mapToItem(items, 0, pos).y;
+            let icon = items.childAt(isHorizontal ? localPos : items.width / 2, isHorizontal ? items.height / 2 : localPos);
+            if (!icon) {
+                // Find nearest visible child by center distance
+                let bestDist = 1e9;
+                for (let i = 0; i < items.children.length; i++) {
+                    const child = items.children[i];
+                    if (!child.visible || !child.name) continue;
+                    const center = isHorizontal
+                        ? child.mapToItem(items, child.width / 2, 0).x
+                        : child.mapToItem(items, 0, child.height / 2).y;
+                    const dist = Math.abs(localPos - center);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        icon = child;
+                    }
+                }
+            }
             if (icon) {
                 popouts.currentName = icon.name;
                 popouts.currentCenter = isHorizontal ? icon.mapToItem(null, icon.implicitWidth / 2, 0).x : icon.mapToItem(null, 0, icon.implicitHeight / 2).y;

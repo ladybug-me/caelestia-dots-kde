@@ -74,10 +74,16 @@ PageBase {
 
         ToggleRow {
             Layout.fillWidth: true
-            last: true
             text: qsTr("Caps lock")
             checked: Config.bar.status.showLockStatus
             onToggled: GlobalConfig.bar.status.showLockStatus = checked
+        }
+        ToggleRow {
+            Layout.fillWidth: true
+            last: true
+            text: qsTr("Notifications")
+            checked: Config.bar.status.showNotifications
+            onToggled: GlobalConfig.bar.status.showNotifications = checked
         }
 
         // Behaviour

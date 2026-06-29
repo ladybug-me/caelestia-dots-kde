@@ -78,6 +78,9 @@ class UtilitiesConfig : public ConfigObject {
     CONFIG_SUBOBJECT(UtilitiesToasts, toasts)
     CONFIG_SUBOBJECT(UtilitiesVpn, vpn)
     CONFIG_SUBOBJECT(UtilitiesGameMode, gameMode)
+    CONFIG_PROPERTY(bool, showKeepAwake, true)
+    CONFIG_PROPERTY(bool, showScreenRecorder, true)
+    CONFIG_PROPERTY(bool, showQuickToggles, true)
     CONFIG_PROPERTY(QVariantList, quickToggles,
         {
             vmap({ { u"id"_s, u"wifi"_s }, { u"enabled"_s, true } }),
