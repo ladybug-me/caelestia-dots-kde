@@ -74,8 +74,6 @@
   <summary><b>📥 Installation</b></summary>
   <br/>
 
-  - The following installs v2.0.0 which is still under development, it is recommended to install v1.0.0 from the Release page for a stable experience..
-
   1. **Clone this repository:**
      ```bash
      git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde
