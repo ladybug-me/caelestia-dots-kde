@@ -31,7 +31,7 @@ QtObject {
                         continue;
 
                     result.push({
-                        char: line.substring(0, spaceIdx),
+                        ch: line.substring(0, spaceIdx),
                         name: line.substring(spaceIdx + 1).trim()
                     });
                 }
@@ -76,8 +76,8 @@ QtObject {
         freqWriter.running = true;
     }
 
-    function recordUsage(char: string): void {
-        frequencies[char] = (frequencies[char] || 0) + 1;
+    function recordUsage(ch: string): void {
+        frequencies[ch] = (frequencies[ch] || 0) + 1;
         saveFrequencies();
     }
 
@@ -87,12 +87,12 @@ QtObject {
         const favEmojis = GlobalConfig.launcher.favouriteEmojis || [];
         const favSet = new Set(favEmojis);
         return [...items].sort((a, b) => {
-            const aIsFav = favSet.has(a.char);
-            const bIsFav = favSet.has(b.char);
+            const aIsFav = favSet.has(a.ch);
+            const bIsFav = favSet.has(b.ch);
             if (aIsFav !== bIsFav)
                 return aIsFav ? -1 : 1;
-            const freqA = frequencies[a.char] || 0;
-            const freqB = frequencies[b.char] || 0;
+            const freqA = frequencies[a.ch] || 0;
+            const freqB = frequencies[b.ch] || 0;
             if (freqA !== freqB)
                 return freqB - freqA;
             return 0;

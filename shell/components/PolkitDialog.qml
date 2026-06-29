@@ -454,7 +454,7 @@ StyledWindow {
     }
 
     component CharItem: Item {
-        id: char
+        id: ch
 
         required property int index
         property real nonAnimWidthScale: 1
@@ -471,7 +471,7 @@ StyledWindow {
 
             anchors.centerIn: parent
             implicitSize: charList.implicitHeight * 1.5
-            shape: root.shapeQueue[char.index % root.shapeQueue.length] ?? MaterialShape.Circle
+            shape: root.shapeQueue[ch.index % root.shapeQueue.length] ?? MaterialShape.Circle
             color: Colours.palette.m3onSurface
 
             Behavior on color {
@@ -499,14 +499,14 @@ StyledWindow {
                         type: Anim.FastSpatial
                     }
                     Anim {
-                        target: char
+                        target: ch
                         property: "implicitWidth"
                         from: charList.implicitHeight
                         to: charList.implicitHeight * 1.3
                         type: Anim.DefaultEffects
                     }
                     PropertyAction {
-                        target: char
+                        target: ch
                         property: "nonAnimWidthScale"
                         value: 1.5
                     }
@@ -527,13 +527,13 @@ StyledWindow {
                         type: Anim.FastSpatial
                     }
                     Anim {
-                        target: char
+                        target: ch
                         property: "implicitWidth"
                         to: charList.implicitHeight
                         type: Anim.DefaultEffects
                     }
                     PropertyAction {
-                        target: char
+                        target: ch
                         property: "nonAnimWidthScale"
                         value: 1
                     }
@@ -544,7 +544,7 @@ StyledWindow {
                 id: removeAnim
 
                 PropertyAction {
-                    target: char
+                    target: ch
                     property: "ListView.delayRemove"
                     value: true
                 }
@@ -562,7 +562,7 @@ StyledWindow {
                     }
                 }
                 PropertyAction {
-                    target: char
+                    target: ch
                     property: "ListView.delayRemove"
                     value: false
                 }
