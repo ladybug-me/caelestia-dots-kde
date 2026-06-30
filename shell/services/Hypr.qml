@@ -34,8 +34,11 @@ Singleton {
     
     Timer {
         id: wsTimer
-        interval: 1000
-        onTriggered: wsPoller.running = true
+        interval: 3000
+        onTriggered: {
+            if (!wsPoller.running)
+                wsPoller.running = true;
+        }
     }
 
     readonly property var activeToplevel: ToplevelManager.activeToplevel

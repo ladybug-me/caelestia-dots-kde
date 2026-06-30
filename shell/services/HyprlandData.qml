@@ -21,6 +21,7 @@ Singleton {
     property var activeWorkspace: null
     property var monitors: []
     property var layers: ({})
+    readonly property bool _busy: getClients.running || getMonitors.running || getLayers.running || getWorkspaces.running || getActiveWorkspace.running
 
     // Convenient stuff
 
@@ -47,20 +48,25 @@ Singleton {
     // Internals
 
     function updateWindowList() {
-        getClients.running = true;
+        if (!getClients.running)
+            getClients.running = true;
     }
 
     function updateLayers() {
-        getLayers.running = true;
+        if (!getLayers.running)
+            getLayers.running = true;
     }
 
     function updateMonitors() {
-        getMonitors.running = true;
+        if (!getMonitors.running)
+            getMonitors.running = true;
     }
 
     function updateWorkspaces() {
-        getWorkspaces.running = true;
-        getActiveWorkspace.running = true;
+        if (!getWorkspaces.running)
+            getWorkspaces.running = true;
+        if (!getActiveWorkspace.running)
+            getActiveWorkspace.running = true;
     }
 
     function updateAll() {
@@ -84,11 +90,12 @@ Singleton {
     }
 
     Timer {
-        interval: 200
+        interval: 2000
         running: true
         repeat: true
         onTriggered: {
-            updateAll();
+            if (!root._busy)
+                updateAll();
         }
     }
 
