@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ╔══════════════════════════════════════════════════════════════╗
-# ║        Caelestia KDE Port — Unified Updater                 ║
-# ╚══════════════════════════════════════════════════════════════╝
+# ==============================================================
+#   Caelestia KDE Port - Unified Updater
+# ==============================================================
 
 set -uo pipefail
 
@@ -16,12 +16,18 @@ info() { echo -e "${CYAN}[INFO]  $*${RST}"; }
 ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
 warn() { echo -e "${YELLOW}[WARN]  $*${RST}"; }
 
+section() {
+    local title="$1"
+    echo
+    echo -e "${CYAN}-------------------------------------------------------------${RST}"
+    echo -e "${CYAN}  $title${RST}"
+    echo -e "${CYAN}-------------------------------------------------------------${RST}"
+}
+
 export BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$BUNDLE_DIR" || die "Could not enter $BUNDLE_DIR"
 
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 1 — Source Code Update${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 1 - Source Code Update"
 
 info "Fetching remote branches..."
 git fetch origin || warn "Failed to fetch from origin. Network issue?"
@@ -60,10 +66,7 @@ if [ "$STASHED" -eq 1 ]; then
 fi
 
 
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 2 — Core Updates${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 2 - Core Updates"
 
 if [ ! -f "$BUNDLE_DIR/scripts/03-deploy-configs.sh" ] || [ ! -f "$BUNDLE_DIR/scripts/08-build-shell.sh" ]; then
     die "Critical internal scripts are missing from $BUNDLE_DIR/scripts/"
@@ -83,10 +86,7 @@ bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed
 info "Building Caelestia Shell UI..."
 bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GREEN}  Update Completed Successfully!${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Update Completed Successfully"
 echo
 info "The core shell and bridge scripts have been updated without touching your personal KDE settings."
 echo

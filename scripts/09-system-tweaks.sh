@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 10-system-tweaks.sh — Apply live system configuration tweaks to the running KDE session.
+# 10-system-tweaks.sh  Apply live system configuration tweaks to the running KDE session.
 #
 # This script ONLY writes config values and reloads KDE daemons.
 # It does NOT copy any files. It is designed to be:
@@ -19,13 +19,13 @@ ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
 warn() { echo -e "${RED}[WARN]  $*${RST}"; }
 
 echo
-echo "════════════════════════════════════════════════════════"
-echo "  caelestia KDE — Live System Tweaks"
-echo "════════════════════════════════════════════════════════"
+echo ""
+echo "  caelestia KDE  Live System Tweaks"
+echo ""
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Disable KDE OSD popups (volume, brightness notifications)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_disable_kde_osd() {
     info "Disabling KDE OSD popups (volume/brightness)..."
 
@@ -61,9 +61,9 @@ EOF
     ok "KDE OSD popups disabled."
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Create 5 virtual desktops
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_five_desktops() {
     info "Configuring 5 virtual desktops..."
 
@@ -76,13 +76,13 @@ tweak_five_desktops() {
     ok "5 virtual desktops configured."
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Register workspace switching shortcuts (Meta+1..5)
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_workspace_shortcuts() {
     info "Registering Meta+1..5 workspace switching shortcuts..."
 
-    # Meta+1..5 → Switch to Desktop N
+    # Meta+1..5  Switch to Desktop N
     for i in $(seq 1 5); do
         kwriteconfig6 \
             --file kglobalshortcutsrc \
@@ -91,7 +91,7 @@ tweak_workspace_shortcuts() {
             "Meta+$i,none,Switch to Desktop $i"
     done
 
-    # Meta+Shift+1..5 → Move window to desktop N
+    # Meta+Shift+1..5  Move window to desktop N
     for i in $(seq 1 5); do
         kwriteconfig6 \
             --file kglobalshortcutsrc \
@@ -103,9 +103,9 @@ tweak_workspace_shortcuts() {
     ok "Workspace shortcuts registered."
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Reload KWin and KGlobalAccel to pick up config changes
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_reload_kde() {
     info "Reloading KWin and plasma-kglobalaccel..."
     qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
@@ -114,13 +114,13 @@ tweak_reload_kde() {
     ok "KDE daemons reloaded."
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Set default Caelestia shell scheme
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Set default shell to Fish
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_default_shell() {
     info "Setting default shell to fish..."
     
@@ -155,9 +155,9 @@ tweak_default_shell() {
     ok "Shell configuration applied."
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 # TWEAK: Patch caelestia-cli to prevent terminal sequence bleeding
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 tweak_patch_caelestia_cli() {
     info "Patching caelestia CLI to fix terminal sequence bleeding..."
     
@@ -199,20 +199,20 @@ if old in text:
     fi
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ── ADD NEW TWEAKS ABOVE THIS LINE ──
+# 
+#  ADD NEW TWEAKS ABOVE THIS LINE 
 # To add a new tweak:
 #   1. Define a function: tweak_<name>() { ... }
 #   2. Call it in the main() section below
-# ─────────────────────────────────────────────────────────────────────────────
+# 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main — apply all tweaks in order
-# ─────────────────────────────────────────────────────────────────────────────
+# 
+# Main  apply all tweaks in order
+# 
 if [[ "${1:-}" == "--list" ]]; then
     echo
     echo "Available tweaks:"
-    declare -F | awk '/^declare -f tweak_/ {print "  •", substr($3, 7)}' | sed 's/_/ /g'
+    declare -F | awk '/^declare -f tweak_/ {print "  ", substr($3, 7)}' | sed 's/_/ /g'
     echo
     exit 0
 fi
@@ -225,7 +225,7 @@ tweak_patch_caelestia_cli
 tweak_reload_kde
 
 echo
-echo -e "${GREEN}════════════════════════════════════════════════════════${RST}"
+echo -e "${GREEN}${RST}"
 echo -e "${GREEN}  All system tweaks applied successfully.${RST}"
-echo -e "${GREEN}════════════════════════════════════════════════════════${RST}"
+echo -e "${GREEN}${RST}"
 echo

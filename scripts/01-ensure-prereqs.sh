@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 01-ensure-prereqs.sh — Ensure prerequisites are installed.
+# 01-ensure-prereqs.sh  Ensure prerequisites are installed.
 # Idempotent: exits immediately if present.
 
 if [[ "$BASE_DISTRO" == "arch" ]]; then
@@ -9,7 +9,7 @@ if [[ "$BASE_DISTRO" == "arch" ]]; then
             return 0
         fi
 
-        echo "==> yay not found — installing..."
+        echo "==> yay not found  installing..."
 
         if ! command -v pacman >/dev/null 2>&1; then
             echo -e "\033[0;31m[ERR] pacman not found. This installer requires Arch Linux.\033[0m"
@@ -46,7 +46,7 @@ elif [[ "$BASE_DISTRO" == "fedora" ]]; then
     if command -v yq >/dev/null 2>&1 && command -v createrepo_c >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
         echo "[OK]  Prerequisites are already installed."
     else
-        echo "==> Missing prerequisites — installing..."
+        echo "==> Missing prerequisites  installing..."
         sudo dnf install -y yq createrepo_c jq
         echo "[OK]  Prerequisites installed."
     fi

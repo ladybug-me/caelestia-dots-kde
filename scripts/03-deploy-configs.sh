@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# 03-deploy-configs.sh — Deploy Caelestia configuration files to ~/.config
+# 03-deploy-configs.sh  Deploy Caelestia configuration files to ~/.config
 
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 SRC_DIR="$BUNDLE_DIR/src"
 BACKUP_DIR="$BUNDLE_DIR/backups/$(date +%Y%m%d_%H%M%S)"
 
 echo
-echo "════════════════════════════════════════"
-echo "  Step 3/11 — Config Deployment"
-echo "════════════════════════════════════════"
+echo ""
+echo "  Step 3/11  Config Deployment"
+echo ""
 
 mkdir -p "$BACKUP_DIR/config" "$BACKUP_DIR/local"
 
@@ -35,14 +35,14 @@ if [[ -f "$SRC_DIR/dots/starship.toml" ]]; then
     echo "    Deployed: starship.toml"
 fi
 
-# ── Backup Konsole ────────────────────────────────────────────────────────
+#  Backup Konsole 
 echo "  Backing up Konsole config..."
 # Note: konsolerc is already backed up with the entire ~/.config folder above
 if [[ -d "$HOME/.local/share/konsole" ]]; then
     cp -r "$HOME/.local/share/konsole" "$BACKUP_DIR/local/" 2>/dev/null || true
 fi
 
-# ── Deploy Bridge Files ───────────────────────────────────────────────
+#  Deploy Bridge Files 
 echo "  Deploying bridge files (bin, applications, systemd, kwin script)..."
 mkdir -p \
     "$HOME/.local/bin" \

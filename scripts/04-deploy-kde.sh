@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 04-deploy-kde.sh — Apply KDE Plasma settings: Darkly theme, Kvantum, polonium,
+# 04-deploy-kde.sh  Apply KDE Plasma settings: Darkly theme, Kvantum, polonium,
 #                    5 virtual desktops, disable KDE OSDs.
 #
 # Applies:
@@ -16,22 +16,22 @@ BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 POLONIUM_ENABLED="${POLONIUM_ENABLED:-false}"
 
 echo
-echo "════════════════════════════════════════"
-echo "  Step 4/11 — KDE Settings"
-echo "════════════════════════════════════════"
+echo ""
+echo "  Step 4/11  KDE Settings"
+echo ""
 
-# ── Darkly Theme & Bibata Cursor ──────────────────────────────────────────────
+#  Darkly Theme & Bibata Cursor 
 if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
-    # ── Darkly: Plasma style ─────────────────────────────────────────────────────
+    #  Darkly: Plasma style 
     echo "  Applying Darkly plasma style..."
     kwriteconfig6 --file plasmarc --group "Theme" --key "name" "Darkly" 2>/dev/null || true
 
-    # ── Darkly: Application style (Qt widget style) ───────────────────────────────
+    #  Darkly: Application style (Qt widget style) 
     echo "  Applying Darkly application style..."
     kwriteconfig6 --file kdeglobals --group "KDE" --key "widgetStyle" "darkly" 2>/dev/null || true
     kwriteconfig6 --file kdeglobals --group "General" --key "ColorScheme" "Darkly" 2>/dev/null || true
 
-    # ── Darkly: Window decoration ─────────────────────────────────────────────────
+    #  Darkly: Window decoration 
     echo "  Applying Darkly window decoration..."
     kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" \
         --key "library" "org.kde.darkly" 2>/dev/null || \
@@ -40,25 +40,25 @@ if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
     kwriteconfig6 --file kwinrc --group "org.kde.kdecoration2" \
         --key "theme" "@darkly" 2>/dev/null || true
 
-    # ── Bibata: Cursor theme ──────────────────────────────────────────────────────
+    #  Bibata: Cursor theme 
     echo "  Applying Bibata cursor theme..."
     kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "Bibata-Modern-Ice" 2>/dev/null || true
 else
     echo "  [SKIP] Skipping Darkly theme & Bibata cursor application."
 fi
 
-# ── Polonium: tiling window manager ──────────────────────────────────────────
-echo "  Configuring Polonium (tiling) — enabled=$POLONIUM_ENABLED ..."
+#  Polonium: tiling window manager 
+echo "  Configuring Polonium (tiling)  enabled=$POLONIUM_ENABLED ..."
 kwriteconfig6 --file kwinrc --group "Plugins" \
     --key "poloniumEnabled" "$POLONIUM_ENABLED" 2>/dev/null || true
 
 
-# ── KWin bridge script ────────────────────────────────────────────────────────
+#  KWin bridge script 
 echo "  Enabling quickshell-kde-bridge KWin script..."
 kwriteconfig6 --file kwinrc --group "Plugins" \
     --key "quickshell-kde-bridgeEnabled" "true" 2>/dev/null || true
 
-# ── 5 Virtual Desktops ───────────────────────────────────────────────────────
+#  5 Virtual Desktops 
 echo "  Setting up 5 virtual desktops..."
 kwriteconfig6 --file kwinrc --group "Desktops" --key "Number" "5"
 kwriteconfig6 --file kwinrc --group "Desktops" --key "Rows" "1"
@@ -69,7 +69,7 @@ echo "  [OK]  5 virtual desktops configured."
 
 #Switching desktops are handled by keyd src/keyboardshortcuts/shortcuts.md
 
-# ── Disable KDE OSDs (volume, brightness popups) ─────────────────────────────
+#  Disable KDE OSDs (volume, brightness popups) 
 echo "  Disabling KDE OSD popups..."
 # Plasma volume OSD
 kwriteconfig6 --file plasmarc --group "OSD" --key "Enabled" "false" 2>/dev/null || true
@@ -93,7 +93,7 @@ ShowOSD=false
 EOF
 echo "  [OK]  KDE OSDs disabled."
 
-# ── Apply via lookandfeeltool if Darkly LNF exists (Fonts included) ─────────
+#  Apply via lookandfeeltool if Darkly LNF exists (Fonts included) 
 if [[ "${APPLY_FONTS:-true}" == "true" ]]; then
     if command -v lookandfeeltool >/dev/null 2>&1; then
         if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
@@ -107,7 +107,7 @@ else
     echo "  [SKIP] Skipping custom fonts application."
 fi
 
-# ── Cliphist Service ──────────────────────────────────────────────────────────
+#  Cliphist Service 
 echo "  Setting up cliphist background service..."
 mkdir -p "$HOME/.config/systemd/user"
 cat > "$HOME/.config/systemd/user/cliphist.service" << 'EOF'
@@ -130,7 +130,7 @@ echo "  [OK]  Cliphist background service enabled."
 
 echo "[OK]  KDE settings applied."
 
-# ── Set Default Wallpaper ─────────────────────────────────────────────────────
+#  Set Default Wallpaper 
 echo "  Setting default wallpaper to Minimal-Paper.png..."
 WALLPAPER_PATH="$BUNDLE_DIR/shell/assets/wallpapers/Minimal-Paper.png"
 if [[ -f "$WALLPAPER_PATH" ]]; then

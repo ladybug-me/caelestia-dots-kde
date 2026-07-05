@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# 07-services.sh — Enable systemd user services and reload KWin.
+# 07-services.sh  Enable systemd user services and reload KWin.
 
 echo
-echo "════════════════════════════════════════"
-echo "  Step 6/11 — Services & KWin"
-echo "════════════════════════════════════════"
+echo ""
+echo "  Step 6/11  Services & KWin"
+echo ""
 
-# ── qs-kwin-bridge systemd service ────────────────────────────────────────────
+#  qs-kwin-bridge systemd service 
 if [[ -f "$HOME/.config/systemd/user/qs-kwin-bridge.service" ]] && \
    [[ -s "$HOME/.config/systemd/user/qs-kwin-bridge.service" ]]; then
     echo "  Enabling qs-kwin-bridge service..."
@@ -14,10 +14,10 @@ if [[ -f "$HOME/.config/systemd/user/qs-kwin-bridge.service" ]] && \
     systemctl --user enable --now qs-kwin-bridge.service 2>/dev/null || true
     echo "  [OK]  qs-kwin-bridge enabled."
 else
-    echo "  [SKIP] qs-kwin-bridge.service is empty/missing — skipping."
+    echo "  [SKIP] qs-kwin-bridge.service is empty/missing  skipping."
 fi
 
-# ── ydotoold (on-screen keyboard key injection) ───────────────────────────────
+#  ydotoold (on-screen keyboard key injection) 
 # ydotoold needs access to /dev/uinput. Add a udev rule to allow the 'input'
 # group to access it, then add the user to that group.
 echo "  Setting up ydotoold (OSK key injection daemon)..."
@@ -61,7 +61,7 @@ sudo chgrp input /dev/uinput 2>/dev/null || true
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/ydotoold-wrapper" << 'WRAPPER'
 #!/bin/bash
-# ydotoold-wrapper — starts ydotoold via sudo with uinput access
+# ydotoold-wrapper  starts ydotoold via sudo with uinput access
 SOCKET="${YDOTOOL_SOCKET:-/run/user/$(id -u)/.ydotool_socket}"
 if [ -S "$SOCKET" ] && pidof ydotoold > /dev/null 2>&1; then
     exit 0
@@ -86,7 +86,7 @@ if [[ -f "${BUNDLE_DIR:-$(dirname "$(dirname "$0")")}/src/systemd/ydotoold.servi
     echo "  [OK]  ydotoold service configured."
 fi
 
-# ── Reload KWin and KGlobalAccel ─────────────────────────────────────────────
+#  Reload KWin and KGlobalAccel 
 echo "  Reloading KWin..."
 qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
 

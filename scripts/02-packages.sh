@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# 02-packages.sh — Install all packages: PKGBUILDs/RPMs + supplemental.
+# 02-packages.sh  Install all packages: PKGBUILDs/RPMs + supplemental.
 # Calls installDP.sh/installDP_fedora.sh for groups, then pkginstall.sh for extras.
 
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 
 echo
-echo "════════════════════════════════════════"
-echo "  Step 2/11 — Packages"
-echo "════════════════════════════════════════"
+echo ""
+echo "  Step 2/11  Packages"
+echo ""
 
 echo
 if [[ "$BASE_DISTRO" == "arch" ]]; then

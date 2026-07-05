@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 00-backup-themes.sh — Backs up current KDE theme settings so uninstall.sh can restore them.
+# 00-backup-themes.sh  Backs up current KDE theme settings so uninstall.sh can restore them.
 
 echo "  Backing up current KDE theme configurations..."
 

@@ -10,21 +10,26 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}===================================================${NC}"
-echo -e "${BLUE}           Ollama AI Setup for Caelestia           ${NC}"
-echo -e "${BLUE}===================================================${NC}"
+section() {
+    local title="$1"
+    echo -e "\n${BLUE}===================================================${NC}"
+    echo -e "${BLUE} ${title}${NC}"
+    echo -e "${BLUE}===================================================${NC}"
+}
+
+section "Ollama AI Setup for Caelestia"
 
 # 1. Install Ollama
-echo -e "\n${YELLOW}[1/4] Installing Ollama...${NC}"
+section "Step 1/4 - Install Ollama"
 curl -fsSL https://ollama.com/install.sh | sh
 
 # 2. Enable and start the systemd service
-echo -e "\n${YELLOW}[2/4] Enabling and starting Ollama daemon...${NC}"
+section "Step 2/4 - Enable and Start Ollama Daemon"
 sudo systemctl enable --now ollama
 echo -e "${GREEN}Ollama daemon is now running in the background.${NC}"
 
 # 3. Prompt user to download models
-echo -e "\n${YELLOW}[3/4] Model Selection${NC}"
+section "Step 3/4 - Model Selection"
 echo -e "Caelestia's AI Assistant requires at least one model. Here are some popular options:"
 echo -e "  1) llama3  (Meta's highly capable model, ~4.7GB)"
 echo -e "  2) phi3    (Microsoft's lightweight and fast model, ~2.3GB)"
@@ -56,7 +61,7 @@ case $MODEL_CHOICE in
 esac
 
 # 4. Final configuration and setup
-echo -e "\n${YELLOW}[4/4] Finalizing Setup...${NC}"
+section "Step 4/4 - Finalize Setup"
 echo -e "Setting up autostart for Ollama with Caelestia Shell."
 # Note: Since the systemd service is enabled globally, it will start automatically on boot.
 # If a user-level service is preferred in the future, we can configure systemd --user.

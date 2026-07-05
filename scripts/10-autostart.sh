@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# 06-autostart.sh — Set up autostart entries for Quickshell and kde-material-you-colors.
+# 06-autostart.sh  Set up autostart entries for Quickshell and kde-material-you-colors.
 # Idempotent: overwrites .desktop files with correct content each run.
 
 AUTOSTART_DIR="$HOME/.config/autostart"
 mkdir -p "$AUTOSTART_DIR"
 
 echo
-echo "════════════════════════════════════════"
-echo "  Step 10/11 — Autostart Setup"
-echo "════════════════════════════════════════"
+echo ""
+echo "  Step 10/11  Autostart Setup"
+echo ""
 
-# ── Caelestia Shell autostart ──────────────────────────────────────────────────────
+#  Caelestia Shell autostart 
 # Uses `caelestia shell -d`: starts Caelestia shell as a daemon
 # detaches it from the autostart process so KDE doesn't wait for it.
 echo "  Creating Caelestia Shell autostart entry..."
@@ -28,7 +28,7 @@ X-KDE-AutostartPhase=2
 EOF
 echo "  [OK]  Quickshell autostart created."
 
-# ── kde-material-you-colors systemd service ──────────────────────────────────
+#  kde-material-you-colors systemd service 
 # Creates and enables a systemd user service for kde-material-you-colors.
 echo "  Deploying systemd service for KDE Material You Colors..."
 

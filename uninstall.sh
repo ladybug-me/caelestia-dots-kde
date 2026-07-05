@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# ╔══════════════════════════════════════════════════════════════╗
-# ║        Caelestia KDE Port — Uninstaller                      ║
-# ║                                                              ║
-# ║  Reverses every action performed by setup.sh.                ║
-# ║  Restores backups where they exist; removes files that       ║
-# ║  have no prior version to restore.                           ║
-# ╚══════════════════════════════════════════════════════════════╝
+# ==============================================================
+#   Caelestia KDE Port - Uninstaller
+#
+#   Reverses actions performed by setup.sh.
+#   Restores backups when available and removes generated files.
+# ==============================================================
 
 set -uo pipefail
 
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ── Colors ────────────────────────────────────────────────────────────────────
+# -- Colors -------------------------------------------------------------------
 RST="\033[0m"
 BOLD="\033[1m"
 PURPLE="\033[38;5;135m"
@@ -23,13 +22,21 @@ RED="\033[38;5;196m"
 YELLOW="\033[38;5;220m"
 DIM="\033[2m"
 
-die()  { echo -e "${RED} ☄️  [FATAL] $*${RST}" >&2; exit 1; }
-info() { echo -e "${BLUE} 🔭 [INFO]  $*${RST}"; }
-ok()   { echo -e "${GREEN} ✨ [OK]    $*${RST}"; }
-warn() { echo -e "${YELLOW} ⚠️  [WARN]  $*${RST}"; }
-skip() { echo -e "${DIM} 💨 [SKIP]  $*${RST}"; }
+die()  { echo -e "${RED}   [FATAL] $*${RST}" >&2; exit 1; }
+info() { echo -e "${BLUE}  [INFO]  $*${RST}"; }
+ok()   { echo -e "${GREEN}  [OK]    $*${RST}"; }
+warn() { echo -e "${YELLOW}   [WARN]  $*${RST}"; }
+skip() { echo -e "${DIM}  [SKIP]  $*${RST}"; }
 
-# ── OS detection ───────────────────────────────────────────────────────────────
+section() {
+    local title="$1"
+    echo
+    echo -e "${CYAN}-------------------------------------------------------------${RST}"
+    echo -e "${CYAN}  $title${RST}"
+    echo -e "${CYAN}-------------------------------------------------------------${RST}"
+}
+
+# -- OS detection ---------------------------------------------------------------
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     case "$ID" in
@@ -56,30 +63,25 @@ if [[ "$BASE_DISTRO" == "unknown" ]]; then
     esac
 fi
 
-# ── Banner ─────────────────────────────────────────────────────────────────────
 echo -e "${PURPLE}${BOLD}"
 cat << 'EOF'
- ✧･ﾟ: *✧･ﾟ:*  Caelestia KDE Port  *:･ﾟ✧*:･ﾟ✧
-EOF
-echo -ne "${BLUE}"
-cat << 'EOF'
-     __  __       _           __        ____
-    / / / /____  (_)___  ____/ /_____ _/ / /
-   / / / / __ \ / / __ \/ ___/ __/ __ `/ / /
-  / /_/ / / / // / / / (__  ) /_/ /_/ / / /
-  \____/_/ /_//_/_/ /_/____/\__/\__,_/_/_/
-
+    _    _       _           _        _ _ 
+ | |  | |     (_)         | |      | | |
+ | |  | |_ __  _ _ __  ___| |_ __ _| | |
+ | |  | | '_ \| | '_ \/ __| __/ _` | | |
+ | |__| | | | | | | | \__ \ || (_| | | |
+    \____/|_| |_|_|_| |_|___/\__\__,_|_|_|
 EOF
 echo -e "${RST}"
-echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════╗${RST}"
-echo -e "${CYAN}║${RST}  ${BOLD}${PURPLE}🌌 Caelestia Uninstaller${RST}                                        ${CYAN}║${RST}"
-echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════╝${RST}"
+echo -e "${CYAN}+------------------------------------------------------------------+${RST}"
+echo -e "${CYAN}|${RST} ${BOLD}${PURPLE}CAELESTIA KDE UNINSTALLER${RST}                                      ${CYAN}|${RST}"
+echo -e "${CYAN}+------------------------------------------------------------------+${RST}"
 echo
-echo -e " ${YELLOW}⚠️  This will remove the Caelestia KDE shell and config files.${RST}"
-echo -e " ${BLUE}🔭 Backups (in $BUNDLE_DIR/backups/) will be offered for restoration.${RST}"
+echo -e " ${YELLOW}This will remove Caelestia KDE shell files and configs.${RST}"
+echo -e " ${BLUE}Backups in $BUNDLE_DIR/backups/ can be restored during uninstall.${RST}"
 echo
 
-# ── Sudo setup ─────────────────────────────────────────────────────────────────
+# -- Sudo setup ----------------------------------------------------------------
 while true; do
     IFS= read -s -p "Enter your sudo password: " SUDO_PASS; echo
     sudo -k
@@ -93,7 +95,7 @@ export SUDO_PASS
 _SUDO_LOOP=$!
 trap 'kill $_SUDO_LOOP 2>/dev/null; true' EXIT
 
-# ── Confirmation ───────────────────────────────────────────────────────────────
+# -- Confirmation ---------------------------------------------------------------
 echo
 echo -e "${RED}Are you sure you want to uninstall Caelestia KDE? [y/N]:${RST} "
 read -r _confirm
@@ -107,7 +109,7 @@ read -r _remove_pkgs
 REMOVE_PACKAGES=false
 [[ "${_remove_pkgs,,}" == "y" || "${_remove_pkgs,,}" == "yes" ]] && REMOVE_PACKAGES=true
 
-# ── Backup Selection ───────────────────────────────────────────────────────────
+# -- Backup selection -----------------------------------------------------------
 SELECTED_BACKUP=""
 if [[ -d "$BUNDLE_DIR/backups" ]]; then
     mapfile -t backups < <(ls -dt "$BUNDLE_DIR"/backups/[0-9]*_[0-9]* 2>/dev/null)
@@ -148,11 +150,11 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
                 if [[ -f "$SELECTED_BACKUP/.config/quickshell/caelestia/shell.qml" ]]; then
                     echo
                     warn "The selected backup contains Caelestia configurations."
-                    echo -e "${YELLOW} ⚠️  Restoring this backup will NOT revert to a clean KDE desktop!${RST}"
+                    echo -e "${YELLOW}   Restoring this backup will NOT revert to a clean KDE desktop!${RST}"
                     echo -e "${YELLOW}    Instead, it will restore a previous Caelestia state.${RST}"
                     read -r -p "Are you sure you want to restore this backup? [y/N]: " _cwarn
                     if [[ "${_cwarn,,}" != "y" && "${_cwarn,,}" != "yes" ]]; then
-                        echo -e "${DIM} 💨 Backup selection cancelled. Please select again.${RST}"
+                        echo -e "${DIM}  Backup selection cancelled. Please select again.${RST}"
                         continue
                     fi
                 fi
@@ -164,7 +166,7 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
     fi
 fi
 
-# ── Helper: restore a config dir/file from backup ─────────────────────────────
+# -- Helper: restore config from backup ----------------------------------------
 restore_or_remove() {
     local name="$1"           # e.g. "fish"
     local target="$2"         # full destination path
@@ -177,17 +179,11 @@ restore_or_remove() {
         cp -r "$backup_dir/$backup_subdir/$name" "$target"
         ok "Restored $name from backup"
     else
-        skip "No backup for $name — removed without restore"
+        skip "No backup for $name - removed without restore"
     fi
 }
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 1 — Stop and disable all services
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 1 — Stop & disable services${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 1 - Stop and Disable Services"
 
 for svc in qs-kwin-bridge cliphist ydotoold kde-material-you-colors; do
     if systemctl --user is-enabled --quiet "${svc}.service" 2>/dev/null ||
@@ -220,13 +216,7 @@ pkill -f "caelestia shell" 2>/dev/null || true
 pkill -f "quickshell"      2>/dev/null || true
 ok "Stopped any running shell processes"
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 2 — Remove service files
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 2 — Remove service & autostart files${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 2 - Remove Service and Autostart Files"
 
 USER_SYSTEMD="$HOME/.config/systemd/user"
 
@@ -252,13 +242,7 @@ fi
 
 systemctl --user daemon-reload 2>/dev/null || true
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 3 — Remove installed shell files
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 3 — Remove shell installation${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 3 - Remove Shell Installation"
 
 # Quickshell config (QML files)
 if [[ -d "$HOME/.config/quickshell/caelestia" ]]; then
@@ -286,13 +270,7 @@ if [[ -d "$HOME/.local/share/caelestia-shell" ]]; then
     ok "Removed ~/.local/share/caelestia-shell"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 4 — Remove bridge scripts from ~/.local/bin
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 4 — Remove bridge scripts${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 4 - Remove Bridge Scripts"
 
 for f in \
     "$HOME/.local/bin/hyprctl" \
@@ -329,13 +307,7 @@ if [[ -d "$BUNDLE_DIR/src/keyboardshortcuts/applications" ]]; then
     update-desktop-database "$HOME/.local/share/applications/" 2>/dev/null || true
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 5 — Restore / remove config directories
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 5 — Restore / remove config directories${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 5 - Restore or Remove Config Directories"
 
 for cfg in btop fastfetch fish foot hypr kitty micro nvim rofi thunar uwsm zed zen vscode; do
     if [[ -e "$HOME/.config/$cfg" ]]; then
@@ -348,19 +320,13 @@ if [[ -f "$HOME/.config/starship.toml" ]]; then
     restore_or_remove "starship.toml" "$HOME/.config/starship.toml" ".config"
 fi
 
-# kmixrc (written fresh by installer — just remove it)
+# kmixrc (written fresh by installer - just remove it)
 if [[ -f "$HOME/.config/kmixrc" ]]; then
     rm -f "$HOME/.config/kmixrc"
     ok "Removed ~/.config/kmixrc"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 6 — Revert KDE settings
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 6 — Revert KDE settings${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 6 - Revert KDE Settings"
 
 # Re-enable KDE OSDs
 kwriteconfig6 --file plasmarc         --group "OSD"              --key "Enabled"            "true"  2>/dev/null || true
@@ -371,7 +337,7 @@ kwriteconfig6 --file powerdevilrc     --group "BrightnessControl"--key "showOSD"
 kwriteconfig6 --file powerdevilrc     --group "AC"               --key "brightnessosd"       "true"  2>/dev/null || true
 ok "Re-enabled KDE OSD notifications"
 
-# ── Restore KDE Theme Settings ──────────────────────────────────────────────────
+# Restore KDE theme settings
 if [[ -n "$SELECTED_BACKUP" ]]; then
     info "Restoring core KDE configuration files from backup..."
     for kde_cfg in kdeglobals ksplashrc plasmarc kwinrc kcminputrc plasma-org.kde.plasma.desktop-appletsrc; do
@@ -461,13 +427,7 @@ if [[ -n "$_bk_dir" ]]; then
     fi
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 7 — Revert shell changes
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 7 — Revert shell changes${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 7 - Revert Shell Changes"
 
 # Revert login shell
 _RESTORE_SHELL=""
@@ -506,13 +466,7 @@ if [[ -f "$HOME/.config/fish/config.fish" ]]; then
     ok "Removed Caelestia env vars from fish config"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 8 — Remove system-level files (keyd, udev, sudoers, symlinks)
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 8 — Remove system-level files${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 8 - Remove System-level Files"
 
 # keyd config
 if [[ -f /etc/keyd/quickshell.conf ]]; then
@@ -550,14 +504,8 @@ if groups "$USER" | grep -q '\binput\b'; then
     ok "Removed $USER from 'input' group (takes effect on next login)"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 9 — Remove packages (optional)
-# ══════════════════════════════════════════════════════════════════════════════
 if [[ "$REMOVE_PACKAGES" == "true" ]]; then
-    echo
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-    echo -e "${CYAN}  Step 9 — Remove packages${RST}"
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+    section "Step 9 - Remove Packages (Optional)"
 
     ARCH_PACKAGES=(
         caelestia-cli quickshell-git
@@ -647,13 +595,7 @@ else
     skip "Package removal skipped (user chose to keep packages)"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 10 — Clean up cache and build artefacts
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 10 — Clean up cache & build artefacts${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 10 - Clean Up Cache and Build Artifacts"
 
 # CMake build dirs inside the repo
 for build_dir in "$BUNDLE_DIR/shell/build" "$BUNDLE_DIR/shell/plugin/build"; do
@@ -676,13 +618,7 @@ if [[ -d "$CACHE_DIR" ]]; then
     fi
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# STEP 11 — Reload KDE
-# ══════════════════════════════════════════════════════════════════════════════
-echo
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${CYAN}  Step 11 — Reload KDE${RST}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+section "Step 11 - Reload KDE"
 
 qdbus6 org.kde.KWin /KWin reconfigure                    2>/dev/null || true
 systemctl --user restart plasma-kglobalaccel.service      2>/dev/null || true
@@ -694,13 +630,9 @@ fi
 
 ok "KDE reloaded"
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Done
-# ══════════════════════════════════════════════════════════════════════════════
+section "Uninstall Complete"
 echo
-echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${GREEN}  Caelestia KDE has been uninstalled.${RST}"
-echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo
 echo -e "  Backups of your original configs are in:  ${BOLD}$BUNDLE_DIR/backups/${RST}"
 echo
