@@ -41,6 +41,59 @@ info() { echo -e "${BLUE}[INFO]  $*${RST}"; }
 ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
 warn() { echo -e "${YELLOW}[WARN]  $*${RST}"; }
 
+KDE_INHIBIT_COOKIE=""
+SYSTEMD_INHIBIT_PID=""
+
+cleanup_install_state() {
+    if [[ -n "$SYSTEMD_INHIBIT_PID" ]] && kill -0 "$SYSTEMD_INHIBIT_PID" 2>/dev/null; then
+        kill "$SYSTEMD_INHIBIT_PID" 2>/dev/null || true
+        wait "$SYSTEMD_INHIBIT_PID" 2>/dev/null || true
+    fi
+
+    if [[ -n "$KDE_INHIBIT_COOKIE" ]] && command -v qdbus6 >/dev/null 2>&1; then
+        qdbus6 org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.UnInhibit "$KDE_INHIBIT_COOKIE" 2>/dev/null || true
+    fi
+
+    if [[ -n "${SUDO_PASS:-}" ]]; then
+        printf '%s\n' "$SUDO_PASS" | sudo -S rm -f /etc/sudoers.d/caelestia-installer-temp 2>/dev/null || true
+    else
+        sudo rm -f /etc/sudoers.d/caelestia-installer-temp 2>/dev/null || true
+    fi
+}
+
+enable_install_awake_guard() {
+    local inhibitor_cookie=""
+
+    if command -v qdbus6 >/dev/null 2>&1; then
+        inhibitor_cookie="$(qdbus6 org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.Inhibit \
+            "Caelestia Installer" "Installation in progress" 2>/dev/null || true)"
+        if [[ "$inhibitor_cookie" =~ ^[0-9]+$ ]]; then
+            KDE_INHIBIT_COOKIE="$inhibitor_cookie"
+            info "KDE idle inhibition enabled for this install session."
+        else
+            warn "Could not enable KDE ScreenSaver inhibit (continuing)."
+        fi
+    else
+        warn "qdbus6 not found; KDE ScreenSaver inhibit unavailable (continuing)."
+    fi
+
+    if command -v systemd-inhibit >/dev/null 2>&1; then
+        systemd-inhibit --what=idle:sleep --who="Caelestia Installer" --why="Installation in progress" \
+            bash -c 'while :; do sleep 600; done' >/dev/null 2>&1 &
+        SYSTEMD_INHIBIT_PID="$!"
+        if ! kill -0 "$SYSTEMD_INHIBIT_PID" 2>/dev/null; then
+            SYSTEMD_INHIBIT_PID=""
+            warn "Could not enable systemd idle/sleep inhibitor (continuing)."
+        else
+            info "System idle/sleep inhibition enabled for this install session."
+        fi
+    else
+        warn "systemd-inhibit not found; logind sleep inhibitor unavailable (continuing)."
+    fi
+}
+
+trap cleanup_install_state EXIT
+
 # -- Pre-flight checks and OS detection -----------------------------------------
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -233,6 +286,9 @@ bash "$SCRIPTS_DIR/00-banner.sh"
 # ══════════════════════════════════════════════════════════════
 collect_installer_preferences
 
+# Keep display/idle timers inhibited while installer runs so long steps are not interrupted.
+enable_install_awake_guard
+
 # ══════════════════════════════════════════════════════════════
 #  ONE-TIME SUDO PASSWORD (kept alive for the full install)
 # ==============================================================
@@ -251,8 +307,6 @@ export SUDO_PASS
 
 # Temporarily grant NOPASSWD to the user to prevent yay/makepkg from prompting
 printf '%s\n' "$SUDO_PASS" | sudo -S sh -c "echo '$USER ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/caelestia-installer-temp && chmod 0440 /etc/sudoers.d/caelestia-installer-temp"
-
-trap 'printf "%s\n" "$SUDO_PASS" | sudo -S rm -f /etc/sudoers.d/caelestia-installer-temp 2>/dev/null' EXIT
 
 # ══════════════════════════════════════════════════════════════
 #  STEP 0 — System update (after configuration + auth)
