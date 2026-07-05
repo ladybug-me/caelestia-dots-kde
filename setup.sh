@@ -120,12 +120,120 @@ run_step() {
     done
 }
 
-# ==============================================================
+# Prompt helper: ask a yes/no question with validation and default.
+ask_yes_no() {
+    local prompt="$1"
+    local default="$2"
+    local answer
+
+    while true; do
+        if [[ "$default" == "y" ]]; then
+            read -r -p "$prompt [Y/n]: " answer
+            answer="${answer:-y}"
+        else
+            read -r -p "$prompt [y/N]: " answer
+            answer="${answer:-n}"
+        fi
+
+        case "${answer,,}" in
+            y|yes) return 0 ;;
+            n|no)  return 1 ;;
+            *)
+                echo -e "${YELLOW}Please answer with y or n.${RST}"
+                ;;
+        esac
+    done
+}
+
+# Installer questionnaire: collect all user config choices up front.
+collect_installer_preferences() {
+    while true; do
+        echo
+        echo -e "${CYAN}+------------------------------------------------------------+${RST}"
+        echo -e "${CYAN}|                  Installer Configuration                   |${RST}"
+        echo -e "${CYAN}+------------------------------------------------------------+${RST}"
+        echo
+
+        echo -e "${BOLD}General${RST}"
+        if ask_yes_no "Enable automatic package transaction confirmation" "y"; then
+            export CONFIRM_ARG="--noconfirm"
+        else
+            export CONFIRM_ARG=""
+        fi
+
+        if ask_yes_no "Remove downloaded packages/build cache after successful install" "n"; then
+            export REMOVE_CACHE="true"
+        else
+            export REMOVE_CACHE="false"
+        fi
+
+        echo
+        echo -e "${BOLD}KDE Tiling${RST}"
+        echo -e "${YELLOW}Note: Polonium currently has a known issue where window buttons may not respond.${RST}"
+        if ask_yes_no "Enable Polonium tiling plugin" "n"; then
+            export POLONIUM_ENABLED="true"
+        else
+            export POLONIUM_ENABLED="false"
+        fi
+
+        echo
+        echo -e "${BOLD}Theming${RST}"
+        echo -e "${YELLOW}These options can overwrite parts of your current KDE theme setup.${RST}"
+
+        if ask_yes_no "Apply Darkly theme (Plasma style, window decorations, Kvantum, cursors)" "y"; then
+            export APPLY_DARKLY="true"
+        else
+            export APPLY_DARKLY="false"
+        fi
+
+        if ask_yes_no "Enable Material You colors (kde-material-you-colors daemon)" "y"; then
+            export APPLY_MATERIAL_YOU="true"
+        else
+            export APPLY_MATERIAL_YOU="false"
+        fi
+
+        if ask_yes_no "Apply included custom fonts" "y"; then
+            export APPLY_FONTS="true"
+        else
+            export APPLY_FONTS="false"
+        fi
+
+        echo
+        echo -e "${CYAN}+------------------------------------------------------------+${RST}"
+        echo -e "${CYAN}|                       Configuration                        |${RST}"
+        echo -e "${CYAN}+------------------------------------------------------------+${RST}"
+        printf "  %-44s %s\n" "Base distro:" "$BASE_DISTRO"
+        if [[ -n "$CONFIRM_ARG" ]]; then
+            printf "  %-44s %s\n" "Auto package confirmation:" "enabled"
+        else
+            printf "  %-44s %s\n" "Auto package confirmation:" "disabled"
+        fi
+        printf "  %-44s %s\n" "Remove cache after install:" "$REMOVE_CACHE"
+        printf "  %-44s %s\n" "Enable Polonium:" "$POLONIUM_ENABLED"
+        printf "  %-44s %s\n" "Apply Darkly theme:" "$APPLY_DARKLY"
+        printf "  %-44s %s\n" "Enable Material You colors:" "$APPLY_MATERIAL_YOU"
+        printf "  %-44s %s\n" "Apply included fonts:" "$APPLY_FONTS"
+
+        echo
+        if ask_yes_no "Proceed with these settings" "y"; then
+            break
+        fi
+
+        echo -e "${YELLOW}Restarting configuration wizard...${RST}"
+    done
+}
+
+# ══════════════════════════════════════════════════════════════
 #  BANNER
 # ==============================================================
 bash "$SCRIPTS_DIR/00-banner.sh"
 
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
+#  ASK USER PREFERENCES (all prompts up front)
+# ══════════════════════════════════════════════════════════════
+collect_installer_preferences
+
+# ══════════════════════════════════════════════════════════════
 #  ONE-TIME SUDO PASSWORD (kept alive for the full install)
 # ==============================================================
 echo -e "${YELLOW}This installer needs sudo for package installation.${RST}"
@@ -146,27 +254,27 @@ printf '%s\n' "$SUDO_PASS" | sudo -S sh -c "echo '$USER ALL=(ALL) NOPASSWD: ALL'
 
 trap 'printf "%s\n" "$SUDO_PASS" | sudo -S rm -f /etc/sudoers.d/caelestia-installer-temp 2>/dev/null' EXIT
 
-# ==============================================================
-#  STEP 0 - System update (after configuration + auth)
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
+#  STEP 0 — System update (after configuration + auth)
+# ══════════════════════════════════════════════════════════════
 echo
 echo -e "${CYAN}---------------------------------------------${RST}"
 if [[ "$BASE_DISTRO" == "arch" ]]; then
-    echo -e "${CYAN}  Step 0/11 - System Update (pacman -Syu)${RST}"
+    echo -e "${CYAN}  Step 0/11 — System Update (pacman -Syu)${RST}"
 else
-    echo -e "${CYAN}  Step 0/11 - System Update (dnf upgrade)${RST}"
+    echo -e "${CYAN}  Step 0/11 — System Update (dnf upgrade)${RST}"
 fi
 echo -e "${CYAN}---------------------------------------------${RST}"
 echo
 if [[ "$BASE_DISTRO" == "arch" ]]; then
-    info "Running sudo pacman -Syu to bring the system up to date first..."
+    info "Running sudo pacman -Syu now that configuration is complete..."
     if sudo pacman -Syu --noconfirm; then
         ok "System is up to date."
     else
         warn "pacman -Syu encountered errors. Continuing anyway..."
     fi
 else
-    info "Running sudo dnf upgrade --refresh -y to bring the system up to date first..."
+    info "Running sudo dnf upgrade --refresh -y now that configuration is complete..."
     if sudo dnf upgrade --refresh -y; then
         ok "System is up to date."
     else
@@ -174,11 +282,11 @@ else
     fi
 fi
 
-# ==============================================================
-#  STEP 1 - Ensure prerequisites
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
+#  STEP 1 — Ensure prerequisites
+# ══════════════════════════════════════════════════════════════
 echo
-echo -e "${CYAN}---------------------------------------------${RST}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 if [[ "$BASE_DISTRO" == "arch" ]]; then
     echo -e "${CYAN}  Step 1/11 - Prerequisites (yay)${RST}"
 else
