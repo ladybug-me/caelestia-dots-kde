@@ -14,6 +14,26 @@ err()  { echo -e "${RED}[ERR]   $*${RST}"; }
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
 
+info "Checking for broken spectacle dependencies..."
+if ! /usr/bin/spectacle -h >/dev/null 2>&1; then
+    if ldd /usr/bin/spectacle 2>/dev/null | grep -q "libopencv_.*\.so\.500 => not found"; then
+        warn "Spectacle is missing OpenCV .500 dependencies. Attempting to fix by symlinking..."
+        
+        INSTALLED_IMGPROC=$(ls /usr/lib/libopencv_imgproc.so.* 2>/dev/null | grep -v "\.500$" | head -n 1 || true)
+        INSTALLED_CORE=$(ls /usr/lib/libopencv_core.so.* 2>/dev/null | grep -v "\.500$" | head -n 1 || true)
+        
+        if [ -n "$INSTALLED_IMGPROC" ]; then
+            sudo ln -sf "$INSTALLED_IMGPROC" /usr/lib/libopencv_imgproc.so.500
+        fi
+        
+        if [ -n "$INSTALLED_CORE" ]; then
+            sudo ln -sf "$INSTALLED_CORE" /usr/lib/libopencv_core.so.500
+        fi
+        
+        ok "Spectacle OpenCV fix applied."
+    fi
+fi
+
 info "Patching Recorder.qml to wait for portal selection..."
 sed -i 's/command: \["pidof", "gpu-screen-recorder"\]/command: \["sh", "-c", "pidof gpu-screen-recorder >\\\/dev\\\/null \&\& test -f $HOME\\\/.local\\\/state\\\/caelestia\\\/record\\\/recording.mp4"\]/g' "$HOME/.local/share/caelestia-shell/services/Recorder.qml" 2>/dev/null || true
 sed -i 's/command: \["pidof", "gpu-screen-recorder"\]/command: \["sh", "-c", "pidof gpu-screen-recorder >\\\/dev\\\/null \&\& test -f $HOME\\\/.local\\\/state\\\/caelestia\\\/record\\\/recording.mp4"\]/g' "shell/services/Recorder.qml" 2>/dev/null || true
