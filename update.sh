@@ -100,7 +100,11 @@ echo
 echo -e "${YELLOW}Restarting bridge and shell to apply changes...${RST}"
 systemctl --user restart qs-kwin-bridge.service 2>/dev/null || true
 if systemctl --user list-unit-files | grep -q '^caelestia-shell.service'; then
-    systemctl --user restart caelestia-shell.service 2>/dev/null || true
+    systemctl --user restart caelestia-shell.service 2>/dev/null || {
+        caelestia shell -k 2>/dev/null || true
+        sleep 2
+        caelestia shell -d >/dev/null 2>&1 &
+    }
 else
     caelestia shell -k 2>/dev/null || true
     sleep 2

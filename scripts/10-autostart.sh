@@ -35,7 +35,7 @@ StartLimitIntervalSec=30
 StartLimitBurst=5
 
 [Service]
-Type=exec
+Type=simple
 ExecStart=$CAELESTIA_PATH shell
 ExecStop=$CAELESTIA_PATH shell -k
 Restart=on-failure
@@ -46,8 +46,11 @@ WantedBy=graphical-session.target
 EOF
 
 systemctl --user daemon-reload
-systemctl --user enable --now caelestia-shell.service 2>/dev/null || true
-echo "  [OK]  Caelestia shell service enabled."
+if systemctl --user enable --now caelestia-shell.service >/dev/null 2>&1; then
+    echo "  [OK]  Caelestia shell service enabled."
+else
+    echo "  [WARN] Unable to enable Caelestia shell service (systemd user session unavailable?)."
+fi
 
 cat > "$AUTOSTART_DIR/caelestiashell.desktop" << 'EOF'
 [Desktop Entry]
