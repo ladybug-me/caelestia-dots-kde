@@ -82,6 +82,15 @@ echo -e "${CYAN}  Step 3 — Build Caelestia Shell UI${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 bash "$TMP_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 
+systemctl --user restart qs-kwin-bridge.service 2>/dev/null || true
+if systemctl --user list-unit-files | grep -q '^caelestia-shell.service'; then
+    systemctl --user restart caelestia-shell.service 2>/dev/null || true
+else
+    caelestia shell -k 2>/dev/null || true
+    sleep 2
+    caelestia shell -d >/dev/null 2>&1 &
+fi
+
 # 6. Save current commit hash
 if [ -d "$TMP_DIR/.git" ]; then
     COMMIT_HASH=$(git rev-parse HEAD)

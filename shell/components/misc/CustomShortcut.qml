@@ -11,7 +11,7 @@ Loader {
     signal pressed()
     signal released()
 
-    active: !!Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")
+    active: true
 
     sourceComponent: GlobalShortcut {
         appid: "caelestia"

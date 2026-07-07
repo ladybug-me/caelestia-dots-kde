@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+SERVICE="caelestia-shell.service"
+
+ensure_shell_running() {
+    systemctl --user start "$SERVICE" >/dev/null 2>&1 || true
+}
+
+run_ipc() {
+    qs -c caelestia ipc call "$@" >/dev/null 2>&1
+}
+
+cmd="${1:-}"
+
+case "$cmd" in
+    restart)
+        systemctl --user restart "$SERVICE" >/dev/null 2>&1 || {
+            caelestia shell -k >/dev/null 2>&1 || true
+            sleep 1
+            caelestia shell -d >/dev/null 2>&1 &
+        }
+        ;;
+    start)
+        ensure_shell_running
+        ;;
+    ipc)
+        shift || true
+        if ! run_ipc "$@"; then
+            ensure_shell_running
+            sleep 1
+            run_ipc "$@" || exit 1
+        fi
+        ;;
+    *)
+        echo "Usage: caelestia-shell-safe {start|restart|ipc <target> <method> [args...]}" >&2
+        exit 2
+        ;;
+esac

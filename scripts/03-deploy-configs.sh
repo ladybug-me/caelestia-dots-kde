@@ -66,7 +66,8 @@ if [[ -d "$SRC_DIR/bin" ]]; then
     done
     
     chmod +x "$HOME/.local/bin/kcolorpicker" \
-              "$HOME/.local/bin/qs-kwin-bridge.py" 2>/dev/null || true
+              "$HOME/.local/bin/qs-kwin-bridge.py" \
+              "$HOME/.local/bin/caelestia-shell-safe" 2>/dev/null || true
 fi
 
 # systemd user service

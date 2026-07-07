@@ -185,7 +185,7 @@ restore_or_remove() {
 
 section "Step 1 - Stop and Disable Services"
 
-for svc in qs-kwin-bridge cliphist ydotoold kde-material-you-colors; do
+for svc in qs-kwin-bridge cliphist ydotoold kde-material-you-colors caelestia-shell; do
     if systemctl --user is-enabled --quiet "${svc}.service" 2>/dev/null ||
        systemctl --user is-active  --quiet "${svc}.service" 2>/dev/null; then
         systemctl --user disable --now "${svc}.service" 2>/dev/null || true
@@ -225,6 +225,7 @@ for svc_file in \
     "$USER_SYSTEMD/cliphist.service" \
     "$USER_SYSTEMD/ydotoold.service" \
     "$USER_SYSTEMD/kde-material-you-colors.service" \
+    "$USER_SYSTEMD/caelestia-shell.service" \
     "$USER_SYSTEMD/caelestia-update-checker.service" \
     "$USER_SYSTEMD/caelestia-update-checker.timer"
 do
@@ -276,6 +277,7 @@ for f in \
     "$HOME/.local/bin/hyprctl" \
     "$HOME/.local/bin/kcolorpicker" \
     "$HOME/.local/bin/qs-kwin-bridge.py" \
+    "$HOME/.local/bin/caelestia-shell-safe" \
     "$HOME/.local/bin/caelestia-shortcuts" \
     "$HOME/.local/bin/caelestia-record" \
     "$HOME/.local/bin/ydotoold-wrapper" \

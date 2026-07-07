@@ -14,12 +14,47 @@ echo ""
 # Uses `caelestia shell -d`: starts Caelestia shell as a daemon
 # detaches it from the autostart process so KDE doesn't wait for it.
 echo "  Creating Caelestia Shell autostart entry..."
+
+if command -v caelestia >/dev/null 2>&1; then
+    CAELESTIA_PATH=$(command -v caelestia)
+elif [ -f "$HOME/.local/bin/caelestia" ]; then
+    CAELESTIA_PATH="$HOME/.local/bin/caelestia"
+elif [ -f "/usr/bin/caelestia" ]; then
+    CAELESTIA_PATH="/usr/bin/caelestia"
+else
+    CAELESTIA_PATH="caelestia"
+fi
+
+mkdir -p "$HOME/.config/systemd/user"
+cat > "$HOME/.config/systemd/user/caelestia-shell.service" << EOF
+[Unit]
+Description=Caelestia Shell
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=30
+StartLimitBurst=5
+
+[Service]
+Type=exec
+ExecStart=$CAELESTIA_PATH shell
+ExecStop=$CAELESTIA_PATH shell -k
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+
+systemctl --user daemon-reload
+systemctl --user enable --now caelestia-shell.service 2>/dev/null || true
+echo "  [OK]  Caelestia shell service enabled."
+
 cat > "$AUTOSTART_DIR/caelestiashell.desktop" << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=Caelestia Shell
 Comment=Start Caelestia Shell
-Exec=bash -c 'sleep 2 && caelestia shell -d &'
+Exec=bash -c 'sleep 2 && systemctl --user start caelestia-shell.service'
 Icon=quickshell
 Hidden=false
 NoDisplay=false

@@ -99,9 +99,13 @@ info "The core shell and bridge scripts have been updated without touching your 
 echo
 echo -e "${YELLOW}Restarting bridge and shell to apply changes...${RST}"
 systemctl --user restart qs-kwin-bridge.service 2>/dev/null || true
-caelestia shell -k 2>/dev/null || true
-sleep 2
-caelestia shell -d >/dev/null 2>&1 &
+if systemctl --user list-unit-files | grep -q '^caelestia-shell.service'; then
+    systemctl --user restart caelestia-shell.service 2>/dev/null || true
+else
+    caelestia shell -k 2>/dev/null || true
+    sleep 2
+    caelestia shell -d >/dev/null 2>&1 &
+fi
 echo -e "${GREEN}Shell restarted successfully!${RST}"
 echo
 echo -e "${YELLOW}If the shell doesn't start, please restart it manually by running: ${GREEN}caelestia shell -d${RST}"
