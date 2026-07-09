@@ -2,7 +2,7 @@ name: Check Line Endings
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "main", "dev" ]
   pull_request:
     branches: [ "**" ]
 
