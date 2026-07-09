@@ -2,9 +2,9 @@ name: Validate
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "**" ]
 
 jobs:
   repo-checks:
@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Check for CRLF line endings
+        run: bash .github/scripts/check_crlf.sh
 
       - name: Set up Python
         uses: actions/setup-python@v5
