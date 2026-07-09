@@ -20,7 +20,7 @@ normalize_line_endings_first() {
     local convert_choice=""
 
     if [[ -f /etc/os-release ]]; then
-        # shellcheck disable=SC1091
+       # shellcheck disable=SC1091
         . /etc/os-release
         case "$ID" in
             arch|cachyos|endeavouros|manjaro|artix)
