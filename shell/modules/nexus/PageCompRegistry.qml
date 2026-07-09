@@ -139,6 +139,9 @@ QtObject {
                 Component {
                     BarGithub {}
                 }
+                Component {
+                    BarPreviewScales {}
+                }
             }
         },
         Component {

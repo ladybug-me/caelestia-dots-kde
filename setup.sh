@@ -14,95 +14,95 @@ BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
 export BUNDLE_DIR
 
-# normalize_line_endings_first() {
-#     local base_distro="unknown"
-#     local -a crlf_files=()
-#     local convert_choice=""
+normalize_line_endings_first() {
+    local base_distro="unknown"
+    local -a crlf_files=()
+    local convert_choice=""
 
-#     if [[ -f /etc/os-release ]]; then
-#         # shellcheck disable=SC1091
-#         . /etc/os-release
-#         case "$ID" in
-#             arch|cachyos|endeavouros|manjaro|artix)
-#                 base_distro="arch"
-#                 ;;
-#             fedora|nobara|bazzite|rhel|centos|almalinux|rocky)
-#                 base_distro="fedora"
-#                 ;;
-#             *)
-#                 if echo "${ID_LIKE:-}" | grep -iq "arch"; then
-#                     base_distro="arch"
-#                 elif echo "${ID_LIKE:-}" | grep -iq "fedora"; then
-#                     base_distro="fedora"
-#                 fi
-#                 ;;
-#         esac
-#     fi
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        case "$ID" in
+            arch|cachyos|endeavouros|manjaro|artix)
+                base_distro="arch"
+                ;;
+            fedora|nobara|bazzite|rhel|centos|almalinux|rocky)
+                base_distro="fedora"
+                ;;
+            *)
+                if echo "${ID_LIKE:-}" | grep -iq "arch"; then
+                    base_distro="arch"
+                elif echo "${ID_LIKE:-}" | grep -iq "fedora"; then
+                    base_distro="fedora"
+                fi
+                ;;
+        esac
+    fi
 
-#     if [[ "$base_distro" == "unknown" ]]; then
-#         if command -v pacman >/dev/null 2>&1; then
-#             base_distro="arch"
-#         elif command -v dnf >/dev/null 2>&1; then
-#             base_distro="fedora"
-#         fi
-#     fi
-#     mapfile -t crlf_files < <(
-#         find "$BUNDLE_DIR" -path "$BUNDLE_DIR/.git" -prune -o -type f -print0 | \
-#             xargs -0 grep -Il $'\r' 2>/dev/null || true
-#     )
+    if [[ "$base_distro" == "unknown" ]]; then
+        if command -v pacman >/dev/null 2>&1; then
+            base_distro="arch"
+        elif command -v dnf >/dev/null 2>&1; then
+            base_distro="fedora"
+        fi
+    fi
+    mapfile -t crlf_files < <(
+        find "$BUNDLE_DIR" -path "$BUNDLE_DIR/.git" -prune -o -type f -print0 | \
+            xargs -0 grep -Il $'\r' 2>/dev/null || true
+    )
 
-#     if (( ${#crlf_files[@]} == 0 )); then
-#         echo "[OK]    Line ending check: no CRLF files detected under bundle directory."
-#         return 0
-#     fi
+    if (( ${#crlf_files[@]} == 0 )); then
+        echo "[OK]    Line ending check: no CRLF files detected under bundle directory."
+        return 0
+    fi
 
-#     echo "[WARN]  Detected ${#crlf_files[@]} file(s) with CRLF line endings."
-#     while true; do
-#         read -r -p "Convert all files under this repo to LF with dos2unix? [Y/n]: " convert_choice
-#         convert_choice="${convert_choice:-y}"
+    echo "[WARN]  Detected ${#crlf_files[@]} file(s) with CRLF line endings."
+    while true; do
+        read -r -p "Convert all files under this repo to LF with dos2unix? [Y/n]: " convert_choice
+        convert_choice="${convert_choice:-y}"
 
-#         case "${convert_choice,,}" in
-#             y|yes)
-#                 if ! command -v dos2unix >/dev/null 2>&1; then
-#                     echo "[WARN]  dos2unix is not installed. Attempting to install it now..."
-#                     case "$base_distro" in
-#                         arch)
-#                             sudo pacman -S --needed --noconfirm dos2unix || return 1
-#                             ;;
-#                         fedora)
-#                             sudo dnf install -y dos2unix || return 1
-#                             ;;
-#                         *)
-#                             echo "[WARN]  Could not detect distro for automatic dos2unix installation."
-#                             return 1
-#                             ;;
-#                     esac
-#                     echo "[OK]    dos2unix installed."
-#                 fi
+        case "${convert_choice,,}" in
+            y|yes)
+                if ! command -v dos2unix >/dev/null 2>&1; then
+                    echo "[WARN]  dos2unix is not installed. Attempting to install it now..."
+                    case "$base_distro" in
+                        arch)
+                            sudo pacman -S --needed --noconfirm dos2unix || return 1
+                            ;;
+                        fedora)
+                            sudo dnf install -y dos2unix || return 1
+                            ;;
+                        *)
+                            echo "[WARN]  Could not detect distro for automatic dos2unix installation."
+                            return 1
+                            ;;
+                    esac
+                    echo "[OK]    dos2unix installed."
+                fi
 
-#                 (
-#                     cd "$BUNDLE_DIR" || exit 1
-#                     printf '%s\0' "${crlf_files[@]}" | xargs -0 -r dos2unix --
-#                 ) || return 1
+                (
+                    cd "$BUNDLE_DIR" || exit 1
+                    printf '%s\0' "${crlf_files[@]}" | xargs -0 -r dos2unix --
+                ) || return 1
 
-#                 echo "[OK]    Line endings normalized to LF."
-#                 return 0
-#                 ;;
-#             n|no)
-#                 echo "[WARN]  Skipping line ending normalization by user choice."
-#                 return 0
-#                 ;;
-#             *)
-#                 echo "Please answer with y or n."
-#                 ;;
-#         esac
-#     done
-# }
+                echo "[OK]    Line endings normalized to LF."
+                return 0
+                ;;
+            n|no)
+                echo "[WARN]  Skipping line ending normalization by user choice."
+                return 0
+                ;;
+            *)
+                echo "Please answer with y or n."
+                ;;
+        esac
+    done
+}
 
-# if ! normalize_line_endings_first; then
-#     echo "[FATAL] Line ending normalization step failed. Aborting installer." >&2
-#     exit 1
-# fi
+if ! normalize_line_endings_first; then
+    echo "[FATAL] Line ending normalization step failed. Aborting installer." >&2
+    exit 1
+fi
 
 # -- Download/Cache Configuration -----------------------------------------------
 export CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"

@@ -71,9 +71,16 @@ ColumnLayout {
         }
     }
 
-    spacing: Tokens.spacing.medium
-    implicitWidth: Math.max(400, _isSidebarOpen ? Tokens.sizes.sidebar.width - Tokens.padding.extraLargeIncreased : 0)
-    implicitHeight: content.implicitHeight + Tokens.padding.extraLargeIncreased
+    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.network) ? GlobalConfig.bar.previewScales.network : 0.0) : 0.0
+    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
+    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.network) ? GlobalConfig.bar.previewFontScales.network : 0.0) : 0.0
+    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+
+    spacing: Tokens.spacing.medium * scaleOffset
+    implicitWidth: Math.max(400 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
+    implicitHeight: content.implicitHeight + Tokens.padding.extraLargeIncreased * scaleOffset
     visible: shouldBeVisible || isClosing
     enabled: shouldBeVisible && !isClosing
     focus: enabled
@@ -129,9 +136,9 @@ ColumnLayout {
 
     StyledRect {
         Layout.fillWidth: true
-        Layout.preferredWidth: 400
-        implicitHeight: content.implicitHeight + Tokens.padding.extraLargeIncreased
-        radius: Tokens.rounding.large
+        Layout.preferredWidth: 400 * root.scaleOffset
+        implicitHeight: content.implicitHeight + Tokens.padding.extraLargeIncreased * root.scaleOffset
+        radius: Tokens.rounding.large * root.scaleOffset
         color: Colours.tPalette.m3surfaceContainer
         visible: root.shouldBeVisible || root.isClosing
         opacity: root.shouldBeVisible && !root.isClosing ? 1 : 0
@@ -175,20 +182,21 @@ ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            anchors.margins: Tokens.padding.large
+            anchors.margins: Tokens.padding.large * root.scaleOffset
 
-            spacing: Tokens.spacing.medium
+            spacing: Tokens.spacing.medium * root.scaleOffset
 
             MaterialIcon {
                 Layout.alignment: Qt.AlignHCenter
                 text: "lock"
-                fontStyle: Tokens.font.icon.builders.extraLarge.scale(2).build()
+                fontStyle: Tokens.font.icon.builders.extraLarge.scale(2 * root.scaleOffset).build()
             }
 
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: qsTr("Enter password")
-                font: Tokens.font.body.builders.large.weight(Font.Medium).build()
+                font.pointSize: Tokens.font.body.large.pointSize * root.fontScale
+                font.weight: Font.Medium
             }
 
             StyledText {
@@ -205,7 +213,7 @@ ColumnLayout {
                     return qsTr("Network: Unknown");
                 }
                 color: Colours.palette.m3outline
-                font: Tokens.font.body.small
+                font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
             }
 
             Timer {
@@ -241,7 +249,7 @@ ColumnLayout {
                 id: statusText
 
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: Tokens.spacing.small
+                Layout.topMargin: Tokens.spacing.small * root.scaleOffset
                 visible: connectButton.connecting || connectButton.hasError
                 text: {
                     if (connectButton.hasError) {
@@ -253,9 +261,10 @@ ColumnLayout {
                     return "";
                 }
                 color: connectButton.hasError ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
-                font: Tokens.font.body.builders.small.weight(Font.Normal).build()
+                font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+                font.weight: Font.Normal
                 wrapMode: Text.WordWrap
-                Layout.maximumWidth: parent.width - Tokens.padding.extraLargeIncreased
+                Layout.maximumWidth: parent.width - Tokens.padding.extraLargeIncreased * root.scaleOffset
             }
 
             FocusScope {
@@ -264,9 +273,9 @@ ColumnLayout {
                 property string passwordBuffer: ""
 
                 objectName: "passwordContainer"
-                Layout.topMargin: Tokens.spacing.largeIncreased
+                Layout.topMargin: Tokens.spacing.largeIncreased * root.scaleOffset
                 Layout.fillWidth: true
-                implicitHeight: Math.max(48, charList.implicitHeight + Tokens.padding.medium * 2)
+                implicitHeight: Math.max(48 * root.scaleOffset, charList.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset)
                 focus: true
                 activeFocusOnTab: true
 
@@ -339,7 +348,7 @@ ColumnLayout {
 
                 StyledRect {
                     anchors.fill: parent
-                    radius: Tokens.rounding.large
+                    radius: Tokens.rounding.large * root.scaleOffset
                     color: passwordContainer.activeFocus ? Qt.lighter(Colours.tPalette.m3surfaceContainer, 1.05) : Colours.tPalette.m3surfaceContainer
                     border.width: passwordContainer.activeFocus || connectButton.hasError ? 4 : (root.shouldBeVisible ? 1 : 0)
                     border.color: {
@@ -368,7 +377,7 @@ ColumnLayout {
                 StateLayer {
                     hoverEnabled: false
                     cursorShape: Qt.IBeamCursor
-                    radius: Tokens.rounding.large
+                    radius: Tokens.rounding.large * root.scaleOffset
                     onClicked: passwordContainer.forceActiveFocus()
                 }
 
@@ -378,7 +387,7 @@ ColumnLayout {
                     anchors.centerIn: parent
                     text: qsTr("Password")
                     color: Colours.palette.m3outline
-                    font: Tokens.font.mono.medium
+                    font.pointSize: Tokens.font.mono.medium.pointSize * root.fontScale
                     opacity: passwordContainer.passwordBuffer ? 0 : 1
 
                     Behavior on opacity {
@@ -395,10 +404,10 @@ ColumnLayout {
 
                     anchors.centerIn: parent
                     implicitWidth: fullWidth
-                    implicitHeight: Tokens.font.body.medium.pointSize
+                    implicitHeight: Tokens.font.body.medium.pointSize * root.fontScale
 
                     orientation: Qt.Horizontal
-                    spacing: Tokens.spacing.extraSmall
+                    spacing: Tokens.spacing.extraSmall * root.scaleOffset
                     interactive: false
 
                     model: ScriptModel {
@@ -412,7 +421,7 @@ ColumnLayout {
                         implicitHeight: charList.implicitHeight
 
                         color: Colours.palette.m3onSurface
-                        radius: Tokens.rounding.medium / 2
+                        radius: Tokens.rounding.medium / 2 * root.scaleOffset
 
                         opacity: 0
                         scale: 0
@@ -470,15 +479,15 @@ ColumnLayout {
             }
 
             RowLayout {
-                Layout.topMargin: Tokens.spacing.medium
+                Layout.topMargin: Tokens.spacing.medium * root.scaleOffset
                 Layout.fillWidth: true
-                spacing: Tokens.spacing.medium
+                spacing: Tokens.spacing.medium * root.scaleOffset
 
                 TextButton {
                     id: cancelButton
 
                     Layout.fillWidth: true
-                    Layout.minimumHeight: Tokens.font.body.medium.pointSize + Tokens.padding.medium * 2
+                    Layout.minimumHeight: Tokens.font.body.medium.pointSize * root.fontScale + Tokens.padding.medium * 2 * root.fontScale
                     inactiveColour: Colours.palette.m3secondaryContainer
                     inactiveOnColour: Colours.palette.m3onSecondaryContainer
                     text: qsTr("Cancel")
@@ -493,7 +502,7 @@ ColumnLayout {
                     property bool hasError: false
 
                     Layout.fillWidth: true
-                    Layout.minimumHeight: Tokens.font.body.medium.pointSize + Tokens.padding.medium * 2
+                    Layout.minimumHeight: Tokens.font.body.medium.pointSize * root.fontScale + Tokens.padding.medium * 2 * root.fontScale
                     inactiveColour: Colours.palette.m3primary
                     inactiveOnColour: Colours.palette.m3onPrimary
                     text: qsTr("Connect")

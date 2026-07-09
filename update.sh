@@ -41,17 +41,22 @@ if ! git diff-index --quiet HEAD --; then
     STASHED=1
 fi
 
-BRANCHES=$(git branch -r | grep -v '\->' | sed 's/.*origin\///')
-echo
-info "Available remote branches:"
-select BRANCH in $BRANCHES; do
-    if [ -n "$BRANCH" ]; then
-        info "Selected branch: $BRANCH"
-        break
-    else
-        warn "Invalid selection. Please enter a valid number."
-    fi
-done
+if [ -n "${1:-}" ]; then
+    BRANCH="$1"
+    info "Using provided branch: $BRANCH"
+else
+    BRANCHES=$(git branch -r | grep -v '\->' | sed 's/.*origin\///')
+    echo
+    info "Available remote branches:"
+    select BRANCH in $BRANCHES; do
+        if [ -n "$BRANCH" ]; then
+            info "Selected branch: $BRANCH"
+            break
+        else
+            warn "Invalid selection. Please enter a valid number."
+        fi
+    done
+fi
 
 info "Checking out $BRANCH..."
 git checkout "$BRANCH" || die "Failed to checkout $BRANCH"
@@ -81,7 +86,17 @@ fi
 
 # Request sudo upfront so it doesn't interrupt the scripts
 info "We need sudo to install any missing dependencies and configure system bridges."
-sudo -v || die "Sudo authentication failed."
+if ! [ -t 1 ]; then
+    if command -v ksshaskpass >/dev/null; then
+        export SUDO_ASKPASS=$(command -v ksshaskpass)
+        sudo -A -v || die "Sudo authentication failed."
+    else
+        warn "Running non-interactively without ksshaskpass. Sudo might fail."
+        sudo -v || die "Sudo authentication failed."
+    fi
+else
+    sudo -v || die "Sudo authentication failed."
+fi
 (while true; do sudo -n true; sleep 55; done) 2>/dev/null &
 SUDO_LOOP_PID=$!
 trap 'kill $SUDO_LOOP_PID 2>/dev/null || true' EXIT

@@ -51,7 +51,7 @@ PageBase {
             first: true
             text: qsTr("Persistent")
             subtext: qsTr("Keep the bar visible at all times")
-            checked: Config.bar.persistent
+            checked: GlobalConfig.bar.persistent
             onToggled: GlobalConfig.bar.persistent = checked
         }
 
@@ -61,7 +61,7 @@ PageBase {
             subtext: qsTr("Screen edge to place the bar on")
             active: {
                 for (let i = 0; i < positionItems.length; i++) {
-                    if (positionItems[i].value === Config.bar.position)
+                    if (positionItems[i].value === GlobalConfig.bar.position)
                         return positionItems[i];
                 }
                 return positionItems[0];
@@ -73,14 +73,14 @@ PageBase {
         ToggleRow {
             text: qsTr("Show on hover")
             subtext: qsTr("Reveal the bar when the cursor reaches the screen edge")
-            checked: Config.bar.showOnHover
+            checked: GlobalConfig.bar.showOnHover
             onToggled: GlobalConfig.bar.showOnHover = checked
         }
 
         StepperRow {
             label: qsTr("Drag threshold")
             subtext: qsTr("Pixels dragged before the bar reveals")
-            value: Config.bar.dragThreshold
+            value: GlobalConfig.bar.dragThreshold
             from: 0
             to: 200
             stepSize: 5
@@ -90,7 +90,7 @@ PageBase {
         StepperRow {
             label: qsTr("Bar scale")
             subtext: qsTr("Scales taskbar thickness and component sizing")
-            value: Config.bar.scale
+            value: GlobalConfig.bar.scale
             from: 0.6
             to: 1.6
             stepSize: 0.05
@@ -98,14 +98,36 @@ PageBase {
         }
 
         StepperRow {
-            last: true
             label: qsTr("Preview scale")
             subtext: qsTr("Scales taskbar hover previews")
-            value: Config.bar.previewScale
+            value: GlobalConfig.bar.previewScale
             from: 0.5
             to: 1.6
             stepSize: 0.05
             onMoved: v => GlobalConfig.bar.previewScale = v
+        }
+
+        ToggleRow {
+            text: qsTr("Scale with bar size")
+            subtext: qsTr("Multiply the preview scale with the bar scale")
+            checked: GlobalConfig.bar.previewScaleWithBar
+            onToggled: GlobalConfig.bar.previewScaleWithBar = checked
+        }
+
+        StepperRow {
+            label: qsTr("Font scaling offset")
+            subtext: qsTr("Scales the text size across taskbar popouts")
+            value: GlobalConfig.bar.fontScaleOffset
+            from: -1.0; to: 1.0; stepSize: 0.05
+            onMoved: v => GlobalConfig.bar.fontScaleOffset = v
+        }
+
+        NavRow {
+            last: true
+            icon: "aspect_ratio"
+            label: qsTr("Per-element scaling offsets")
+            status: qsTr("Customize scale and font for each popout type")
+            onClicked: root.nState.openSubPage(13)
         }
 
         // Components
@@ -180,14 +202,14 @@ PageBase {
             first: true
             text: qsTr("Workspaces")
             subtext: qsTr("Scroll over the workspace indicator to switch workspaces")
-            checked: Config.bar.scrollActions.workspaces
+            checked: GlobalConfig.bar.scrollActions.workspaces
             onToggled: GlobalConfig.bar.scrollActions.workspaces = checked
         }
 
         ToggleRow {
             text: qsTr("Volume")
             subtext: qsTr("Scroll on the top half of the bar to adjust volume")
-            checked: Config.bar.scrollActions.volume
+            checked: GlobalConfig.bar.scrollActions.volume
             onToggled: GlobalConfig.bar.scrollActions.volume = checked
         }
 
@@ -195,7 +217,7 @@ PageBase {
             last: true
             text: qsTr("Brightness")
             subtext: qsTr("Scroll on the bottom half of the bar to adjust brightness")
-            checked: Config.bar.scrollActions.brightness
+            checked: GlobalConfig.bar.scrollActions.brightness
             onToggled: GlobalConfig.bar.scrollActions.brightness = checked
         }
     }

@@ -4,6 +4,7 @@
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 SRC_DIR="$BUNDLE_DIR/src"
 DOTS_DIR="$SRC_DIR/dots"
+FISH_DIR="$SRC_DIR/dots-extra"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"
 BACKUP_DIR_FILE="$CACHE_DIR/backup-dir.txt"
 BACKUP_DIR=""
@@ -77,15 +78,24 @@ backup_shell_rc "$HOME/.zshrc" "zshrc"
 backup_shell_rc "$HOME/.config/fish/config.fish" "fish_config"
 
 echo "  Deploying Caelestia configs..."
-for config in btop fastfetch fish foot hypr kitty micro thunar; do
+for config in btop fastfetch foot hypr kitty micro thunar; do
     if [[ -d "$DOTS_DIR/$config" ]]; then
-        # Remove ((COMMENTED OUT FOR SOME REASON))
+        # Remove
         rm -rf "$HOME/.config/$config"
         # Deploy
         cp -r "$DOTS_DIR/$config" "$HOME/.config/$config"
         echo "    Deployed: $config"
     fi
 done
+
+echo "  Deploying extra configs..."
+if [[ -d "$FISH_DIR/fish" ]]; then
+    # Remove
+    rm -rf "$HOME/.config/fish"
+    # Deploy
+    cp -r "$FISH_DIR/fish" "$HOME/.config/fish"
+    echo "    Deployed: fish"
+fi
 
 # Backup existing starship config
 if [[ -f "$HOME/.config/starship.toml" ]]; then

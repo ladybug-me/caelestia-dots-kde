@@ -28,14 +28,21 @@ ColumnLayout {
         return false;
     }
 
-    width: 200
-    implicitWidth: 200
-    spacing: Tokens.spacing.medium
+    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.dock) ? GlobalConfig.bar.previewScales.dock : 0.0) : 0.0
+    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
+    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.dock) ? GlobalConfig.bar.previewFontScales.dock : 0.0) : 0.0
+    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+
+    width: 200 * scaleOffset
+    implicitWidth: 200 * scaleOffset
+    spacing: Tokens.spacing.medium * scaleOffset
 
     StyledRect {
         Layout.fillWidth: true
-        implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
-        radius: Tokens.rounding.medium
+        implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset
+        radius: Tokens.rounding.medium * root.scaleOffset
         color: Colours.tPalette.m3surfaceContainer
         clip: true
         visible: model && model.entry != null
@@ -46,8 +53,8 @@ ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: Tokens.padding.medium
-            spacing: Tokens.spacing.small
+            anchors.margins: Tokens.padding.medium * root.scaleOffset
+            spacing: Tokens.spacing.small * root.scaleOffset
 
             // Pin/Unpin action
             StyledRect {
@@ -60,9 +67,9 @@ ColumnLayout {
                 color: "transparent"
 
                 StateLayer {
-                    anchors.margins: -Tokens.padding.medium / 2
-                    anchors.leftMargin: -Tokens.padding.medium
-                    anchors.rightMargin: -Tokens.padding.medium
+                    anchors.margins: -Tokens.padding.medium / 2 * root.scaleOffset
+                    anchors.leftMargin: -Tokens.padding.medium * root.scaleOffset
+                    anchors.rightMargin: -Tokens.padding.medium * root.scaleOffset
 
                     radius: pinItem.radius
 
@@ -93,6 +100,7 @@ ColumnLayout {
 
                     anchors.left: parent.left
                     text: isPinned ? qsTr("Unpin from dock") : qsTr("Pin to dock")
+                    font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
             }
 
@@ -107,9 +115,9 @@ ColumnLayout {
                 color: "transparent"
 
                 StateLayer {
-                    anchors.margins: -Tokens.padding.medium / 2
-                    anchors.leftMargin: -Tokens.padding.medium
-                    anchors.rightMargin: -Tokens.padding.medium
+                    anchors.margins: -Tokens.padding.medium / 2 * root.scaleOffset
+                    anchors.leftMargin: -Tokens.padding.medium * root.scaleOffset
+                    anchors.rightMargin: -Tokens.padding.medium * root.scaleOffset
 
                     radius: newWinItem.radius
 
@@ -132,6 +140,7 @@ ColumnLayout {
 
                     anchors.left: parent.left
                     text: qsTr("Open new window")
+                    font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
             }
         }
@@ -141,7 +150,7 @@ ColumnLayout {
         Layout.fillWidth: true
         inactiveColour: Colours.palette.m3primaryContainer
         inactiveOnColour: Colours.palette.m3onPrimaryContainer
-        verticalPadding: Tokens.padding.small
+        verticalPadding: Tokens.padding.small * root.scaleOffset
         text: qsTr("End task")
         icon: "close"
         visible: model && model.toplevels && model.toplevels.length > 0

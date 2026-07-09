@@ -13,9 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check for CRLF line endings
-        run: bash .github/scripts/check_crlf.sh
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

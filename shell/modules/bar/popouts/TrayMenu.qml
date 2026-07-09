@@ -46,8 +46,15 @@ StackView {
         property bool isSubMenu
         property bool shown
 
-        padding: Tokens.padding.small
-        spacing: Tokens.spacing.small
+    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.trayMenu) ? GlobalConfig.bar.previewScales.trayMenu : 0.0) : 0.0
+    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
+    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.trayMenu) ? GlobalConfig.bar.previewFontScales.trayMenu : 0.0) : 0.0
+    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+
+        padding: Tokens.padding.small * scaleOffset
+        spacing: Tokens.spacing.small * scaleOffset
 
         opacity: shown ? 1 : 0
         scale: shown ? 1 : 0.8
@@ -118,20 +125,20 @@ StackView {
 
                 required property var modelData
 
-                implicitWidth: Tokens.sizes.bar.trayMenuWidth + Tokens.padding.medium * 2
-                implicitHeight: groupLayout.implicitHeight + Tokens.padding.medium * 2
+                implicitWidth: Tokens.sizes.bar.trayMenuWidth * menu.scaleOffset + Tokens.padding.medium * 2 * menu.scaleOffset
+                implicitHeight: groupLayout.implicitHeight + Tokens.padding.medium * 2 * menu.scaleOffset
 
-                radius: Tokens.rounding.medium
+                radius: Tokens.rounding.medium * menu.scaleOffset
                 color: Colours.tPalette.m3surfaceContainer
                 clip: true
 
                 Column {
                     id: groupLayout
 
-                    x: Tokens.padding.medium
-                    y: Tokens.padding.medium
-                    width: parent.width - Tokens.padding.medium * 2
-                    spacing: Tokens.spacing.small
+                    x: Tokens.padding.medium * menu.scaleOffset
+                    y: Tokens.padding.medium * menu.scaleOffset
+                    width: parent.width - Tokens.padding.medium * 2 * menu.scaleOffset
+                    spacing: Tokens.spacing.small * menu.scaleOffset
 
                     Repeater {
                         model: groupCard.modelData
@@ -144,7 +151,7 @@ StackView {
                             implicitWidth: parent.width
                             implicitHeight: childrenItem.implicitHeight
 
-                            radius: Tokens.rounding.full
+                            radius: Tokens.rounding.full * menu.scaleOffset
                             color: "transparent"
 
                             Loader {
@@ -158,9 +165,9 @@ StackView {
                                     implicitHeight: label.implicitHeight
 
                                     StateLayer {
-                                        anchors.margins: -Tokens.padding.extraSmall / 2
-                                        anchors.leftMargin: -Tokens.padding.small
-                                        anchors.rightMargin: -Tokens.padding.small
+                                        anchors.margins: -Tokens.padding.extraSmall / 2 * menu.scaleOffset
+                                        anchors.leftMargin: -Tokens.padding.small * menu.scaleOffset
+                                        anchors.rightMargin: -Tokens.padding.small * menu.scaleOffset
 
                                         radius: item.radius
                                         disabled: !item.modelData.enabled
@@ -199,13 +206,14 @@ StackView {
                                         id: label
 
                                         anchors.left: icon.right
-                                        anchors.leftMargin: icon.active ? Tokens.spacing.medium : 0
+                                        anchors.leftMargin: icon.active ? Tokens.spacing.medium * menu.scaleOffset : 0
 
                                         text: labelMetrics.elidedText
                                         color: item.modelData.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                                        font.pointSize: Tokens.font.body.medium.pointSize * menu.fontScale
                                     }
 
-                                    property int trayMenuWidth: Tokens.sizes.bar.trayMenuWidth
+                                    property int trayMenuWidth: Tokens.sizes.bar.trayMenuWidth * menu.scaleOffset
                                     TextMetrics {
                                         id: labelMetrics
 
@@ -213,7 +221,7 @@ StackView {
                                         font: label.font
 
                                         elide: Text.ElideRight
-                                        elideWidth: root.popouts.isHorizontal ? trayMenuWidth - (icon.active ? icon.implicitWidth + label.anchors.leftMargin : 0) - (expand.active ? expand.implicitWidth + Tokens.spacing.medium : 0) : 200
+                                        elideWidth: root.popouts.isHorizontal ? trayMenuWidth - (icon.active ? icon.implicitWidth + label.anchors.leftMargin : 0) - (expand.active ? expand.implicitWidth + Tokens.spacing.medium * menu.scaleOffset : 0) : 200 * menu.scaleOffset
                                     }
 
                                     Loader {
@@ -228,6 +236,7 @@ StackView {
                                         sourceComponent: MaterialIcon {
                                             text: "chevron_right"
                                             color: item.modelData.enabled ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                                            fontStyle.pointSize: Tokens.font.icon.medium.pointSize * menu.fontScale
                                         }
                                     }
                                 }
@@ -244,7 +253,7 @@ StackView {
 
             sourceComponent: Item {
                 implicitWidth: back.implicitWidth
-                implicitHeight: back.implicitHeight + Tokens.spacing.extraSmall
+                implicitHeight: back.implicitHeight + Tokens.spacing.extraSmall * menu.scaleOffset
 
                 Item {
                     anchors.bottom: parent.bottom
@@ -253,11 +262,11 @@ StackView {
 
                     StyledRect {
                         anchors.fill: parent
-                        anchors.margins: -Tokens.padding.extraSmall / 2
-                        anchors.leftMargin: -Tokens.padding.small
-                        anchors.rightMargin: -Tokens.padding.large
+                        anchors.margins: -Tokens.padding.extraSmall / 2 * menu.scaleOffset
+                        anchors.leftMargin: -Tokens.padding.small * menu.scaleOffset
+                        anchors.rightMargin: -Tokens.padding.large * menu.scaleOffset
 
-                        radius: Tokens.rounding.full
+                        radius: Tokens.rounding.full * menu.scaleOffset
                         color: Colours.palette.m3secondaryContainer
 
                         StateLayer {
@@ -276,12 +285,14 @@ StackView {
                             anchors.verticalCenter: parent.verticalCenter
                             text: "chevron_left"
                             color: Colours.palette.m3onSecondaryContainer
+                            fontStyle.pointSize: Tokens.font.icon.medium.pointSize * menu.fontScale
                         }
 
                         StyledText {
                             anchors.verticalCenter: parent.verticalCenter
                             text: qsTr("Back")
                             color: Colours.palette.m3onSecondaryContainer
+                            font.pointSize: Tokens.font.body.medium.pointSize * menu.fontScale
                         }
                     }
                 }

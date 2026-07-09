@@ -14,14 +14,14 @@ Item {
     readonly property Popout currentPopout: content.children.find(c => c.shouldBeActive) ?? null
     readonly property Item current: currentPopout?.item ?? null
 
-    implicitWidth: (currentPopout?.implicitWidth ?? 0) + Tokens.padding.extraLargeIncreased
-    implicitHeight: (currentPopout?.implicitHeight ?? 0) + Tokens.padding.extraLargeIncreased
+    implicitWidth: ((currentPopout?.item?.width || currentPopout?.implicitWidth) ?? 0) + Tokens.padding.extraLargeIncreased * (currentPopout?.item?.scaleOffset ?? 1.0)
+    implicitHeight: ((currentPopout?.item?.height || currentPopout?.implicitHeight) ?? 0) + Tokens.padding.extraLargeIncreased * (currentPopout?.item?.scaleOffset ?? 1.0)
 
     Item {
         id: content
 
         anchors.fill: parent
-        anchors.margins: Tokens.padding.large
+        anchors.margins: Tokens.padding.large * (currentPopout?.item?.scaleOffset ?? 1.0)
 
         Popout {
             name: "activewindow"

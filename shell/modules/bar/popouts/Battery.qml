@@ -13,45 +13,53 @@ ColumnLayout {
     required property PopoutState popouts
     property bool _isSidebarOpen: popouts.sidebarOpen && popouts.isHorizontal
 
-    width: Math.max(300, _isSidebarOpen ? Tokens.sizes.sidebar.width - Tokens.padding.extraLargeIncreased : 0)
-    spacing: Tokens.spacing.medium
+    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.battery) ? GlobalConfig.bar.previewScales.battery : 0.0) : 0.0
+    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
+    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.battery) ? GlobalConfig.bar.previewFontScales.battery : 0.0) : 0.0
+    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+
+    width: Math.max(300 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
+    spacing: Tokens.spacing.medium * scaleOffset
 
     StyledText {
-        Layout.topMargin: Tokens.padding.medium
-        Layout.leftMargin: Tokens.padding.small
+        Layout.topMargin: Tokens.padding.medium * root.scaleOffset
+        Layout.leftMargin: Tokens.padding.small * root.scaleOffset
         text: qsTr("Battery")
         font.weight: 500
+        font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
     }
 
     StyledRect {
         Layout.fillWidth: true
-        implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2
-        implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
-        radius: Tokens.rounding.medium
+        implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2 * root.scaleOffset
+        implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset
+        radius: Tokens.rounding.medium * root.scaleOffset
         color: Colours.tPalette.m3surfaceContainer
         clip: true
 
         ColumnLayout {
             id: cardLayout
 
-            width: parent.width - Tokens.padding.medium * 2
-            x: Tokens.padding.medium
-            y: Tokens.padding.medium
-            spacing: Tokens.spacing.large
+            width: parent.width - Tokens.padding.medium * 2 * root.scaleOffset
+            x: Tokens.padding.medium * root.scaleOffset
+            y: Tokens.padding.medium * root.scaleOffset
+            spacing: Tokens.spacing.large * root.scaleOffset
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Tokens.spacing.large
+                spacing: Tokens.spacing.large * root.scaleOffset
 
                 Item {
-                    Layout.preferredWidth: 60
-                    Layout.preferredHeight: 110
+                    Layout.preferredWidth: 60 * root.scaleOffset
+                    Layout.preferredHeight: 110 * root.scaleOffset
                     Layout.alignment: Qt.AlignVCenter
 
                     Rectangle {
                         id: nub
-                        width: 24
-                        height: 10
+                        width: 24 * root.scaleOffset
+                        height: 10 * root.scaleOffset
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.top: parent.top
                         color: Colours.palette.m3primary
@@ -68,7 +76,7 @@ ColumnLayout {
                     Item {
                         id: batteryBody
                         anchors.top: parent.top
-                        anchors.topMargin: 8
+                        anchors.topMargin: 8 * root.scaleOffset
                         anchors.bottom: parent.bottom
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -119,12 +127,12 @@ ColumnLayout {
                                 Behavior on opacity { NumberAnimation { duration: 300 } }
                                 
                                 Rectangle {
-                                    width: 140; height: 140
+                                    width: 140 * root.scaleOffset; height: 140 * root.scaleOffset
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: 8
+                                    y: 8 * root.scaleOffset
                                     
                                     color: Colours.palette.m3primary
-                                    radius: 50
+                                    radius: 50 * root.scaleOffset
                                     
                                     RotationAnimation on rotation {
                                         loops: Animation.Infinite
@@ -141,8 +149,8 @@ ColumnLayout {
                             anchors.fill: parent
                             color: "transparent"
                             border.color: Colours.palette.m3primary
-                            border.width: 3
-                            radius: Tokens.rounding.medium
+                            border.width: 3 * root.scaleOffset
+                            radius: Tokens.rounding.medium * root.scaleOffset
                         }
 
                         MaterialIcon {
@@ -150,7 +158,7 @@ ColumnLayout {
                             text: "bolt"
                             visible: !UPower.onBattery
                             color: Colours.palette.m3onPrimary
-                            fontStyle: Tokens.font.icon.large
+                            fontStyle.pointSize: Tokens.font.icon.large.pointSize * root.fontScale
                             z: 1
                         }
                     }
@@ -159,11 +167,11 @@ ColumnLayout {
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
-                    spacing: Tokens.spacing.small
+                    spacing: Tokens.spacing.small * root.scaleOffset
 
                     StyledText {
                         text: UPower.displayDevice.isLaptopBattery ? qsTr("%1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : qsTr("N/A")
-                        font.pointSize: 28
+                        font.pointSize: 28 * root.fontScale
                         font.weight: 600
                     }
 
@@ -194,7 +202,7 @@ ColumnLayout {
                             return qsTr("~ %1").arg(formatSeconds(UPower.displayDevice.timeToFull, "Calculating..."));
                         }
                         color: Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+                        font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                     }
                 }
             }
@@ -206,11 +214,11 @@ ColumnLayout {
                 active: PowerProfiles.degradationReason !== PerformanceDegradationReason.None
 
                 sourceComponent: StyledRect {
-                    implicitWidth: child.implicitWidth + Tokens.padding.medium * 2
-                    implicitHeight: child.implicitHeight + Tokens.padding.small * 2
+                    implicitWidth: child.implicitWidth + Tokens.padding.medium * 2 * root.scaleOffset
+                    implicitHeight: child.implicitHeight + Tokens.padding.small * 2 * root.scaleOffset
 
                     color: Colours.palette.m3error
-                    radius: Tokens.rounding.large
+                    radius: Tokens.rounding.large * root.scaleOffset
 
                     Column {
                         id: child
@@ -218,7 +226,7 @@ ColumnLayout {
 
                         Row {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            spacing: Tokens.spacing.small
+                            spacing: Tokens.spacing.small * root.scaleOffset
 
                             MaterialIcon {
                                 anchors.verticalCenter: parent.verticalCenter
@@ -230,7 +238,7 @@ ColumnLayout {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: qsTr("Degraded: %1").arg(PerformanceDegradationReason.toString(PowerProfiles.degradationReason))
                                 color: Colours.palette.m3onError
-                                font: Tokens.font.mono.builders.medium.weight(Font.Medium).build()
+                                font.pointSize: Tokens.font.mono.medium.pointSize * root.fontScale
                             }
                         }
                     }
@@ -252,16 +260,16 @@ ColumnLayout {
                     return balance.icon;
                 }
 
-                implicitHeight: Math.max(saver.implicitHeight, balance.implicitHeight, perf.implicitHeight) + Tokens.padding.small
+                implicitHeight: Math.max(saver.implicitHeight, balance.implicitHeight, perf.implicitHeight) + Tokens.padding.small * root.scaleOffset
 
                 color: Colours.tPalette.m3surfaceContainer
-                radius: Tokens.rounding.full
+                radius: Tokens.rounding.full * root.scaleOffset
 
                 StyledRect {
                     id: indicator
 
                     color: Colours.palette.m3primary
-                    radius: Tokens.rounding.full
+                    radius: Tokens.rounding.full * root.scaleOffset
                     state: profiles.current
 
                     states: [
@@ -298,7 +306,7 @@ ColumnLayout {
 
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
-                    anchors.leftMargin: Tokens.padding.extraSmall
+                    anchors.leftMargin: Tokens.padding.extraSmall * root.scaleOffset
 
                     profile: PowerProfile.PowerSaver
                     icon: "energy_savings_leaf"
@@ -318,7 +326,7 @@ ColumnLayout {
 
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.right
-                    anchors.rightMargin: Tokens.padding.extraSmall
+                    anchors.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
 
                     profile: PowerProfile.Performance
                     icon: "rocket_launch"
@@ -341,11 +349,11 @@ ColumnLayout {
         required property string icon
         required property int profile
 
-        implicitWidth: icon.implicitHeight + Tokens.padding.small
-        implicitHeight: icon.implicitHeight + Tokens.padding.small
+        implicitWidth: icon.implicitHeight + Tokens.padding.small * root.scaleOffset
+        implicitHeight: icon.implicitHeight + Tokens.padding.small * root.scaleOffset
 
         StateLayer {
-            radius: Tokens.rounding.full
+            radius: Tokens.rounding.full * root.scaleOffset
             color: profiles.current === parent.icon ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
             onClicked: PowerProfiles.profile = parent.profile
         }
@@ -356,7 +364,7 @@ ColumnLayout {
             anchors.centerIn: parent
 
             text: parent.icon
-            fontStyle: Tokens.font.icon.large
+            fontStyle.pointSize: Tokens.font.icon.large.pointSize * root.fontScale
             color: profiles.current === text ? Colours.palette.m3onPrimary : Colours.palette.m3onSurfaceVariant
             fill: profiles.current === text ? 1 : 0
 

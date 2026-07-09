@@ -19,8 +19,15 @@ ColumnLayout {
         kb.refresh();
     }
 
-    spacing: Tokens.spacing.small
-    width: Math.max(Tokens.sizes.bar.kbLayoutWidth, _isSidebarOpen ? Tokens.sizes.sidebar.width - Tokens.padding.extraLargeIncreased : 0)
+    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.kblayout) ? GlobalConfig.bar.previewScales.kblayout : 0.0) : 0.0
+    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
+    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.kblayout) ? GlobalConfig.bar.previewFontScales.kblayout : 0.0) : 0.0
+    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+
+    spacing: Tokens.spacing.small * scaleOffset
+    width: Math.max(Tokens.sizes.bar.kbLayoutWidth * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased * scaleOffset : 0)
 
     Component.onCompleted: kb.start()
 
@@ -29,8 +36,8 @@ ColumnLayout {
     }
 
     StyledText {
-        Layout.topMargin: Tokens.padding.medium
-        Layout.rightMargin: Tokens.padding.extraSmall
+        Layout.topMargin: Tokens.padding.medium * scaleOffset
+        Layout.rightMargin: Tokens.padding.extraSmall * scaleOffset
         text: qsTr("Keyboard Layouts")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
     }
