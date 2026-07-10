@@ -4,7 +4,6 @@
 #include "audioprovider.hpp"
 #include <cava/cavacore.h>
 #include <cstddef>
-#include <cmath>
 #include <qloggingcategory.h>
 
 Q_LOGGING_CATEGORY(lcCava, "caelestia.services.cava", QtInfoMsg)
@@ -29,45 +28,32 @@ void CavaProcessor::process() {
         return;
     }
 
-    if (m_frameValues.size() != m_bars) {
-        m_frameValues.resize(m_bars);
-    }
-
     const int count = static_cast<int>(AudioCollector::instance().readChunk(m_in));
 
     // Process in data via cava
     cava_execute(m_in, count, m_out, m_plan);
 
     // Apply monstercat filter
+    QVector<double> values(m_bars);
+
     // Left to right pass
     const double inv = 1.0 / 1.5;
     double carry = 0.0;
     for (int i = 0; i < m_bars; ++i) {
         carry = std::max(m_out[i], carry * inv);
-        m_frameValues[i] = carry;
+        values[i] = carry;
     }
 
     // Right to left pass and combine
     carry = 0.0;
     for (int i = m_bars - 1; i >= 0; --i) {
         carry = std::max(m_out[i], carry * inv);
-        m_frameValues[i] = std::max(m_frameValues[i], carry);
+        values[i] = std::max(values[i], carry);
     }
 
     // Update values
-    bool changed = m_values.size() != m_frameValues.size();
-    if (!changed) {
-        constexpr double epsilon = 0.0005;
-        for (int i = 0; i < m_frameValues.size(); ++i) {
-            if (std::abs(m_frameValues[i] - m_values[i]) > epsilon) {
-                changed = true;
-                break;
-            }
-        }
-    }
-
-    if (changed) {
-        m_values = m_frameValues;
+    if (values != m_values) {
+        m_values = std::move(values);
         emit valuesChanged(m_values);
     }
 }
@@ -80,8 +66,6 @@ void CavaProcessor::setBars(int bars) {
 
     if (m_bars != bars) {
         m_bars = bars;
-        m_values.resize(m_bars);
-        m_frameValues.resize(m_bars);
         reload();
     }
 }
@@ -149,7 +133,7 @@ QVector<double> CavaProvider::values() const {
     return m_values;
 }
 
-void CavaProvider::updateValues(const QVector<double>& values) {
+void CavaProvider::updateValues(QVector<double> values) {
     if (values != m_values) {
         m_values = values;
         emit valuesChanged();
