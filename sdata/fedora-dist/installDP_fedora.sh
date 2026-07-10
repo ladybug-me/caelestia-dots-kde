@@ -71,9 +71,7 @@ for pkg in "${PACKAGES[@]}"; do
             fi
             ;;
         wl-clip-persist)
-            sudo dnf install -y cargo
-            if cargo install wl-clip-persist; then
-                sudo ln -sf $HOME/.cargo/bin/wl-clip-persist /usr/local/bin/wl-clip-persist 2>/dev/null || true
+            if sudo dnf copr enable -y leloubil/wl-clip-persist && sudo dnf install -y wl-clip-persist; then
                 COPR_FAILED="no"
             fi
             ;;
