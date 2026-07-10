@@ -89,13 +89,15 @@ for config in btop fastfetch foot hypr kitty micro thunar; do
 done
 
 echo "  Deploying extra configs..."
-if [[ -d "$FISH_DIR/fish" ]]; then
-    # Remove
-    rm -rf "$HOME/.config/fish"
-    # Deploy
-    cp -r "$FISH_DIR/fish" "$HOME/.config/fish"
-    echo "    Deployed: fish"
-fi
+for config in fish fastfetch; do
+    if [[ -d "$FISH_DIR/$config" ]]; then
+        # Remove
+        rm -rf "$HOME/.config/$config"
+        # Deploy
+        cp -r "$FISH_DIR/$config" "$HOME/.config/$config"
+        echo "    Deployed: $config"
+    fi
+done
 
 # Backup existing starship config
 if [[ -f "$HOME/.config/starship.toml" ]]; then
