@@ -117,7 +117,7 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c "wl-paste --type text --watch cliphist store & wl-paste --type image --watch cliphist store & wait"
+ExecStart=/bin/bash -c "wl-paste --type text --watch cliphist store & wl-paste --type image --watch cliphist store & wl-clip-persist --clipboard regular & wait"
 Restart=always
 RestartSec=3
 

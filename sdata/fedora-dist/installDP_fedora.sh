@@ -13,7 +13,7 @@ PACKAGES=(
     # build dependencies
     cmake ninja-build
     # Core system tools
-    wl-clipboard cliphist inotify-tools wireplumber trash-cli jq aubio lm_sensors lm_sensors-devel
+    wl-clipboard cliphist wl-clip-persist inotify-tools wireplumber trash-cli jq aubio lm_sensors lm_sensors-devel
     # lib files
     pipewire-devel glibc qt6-qtdeclarative qt6-qtdeclarative-devel qt6-qtsvg qt6-qtsvg-devel qt6-qtshadertools-devel libgcc qt6-qtbase libqalculate libqalculate-devel aubio-devel
     # Shells & terminal
@@ -67,6 +67,13 @@ for pkg in "${PACKAGES[@]}"; do
             ;;
         libcava)
             if sudo dnf copr enable -y celestelove/libcava && sudo dnf install -y libcava-devel; then
+                COPR_FAILED="no"
+            fi
+            ;;
+        wl-clip-persist)
+            sudo dnf install -y cargo
+            if cargo install wl-clip-persist; then
+                sudo ln -sf $HOME/.cargo/bin/wl-clip-persist /usr/local/bin/wl-clip-persist 2>/dev/null || true
                 COPR_FAILED="no"
             fi
             ;;

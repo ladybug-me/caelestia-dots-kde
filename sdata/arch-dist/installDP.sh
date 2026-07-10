@@ -26,7 +26,7 @@ PACKAGES=(
     # build dependencies
     cmake ninja
     # Core system tools
-    wl-clipboard cliphist inotify-tools app2unit wireplumber trash-cli jq aubio lm_sensors
+    wl-clipboard cliphist wl-clip-persist inotify-tools app2unit wireplumber trash-cli jq aubio lm_sensors
     # lib files
     libpipewire glibc libcava qt6-declarative gcc-libs qt6-base qt6-declarative libqalculate
     # Shell wrapper
