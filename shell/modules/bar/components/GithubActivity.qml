@@ -57,7 +57,10 @@ StyledRect {
         root.lastError = msg;
         BarComponents.GithubStore.lastError = msg;
         BarComponents.GithubStore.available = false;
-        console.error("[GitHubWidget] " + msg);
+        if (msg.includes("No token set") || msg.includes("Missing GITHUB_TOKEN"))
+            console.warn("[GitHubWidget] " + msg);
+        else
+            console.error("[GitHubWidget] " + msg);
     }
 
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"

@@ -222,10 +222,15 @@ Singleton {
 
 
     FileView {
+        printErrors: false
         path: `${Paths.state}/scheme.json`
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.load(text(), false)
+        onLoadFailed: err => {
+            if (err !== FileViewError.FileNotFound)
+                console.warn(`[Colours] Failed to load scheme.json: ${err}`)
+        }
     }
 
     ImageAnalyser {

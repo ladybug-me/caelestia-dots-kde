@@ -250,12 +250,24 @@ Item {
         property real idealX: (parent.width - width) / 2
         property real minX: leftLayout.x + leftLayout.width + Tokens.spacing.medium
         property real maxX: rightLayout.x - width - Tokens.spacing.medium
-        x: isHorizontal ? Math.max(minX, Math.min(idealX, maxX)) : undefined
 
         property real idealY: (parent.height - height) / 2
         property real minY: leftLayout.y + leftLayout.height + Tokens.spacing.medium
         property real maxY: rightLayout.y - height - Tokens.spacing.medium
-        y: !isHorizontal ? Math.max(minY, Math.min(idealY, maxY)) : undefined
+
+        Binding {
+            target: middleLayout
+            property: "x"
+            when: root.isHorizontal
+            value: Math.max(middleLayout.minX, Math.min(middleLayout.idealX, middleLayout.maxX))
+        }
+
+        Binding {
+            target: middleLayout
+            property: "y"
+            when: !root.isHorizontal
+            value: Math.max(middleLayout.minY, Math.min(middleLayout.idealY, middleLayout.maxY))
+        }
 
         columns: isHorizontal ? -1 : 1
         rows: isHorizontal ? 1 : -1

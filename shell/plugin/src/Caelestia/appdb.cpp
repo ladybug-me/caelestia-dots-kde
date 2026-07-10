@@ -1,5 +1,7 @@
 #include "appdb.hpp"
 
+#include <qdir.h>
+#include <qfileinfo.h>
 #include <qloggingcategory.h>
 #include <qsqldatabase.h>
 #include <qsqlquery.h>
@@ -141,6 +143,16 @@ void AppDb::setPath(const QString& path) {
 
     auto db = QSqlDatabase::database(m_uuid, false);
     db.close();
+
+    if (newPath != ":memory:") {
+        const QFileInfo dbInfo(newPath);
+        const auto dbDir = dbInfo.dir();
+        if (!dbDir.exists() && !QDir().mkpath(dbDir.absolutePath())) {
+            qCWarning(lcAppDb) << "Failed to create app database directory:" << dbDir.absolutePath();
+            newPath = ":memory:";
+        }
+    }
+
     db.setDatabaseName(newPath);
     db.open();
 
