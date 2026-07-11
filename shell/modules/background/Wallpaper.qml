@@ -48,6 +48,34 @@ Item {
             });
     }
 
+    Timer {
+        id: slideshowTimer
+
+        interval: Math.max(1, Math.round(Config.background.slideshowInterval * 60)) * 60 * 1000
+        running: Config.background.slideshowEnabled && Config.background.wallpaperEnabled && root.screen && root.screen.name === Quickshell.screens[0].name
+        repeat: true
+
+        onTriggered: {
+            if (Config.background.slideshowRandom) {
+                Wallpapers.setRandom();
+            } else {
+                let idx = -1;
+                for (let i = 0; i < Wallpapers.list.length; i++) {
+                    if (Wallpapers.list[i].path === root.source) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx !== -1 && Wallpapers.list.length > 0) {
+                    let nextIdx = (idx + 1) % Wallpapers.list.length;
+                    Wallpapers.setWallpaper(Wallpapers.list[nextIdx].path);
+                } else if (Wallpapers.list.length > 0) {
+                    Wallpapers.setWallpaper(Wallpapers.list[0].path);
+                }
+            }
+        }
+    }
+
     Loader {
         asynchronous: true
         anchors.fill: parent
