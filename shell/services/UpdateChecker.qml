@@ -27,7 +27,7 @@ Singleton {
         if (branch !== "") currentBranch = branch;
         
         let bashCmd = `
-LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk -F'/' '{print $3}' | tr '\n' ',' | sed 's/,$//')
+LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk '{print $2}' | sed 's|^refs/heads/||' | tr '\n' ',' | sed 's/,$//')
 if [ -z "$LIVE_BRANCHES" ]; then
     LIVE_BRANCHES="main"
 fi

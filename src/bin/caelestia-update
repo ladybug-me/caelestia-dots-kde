@@ -15,7 +15,7 @@ ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
 warn() { echo -e "${YELLOW}[WARN]  $*${RST}"; }
 
 BRANCH="${1:-main}"
-LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk -F'/' '{print $3}')
+LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk '{print $2}' | sed 's|^refs/heads/||')
 if ! echo "$LIVE_BRANCHES" | grep -q "^$BRANCH$"; then
     echo "Warning: Branch '$BRANCH' does not exist on remote. Falling back to 'main'."
     BRANCH="main"

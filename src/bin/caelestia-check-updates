@@ -21,7 +21,7 @@ fi
 REPO="$HOME/.cache/caelestia-update-repo"
 BRANCH=$(cat "$HOME/.config/quickshell/caelestia/.update_branch" 2>/dev/null || echo "main")
 
-LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk -F'/' '{print $3}')
+LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk '{print $2}' | sed 's|^refs/heads/||')
 if ! echo "$LIVE_BRANCHES" | grep -q "^$BRANCH$"; then
     BRANCH="main"
     mkdir -p "$HOME/.config/quickshell/caelestia"
