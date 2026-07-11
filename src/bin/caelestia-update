@@ -85,17 +85,18 @@ echo -e "${CYAN}  Step 1 — System Updates${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 if command -v pacman >/dev/null; then
     info "Running system update via pacman..."
-    sudo pacman -Syu --noconfirm || warn "System update encountered an error or was canceled."
+    sudo pacman -Syu --noconfirm || warn "System update was canceled or failed. Continuing with non-sudo parts..."
 elif command -v dnf >/dev/null; then
     info "Running system update via dnf..."
-    sudo dnf upgrade --refresh -y || warn "System update encountered an error or was canceled."
+    sudo dnf upgrade --refresh -y || warn "System update was canceled or failed. Continuing with non-sudo parts..."
 fi
 
-# 3. Patch the build script to ignore manual sudo -v keepalives
-info "Patching build scripts for GUI privilege escalation..."
+# 3. Patch the build script to ignore manual sudo -v keepalives and prevent exit if sudo fails
+info "Patching build scripts for GUI privilege escalation and fallback logic..."
 sed -i 's/sudo -v || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
 sed -i 's/.*while true; do sudo -n true; sleep 55.*/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
 sed -i 's/sudo -n true || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
+sed -i 's/sudo python3\(.*\)/sudo python3\1 || echo "Warning: sudo failed, continuing non-sudo parts..."/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
 
 export BUNDLE_DIR="$TMP_DIR/repo"
 
@@ -113,7 +114,7 @@ echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 3 — Build Caelestia Shell UI${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-bash "$TMP_DIR/repo/scripts/08-build-shell.sh" || die "Shell build failed."
+bash "$TMP_DIR/repo/scripts/08-build-shell.sh" || warn "Shell build reported an error, but continuing."
 
 # 6. Save current commit hash
 if [ -d "$TMP_DIR/repo/.git" ]; then
