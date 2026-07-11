@@ -99,7 +99,7 @@ else
         SUDO_LOOP_PID=$!
         trap 'kill "$SUDO_LOOP_PID" 2>/dev/null || true' EXIT
     else
-        warn "Sudo authentication failed or was cancelled. Root operations may prompt again or fail."
+        warn "Sudo keepalive failed, IGNORE if running GUI update process"
     fi
 fi
 
