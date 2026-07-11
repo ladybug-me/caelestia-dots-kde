@@ -94,18 +94,18 @@ SUDO_LOOP_PID=""
 if [ "${CAELESTIA_SUDO_KEEPALIVE_ACTIVE:-0}" = "1" ] && sudo -n true 2>/dev/null; then
     :
 else
-    sudo -v || exit 1
-    (while true; do sudo -n true; sleep 55; done) 2>/dev/null &
-    SUDO_LOOP_PID=$!
-    trap 'kill "$SUDO_LOOP_PID" 2>/dev/null || true' EXIT
-
-    # Prime the sudo cache immediately so the loop runs before the next commands
-    sudo -n true || exit 1
+    if sudo -v 2>/dev/null; then
+        (while true; do sudo -n true; sleep 55; done) 2>/dev/null &
+        SUDO_LOOP_PID=$!
+        trap 'kill "$SUDO_LOOP_PID" 2>/dev/null || true' EXIT
+    else
+        warn "Sudo authentication failed or was cancelled. Root operations may prompt again or fail."
+    fi
 fi
 
-echo "Fixing opencv build failure"
-sudo ln -sf /usr/lib/libopencv_imgproc.so.5.0.0 /usr/lib/libopencv_imgproc.so.413
-sudo ln -sf /usr/lib/libopencv_core.so.5.0.0 /usr/lib/libopencv_core.so.413
+info "Fixing opencv build failure"
+sudo ln -sf /usr/lib/libopencv_imgproc.so.5.0.0 /usr/lib/libopencv_imgproc.so.413 2>/dev/null || warn "Failed to link opencv imgproc"
+sudo ln -sf /usr/lib/libopencv_core.so.5.0.0 /usr/lib/libopencv_core.so.413 2>/dev/null || warn "Failed to link opencv core"
 
 
 if ! sudo python3 -c '

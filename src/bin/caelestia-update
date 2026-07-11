@@ -20,7 +20,7 @@ if ! echo "$LIVE_BRANCHES" | grep -q "^$BRANCH$"; then
     echo "Warning: Branch '$BRANCH' does not exist on remote. Falling back to 'main'."
     BRANCH="main"
 fi
-TMP_DIR="/tmp/caelestia-update-$$"
+UPD_DIR="$HOME/.config/caelestia-update"
 
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Caelestia Update (Branch: $BRANCH)${RST}"
@@ -34,8 +34,8 @@ for cmd in git cmake make; do
 done
 
 # --- Robust Privilege Escalation Wrapper ---
-mkdir -p "$TMP_DIR/bin"
-cat << 'EOF' > "$TMP_DIR/bin/sudo"
+mkdir -p "$UPD_DIR/bin"
+cat << 'EOF' > "$UPD_DIR/bin/sudo"
 #!/usr/bin/env bash
 if [ "$EUID" -eq 0 ]; then
     "$@"
@@ -50,32 +50,48 @@ else
     exit 1
 fi
 EOF
-chmod +x "$TMP_DIR/bin/sudo"
-export PATH="$TMP_DIR/bin:$PATH"
+chmod +x "$UPD_DIR/bin/sudo"
+export PATH="$UPD_DIR/bin:$PATH"
 
 # 1. Fetch from GitHub
 echo "PROGRESS: 1/5: Fetching updates from GitHub..."
-info "Cloning latest from GitHub (sparse checkout)..."
-rm -rf "$TMP_DIR/repo"
-mkdir -p "$TMP_DIR/repo"
-cd "$TMP_DIR/repo"
+info "Checking for local repository cache..."
 
-git init -q
-git remote add origin https://github.com/ladybug-me/caelestia-dots-kde.git
+# --- Safe Backup Directory outside of the git repo ---
+export BACKUP_DIR="$UPD_DIR/backups/$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+
+if [[ ! -d "$UPD_DIR/repo/.git" ]]; then
+    mkdir -p "$UPD_DIR/repo"
+    cd "$UPD_DIR/repo"
+    git init -q
+    git remote add origin https://github.com/ladybug-me/caelestia-dots-kde.git
+else
+    cd "$UPD_DIR/repo"
+    git reset --hard -q HEAD || die "Failed to reset repository state"
+    git clean -fdx -q
+    git remote set-url origin https://github.com/ladybug-me/caelestia-dots-kde.git
+fi
+
+# Always enforce sparse-checkout rules
 git config core.sparseCheckout true
-echo "shell/" >> .git/info/sparse-checkout
+echo "shell/" > .git/info/sparse-checkout
 echo "src/" >> .git/info/sparse-checkout
 echo "scripts/" >> .git/info/sparse-checkout
 echo ".gitmodules" >> .git/info/sparse-checkout
-git pull -q --depth 1 origin "$BRANCH" || die "Failed to pull repository"
 
-if [[ -f "$TMP_DIR/repo/.gitmodules" ]]; then
+# Safer fetch and reset instead of pull
+git fetch -q --depth 1 origin "$BRANCH" || die "Failed to fetch repository"
+git reset --hard -q origin/"$BRANCH" || die "Failed to apply updates"
+
+
+if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     info "Initializing src/dots submodule..."
     git submodule sync -- src/dots >/dev/null 2>&1 || true
     git submodule update --init --recursive src/dots || die "Failed to initialize src/dots submodule"
 fi
 
-[[ -f "$TMP_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
+[[ -f "$UPD_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
 
 # 2. System update via Polkit
 echo "PROGRESS: 2/5: Running system update..."
@@ -91,14 +107,10 @@ elif command -v dnf >/dev/null; then
     sudo dnf upgrade --refresh -y || warn "System update was canceled or failed. Continuing with non-sudo parts..."
 fi
 
-# 3. Patch the build script to ignore manual sudo -v keepalives and prevent exit if sudo fails
-info "Patching build scripts for GUI privilege escalation and fallback logic..."
-sed -i 's/sudo -v || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
-sed -i 's/.*while true; do sudo -n true; sleep 55.*/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
-sed -i 's/sudo -n true || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
-sed -i 's/sudo python3\(.*\)/sudo python3\1 || echo "Warning: sudo failed, continuing non-sudo parts..."/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
+# 3. Build script now handles GUI privilege escalation natively.
+info "Executing build scripts (GUI prompts will appear if required)..."
 
-export BUNDLE_DIR="$TMP_DIR/repo"
+export BUNDLE_DIR="$UPD_DIR/repo"
 
 # 4. Deploy Configs
 echo "PROGRESS: 3/5: Deploying configuration files..."
@@ -106,7 +118,7 @@ echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 2 — Deploy Configs${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-bash "$TMP_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed."
+bash "$UPD_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
 # 5. Build Shell
 echo "PROGRESS: 4/5: Building Caelestia Shell UI..."
@@ -114,18 +126,15 @@ echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 3 — Build Caelestia Shell UI${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-bash "$TMP_DIR/repo/scripts/08-build-shell.sh" || warn "Shell build reported an error, but continuing."
+bash "$UPD_DIR/repo/scripts/08-build-shell.sh" || warn "Shell build reported an error, but continuing."
 
 # 6. Save current commit hash
-if [ -d "$TMP_DIR/repo/.git" ]; then
+if [ -d "$UPD_DIR/repo/.git" ]; then
     COMMIT_HASH=$(git rev-parse HEAD)
     mkdir -p ~/.config/quickshell/caelestia
     echo "$COMMIT_HASH" > ~/.config/quickshell/caelestia/.current_commit
     info "Saved commit hash: $COMMIT_HASH"
 fi
-
-# 7. Cleanup
-rm -rf "$TMP_DIR"
 
 echo "PROGRESS: done: Update completed successfully"
 echo
