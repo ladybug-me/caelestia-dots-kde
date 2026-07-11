@@ -103,14 +103,17 @@ else
     fi
 fi
 
-info "Fixing opencv build failure"
-sudo ln -sf /usr/lib/libopencv_imgproc.so.5.0.0 /usr/lib/libopencv_imgproc.so.413 2>/dev/null || warn "Failed to link opencv imgproc"
-sudo ln -sf /usr/lib/libopencv_core.so.5.0.0 /usr/lib/libopencv_core.so.413 2>/dev/null || warn "Failed to link opencv core"
+info "Fixing opencv build failure and patching caelestia-cli (requires root)..."
+sudo bash -s -- "$HOME" "${XDG_CACHE_HOME:-$HOME/.cache}" << 'EOF'
+USER_HOME="$1"
+USER_CACHE="$2"
 
+ln -sf /usr/lib/libopencv_imgproc.so.5.0.0 /usr/lib/libopencv_imgproc.so.413 2>/dev/null || echo "[WARN] Failed to link opencv imgproc"
+ln -sf /usr/lib/libopencv_core.so.5.0.0 /usr/lib/libopencv_core.so.413 2>/dev/null || echo "[WARN] Failed to link opencv core"
 
-if ! sudo python3 -c '
+if ! python3 -c '
 import sys, os, glob
-search_paths = sys.path + glob.glob("'"$HOME"'/.local/lib/python*/site-packages")
+search_paths = sys.path + glob.glob("'"$USER_HOME"'/.local/lib/python*/site-packages")
 file_path = None
 for p in search_paths:
     candidate = os.path.join(p, "caelestia", "utils", "hypr.py")
@@ -166,14 +169,12 @@ except Exception as e:
     print(f"Failed to patch hypr.py: {e}")
     sys.exit(1)
 '; then
-    echo "Caelestia CLI Hyprctl Mock Patch" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_patches.txt"
+    echo "Caelestia CLI Hyprctl Mock Patch" >> "$USER_CACHE/caelestia-kde/failed_patches.txt"
 fi
 
-# Patch system-wide caelestia-cli record.py to fix audio and dolphin issues
-info "Patching caelestia-cli record.py..."
-if ! sudo python3 -c '
+if ! python3 -c '
 import sys, os, glob
-search_paths = sys.path + glob.glob("'"$HOME"'/.local/lib/python*/site-packages")
+search_paths = sys.path + glob.glob("'"$USER_HOME"'/.local/lib/python*/site-packages")
 file_path = None
 for p in search_paths:
     candidate = os.path.join(p, "caelestia", "subcommands", "record.py")
@@ -268,8 +269,9 @@ except Exception as e:
     print(f"Failed to patch record.py: {e}")
     sys.exit(1)
 '; then
-    echo "Caelestia CLI Record/Dolphin Patch" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_patches.txt"
+    echo "Caelestia CLI Record/Dolphin Patch" >> "$USER_CACHE/caelestia-kde/failed_patches.txt"
 fi
+EOF
 
 # Install kwin script
 if [ -d "$BUNDLE_DIR/src/kwin-script" ]; then
