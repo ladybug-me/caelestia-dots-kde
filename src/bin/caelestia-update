@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export PATH="$HOME/.local/bin:$PATH"
 
 set -uo pipefail
 
@@ -14,18 +15,50 @@ ok()   { echo -e "${GREEN}[OK]    $*${RST}"; }
 warn() { echo -e "${YELLOW}[WARN]  $*${RST}"; }
 
 BRANCH="${1:-main}"
+LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk -F'/' '{print $3}')
+if ! echo "$LIVE_BRANCHES" | grep -q "^$BRANCH$"; then
+    echo "Warning: Branch '$BRANCH' does not exist on remote. Falling back to 'main'."
+    BRANCH="main"
+fi
 TMP_DIR="/tmp/caelestia-update-$$"
 
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Caelestia Update (Branch: $BRANCH)${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 
+# --- Pre-flight Dependency Checks ---
+for cmd in git cmake make; do
+    if ! command -v "$cmd" &> /dev/null; then
+        die "Required command '$cmd' is missing. Please install it first."
+    fi
+done
+
+# --- Robust Privilege Escalation Wrapper ---
+mkdir -p "$TMP_DIR/bin"
+cat << 'EOF' > "$TMP_DIR/bin/sudo"
+#!/usr/bin/env bash
+if [ "$EUID" -eq 0 ]; then
+    "$@"
+elif [ -t 1 ]; then
+    /usr/bin/sudo "$@"
+elif command -v ksshaskpass &> /dev/null; then
+    SUDO_ASKPASS=$(command -v ksshaskpass) /usr/bin/sudo -A "$@"
+elif command -v pkexec &> /dev/null; then
+    pkexec "$@"
+else
+    echo "Cannot elevate privileges. Please install ksshaskpass, pkexec, or run from a terminal." >&2
+    exit 1
+fi
+EOF
+chmod +x "$TMP_DIR/bin/sudo"
+export PATH="$TMP_DIR/bin:$PATH"
+
 # 1. Fetch from GitHub
 echo "PROGRESS: 1/5: Fetching updates from GitHub..."
 info "Cloning latest from GitHub (sparse checkout)..."
-rm -rf "$TMP_DIR"
-mkdir -p "$TMP_DIR"
-cd "$TMP_DIR"
+rm -rf "$TMP_DIR/repo"
+mkdir -p "$TMP_DIR/repo"
+cd "$TMP_DIR/repo"
 
 git init -q
 git remote add origin https://github.com/ladybug-me/caelestia-dots-kde.git
@@ -36,13 +69,13 @@ echo "scripts/" >> .git/info/sparse-checkout
 echo ".gitmodules" >> .git/info/sparse-checkout
 git pull -q --depth 1 origin "$BRANCH" || die "Failed to pull repository"
 
-if [[ -f "$TMP_DIR/.gitmodules" ]]; then
+if [[ -f "$TMP_DIR/repo/.gitmodules" ]]; then
     info "Initializing src/dots submodule..."
     git submodule sync -- src/dots >/dev/null 2>&1 || true
     git submodule update --init --recursive src/dots || die "Failed to initialize src/dots submodule"
 fi
 
-[[ -f "$TMP_DIR/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
+[[ -f "$TMP_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
 
 # 2. System update via Polkit
 echo "PROGRESS: 2/5: Running system update..."
@@ -52,19 +85,19 @@ echo -e "${CYAN}  Step 1 — System Updates${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 if command -v pacman >/dev/null; then
     info "Running system update via pacman..."
-    pkexec pacman -Syu --noconfirm || warn "System update encountered an error or was canceled."
+    sudo pacman -Syu --noconfirm || warn "System update encountered an error or was canceled."
 elif command -v dnf >/dev/null; then
     info "Running system update via dnf..."
-    pkexec dnf upgrade --refresh -y || warn "System update encountered an error or was canceled."
+    sudo dnf upgrade --refresh -y || warn "System update encountered an error or was canceled."
 fi
 
-# 3. Patch the build script to use pkexec instead of sudo
-info "Patching build scripts to use Polkit (pkexec)..."
-sed -i 's/sudo -v || exit 1/true/g' "$TMP_DIR/scripts/08-build-shell.sh"
-sed -i 's/(while true; do sudo -n true; sleep 55; done)/true/g' "$TMP_DIR/scripts/08-build-shell.sh"
-sed -i 's/sudo python3/pkexec python3/g' "$TMP_DIR/scripts/08-build-shell.sh"
+# 3. Patch the build script to ignore manual sudo -v keepalives
+info "Patching build scripts for GUI privilege escalation..."
+sed -i 's/sudo -v || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
+sed -i 's/.*while true; do sudo -n true; sleep 55.*/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
+sed -i 's/sudo -n true || exit 1/true/g' "$TMP_DIR/repo/scripts/08-build-shell.sh"
 
-export BUNDLE_DIR="$TMP_DIR"
+export BUNDLE_DIR="$TMP_DIR/repo"
 
 # 4. Deploy Configs
 echo "PROGRESS: 3/5: Deploying configuration files..."
@@ -72,7 +105,7 @@ echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 2 — Deploy Configs${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-bash "$TMP_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
+bash "$TMP_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
 # 5. Build Shell
 echo "PROGRESS: 4/5: Building Caelestia Shell UI..."
@@ -80,10 +113,10 @@ echo
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${CYAN}  Step 3 — Build Caelestia Shell UI${RST}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-bash "$TMP_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
+bash "$TMP_DIR/repo/scripts/08-build-shell.sh" || die "Shell build failed."
 
 # 6. Save current commit hash
-if [ -d "$TMP_DIR/.git" ]; then
+if [ -d "$TMP_DIR/repo/.git" ]; then
     COMMIT_HASH=$(git rev-parse HEAD)
     mkdir -p ~/.config/quickshell/caelestia
     echo "$COMMIT_HASH" > ~/.config/quickshell/caelestia/.current_commit
