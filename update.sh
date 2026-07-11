@@ -57,13 +57,17 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
         if [ -t 1 ]; then
             BRANCHES=$(git -C "$BUNDLE_DIR" branch -r | grep -v '\->' | sed 's/.*origin\///')
             echo
-            info "Available remote branches:"
+            info "Available remote branches (default: main):"
             select BRANCH in $BRANCHES; do
-                if [ -n "$BRANCH" ]; then
+                if [ -z "$REPLY" ]; then
+                    BRANCH="main"
+                    info "Defaulted to branch: $BRANCH"
+                    break
+                elif [ -n "$BRANCH" ]; then
                     info "Selected branch: $BRANCH"
                     break
                 else
-                    warn "Invalid selection. Please enter a valid number."
+                    warn "Invalid selection. Please enter a valid number or press Enter for main."
                 fi
             done
         else
@@ -121,7 +125,8 @@ run_elevated() {
 info "We will deploy core configs and KDE bridges. A password prompt may appear."
 
 # This script deploys Python bridges and mock hyprctl which the shell needs
-run_elevated bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
+# Execute normally; any internal sudo calls will trigger prompts automatically
+bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
 info "Building Caelestia Shell UI..."
 bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
