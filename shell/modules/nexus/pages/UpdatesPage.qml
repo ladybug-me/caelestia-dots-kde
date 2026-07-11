@@ -27,9 +27,12 @@ PageBase {
         root.branchItems = items;
     }
 
-    Connections {
-        target: UpdateChecker
-        function onAvailableBranchesChanged() { root.updateBranchItems(); }
+    Item {
+        visible: false
+        Connections {
+            target: UpdateChecker
+            function onAvailableBranchesChanged() { root.updateBranchItems(); }
+        }
     }
     
     Component.onCompleted: root.updateBranchItems();
