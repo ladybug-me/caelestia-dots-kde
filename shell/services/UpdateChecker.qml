@@ -27,6 +27,16 @@ Singleton {
         if (branch !== "") currentBranch = branch;
         
         let bashCmd = `
+LIVE_BRANCHES=$(git ls-remote --heads https://github.com/ladybug-me/caelestia-dots-kde.git | awk '{print $2}' | sed 's|^refs/heads/||' | tr '\n' ',' | sed 's/,$//')
+if [ -z "$LIVE_BRANCHES" ]; then
+    LIVE_BRANCHES="main"
+fi
+echo "BRANCHES|$LIVE_BRANCHES"
+
+if ! echo ",$LIVE_BRANCHES," | grep -q ",${currentBranch},"; then
+    currentBranch="main"
+fi
+
 mkdir -p "$HOME/.config/quickshell/caelestia"
 echo "${currentBranch}" > "$HOME/.config/quickshell/caelestia/.update_branch"
 REPO="$HOME/.cache/caelestia-update-repo"
@@ -85,6 +95,13 @@ fi
                     for (let i = 0; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (line === "") continue;
+                        if (line.startsWith("BRANCHES|")) {
+                            root.availableBranches = line.substring(9).split(",");
+                            if (!root.availableBranches.includes(root.currentBranch)) {
+                                root.currentBranch = "main";
+                            }
+                            continue;
+                        }
                         const parts = line.split("|");
                         if (parts.length >= 4) {
                             parsedCommits.push({

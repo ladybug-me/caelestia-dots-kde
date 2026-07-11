@@ -17,16 +17,25 @@ PageBase {
     
     title: qsTr("Updates")
 
-    readonly property list<MenuItem> branchItems: [
-        MenuItem {
-            text: "main"
-            icon: "call_split"
-        },
-        MenuItem {
-            text: "dev"
-            icon: "call_split"
+    property list<MenuItem> branchItems
+
+    function updateBranchItems() {
+        let items = [];
+        for (let i = 0; i < UpdateChecker.availableBranches.length; i++) {
+            items.push(Qt.createQmlObject('import qs.components.controls; MenuItem { text: "' + UpdateChecker.availableBranches[i] + '"; icon: "call_split" }', root));
         }
-    ]
+        root.branchItems = items;
+    }
+
+    Item {
+        visible: false
+        Connections {
+            target: UpdateChecker
+            function onAvailableBranchesChanged() { root.updateBranchItems(); }
+        }
+    }
+    
+    Component.onCompleted: root.updateBranchItems();
 
     readonly property var activeBranchItem: branchItems.find(i => i.text === UpdateChecker.currentBranch) || branchItems[0]
 
