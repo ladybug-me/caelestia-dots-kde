@@ -20,12 +20,12 @@ Variants {
         name: "background"
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Bottom
-        color: contentItem.Config.background.wallpaperEnabled ? "black" : "transparent"
+        color: GlobalConfig.background.wallpaperEnabled ? "black" : "transparent"
         surfaceFormat.opaque: false
 
         // If Quickshell wallpaper is disabled, use empty mask so KDE desktop gets clicks
         // If enabled, use null mask so Quickshell captures clicks
-        mask: contentItem.Config.background.wallpaperEnabled ? null : emptyRegion
+        mask: GlobalConfig.background.wallpaperEnabled ? null : emptyRegion
 
         Region {
             id: emptyRegion
@@ -38,6 +38,28 @@ Variants {
         anchors.left: true
         anchors.right: true
 
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            onClicked: (mouse) => {
+                if (GlobalConfig.background.wallpaperEnabled) {
+                    contextMenuAnchor.x = mouse.x;
+                    contextMenuAnchor.y = mouse.y;
+                    desktopContextMenu.expanded = true;
+                }
+            }
+        }
+
+        Item {
+            id: contextMenuAnchor
+        }
+
+        DesktopContextMenu {
+            id: desktopContextMenu
+            attachTo: contextMenuAnchor
+            z: 999
+        }
+
         Item {
             id: behindClock
 
@@ -49,7 +71,7 @@ Variants {
                 asynchronous: true
 
                 anchors.fill: parent
-                active: Config.background.wallpaperEnabled
+                active: GlobalConfig.background.wallpaperEnabled
 
                 sourceComponent: Wallpaper {
                     screen: win.modelData

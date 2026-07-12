@@ -11,7 +11,7 @@ import qs.services
 import Qt.labs.folderlistmodel
 
 Variants {
-    model: Screens.screens.filter(s => GlobalConfig.forScreen(s.name).background.enabled && GlobalConfig.forScreen(s.name).background.desktopIconsEnabled)
+    model: Screens.screens.filter(s => GlobalConfig.forScreen(s.name).background.enabled && GlobalConfig.forScreen(s.name).background.wallpaperEnabled && GlobalConfig.forScreen(s.name).background.desktopIconsEnabled)
 
     StyledWindow {
         id: win
