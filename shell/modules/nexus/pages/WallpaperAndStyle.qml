@@ -289,6 +289,14 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
+            text: qsTr("Desktop icons")
+            checked: Config.background.desktopIconsEnabled
+            onToggled: GlobalConfig.background.desktopIconsEnabled = checked
+        }
+
+        ToggleRow {
+            Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+            Layout.fillWidth: true
             text: qsTr("Desktop clock")
             checked: Config.background.desktopClock.enabled
             onToggled: GlobalConfig.background.desktopClock.enabled = checked

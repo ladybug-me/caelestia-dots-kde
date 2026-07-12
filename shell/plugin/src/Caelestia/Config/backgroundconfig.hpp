@@ -128,6 +128,7 @@ class BackgroundConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, videoWallpaperPauseOnTiled, false)
     CONFIG_PROPERTY(bool, videoWallpaperPauseOnAllDisplays, false)
     CONFIG_PROPERTY(bool, videoWallpaperMuteOnMedia, false)
+    CONFIG_PROPERTY(bool, desktopIconsEnabled, false)
     CONFIG_SUBOBJECT(DesktopClock, desktopClock)
     CONFIG_SUBOBJECT(DesktopLyrics, desktopLyrics)
     CONFIG_SUBOBJECT(BackgroundVisualiser, visualiser)

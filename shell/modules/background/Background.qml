@@ -23,6 +23,12 @@ Variants {
         color: contentItem.Config.background.wallpaperEnabled ? "black" : "transparent"
         surfaceFormat.opaque: false
 
+        // Empty mask = no input region = all pointer events pass through to KDE desktop
+        mask: Region {
+            width: 0
+            height: 0
+        }
+
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -53,7 +59,6 @@ Variants {
                 wallpaper: wallpaper
                 z: 2
             }
-
 
         }
 
