@@ -25,6 +25,17 @@ CustomMouseArea {
     property bool osdShortcutActive
     property bool utilitiesShortcutActive
 
+    Timer {
+        id: popoutHideTimer
+        interval: 150
+        onTriggered: {
+            if (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) {
+                popouts.hasCurrent = false;
+                bar.closeTray();
+            }
+        }
+    }
+
     readonly property bool isBarHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
 
     function inBarArea(x: real, y: real): bool {
@@ -126,13 +137,13 @@ CustomMouseArea {
             if (!utilitiesShortcutActive)
                 visibilities.utilities = false;
 
-            if (!popouts.currentName.startsWith("traymenu") || ((popouts.current as StackView)?.depth ?? 0) <= 1) {
-                popouts.hasCurrent = false;
-                bar.closeTray();
-            }
+            if (!popoutHideTimer.running)
+                popoutHideTimer.start();
 
             if (Config.bar.showOnHover)
                 bar.isHovered = false;
+        } else {
+            popoutHideTimer.stop();
         }
     }
 
@@ -277,9 +288,11 @@ CustomMouseArea {
         // Show popouts on hover
         if (inBarArea(x, y)) {
             bar.checkPopout(isBarHorizontal ? x : y);
+            popoutHideTimer.stop();
         } else if ((!popouts.currentName.startsWith("traymenu") || (Config.bar.popouts.tray && ((popouts.current as StackView)?.depth ?? 0) <= 1)) && !inLeftPanel(panels.popoutsWrapper, x, y)) {
-            popouts.hasCurrent = false;
-            bar.closeTray();
+            if (!popoutHideTimer.running) popoutHideTimer.start();
+        } else {
+            popoutHideTimer.stop();
         }
 
         // Show utilities on hover
