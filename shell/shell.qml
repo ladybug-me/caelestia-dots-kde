@@ -29,7 +29,6 @@ ShellRoot {
 
     Background {}
     // BadAppleOverlay {}
-    DesktopIcons {}
 
     Drawers {}
     // AreaPicker {}

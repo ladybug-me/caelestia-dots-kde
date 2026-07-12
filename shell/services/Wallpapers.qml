@@ -73,6 +73,27 @@ Searcher {
         Quickshell.execDetached(["caelestia", "wallpaper", "-r", ...smartArg]);
     }
 
+    function setNextSequential(): void {
+        if (!root.list || root.list.length === 0) return;
+        let idx = -1;
+        for (let i = 0; i < root.list.length; i++) {
+            if (root.list[i].path === actualCurrent) {
+                idx = i;
+                break;
+            }
+        }
+        idx = (idx + 1) % root.list.length;
+        setWallpaper(root.list[idx].path);
+    }
+
+    function next(): void {
+        if (GlobalConfig.background.slideshowRandom) {
+            setRandom();
+        } else {
+            setNextSequential();
+        }
+    }
+
     function setWallpaper(path: string): void {
         actualCurrent = path;
         Quickshell.execDetached(["caelestia", "wallpaper", "-f", path, ...smartArg]);

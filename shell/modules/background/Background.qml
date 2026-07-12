@@ -38,6 +38,28 @@ Variants {
         anchors.left: true
         anchors.right: true
 
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: (eventPoint) => {
+                if (contentItem.Config.background.wallpaperEnabled) {
+                    contextMenuAnchor.x = eventPoint.position.x;
+                    contextMenuAnchor.y = eventPoint.position.y;
+                    desktopContextMenu.expanded = true;
+                }
+            }
+        }
+
+        Item {
+            id: contextMenuAnchor
+            z: 9999
+        }
+
+        DesktopContextMenu {
+            id: desktopContextMenu
+            attachTo: contextMenuAnchor
+            z: 9999
+        }
+
         Item {
             id: behindClock
 
@@ -64,6 +86,11 @@ Variants {
                 z: 2
             }
 
+        }
+
+        DesktopIcons {
+            screenData: win.modelData
+            z: 3
         }
 
         Loader {

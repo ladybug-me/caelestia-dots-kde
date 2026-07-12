@@ -16,51 +16,14 @@ Controls.Menu {
     thisSideX: Controls.Menu.Left
     thisSideY: Controls.Menu.Top
 
-    property list<Controls.MenuItem> defaultItems: [
-        Controls.MenuItem {
-            text: qsTr("Refresh")
-            icon: "refresh"
-            onClicked: Quickshell.reload()
-        },
-        Controls.MenuItem {
-            text: qsTr("Wallpaper & style")
-            icon: "wallpaper"
-            onClicked: WindowFactory.create()
-        },
-        Controls.MenuItem {
-            text: qsTr("Next Wallpaper")
-            icon: "skip-next"
-            onClicked: Wallpapers.setRandom()
-        },
-        Controls.MenuItem {
-            text: qsTr("System Settings")
-            icon: "settings"
-            onClicked: Quickshell.execDetached(["systemsettings"])
-        },
-        Controls.MenuItem {
-            text: qsTr("Open Terminal")
-            icon: "terminal"
-            onClicked: Quickshell.execDetached(GlobalConfig.general.apps.terminal)
-        }
-    ]
-
     Component {
-        id: customMenuItemComp
+        id: menuItemComp
         Controls.MenuItem {}
-    }
-
-    Component {
-        id: addShortcutItemComp
-        Controls.MenuItem {
-            text: qsTr("Add Shortcut...")
-            icon: "plus"
-            onClicked: addShortcutDialog.open()
-        }
     }
 
     Process {
         id: fileReader
-        command: ["cat", Quickshell.env("HOME") + "/.config/quickshell/caelestia/desktop_shortcuts.json"]
+        command: ["cat", Quickshell.env("HOME") + "/.config/quickshell/caelestia/context_menu.json"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -70,38 +33,54 @@ Controls.Menu {
                 } catch(e) {}
 
                 let newArr = [];
-                for (let i = 0; i < defaultItems.length; i++) {
-                    newArr.push(defaultItems[i]);
-                }
 
                 for (let i = 0; i < json.length; i++) {
-                    let shortcut = json[i];
-                    let item = customMenuItemComp.createObject(root, {
-                        text: shortcut.label,
-                        icon: shortcut.icon || "application-x-executable"
+                    let entry = json[i];
+                    if (!entry.enabled) continue;
+                    
+                    let item = menuItemComp.createObject(root, {
+                        text: entry.label,
+                        icon: entry.icon || "application-x-executable"
                     });
+                    
                     item.clicked.connect(() => {
-                        Quickshell.execDetached(shortcut.command.split(" "));
+                        if (entry.action) {
+                            if (entry.action === "Wallpapers.next()") Wallpapers.next();
+                            else if (entry.action === "Quickshell.reload()") Quickshell.reload();
+                            else if (entry.action === "WindowFactory.create()") WindowFactory.create();
+                            else if (entry.action === "OpenRightClickMenu") {
+                                let win = WindowFactory.create();
+                                win.nexus.nState.currentPageIdx = 0; // Wallpaper & Style
+                                win.nexus.nState.openSubPage(9); // Right Click Menu is index 9
+                            }
+                        } else if (entry.command) {
+                            Quickshell.execDetached(typeof entry.command === "string" ? entry.command.split(" ") : entry.command);
+                        }
                     });
+                    
                     newArr.push(item);
                 }
 
-                let addItem = addShortcutItemComp.createObject(root);
-                newArr.push(addItem);
+                if (root.dynamicModel) {
+                    for (let i = 0; i < root.dynamicModel.length; i++) {
+                        root.dynamicModel[i].destroy();
+                    }
+                }
 
-                root.items = newArr;
+                root.dynamicModel = newArr;
             }
         }
     }
 
-    function reloadCustomItems() {
+    function reloadMenu() {
         fileReader.running = true;
     }
 
-    Component.onCompleted: reloadCustomItems()
-
-    AddShortcutDialog {
-        id: addShortcutDialog
-        onClosed: reloadCustomItems()
+    onExpandedChanged: {
+        if (expanded) {
+            reloadMenu();
+        }
     }
+
+    Component.onCompleted: reloadMenu()
 }

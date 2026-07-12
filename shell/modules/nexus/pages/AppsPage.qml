@@ -34,16 +34,16 @@ PageBase {
             id: systemDefaultsToggle
             first: true
             text: qsTr("Force System Defaults (xdg-open)")
-            subtext: qsTr("Override all applications to use KDE system defaults")
+            subtext: qsTr("Override applications to use KDE system defaults")
             
-            checked: GlobalConfig.general.apps.terminal.join(" ") === "xdg-open" &&
+            checked: GlobalConfig.general.apps.terminal.join(" ") === "konsole" &&
                      GlobalConfig.general.apps.audio.join(" ") === "xdg-open" &&
                      GlobalConfig.general.apps.playback.join(" ") === "xdg-open" &&
                      GlobalConfig.general.apps.explorer.join(" ") === "xdg-open"
 
             onToggled: {
                 if (checked) {
-                    GlobalConfig.general.apps.terminal = ["xdg-open"];
+                    GlobalConfig.general.apps.terminal = ["konsole"];
                     GlobalConfig.general.apps.audio = ["xdg-open"];
                     GlobalConfig.general.apps.playback = ["xdg-open"];
                     GlobalConfig.general.apps.explorer = ["xdg-open"];

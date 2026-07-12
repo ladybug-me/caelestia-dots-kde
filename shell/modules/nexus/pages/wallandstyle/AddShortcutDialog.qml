@@ -10,9 +10,11 @@ Popup {
     id: root
 
     property string scriptPath: Quickshell.shellPath("scripts/add_desktop_shortcut.sh")
+    signal saved(string label, string cmd, string icon)
 
     width: 300
-    height: contentColumn.implicitHeight + Tokens.padding.medium * 2
+    padding: 24
+    height: contentColumn.implicitHeight + 48
     modal: true
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -20,22 +22,32 @@ Popup {
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
 
-    background: Elevation {
-        anchors.fill: parent
-        radius: Tokens.rounding.large
-        level: 3
+    background: Item {
+        Elevation {
+            anchors.fill: bgRect
+            level: 3
+            radius: bgRect.radius
+        }
+        Rectangle {
+            id: bgRect
+            anchors.fill: parent
+            color: Colours.palette.surface
+            radius: 16
+            border.width: 1
+            border.color: Colours.palette.surfaceVariant
+        }
     }
 
     contentItem: ColumnLayout {
         id: contentColumn
-        spacing: Tokens.spacing.small
+        spacing: 8
 
         Text {
             text: qsTr("Add Custom Shortcut")
             font: Tokens.fonts.bodyLarge
             color: Colours.palette.onSurface
             Layout.fillWidth: true
-            Layout.bottomMargin: Tokens.spacing.small
+            Layout.bottomMargin: 8
         }
 
         Controls.StyledTextField {
@@ -58,7 +70,7 @@ Popup {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.topMargin: Tokens.spacing.small
+            Layout.topMargin: 8
             
             Item { Layout.fillWidth: true } // Spacer
 
@@ -71,7 +83,7 @@ Popup {
                 text: qsTr("Save")
                 enabled: labelField.text.length > 0 && commandField.text.length > 0
                 onClicked: {
-                    Quickshell.execDetached(["bash", scriptPath, labelField.text, commandField.text, iconField.text])
+                    root.saved(labelField.text, commandField.text, iconField.text);
                     labelField.text = ""
                     commandField.text = ""
                     iconField.text = ""

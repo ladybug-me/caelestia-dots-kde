@@ -70,11 +70,6 @@ StyledWindow {
     anchors.left: true
     anchors.right: true
 
-    mask: Region {
-        width: 0
-        height: 0
-    }
-
     Component.onCompleted: {
         Qt.callLater(() => {
             extractor.running = false;
@@ -96,6 +91,24 @@ StyledWindow {
                 floorOffset: root.floorOffset
                 imgPath: root.getImgPath()
             }
+        }
+    }
+
+    Instantiator {
+        id: spriteRegions
+        model: spriteRepeater.count
+        Region {
+            item: spriteRepeater.itemAt(index)
+        }
+    }
+
+    mask: Region {
+        regions: {
+            var arr = [];
+            for (var i = 0; i < spriteRegions.count; i++) {
+                if (spriteRegions.objectAt(i)) arr.push(spriteRegions.objectAt(i));
+            }
+            return arr;
         }
     }
 }

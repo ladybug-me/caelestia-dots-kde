@@ -38,6 +38,24 @@ QtObject {
                 Component {
                     WallhavenPage {}
                 }
+                Component {
+                    WallpaperSettingsPage {}
+                }
+                Component {
+                    SlideshowAndOrderPage {}
+                }
+                Component {
+                    VideoWallpapersPage {}
+                }
+                Component {
+                    DesktopAddonsPage {}
+                }
+                Component {
+                    ContextMenuPage {}
+                }
+                Component {
+                    AppearancePage {}
+                }
             }
         },
 

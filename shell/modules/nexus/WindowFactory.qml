@@ -10,8 +10,8 @@ import qs.modules.nexus
 Singleton {
     id: root
 
-    function create(parent: Item, props: var): void {
-        nexusComp.createObject(parent ?? dummy, props);
+    function create(parent: Item, props: var): var {
+        return nexusComp.createObject(parent ?? dummy, props);
     }
 
     QtObject {
@@ -23,6 +23,8 @@ Singleton {
 
         FloatingWindow {
             id: win
+            
+            property alias nexus: nexus
 
             color: Colours.tPalette.m3surface
             surfaceFormat.opaque: false
