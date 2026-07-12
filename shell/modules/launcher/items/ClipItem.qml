@@ -25,7 +25,9 @@ Item {
 
     Component.onCompleted: {
         if (root.modelData?.isImage) {
-            Clipboard.ensureImageCached(root.modelData.id);
+            Clipboard.ensureImageCached(root.modelData.id, (path) => {
+                imagePreview.imagePath = path;
+            });
         }
     }
 
@@ -58,7 +60,7 @@ Item {
         Item {
             id: imagePreview
 
-            property string imagePath: (root.modelData?.isImage ?? false) ? `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/caelestia-clipboard/` + (root.modelData?.id ?? "") + ".png" : ""
+            property string imagePath: ""
 
             width: (root.modelData?.isImage ?? false) ? 120 : 0
             height: (root.modelData?.isImage ?? false) ? 80 : 0

@@ -41,18 +41,8 @@ QtObject {
         const imgPath = getImagePath(id);
         ClipboardManager.decodeImage(id, imgPath);
         // Give the async decode a moment to complete then call back
-        Qt.callLater(() => { onReady(imgPath); }, 500);
-    }
-
-    property Connections _conn: Connections {
-        target: ClipboardManager
-        function onItemsChanged(): void {
-            // Preload all images via the C++ manager (no sh wrapper)
-            for (const item of root.items) {
-                if (item.isImage && item.id) {
-                    ClipboardManager.decodeImage(item.id, root.getImagePath(item.id));
-                }
-            }
+        if (onReady) {
+            Qt.callLater(() => { onReady(imgPath); }, 500);
         }
     }
 }

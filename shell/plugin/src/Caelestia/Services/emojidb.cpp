@@ -127,7 +127,7 @@ int EmojiDb::getFrequency(const QString& ch) const {
     return m_frequencies.value(ch, 0);
 }
 
-QVariantList EmojiDb::getSortedItems(const QStringList& favourites) const {
+QVariantList EmojiDb::getSortedItems(const QStringList& favourites, int limit) const {
     if (m_emojis.isEmpty()) return {};
 
     const QSet<QString> favSet(favourites.begin(), favourites.end());
@@ -146,9 +146,10 @@ QVariantList EmojiDb::getSortedItems(const QStringList& favourites) const {
     });
 
     QVariantList result;
-    result.reserve(static_cast<int>(m_emojis.size()));
-    for (int i : indices) {
-        const auto& e = m_emojis[i];
+    const int actualLimit = (limit <= 0) ? static_cast<int>(m_emojis.size()) : std::min(limit, static_cast<int>(m_emojis.size()));
+    result.reserve(actualLimit);
+    for (int i = 0; i < actualLimit; ++i) {
+        const auto& e = m_emojis[indices[i]];
         result.append(QVariantMap{
             {"ch",        e.ch},
             {"name",      e.name},
