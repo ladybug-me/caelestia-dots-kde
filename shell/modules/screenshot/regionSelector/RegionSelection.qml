@@ -66,7 +66,7 @@ PanelWindow {
     readonly property real monitorOffsetX: hyprlandMonitor ? (hyprlandMonitor.x || 0) : 0
     readonly property real monitorOffsetY: hyprlandMonitor ? (hyprlandMonitor.y || 0) : 0
     property int activeWorkspaceId: hyprlandMonitor && hyprlandMonitor.activeWorkspace ? hyprlandMonitor.activeWorkspace.id : 0
-    property string screenshotPath: `${root.screenshotDir}/image-${screen.name}`
+    property string screenshotPath: `${root.screenshotDir}/image-${screen.name}.png`
     property real dragStartX: 0
     property real dragStartY: 0
     property real draggingX: 0
@@ -206,6 +206,7 @@ PanelWindow {
         }
     }
     property bool preparationDone: false
+    property string frozenImageSource: ""
     onPreparationDoneChanged: {
         if (!preparationDone) return;
         if (root.isRecording && root.recordingShouldStop) {
@@ -213,7 +214,14 @@ PanelWindow {
             root.dismiss();
             return;
         }
+        root.frozenImageSource = "file://" + root.screenshotPath;
         root.visible = true;
+    }
+
+    Component.onDestruction: {
+        if (!root.screenshotConsumed) {
+            Quickshell.execDetached(["rm", "-f", root.screenshotPath]);
+        }
     }
 
     Process {
@@ -255,8 +263,11 @@ PanelWindow {
         }
     }
 
+    property bool screenshotConsumed: false
+
     // Execution after selection
     function snip() {
+        root.screenshotConsumed = true;
 
         // Clamp region to screen bounds
         root.regionX = Math.max(0, Math.min(root.regionX, root.screen.width - root.regionWidth));
@@ -298,10 +309,10 @@ PanelWindow {
         }
     }
 
-    ScreencopyView { // For freezing
+    Image { // For freezing
         anchors.fill: parent
-        live: false
-        captureSource: root.screen
+        source: root.frozenImageSource
+        cache: false
         visible: root.phase === RegionSelection.Phase.Select
 
         focus: root.visible
@@ -521,6 +532,21 @@ PanelWindow {
                     property alias source: root.selectionMode
                 }
                 onDismiss: root.dismiss();
+            }
+            IconButton {
+                anchors.verticalCenter: parent.verticalCenter
+                icon: "fullscreen"
+                onClicked: {
+                    root.regionX = 0;
+                    root.regionY = 0;
+                    root.regionWidth = root.screen.width;
+                    root.regionHeight = root.screen.height;
+                    root.snip();
+                }
+                Tooltip {
+                    target: parent
+                    text: qsTr("Full Screen Screenshot")
+                }
             }
             // Confirm snip button — appears after a region is drawn
             IconButton {
