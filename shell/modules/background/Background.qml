@@ -23,8 +23,12 @@ Variants {
         color: contentItem.Config.background.wallpaperEnabled ? "black" : "transparent"
         surfaceFormat.opaque: false
 
-        // Empty mask = no input region = all pointer events pass through to KDE desktop
-        mask: Region {
+        // If Quickshell wallpaper is disabled, use empty mask so KDE desktop gets clicks
+        // If enabled, use null mask so Quickshell captures clicks
+        mask: contentItem.Config.background.wallpaperEnabled ? null : emptyRegion
+
+        Region {
+            id: emptyRegion
             width: 0
             height: 0
         }

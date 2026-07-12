@@ -70,6 +70,11 @@ StyledWindow {
     anchors.left: true
     anchors.right: true
 
+    mask: Region {
+        width: 0
+        height: 0
+    }
+
     Component.onCompleted: {
         Qt.callLater(() => {
             extractor.running = false;
@@ -77,6 +82,7 @@ StyledWindow {
     }
 
     Item {
+        id: spriteContainer
         anchors.fill: parent
 
         Repeater {
