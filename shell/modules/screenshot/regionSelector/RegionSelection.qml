@@ -404,8 +404,8 @@ PanelWindow {
         CursorGuide {
             z: 9999
             visible: root.phase === RegionSelection.Phase.Select
-            x: root.dragging ? root.regionX + root.regionWidth : mouseArea.mouseX
-            y: root.dragging ? root.regionY + root.regionHeight : mouseArea.mouseY
+            x: mouseArea.mouseX
+            y: mouseArea.mouseY
             action: root.action
             selectionMode: root.selectionMode
         }

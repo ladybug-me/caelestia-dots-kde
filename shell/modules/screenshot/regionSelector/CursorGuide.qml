@@ -35,21 +35,6 @@ Item {
     }
 
     property bool showDescription: true
-    function hideDescription() {
-        root.showDescription = false
-    }
-    Timer {
-        id: descTimeout
-        interval: 1000
-        running: true
-        onTriggered: {
-            root.hideDescription()
-        }
-    }
-    onActionChanged: {
-        root.showDescription = true
-        descTimeout.restart()
-    }
 
     property int margins: 8
     implicitWidth: content.implicitWidth + margins * 2
@@ -71,13 +56,6 @@ Item {
 
         color: Colours.palette.m3primary
 
-        Behavior on topLeftRadius {
-            animation: NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
-        }
-        Behavior on implicitWidth {
-            animation: NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
-        }
-
         Row {
             id: contentRow
             anchors {
@@ -97,15 +75,8 @@ Item {
             StyledText {
                 id: descriptionText
                 anchors.verticalCenter: parent.verticalCenter
-                opacity: root.showDescription ? 1 : 0
-                visible: opacity > 0
                 color: Colours.palette.m3onPrimary
                 text: root.description
-                anchors.right: parent.right
-                anchors.rightMargin: 6
-                Behavior on opacity {
-                    NumberAnimation { duration: 200; easing.type: Easing.OutQuad }
-                }
             }
         }
     }
