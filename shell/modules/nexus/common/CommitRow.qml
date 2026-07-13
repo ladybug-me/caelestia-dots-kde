@@ -15,6 +15,7 @@ ConnectedRect {
     property string author: ""
     property string date: ""
     property string details: ""
+    property int detailsMaxLines: 8
 
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
@@ -59,7 +60,7 @@ ConnectedRect {
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.small
                 wrapMode: Text.Wrap
-                maximumLineCount: 8
+                maximumLineCount: root.detailsMaxLines
                 elide: Text.ElideRight
             }
         }

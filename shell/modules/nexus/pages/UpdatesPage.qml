@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls as QQC2
 import QtCore
 import Quickshell.Io
 import Caelestia
@@ -20,30 +21,128 @@ PageBase {
 
     property list<MenuItem> branchItems
     property list<MenuItem> versionItems
+    property int versionChangesVisibleCount: 0
+    property bool logsExpanded: false
+    property bool advancedExpanded: false
+    property bool updateRunning: false
+    property real updateProgress: 0.0
+    property string updateStatus: ""
+    property string updateLogs: ""
+
+    readonly property var activeBranchItem: branchItems.find(function(i) { return i.text === UpdateChecker.currentBranch; }) || branchItems[0]
+    readonly property var activeVersionItem: versionItems.find(function(i) { return i.text === UpdateChecker.targetVersion; }) || versionItems[0]
+    readonly property bool versionTargetDiffers: UpdateChecker.versionSummaryMode && UpdateChecker.targetVersion !== "" && UpdateChecker.targetVersion !== UpdateChecker.currentVersion
+    readonly property bool canApplySelectedVersion: UpdateChecker.versionSummaryMode && UpdateChecker.targetVersion !== ""
+    readonly property bool canInstallOrApply: UpdateChecker.hasUpdate || root.canApplySelectedVersion
+    readonly property bool showInstallSection: root.canInstallOrApply || root.updateRunning || root.updateLogs !== "" || root.updateProgress === 1.0
+    readonly property bool showVersionSummary: UpdateChecker.versionSummaryMode && UpdateChecker.currentVersion !== "unknown"
+    readonly property int compactVersionLimit: 3
+    readonly property bool hasVisibleVersionChanges: root.versionChangesVisibleCount > 0
+    readonly property var visibleCommits: {
+        if (!UpdateChecker.versionSummaryMode || root.versionChangesVisibleCount <= 0) {
+            return [];
+        }
+        const count = Math.min(root.versionChangesVisibleCount, UpdateChecker.commits.length);
+        if (count <= 0) {
+            return [];
+        }
+        return UpdateChecker.commits.slice(0, count);
+    }
+    readonly property string versionChangesButtonText: {
+        if (root.versionChangesVisibleCount <= 0)
+            return qsTr("Show 3 version changes");
+        if (root.versionChangesVisibleCount >= UpdateChecker.commits.length)
+            return qsTr("Hide version changes");
+        return qsTr("Show %1 more").arg(Math.min(compactVersionLimit, UpdateChecker.commits.length - root.versionChangesVisibleCount));
+    }
+    readonly property string versionChangesButtonIcon: {
+        if (root.versionChangesVisibleCount <= 0)
+            return "expand_more";
+        if (root.versionChangesVisibleCount >= UpdateChecker.commits.length)
+            return "expand_less";
+        return "expand_more";
+    }
+    readonly property string versionChangesButtonStatus: {
+        if (root.versionChangesVisibleCount <= 0)
+            return qsTr("Collapsed");
+        if (root.versionChangesVisibleCount >= UpdateChecker.commits.length)
+            return qsTr("All visible");
+        return qsTr("%1 of %2 visible").arg(root.versionChangesVisibleCount).arg(UpdateChecker.commits.length);
+    }
+    readonly property string updateActionText: {
+        if (root.updateRunning)
+            return qsTr("Updating...");
+        if (root.updateProgress === 1.0)
+            return qsTr("Log Out");
+        if (root.canApplySelectedVersion)
+            return root.versionTargetDiffers ? qsTr("Apply Version") : qsTr("Reinstall Current Version");
+        return qsTr("Install Update");
+    }
+    readonly property string updateActionIcon: {
+        if (root.updateRunning)
+            return "hourglass_empty";
+        if (root.updateProgress === 1.0)
+            return "logout";
+        return "system_update_alt";
+    }
+
+    property Component branchItemComp: Component {
+        MenuItem {
+            icon: "call_split"
+        }
+    }
+
+    property Component versionItemComp: Component {
+        MenuItem {
+            icon: "history"
+        }
+    }
+
+    function destroyMenuItems(items): void {
+        if (!items)
+            return;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i])
+                items[i].destroy();
+        }
+    }
 
     function updateBranchItems() {
+        destroyMenuItems(root.branchItems);
+
         let items = [];
         for (let i = 0; i < UpdateChecker.availableBranches.length; i++) {
-            items.push(Qt.createQmlObject('import qs.components.controls; MenuItem { text: "' + UpdateChecker.availableBranches[i] + '"; icon: "call_split" }', root));
+            const item = branchItemComp.createObject(root, {
+                text: UpdateChecker.availableBranches[i]
+            });
+            items.push(item);
         }
         root.branchItems = items;
     }
 
     function updateVersionItems() {
-        if (root.versionItems) {
-            for (let i = 0; i < root.versionItems.length; i++) {
-                root.versionItems[i].destroy();
-            }
-        }
+        destroyMenuItems(root.versionItems);
+
         let items = [];
         for (let i = 0; i < UpdateChecker.availableVersions.length; i++) {
-            const item = Qt.createQmlObject(
-                'import qs.components.controls; MenuItem { text: "' + UpdateChecker.availableVersions[i] + '"; icon: "history" }',
-                root
-            );
+            const item = versionItemComp.createObject(root, {
+                text: UpdateChecker.availableVersions[i]
+            });
             items.push(item);
         }
         root.versionItems = items;
+    }
+
+    function revealVersionChanges(): void {
+        if (UpdateChecker.commits.length <= 0)
+            return;
+        if (root.versionChangesVisibleCount <= 0) {
+            root.versionChangesVisibleCount = Math.min(compactVersionLimit, UpdateChecker.commits.length);
+        } else if (root.versionChangesVisibleCount < UpdateChecker.commits.length) {
+            root.versionChangesVisibleCount = Math.min(root.versionChangesVisibleCount + compactVersionLimit, UpdateChecker.commits.length);
+        } else {
+            root.versionChangesVisibleCount = 0;
+        }
     }
 
     Item {
@@ -52,8 +151,12 @@ PageBase {
             target: UpdateChecker
             function onAvailableBranchesChanged() { root.updateBranchItems(); }
             function onAvailableVersionsChanged() { root.updateVersionItems(); }
-            function onCommitsChanged() { root.showAllVersionChanges = false; }
-            function onVersionSummaryModeChanged() { root.showAllVersionChanges = false; }
+            function onCommitsChanged() {
+                root.versionChangesVisibleCount = 0;
+                if (UpdateChecker.commits.length === 0)
+                    root.logsExpanded = false;
+            }
+            function onVersionSummaryModeChanged() { root.versionChangesVisibleCount = 0; }
         }
     }
     
@@ -61,27 +164,6 @@ PageBase {
         root.updateBranchItems();
         root.updateVersionItems();
     }
-
-    readonly property var activeBranchItem: branchItems.find(i => i.text === UpdateChecker.currentBranch) || branchItems[0]
-    readonly property var activeVersionItem: versionItems.find(i => i.text === UpdateChecker.targetVersion) || versionItems[0]
-    readonly property bool versionTargetDiffers: UpdateChecker.versionSummaryMode && UpdateChecker.targetVersion !== "" && UpdateChecker.targetVersion !== UpdateChecker.currentVersion
-    readonly property bool canApplySelectedVersion: UpdateChecker.versionSummaryMode && UpdateChecker.targetVersion !== ""
-    readonly property int compactVersionLimit: 3
-    readonly property bool hasHiddenVersionChanges: UpdateChecker.versionSummaryMode && UpdateChecker.commits.length > compactVersionLimit
-    readonly property int hiddenVersionCount: Math.max(0, UpdateChecker.commits.length - compactVersionLimit)
-    readonly property var visibleCommits: {
-        if (!UpdateChecker.versionSummaryMode || root.showAllVersionChanges) {
-            return UpdateChecker.commits;
-        }
-        return UpdateChecker.commits.slice(0, compactVersionLimit);
-    }
-
-    property string updateLogs: ""
-    property bool updateRunning: false
-    property real updateProgress: 0.0
-    property string updateStatus: ""
-    property bool logsExpanded: false
-    property bool showAllVersionChanges: false
 
     Item {
         Settings {
@@ -96,17 +178,23 @@ PageBase {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         width: root.cappedWidth
-        spacing: Tokens.spacing.extraSmall / 2
+        spacing: Tokens.spacing.medium
 
-        // Status Banner
+        // Status hero
         ConnectedRect {
             first: true
             last: true
             Layout.fillWidth: true
-            implicitHeight: Tokens.padding.extraLarge * 4
+            implicitHeight: heroLayout.implicitHeight + Tokens.padding.largeIncreased * 2
 
             ColumnLayout {
-                anchors.centerIn: parent
+                id: heroLayout
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.leftMargin: Tokens.padding.largeIncreased
+                anchors.rightMargin: Tokens.padding.largeIncreased
                 spacing: Tokens.spacing.small
 
                 MaterialIcon {
@@ -125,21 +213,32 @@ PageBase {
                         : qsTr("You're all caught up!")
                     color: UpdateChecker.hasUpdate ? Colours.palette.m3primary : Colours.palette.m3outlineVariant
                     font: Tokens.font.title.medium
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
                 }
-                
-                IconTextButton {
+
+                StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    visible: !UpdateChecker.hasUpdate
-                    text: qsTr("Check again")
-                    type: TextButton.Tonal
-                    icon: "refresh"
-                    onClicked: UpdateChecker.checkUpdates()
+                    visible: root.showVersionSummary
+                    text: qsTr("Current: %1 • Latest: %2").arg(UpdateChecker.currentVersion).arg(UpdateChecker.latestVersion)
+                    color: Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.label.medium
+                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }
 
+        IconTextButton {
+            Layout.alignment: Qt.AlignHCenter
+            visible: !UpdateChecker.hasUpdate && !root.updateRunning
+            text: qsTr("Check again")
+            type: TextButton.Tonal
+            icon: "refresh"
+            onClicked: function() { UpdateChecker.checkUpdates(); }
+        }
+
         SectionHeader {
-            text: qsTr("Options")
+            text: qsTr("Update source")
         }
 
         SelectRow {
@@ -149,7 +248,7 @@ PageBase {
             subtext: qsTr("Currently tracking branch: %1").arg(UpdateChecker.currentBranch)
             menuItems: root.branchItems
             active: root.activeBranchItem
-            onSelected: item => {
+            onSelected: function(item) {
                 UpdateChecker.checkUpdates(item.text);
             }
         }
@@ -159,10 +258,10 @@ PageBase {
             last: true
             visible: UpdateChecker.versionSummaryMode
             label: qsTr("Target version")
-            subtext: qsTr("Current: %1  |  Previous: %2").arg(UpdateChecker.currentVersion).arg(UpdateChecker.previousVersion)
+            subtext: qsTr("Current: %1  |  Latest: %2").arg(UpdateChecker.currentVersion).arg(UpdateChecker.latestVersion)
             menuItems: root.versionItems
             active: root.activeVersionItem
-            onSelected: item => {
+            onSelected: function(item) {
                 UpdateChecker.targetVersion = item.text;
             }
         }
@@ -172,7 +271,26 @@ PageBase {
             visible: UpdateChecker.commits.length > 0
         }
 
+        IconTextButton {
+            Layout.alignment: Qt.AlignHCenter
+            visible: UpdateChecker.commits.length > 0
+            text: root.versionChangesButtonText
+            type: TextButton.Tonal
+            icon: root.versionChangesButtonIcon
+            onClicked: function() { root.revealVersionChanges(); }
+        }
+
+        StyledText {
+            Layout.alignment: Qt.AlignHCenter
+            visible: UpdateChecker.commits.length > 0
+            text: root.versionChangesButtonStatus
+            color: Colours.palette.m3outline
+            font: Tokens.font.label.small
+            horizontalAlignment: Text.AlignHCenter
+        }
+
         Repeater {
+            visible: root.hasVisibleVersionChanges
             model: root.visibleCommits
             delegate: CommitRow {
                 required property int index
@@ -184,60 +302,21 @@ PageBase {
                 subject: modelData.subject
                 author: modelData.author
                 date: modelData.date
-                details: modelData.details || ""
+                details: root.versionChangesVisibleCount >= UpdateChecker.commits.length ? (modelData.details || "") : ""
+                detailsMaxLines: root.versionChangesVisibleCount >= UpdateChecker.commits.length ? 8 : 2
             }
-        }
-
-        IconTextButton {
-            Layout.alignment: Qt.AlignHCenter
-            visible: root.hasHiddenVersionChanges || root.showAllVersionChanges
-            text: root.showAllVersionChanges
-                ? qsTr("Show latest 3")
-                : qsTr("Show %1 older versions").arg(root.hiddenVersionCount)
-            type: TextButton.Tonal
-            icon: root.showAllVersionChanges ? "expand_less" : "expand_more"
-            onClicked: root.showAllVersionChanges = !root.showAllVersionChanges
-        }
-
-        SectionHeader {
-            text: qsTr("Customize Installation")
-        }
-
-        NavRow {
-            first: true
-            icon: "folder"
-            label: qsTr("Open Backup Folder")
-            status: qsTr("View your previously backed-up configuration files")
-            onClicked: {
-                backupFolderProcess.running = true;
-            }
-        }
-
-        ToggleRow {
-            text: qsTr("Deploy Configurations")
-            subtext: qsTr("Update your custom dotfiles in ~/.config")
-            checked: updaterSettings.deployConfigs
-            onToggled: updaterSettings.deployConfigs = checked
-        }
-
-        ToggleRow {
-            last: true
-            text: qsTr("Build Shell UI")
-            subtext: qsTr("Compile and install Quickshell UI updates")
-            checked: updaterSettings.buildShell
-            onToggled: updaterSettings.buildShell = checked
         }
 
         SectionHeader {
             text: qsTr("Install Update")
-            visible: UpdateChecker.hasUpdate || root.canApplySelectedVersion || root.updateRunning || root.updateLogs !== ""
+            visible: root.showInstallSection
         }
 
         ConnectedRect {
             first: true
             last: true
             Layout.fillWidth: true
-            visible: UpdateChecker.hasUpdate || root.canApplySelectedVersion || root.updateRunning || root.updateLogs !== ""
+            visible: root.showInstallSection
             implicitHeight: logsContainer.implicitHeight + Tokens.padding.largeIncreased * 2
 
             ColumnLayout {
@@ -250,18 +329,19 @@ PageBase {
 
                 IconTextButton {
                     Layout.fillWidth: true
-                    text: root.updateRunning ? qsTr("Updating...") : (root.updateProgress === 1.0 ? qsTr("Log Out") : (root.canApplySelectedVersion ? (root.versionTargetDiffers ? qsTr("Apply Version") : qsTr("Reinstall Current Version")) : qsTr("Install Update")))
+                    text: root.updateActionText
                     type: TextButton.Primary
-                    icon: root.updateRunning ? "hourglass_empty" : (root.updateProgress === 1.0 ? "logout" : "system_update_alt")
-                    enabled: (!root.updateRunning && (UpdateChecker.hasUpdate || root.canApplySelectedVersion)) || root.updateProgress === 1.0
-                    onClicked: {
+                    icon: root.updateActionIcon
+                    enabled: (!root.updateRunning && root.canInstallOrApply) || root.updateProgress === 1.0
+                    onClicked: function() {
                         if (root.updateProgress === 1.0) {
                             logoutProcess.running = true;
                         } else {
                             root.updateLogs = "";
                             root.updateProgress = 0.0;
-                            root.updateStatus = "Starting update...";
+                            root.updateStatus = qsTr("Starting update...");
                             root.updateRunning = true;
+                            root.logsExpanded = false;
                             updateProcess.running = true;
                         }
                     }
@@ -271,7 +351,7 @@ PageBase {
                     Layout.fillWidth: true
                     visible: root.updateRunning || root.updateLogs !== ""
                     spacing: Tokens.spacing.small
-                    
+
                     RowLayout {
                         Layout.fillWidth: true
                         StyledText {
@@ -279,24 +359,25 @@ PageBase {
                             text: root.updateStatus
                             color: Colours.palette.m3onSurface
                             font: Tokens.font.body.medium
+                            elide: Text.ElideRight
                         }
                         IconButton {
                             icon: root.logsExpanded ? "expand_less" : "expand_more"
-                            onClicked: root.logsExpanded = !root.logsExpanded
+                            onClicked: function() { root.logsExpanded = !root.logsExpanded; }
                         }
                     }
 
                     StyledProgressBar {
                         Layout.fillWidth: true
                         value: root.updateProgress
-                        visible: !root.indeterminate
+                        visible: root.updateRunning || root.updateProgress > 0
                         indeterminate: root.updateProgress === 0.0 && root.updateRunning
                     }
                 }
 
                 StyledRect {
                     Layout.fillWidth: true
-                    implicitHeight: 250
+                    implicitHeight: 280
                     visible: root.logsExpanded && (root.updateLogs !== "" || root.updateRunning)
                     color: Colours.tPalette.m3surfaceContainerLowest
                     radius: Tokens.rounding.small
@@ -308,8 +389,8 @@ PageBase {
                         contentHeight: logText.implicitHeight
                         contentWidth: width
 
-                        onContentHeightChanged: {
-                            if (contentHeight > height) {
+                        onContentHeightChanged: function() {
+                            if (contentHeight > height && (contentY + height >= contentHeight - Tokens.padding.large)) {
                                 contentY = contentHeight - height;
                             }
                         }
@@ -326,6 +407,115 @@ PageBase {
                 }
             }
         }
+
+        SectionHeader {
+            text: qsTr("More options")
+        }
+
+        IconTextButton {
+            Layout.alignment: Qt.AlignHCenter
+            text: root.advancedExpanded ? qsTr("Hide advanced options") : qsTr("Show advanced options")
+            icon: root.advancedExpanded ? "expand_less" : "expand_more"
+            type: TextButton.Tonal
+            onClicked: function() { root.advancedExpanded = !root.advancedExpanded; }
+        }
+
+        NavRow {
+            first: true
+            visible: root.advancedExpanded
+            icon: "folder"
+            label: qsTr("Open Backup Folder")
+            status: qsTr("View your previously backed-up configuration files")
+            onClicked: function() {
+                backupFolderProcess.running = true;
+            }
+        }
+
+        ToggleRow {
+            visible: root.advancedExpanded
+            text: qsTr("Deploy Configurations")
+            subtext: qsTr("Update your custom dotfiles in ~/.config")
+            checked: updaterSettings.deployConfigs
+            onToggled: function(checked) {
+                if (checked && !updaterSettings.deployConfigs) {
+                    deployConfigsConfirm.open();
+                    return;
+                }
+                updaterSettings.deployConfigs = checked;
+            }
+        }
+
+        ToggleRow {
+            last: true
+            visible: root.advancedExpanded
+            text: qsTr("Build Shell UI")
+            subtext: qsTr("Compile and install Quickshell UI updates")
+            checked: updaterSettings.buildShell
+            onToggled: function(checked) { updaterSettings.buildShell = checked; }
+        }
+
+        QQC2.Popup {
+            id: deployConfigsConfirm
+
+            parent: root
+            modal: true
+            focus: true
+            closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
+            width: Math.min(root.width - Tokens.padding.largeIncreased * 2, 420)
+            height: confirmContent.implicitHeight + padding * 2
+            x: Math.round((root.width - width) / 2)
+            y: Math.round((root.height - height) / 2)
+            padding: Tokens.padding.largeIncreased
+
+            background: StyledRect {
+                radius: Tokens.rounding.large
+                color: Colours.tPalette.m3surfaceContainerHigh
+            }
+
+            contentItem: ColumnLayout {
+                id: confirmContent
+
+                spacing: Tokens.spacing.medium
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: qsTr("Enable config deployment?")
+                    font: Tokens.font.title.small
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: qsTr("This can overwrite files in ~/.config. Continue only if you want the updater to deploy configuration files.")
+                    color: Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.body.small
+                    wrapMode: Text.Wrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    TextButton {
+                        text: qsTr("Cancel")
+                        type: TextButton.Tonal
+                        onClicked: function() { deployConfigsConfirm.close(); }
+                    }
+
+                    TextButton {
+                        text: qsTr("Enable")
+                        type: TextButton.Primary
+                        onClicked: function() {
+                            updaterSettings.deployConfigs = true;
+                            deployConfigsConfirm.close();
+                        }
+                    }
+                }
+            }
+        }
+
         Process {
             id: updateProcess
             command: [Paths.absolutePath("~/.local/bin/caelestia-update"), UpdateChecker.currentBranch]
@@ -336,13 +526,13 @@ PageBase {
                 })
             
             stdout: SplitParser {
-                onRead: text => {
+                onRead: function(text) {
                     root.updateLogs += text + "\n";
                     if (text.startsWith("PROGRESS: ")) {
                         const pText = text.substring(10);
                         if (pText.startsWith("done")) {
                             root.updateProgress = 1.0;
-                            root.updateStatus = "Done!";
+                            root.updateStatus = qsTr("Done!");
                         } else {
                             const match = pText.match(/^(\d+)\/(\d+): (.+)$/);
                             if (match) {
@@ -354,12 +544,12 @@ PageBase {
                 }
             }
             stderr: SplitParser {
-                onRead: text => {
+                onRead: function(text) {
                     root.updateLogs += text + "\n";
                 }
             }
             
-            onExited: code => {
+            onExited: function(code) {
                 root.updateRunning = false;
                 if (code === 0) {
                     Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");

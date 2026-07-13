@@ -60,7 +60,9 @@ ConnectedRect {
 
             type: SplitButton.Tonal
             stateLayer.onClicked: splitButton.expanded = !splitButton.expanded
-            menu.onItemSelected: item => root.selected(item)
+            menu.onItemSelected: function(item) {
+                root.selected(item);
+            }
         }
     }
 }

@@ -35,6 +35,20 @@ MouseArea {
     property bool expanded
     property real maxHeight: 320
 
+    onItemsChanged: {
+        const selectedText = root.active?.text ?? "";
+        let nextActive = null;
+
+        for (let i = 0; i < root.items.length; i++) {
+            if (root.items[i] && root.items[i].text === selectedText) {
+                nextActive = root.items[i];
+                break;
+            }
+        }
+
+        root.active = nextActive ?? root.items[0] ?? null;
+    }
+
     signal itemSelected(item: MenuItem)
 
     parent: {

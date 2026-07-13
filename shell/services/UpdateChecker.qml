@@ -20,6 +20,7 @@ Singleton {
     property int pendingCount: 0
     property bool versionSummaryMode: false
     property string currentVersion: "unknown"
+    property string latestVersion: "unknown"
     property string previousVersion: "unknown"
     property string targetVersion: ""
 
@@ -300,6 +301,7 @@ fi
                         if (line.startsWith("META|")) {
                             const parts = line.split("|");
                             root.currentVersion = parts[1] || "unknown";
+                            root.latestVersion = parts[2] || "unknown";
                             root.previousVersion = parts[3] || parts[2] || "unknown";
                             parsedVersionSummaryMode = true;
                             continue;
@@ -391,6 +393,9 @@ fi
                         }
                         if (root.currentVersion === "unknown" && root.availableVersions.length > 0) {
                             root.currentVersion = root.availableVersions[0];
+                        }
+                        if (root.latestVersion === "unknown" && root.availableVersions.length > 0) {
+                            root.latestVersion = root.availableVersions[0];
                         }
                         if (root.previousVersion === "unknown" && root.availableVersions.length > 1) {
                             root.previousVersion = root.availableVersions[1];
