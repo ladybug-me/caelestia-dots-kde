@@ -44,7 +44,7 @@ PageBase {
             icon: "ads_click"
             label: qsTr("Target windows")
             status: qsTr("Add or remove auto-enable targets")
-            onClicked: root.nState.openSubPage(3)
+            onClicked: root.nState.openSubPage(2)
         }
 
         Column {

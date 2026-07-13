@@ -157,7 +157,13 @@ fi
 
 systemctl --user restart qs-kwin-bridge.service 2>/dev/null || true
 "$CAELESTIA_BIN" shell -k 2>/dev/null || true
-sleep 2
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
+SCHEME_FILE="$STATE_DIR/scheme.json"
+i=0
+while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
+    sleep 1
+    i=$((i + 1))
+done
 "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
 echo "Shell restarted successfully!"
 echo

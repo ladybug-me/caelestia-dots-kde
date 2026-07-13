@@ -104,6 +104,11 @@ Singleton {
 
     property bool cooldownPending
     property real lastBaseTransparency
+    property bool schemeLoaded: false
+    property int schemeRetryCount: 0
+    property int maxSchemeRetries: 20
+    property int startupSchemePollCount: 0
+    property int maxStartupSchemePolls: 120
 
     function getLuminance(c: color): real {
         if (c.r == 0 && c.g == 0 && c.b == 0)
@@ -161,8 +166,28 @@ Singleton {
     }
 
     function load(data: string, isPreview: bool): void {
+        const raw = (data || "").trim();
+        if (raw === "") {
+            if (!isPreview)
+                scheduleSchemeReload();
+            return;
+        }
+
         const colours = isPreview ? preview : current;
-        const scheme = JSON.parse(data);
+        let scheme = null;
+        try {
+            scheme = JSON.parse(raw);
+        } catch (e) {
+            if (!isPreview)
+                scheduleSchemeReload();
+            return;
+        }
+
+        if (!scheme || !scheme.colours) {
+            if (!isPreview)
+                scheduleSchemeReload();
+            return;
+        }
 
         if (!isPreview) {
             root.scheme = (scheme.name || "").trim();
@@ -181,6 +206,20 @@ Singleton {
             if (colours.hasOwnProperty(propName))
                 colours[propName] = `#${colour}`;
         }
+
+        if (!isPreview) {
+            root.schemeLoaded = true;
+            root.schemeRetryCount = 0;
+        }
+    }
+
+    function scheduleSchemeReload(): void {
+        if (root.schemeLoaded)
+            return;
+        if (root.schemeRetryCount >= root.maxSchemeRetries)
+            return;
+        if (!schemeRetryTimer.running)
+            schemeRetryTimer.start();
     }
 
     function setMode(mode: string): void {
@@ -209,6 +248,8 @@ Singleton {
     Component.onCompleted: {
         root.requestReloadHyprRules()
         Qt.callLater(updatePaletteManager)
+        scheduleSchemeReload()
+        startupSchemePollTimer.start()
     }
 
     Connections {
@@ -222,10 +263,48 @@ Singleton {
 
 
     FileView {
+        id: schemeFile
+
         path: `${Paths.state}/scheme.json`
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.load(text(), false)
+    }
+
+    Timer {
+        id: schemeRetryTimer
+
+        interval: 350
+        repeat: false
+        onTriggered: {
+            if (root.schemeLoaded)
+                return;
+            if (root.schemeRetryCount >= root.maxSchemeRetries)
+                return;
+            root.schemeRetryCount += 1;
+            schemeFile.reload();
+            if (!root.schemeLoaded)
+                restart();
+        }
+    }
+
+    Timer {
+        id: startupSchemePollTimer
+
+        interval: 500
+        repeat: true
+        onTriggered: {
+            if (root.schemeLoaded) {
+                stop();
+                return;
+            }
+            if (root.startupSchemePollCount >= root.maxStartupSchemePolls) {
+                stop();
+                return;
+            }
+            root.startupSchemePollCount += 1;
+            schemeFile.reload();
+        }
     }
 
     ImageAnalyser {

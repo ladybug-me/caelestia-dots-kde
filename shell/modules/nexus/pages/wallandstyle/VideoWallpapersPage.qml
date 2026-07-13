@@ -16,54 +16,52 @@ PageBase {
     isSubPage: true
     title: qsTr("Video Wallpapers")
 
+    readonly property bool isHyprland: Quickshell.env("XDG_CURRENT_DESKTOP").includes("Hyprland")
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         width: root.cappedWidth
-        spacing: Tokens.spacing.large
+        spacing: Tokens.spacing.extraSmall / 2
 
-        Item {
-            Layout.fillWidth: true
-            Layout.preferredHeight: Tokens.padding.large
+        ToggleRow {
+            first: true
+            text: qsTr("Pause video wallpapers")
+            checked: Config.background.videoWallpaperPaused
+            onToggled: GlobalConfig.background.videoWallpaperPaused = checked
         }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 0
+        ToggleRow {
+            text: qsTr("Enable video audio")
+            checked: Config.background.videoWallpaperSoundEnabled
+            onToggled: GlobalConfig.background.videoWallpaperSoundEnabled = checked
+        }
 
-            ToggleRow {
-                Layout.fillWidth: true
-                first: true
-                text: qsTr("Pause video wallpapers")
-                checked: Config.background.videoWallpaperPaused
-                onToggled: GlobalConfig.background.videoWallpaperPaused = checked
-            }
+        ToggleRow {
+            text: qsTr("Pause video on fullscreen")
+            visible: root.isHyprland
+            checked: Config.background.videoWallpaperPauseOnFullscreen
+            onToggled: GlobalConfig.background.videoWallpaperPauseOnFullscreen = checked
+        }
 
-            ToggleRow {
-                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-                Layout.fillWidth: true
-                text: qsTr("Enable video audio")
-                checked: Config.background.videoWallpaperSoundEnabled
-                onToggled: GlobalConfig.background.videoWallpaperSoundEnabled = checked
-            }
+        ToggleRow {
+            text: qsTr("Pause video on tiled windows")
+            visible: root.isHyprland
+            checked: Config.background.videoWallpaperPauseOnTiled
+            onToggled: GlobalConfig.background.videoWallpaperPauseOnTiled = checked
+        }
 
-            ToggleRow {
-                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-                Layout.fillWidth: true
-                text: qsTr("Pause video on fullscreen")
-                visible: Quickshell.env("XDG_CURRENT_DESKTOP").includes("Hyprland")
-                checked: Config.background.videoWallpaperPauseOnFullscreen
-                onToggled: GlobalConfig.background.videoWallpaperPauseOnFullscreen = checked
-            }
+        ToggleRow {
+            text: qsTr("Pause video on all displays")
+            checked: Config.background.videoWallpaperPauseOnAllDisplays
+            onToggled: GlobalConfig.background.videoWallpaperPauseOnAllDisplays = checked
+        }
 
-            ToggleRow {
-                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
-                Layout.fillWidth: true
-                last: true
-                text: qsTr("Mute video when media plays")
-                checked: Config.background.videoWallpaperMuteOnMedia
-                onToggled: GlobalConfig.background.videoWallpaperMuteOnMedia = checked
-            }
+        ToggleRow {
+            last: true
+            text: qsTr("Mute video when media plays")
+            checked: Config.background.videoWallpaperMuteOnMedia
+            onToggled: GlobalConfig.background.videoWallpaperMuteOnMedia = checked
         }
     }
 }

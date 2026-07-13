@@ -7,22 +7,21 @@ QtObject {
     id: root
 
     readonly property list<var> pages: [
-        // Appearance
+        // Personalization
         {
-            label: qsTr("Wallpaper & style"),
+            label: qsTr("Desktop"),
+            icon: "desktop_windows",
+            description: qsTr("Desktop addons, right click menu"),
+            category: "personalization"
+        },
+        {
+            label: qsTr("Appearance"),
             icon: "palette",
-            description: Strings.localizeEnglishSpelling(qsTr("Wallpaper, fonts, colours")),
-            category: "appearance"
+            description: Strings.localizeEnglishSpelling(qsTr("Wallpapers, fonts, colours")),
+            category: "personalization"
         },
 
         // Connectivity
-        // TODO
-        // {
-        //     label: qsTr("Display"),
-        //     icon: "monitor",
-        //     description: qsTr("Output configuration"),
-        //     category: "connectivity"
-        // },
         {
             label: qsTr("Network"),
             icon: "wifi",
@@ -43,18 +42,24 @@ QtObject {
             category: "connectivity"
         },
 
-        // System
+        // Controls
         {
-            label: qsTr("Updates"),
-            icon: "update",
-            description: qsTr("System updates"),
-            category: "system"
+            label: qsTr("Notifications"),
+            icon: "notifications",
+            description: qsTr("Toasts, alerts, notification behaviour"),
+            category: "controls"
         },
         {
-            label: qsTr("Plugins"),
-            icon: "extension",
-            description: qsTr("Manage plugins"),
-            category: "system"
+            label: qsTr("Utilities"),
+            icon: "build",
+            description: qsTr("Quick toggles, assistant, game mode"),
+            category: "controls"
+        },
+        {
+            label: qsTr("Power"),
+            icon: "battery_charging_full",
+            description: qsTr("Battery indicators, idle suspend"),
+            category: "controls"
         },
 
         // Shell
@@ -72,15 +77,29 @@ QtObject {
         },
         {
             label: qsTr("Services"),
-            icon: "build",
-            description: qsTr("Poll intervals, lyrics backend"),
+            icon: "tune",
+            description: qsTr("Polling, lyrics backend, service tuning"),
             category: "shell"
         },
+
+        // System
         {
             label: qsTr("Language & region"),
             icon: "globe",
             description: qsTr("UI language, weather location, display units"),
-            category: "shell"
+            category: "system"
+        },
+        {
+            label: qsTr("Updates"),
+            icon: "update",
+            description: qsTr("System updates"),
+            category: "system"
+        },
+        {
+            label: qsTr("Plugins"),
+            icon: "extension",
+            description: qsTr("Manage plugins"),
+            category: "system"
         },
 
         // About

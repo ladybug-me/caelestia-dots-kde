@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.components.controls
+import qs.services
 import qs.modules.nexus.common
 
 PageBase {
@@ -38,7 +39,6 @@ PageBase {
     readonly property list<string> toastFullscreenValues: ["off", "important", "all"]
 
     title: qsTr("Notifications")
-    isSubPage: true
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -134,6 +134,35 @@ PageBase {
             value: GlobalConfig.utilities.toasts.transparencyBase
             enabled: GlobalConfig.utilities.toasts.transparency
             onMoved: v => GlobalConfig.utilities.toasts.transparencyBase = v
+        }
+
+        SectionHeader {
+            text: qsTr("Sound")
+        }
+
+        SliderRow {
+            first: true
+            last: true
+            icon: "notifications"
+            label: qsTr("Notification volume")
+            valueLabel: Math.round(value * 100) + "%"
+            value: GlobalConfig.audio.sounds.notificationVolume
+            enabled: GlobalConfig.audio.sounds.enabled
+            onMoved: v => GlobalConfig.audio.sounds.notificationVolume = v
+            onInteraction: v => Audio.playNotification()
+        }
+
+        SectionHeader {
+            text: qsTr("Taskbar indicator")
+        }
+
+        ToggleRow {
+            first: true
+            last: true
+            text: qsTr("Show notifications icon")
+            subtext: qsTr("Show notifications in taskbar status icons")
+            checked: Config.bar.status.showNotifications
+            onToggled: GlobalConfig.bar.status.showNotifications = checked
         }
 
         // Toast events

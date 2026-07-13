@@ -19,9 +19,23 @@ QtObject {
     id: root
 
     readonly property list<Component> pageComps: [
-        // Appearance
+        // Personalization
         Component {
-            // Wallpaper & style
+            // Desktop
+            StackPage {
+                Component {
+                    DesktopPage {}
+                }
+                Component {
+                    DesktopAddonsPage {}
+                }
+                Component {
+                    ContextMenuPage {}
+                }
+            }
+        },
+        Component {
+            // Appearance
             StackPage {
                 Component {
                     WallpaperAndStyle {}
@@ -46,12 +60,6 @@ QtObject {
                 }
                 Component {
                     VideoWallpapersPage {}
-                }
-                Component {
-                    DesktopAddonsPage {}
-                }
-                Component {
-                    ContextMenuPage {}
                 }
                 Component {
                     AppearancePage {}
@@ -94,20 +102,34 @@ QtObject {
             }
         },
 
-        // System
+        // Controls
         Component {
-            // Updates
+            // Notifications
             StackPage {
                 Component {
-                    UpdatesPage {}
+                    NotificationsPage {}
                 }
             }
         },
         Component {
-            // Plugins
+            // Utilities
             StackPage {
                 Component {
-                    PluginsPage {}
+                    UtilitiesPage {}
+                }
+                Component {
+                    GameModePage {}
+                }
+                Component {
+                    GameModeTargetsPage {}
+                }
+            }
+        },
+        Component {
+            // Power
+            StackPage {
+                Component {
+                    PowerPage {}
                 }
             }
         },
@@ -160,6 +182,9 @@ QtObject {
                 Component {
                     BarPreviewScales {}
                 }
+                Component {
+                    TaskbarElements {}
+                }
             }
         },
         Component {
@@ -183,24 +208,33 @@ QtObject {
                     ServicesPage {}
                 }
                 Component {
-                    NotificationsPage {}
-                }
-                Component {
-                    GameModePage {}
-                }
-                Component {
-                    GameModeTargetsPage {}
-                }
-                Component {
                     ArpcPage {}
                 }
             }
         },
+
+        // System
         Component {
             // Language & region
             StackPage {
                 Component {
                     LanguageAndRegion {}
+                }
+            }
+        },
+        Component {
+            // Updates
+            StackPage {
+                Component {
+                    UpdatesPage {}
+                }
+            }
+        },
+        Component {
+            // Plugins
+            StackPage {
+                Component {
+                    PluginsPage {}
                 }
             }
         },

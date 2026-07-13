@@ -32,7 +32,7 @@ cat > "$AUTOSTART_DIR/caelestiashell.desktop" << EOF
 Type=Application
 Name=Caelestia Shell
 Comment=Start Caelestia Shell
-Exec=bash -c 'sleep 2 && "$CAELESTIA_PATH" shell -d &'
+Exec=bash -c 'STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"; SCHEME_FILE="$STATE_DIR/scheme.json"; i=0; while [ $i -lt 15 ] && [ ! -s "$SCHEME_FILE" ]; do sleep 1; i=$((i + 1)); done; "$CAELESTIA_PATH" shell -d &'
 Icon=quickshell
 Hidden=false
 NoDisplay=false

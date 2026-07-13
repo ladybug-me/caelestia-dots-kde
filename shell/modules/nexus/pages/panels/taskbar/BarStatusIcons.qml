@@ -61,30 +61,11 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Battery")
-            checked: Config.bar.status.showBattery
-            onToggled: GlobalConfig.bar.status.showBattery = checked
-        }
-
-        ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Peripheral Battery")
-            checked: Config.bar.status.showPeripheralBattery
-            onToggled: GlobalConfig.bar.status.showPeripheralBattery = checked
-        }
-
-        ToggleRow {
-            Layout.fillWidth: true
+            last: true
             text: qsTr("Caps lock")
             checked: Config.bar.status.showLockStatus
             onToggled: GlobalConfig.bar.status.showLockStatus = checked
-        }
-        ToggleRow {
-            Layout.fillWidth: true
-            last: true
-            text: qsTr("Notifications")
-            checked: Config.bar.status.showNotifications
-            onToggled: GlobalConfig.bar.status.showNotifications = checked
         }
 
         // Behaviour

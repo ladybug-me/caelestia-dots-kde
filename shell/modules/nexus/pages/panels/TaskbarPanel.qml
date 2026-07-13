@@ -144,53 +144,11 @@ PageBase {
         }
 
         NavRow {
-            icon: "workspaces"
-            label: qsTr("Workspaces")
-            status: qsTr("Indicators, window icons")
-            onClicked: root.nState.openSubPage(6)
-        }
-
-        NavRow {
-            icon: "web_asset"
-            label: qsTr("Active window")
-            status: qsTr("Title display, popout")
-            onClicked: root.nState.openSubPage(7)
-        }
-
-        NavRow {
-            icon: "dock"
-            label: qsTr("Dock")
-            status: Strings.localizeEnglishSpelling(qsTr("Positioning, recolouring"))
-            onClicked: root.nState.openSubPage(11)
-        }
-
-        NavRow {
-            icon: "widgets"
-            label: qsTr("Tray")
-            status: qsTr("System tray icons")
-            onClicked: root.nState.openSubPage(8)
-        }
-
-        NavRow {
-            icon: "signal_cellular_alt"
-            label: qsTr("Status icons")
-            status: qsTr("Visible indicators")
-            onClicked: root.nState.openSubPage(9)
-        }
-
-        NavRow {
-            icon: "schedule"
-            label: qsTr("Clock")
-            status: qsTr("Date, icon, background")
-            onClicked: root.nState.openSubPage(10)
-        }
-
-        NavRow {
             last: true
-            icon: "code"
-            label: qsTr("GitHub")
-            status: qsTr("Contributions, token setup")
-            onClicked: root.nState.openSubPage(12)
+            icon: "tune"
+            label: qsTr("Elements & modules")
+            status: qsTr("Workspaces, tray, status icons, clock, dock and more")
+            onClicked: root.nState.openSubPage(14)
         }
 
         // Scroll actions

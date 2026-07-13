@@ -43,7 +43,11 @@ PageBase {
                 Layout.fillWidth: true
                 text: qsTr("Desktop lyrics")
                 checked: Config.background.desktopLyrics.enabled
-                onToggled: GlobalConfig.background.desktopLyrics.enabled = checked
+                onToggled: {
+                    GlobalConfig.background.desktopLyrics.enabled = checked;
+                    if (!checked)
+                        GlobalConfig.background.desktopLyrics.autoHide = false;
+                }
             }
 
             ToggleRow {
@@ -53,7 +57,7 @@ PageBase {
                 subtext: qsTr("Hide lyrics when a window is open")
                 checked: Config.background.desktopLyrics.autoHide
                 onToggled: GlobalConfig.background.desktopLyrics.autoHide = checked
-                enabled: Config.background.desktopLyrics.enabled
+                enabled: Config.background.desktopLyrics.enabled || Config.background.desktopLyrics.autoHide
             }
 
             ToggleRow {
@@ -61,7 +65,11 @@ PageBase {
                 Layout.fillWidth: true
                 text: qsTr("Background visualiser")
                 checked: Config.background.visualiser.enabled
-                onToggled: GlobalConfig.background.visualiser.enabled = checked
+                onToggled: {
+                    GlobalConfig.background.visualiser.enabled = checked;
+                    if (!checked)
+                        GlobalConfig.background.visualiser.autoHide = false;
+                }
             }
 
             ToggleRow {
@@ -71,7 +79,7 @@ PageBase {
                 subtext: qsTr("Hide visualiser when a window is open")
                 checked: Config.background.visualiser.autoHide
                 onToggled: GlobalConfig.background.visualiser.autoHide = checked
-                enabled: Config.background.visualiser.enabled
+                enabled: Config.background.visualiser.enabled || Config.background.visualiser.autoHide
             }
 
             ToggleRow {

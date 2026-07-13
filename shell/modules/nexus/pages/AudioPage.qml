@@ -171,17 +171,6 @@ PageBase {
             onInteraction: v => Audio.playEffectTick()
         }
 
-        SliderRow {
-            Layout.fillWidth: true
-            icon: "notifications"
-            label: qsTr("Notification Volume")
-            valueLabel: Math.round(value * 100) + "%"
-            value: GlobalConfig.audio.sounds.notificationVolume
-            enabled: GlobalConfig.audio.sounds.enabled
-            onMoved: v => GlobalConfig.audio.sounds.notificationVolume = v
-            onInteraction: v => Audio.playNotification()
-        }
-
         ToggleRow {
             Layout.fillWidth: true
             text: qsTr("Camera click")

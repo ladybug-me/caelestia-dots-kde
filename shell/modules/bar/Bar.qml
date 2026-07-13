@@ -360,6 +360,20 @@ Item {
                 }
             }
             DelegateChoice {
+                roleValue: "kbLayoutIndicator"
+                delegate: WrappedLoader {
+                    visible: !root.fullscreen && (Hypr.kbLayout || "").length > 0
+                    sourceComponent: KbLayoutIndicator {}
+                }
+            }
+            DelegateChoice {
+                roleValue: "notificationsIndicator"
+                delegate: WrappedLoader {
+                    visible: !root.fullscreen
+                    sourceComponent: NotificationsIndicator {}
+                }
+            }
+            DelegateChoice {
                 roleValue: "perfCpu"
                 delegate: WrappedLoader {
                     visible: !root.fullscreen && Cpu.name.length > 0

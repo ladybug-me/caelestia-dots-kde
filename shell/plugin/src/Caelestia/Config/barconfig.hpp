@@ -233,6 +233,8 @@ class BarConfig : public ConfigObject {
             vmap({ { u"id"_s, u"github"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"clock"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"statusIcons"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
+            vmap({ { u"id"_s, u"kbLayoutIndicator"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
+            vmap({ { u"id"_s, u"notificationsIndicator"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"perfCpu"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"perfMemory"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"perfStorage"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
