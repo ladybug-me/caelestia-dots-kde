@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "clipboardmanager.hpp"
 
+#include "../Config/config.hpp"
+#include "../Config/launcherconfig.hpp"
+
 #include <qdir.h>
 #include <qfile.h>
 #include <qloggingcategory.h>
@@ -48,7 +51,12 @@ void ClipboardManager::reload() {
         const auto lines = output.split('\n');
         result.reserve(lines.size());
 
+        const int maxEntries = caelestia::config::GlobalConfig::instance()->launcher()->clipboardMaxEntries();
+        int count = 0;
+
         for (const auto& rawLine : lines) {
+            if (count >= maxEntries) break;
+
             const auto line = QString::fromUtf8(rawLine);
             if (line.isEmpty()) continue;
 
@@ -67,6 +75,7 @@ void ClipboardManager::reload() {
                 {"preview", preview},
                 {"isImage", isImage},
             });
+            count++;
         }
 
         m_items = result;

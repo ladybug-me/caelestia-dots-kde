@@ -161,5 +161,21 @@ PageBase {
                 }
             }
         }
+
+        SectionHeader {
+            text: qsTr("Clipboard")
+        }
+
+        StepperRow {
+            first: true
+            last: true
+            label: qsTr("Maximum entries")
+            subtext: qsTr("Limits the number of clipboard entries loaded by the launcher")
+            value: GlobalConfig.launcher.clipboardMaxEntries
+            from: 1
+            to: 2048
+            stepSize: 10
+            onMoved: v => GlobalConfig.launcher.clipboardMaxEntries = v
+        }
     }
 }
