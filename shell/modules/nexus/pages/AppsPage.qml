@@ -36,19 +36,16 @@ PageBase {
             text: qsTr("Force System Defaults (xdg-open)")
             subtext: qsTr("Override applications to use KDE system defaults")
             
-            checked: GlobalConfig.general.apps.terminal.join(" ") === "konsole" &&
-                     GlobalConfig.general.apps.audio.join(" ") === "xdg-open" &&
+            checked: GlobalConfig.general.apps.audio.join(" ") === "xdg-open" &&
                      GlobalConfig.general.apps.playback.join(" ") === "xdg-open" &&
                      GlobalConfig.general.apps.explorer.join(" ") === "xdg-open"
 
             onToggled: {
                 if (checked) {
-                    GlobalConfig.general.apps.terminal = ["konsole"];
                     GlobalConfig.general.apps.audio = ["xdg-open"];
                     GlobalConfig.general.apps.playback = ["xdg-open"];
                     GlobalConfig.general.apps.explorer = ["xdg-open"];
                 } else {
-                    GlobalConfig.general.apps.terminal = ["konsole"];
                     GlobalConfig.general.apps.audio = ["pavucontrol"];
                     GlobalConfig.general.apps.playback = ["mpv"];
                     GlobalConfig.general.apps.explorer = ["thunar"];
@@ -61,6 +58,7 @@ PageBase {
             icon: "terminal"
             label: qsTr("Terminal")
             status: GlobalConfig.general.apps.terminal.join(" ")
+            hideSystemDefault: true
             onSelected: app => GlobalConfig.general.apps.terminal = app.command
         }
 
@@ -107,6 +105,8 @@ PageBase {
     component DefaultRow: PopupRow {
         id: row
 
+        property bool hideSystemDefault: false
+
         readonly property int popupHeight: root.flickable.height - y + root.flickable.contentY - Tokens.padding.large - Tokens.padding.extraExtraLarge
 
         signal selected(app: var)
@@ -136,7 +136,9 @@ PageBase {
                 header: StateLayer {
                     anchors.fill: undefined
                     width: list.width
-                    implicitHeight: itemLayoutHeader.implicitHeight + itemLayoutHeader.anchors.margins * 2
+                    visible: !row.hideSystemDefault
+                    implicitHeight: visible ? (itemLayoutHeader.implicitHeight + itemLayoutHeader.anchors.margins * 2) : 0
+                    height: implicitHeight
                     radius: Tokens.rounding.small
 
                     onClicked: {
