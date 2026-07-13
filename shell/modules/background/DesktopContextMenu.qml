@@ -66,8 +66,15 @@ Controls.Menu {
                                 win.nexus.nState.currentPageIdx = 0; // Wallpaper & Style
                                 win.nexus.nState.openSubPage(9); // Right Click Menu is index 9
                             }
+                            else if (entry.action === "OpenTerminal") {
+                                Quickshell.execDetached(GlobalConfig.general.apps.terminal);
+                            }
                         } else if (entry.command) {
-                            Quickshell.execDetached(typeof entry.command === "string" ? entry.command.split(" ") : entry.command);
+                            if (entry.command === "terminal") {
+                                Quickshell.execDetached(GlobalConfig.general.apps.terminal);
+                            } else {
+                                Quickshell.execDetached(typeof entry.command === "string" ? entry.command.split(" ") : entry.command);
+                            }
                         }
                     });
                     

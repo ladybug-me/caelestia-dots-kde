@@ -34,9 +34,9 @@ PageBase {
             ToggleRow {
                 Layout.fillWidth: true
                 first: true
-                text: qsTr("Display wallpaper")
-                checked: Config.background.wallpaperEnabled
-                onToggled: GlobalConfig.background.wallpaperEnabled = checked
+                text: qsTr("Show KDE Desktop")
+                checked: !Config.background.wallpaperEnabled
+                onToggled: GlobalConfig.background.wallpaperEnabled = !checked
             }
 
             ToggleRow {
