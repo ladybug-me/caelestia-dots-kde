@@ -222,12 +222,7 @@ PageBase {
                 onClicked: root.nState.openSubPage(8)
             }
 
-            NavRow {
-                icon: "menu_open"
-                label: qsTr("Right Click Menu")
-                status: qsTr("Configure desktop right click menu")
-                onClicked: root.nState.openSubPage(9)
-            }
+
 
             NavRow {
                 last: true
