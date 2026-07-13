@@ -29,8 +29,21 @@ Controls.Menu {
             onStreamFinished: {
                 let json = [];
                 try {
-                    json = JSON.parse(text);
+                    if (text.trim().length > 0) {
+                        json = JSON.parse(text);
+                    }
                 } catch(e) {}
+                
+                if (!json || json.length === 0) {
+                    json = [
+                        { id: "refresh", label: qsTr("Refresh"), icon: "refresh", action: "Quickshell.reload()", enabled: true, type: "default" },
+                        { id: "wallpaper_style", label: qsTr("Wallpaper & style"), icon: "wallpaper", action: "WindowFactory.create()", enabled: true, type: "default" },
+                        { id: "next_wallpaper", label: qsTr("Next Wallpaper"), icon: "skip_next", action: "Wallpapers.next()", enabled: true, type: "default" },
+                        { id: "system_settings", label: qsTr("System Settings"), icon: "settings", command: "systemsettings", enabled: true, type: "default" },
+                        { id: "open_terminal", label: qsTr("Open Terminal"), icon: "terminal", command: "terminal", enabled: true, type: "default" },
+                        { id: "add_shortcut", label: qsTr("Add Shortcut..."), icon: "add", action: "OpenRightClickMenu", enabled: true, type: "default" }
+                    ];
+                }
 
                 let newArr = [];
 
