@@ -16,3 +16,6 @@ src/bin/build/
 # Python
 __pycache__/
 *.py[cod]
+
+installer/build/
+caelestia-install
