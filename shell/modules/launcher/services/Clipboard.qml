@@ -11,7 +11,10 @@ QtObject {
 
     readonly property var items: ClipboardManager.items
 
-    readonly property string imageCacheDir: `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/caelestia-clipboard`
+    /// Forwarded from C++ so QML items can connect to a single source of truth.
+    signal imageReady(int id, string path)
+
+    readonly property string imageCacheDir: ClipboardManager.imageCacheDir
 
     function reload(): void {
         ClipboardManager.reload();
@@ -37,12 +40,11 @@ QtObject {
         return imageCacheDir + "/" + clipId + ".png";
     }
 
-    function ensureImageCached(id: int, onReady: var): void {
-        const imgPath = getImagePath(id);
-        ClipboardManager.decodeImage(id, imgPath);
-        // Give the async decode a moment to complete then call back
-        if (onReady) {
-            Qt.callLater(() => { onReady(imgPath); }, 500);
+    /// Connections block to forward the C++ imageReady signal to the QML world.
+    property var _conn: Connections {
+        target: ClipboardManager
+        function onImageReady(id: int, path: string): void {
+            root.imageReady(id, path);
         }
     }
 }
