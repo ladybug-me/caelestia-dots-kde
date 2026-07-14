@@ -41,8 +41,8 @@ if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
         --key "theme" "@darkly" 2>/dev/null || true
 
     #  Bibata: Cursor theme 
-    echo "  Applying Bibata cursor theme..."
-    kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "Bibata-Modern-Ice" 2>/dev/null || true
+    # echo "  Applying Bibata cursor theme..."
+    # kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "Bibata-Modern-Ice" 2>/dev/null || true
 else
     echo "  [SKIP] Skipping Darkly theme & Bibata cursor application."
 fi

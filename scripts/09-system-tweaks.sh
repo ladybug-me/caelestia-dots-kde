@@ -133,22 +133,34 @@ tweak_reload_kde() {
 # TWEAK: Set default shell to Fish
 # 
 tweak_default_shell() {
-    info "Setting default shell to fish..."
+    local target_shell="${DEFAULT_SHELL:-fish}"
+    info "Setting default shell to $target_shell..."
     
-    if command -v fish >/dev/null 2>&1; then
-        local fish_path
-        fish_path="$(command -v fish)"
+    if command -v "$target_shell" >/dev/null 2>&1; then
+        local shell_path
+        shell_path="$(command -v "$target_shell")"
         
-        run_sudo_non_interactive chsh -s "$fish_path" "$USER" 2>/dev/null || warn "Failed to change shell for $USER without prompting. You may need to run 'sudo chsh -s $fish_path $USER' manually."
+        # Compare with current login shell
+        local current_shell
+        current_shell="$(getent passwd "$USER" | cut -d: -f7)"
+        if [[ -z "$current_shell" ]]; then
+            current_shell="$SHELL"
+        fi
+        
+        if [[ "$current_shell" == "$shell_path" ]]; then
+            info "Shell is already set to $shell_path. Skipping chsh."
+        else
+            run_sudo_non_interactive chsh -s "$shell_path" "$USER" 2>/dev/null || warn "Failed to change shell for $USER without prompting. You may need to run 'sudo chsh -s $shell_path $USER' manually."
+        fi
         
         local konsole_profile_dir="$HOME/.local/share/konsole"
         mkdir -p "$konsole_profile_dir"
         
-        # Inject fish into all existing Konsole profiles
+        # Inject target shell into all existing Konsole profiles
         local profiles_found=0
         for profile in "$konsole_profile_dir"/*.profile; do
             if [[ -f "$profile" ]]; then
-                kwriteconfig6 --file "$profile" --group "General" --key "Command" "$fish_path"
+                kwriteconfig6 --file "$profile" --group "General" --key "Command" "$shell_path"
                 profiles_found=1
             fi
         done
@@ -156,11 +168,11 @@ tweak_default_shell() {
         # If no profiles existed, create the standard fallback one so the shell works
         if [[ $profiles_found -eq 0 ]]; then
             kwriteconfig6 --file "$konsole_profile_dir/Profile 1.profile" --group "General" --key "Name" "Profile 1"
-            kwriteconfig6 --file "$konsole_profile_dir/Profile 1.profile" --group "General" --key "Command" "$fish_path"
+            kwriteconfig6 --file "$konsole_profile_dir/Profile 1.profile" --group "General" --key "Command" "$shell_path"
             kwriteconfig6 --file "$HOME/.config/konsolerc" --group "Desktop Entry" --key "DefaultProfile" "Profile 1.profile"
         fi
     else
-        warn "Fish is not installed, skipping shell change."
+        warn "$target_shell is not installed, skipping shell change."
     fi
 
     ok "Shell configuration applied."
