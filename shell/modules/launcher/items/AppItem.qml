@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 import Quickshell.Widgets
 import Caelestia.Config
 import qs.components
@@ -53,7 +54,7 @@ Item {
             anchors.leftMargin: Tokens.spacing.medium
             anchors.verticalCenter: icon.verticalCenter
 
-            implicitWidth: parent.width - icon.width - 80
+            implicitWidth: parent.width - icon.width - 120
             implicitHeight: name.implicitHeight + comment.implicitHeight
 
             StyledText {
@@ -71,7 +72,7 @@ Item {
                 color: Colours.palette.m3outline
 
                 elide: Text.ElideRight
-                width: root.width - icon.width - 80 - Tokens.rounding.extraLargeIncreased
+                width: root.width - icon.width - 120 - Tokens.rounding.extraLargeIncreased
 
                 anchors.top: name.bottom
             }
@@ -136,6 +137,57 @@ Item {
                 text: Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData?.id) ? "favorite" : "favorite_border"
                 fill: Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData?.id) ? 1 : 0
                 color: favIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+            }
+        }
+
+        MouseArea {
+            id: pinIcon
+
+            width: 32
+            height: 32
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: favIcon.left
+            anchors.rightMargin: Tokens.padding.small
+            hoverEnabled: true
+
+            property bool isPinned: false
+
+            Process {
+                id: checkPinnedProc
+                command: ["sh", "-c", "test -f ~/Desktop/\"$1\" || test -f ~/Desktop/\"$1.desktop\"", "--", root.modelData?.id ?? ""]
+                running: true
+                onExited: code => {
+                    pinIcon.isPinned = (code === 0);
+                }
+            }
+
+            onClicked: {
+                const appId = root.modelData?.id;
+                if (!appId)
+                    return;
+                
+                if (isPinned) {
+                    Quickshell.execDetached([
+                        "sh", "-c", 
+                        `rm -f ~/Desktop/"$1" ~/Desktop/"$1.desktop"`, 
+                        "--", appId
+                    ]);
+                    isPinned = false;
+                } else {
+                    Quickshell.execDetached([
+                        "sh", "-c", 
+                        `FILE=$(find /usr/share/applications ~/.local/share/applications /var/lib/flatpak/exports/share/applications -name "$1" -o -name "$1.desktop" 2>/dev/null | head -n 1); if [ -n "$FILE" ]; then cp "$FILE" ~/Desktop/; BASENAME=$(basename "$FILE"); chmod +x ~/Desktop/"$BASENAME"; fi`, 
+                        "--", appId
+                    ]);
+                    isPinned = true;
+                }
+            }
+
+            MaterialIcon {
+                anchors.centerIn: parent
+                text: "push_pin"
+                fill: pinIcon.isPinned ? 1 : 0
+                color: pinIcon.isPinned ? Colours.palette.m3primary : (pinIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant)
             }
         }
     }

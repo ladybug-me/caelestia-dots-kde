@@ -9,7 +9,6 @@ import qs.components.effects
 Popup {
     id: root
 
-    property string scriptPath: Quickshell.shellPath("scripts/add_desktop_shortcut.sh")
     signal saved(string label, string cmd, string icon)
 
     width: 300

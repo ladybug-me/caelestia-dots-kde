@@ -403,6 +403,7 @@ ERROR: Unrecognized pragma "DefaultEnv QS_NO_RELOAD_POPUP=1"
 - **[Content-Swordfish751](https://www.reddit.com/user/Content-Swordfish751/)** for many important contributions.
 - **[Peace-W](https://github.com/Peace-W)** for Nobara fix.
 - **[dim-ghub](https://github.com/dim-ghub/caelestia-shell)** for the added features in v2.0.0 from his fork.
+- **[nlohmann](https://github.com/nlohmann/json)** for the JSON parser used in the project.
 - **[Quickshell](https://quickshell.outfoxxed.me/)** — The robust Qt widget framework.
 - **[Darkly](https://github.com/vinceliuice/Darkly)** — For the gorgeous KDE theme base.
 - **[KDE Plasma](https://kde.org/plasma/)** — The powerhouse desktop environment.

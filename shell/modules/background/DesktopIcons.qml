@@ -9,6 +9,7 @@ import qs.components
 import qs.components.containers
 import qs.services
 import Qt.labs.folderlistmodel
+import Quickshell.Io
 
 Item {
     id: root
@@ -37,6 +38,8 @@ Item {
         clip: true
         interactive: false
 
+
+
         model: FolderListModel {
             id: folderModel
             folder: "file://" + Quickshell.env("HOME") + "/Desktop"
@@ -54,9 +57,51 @@ Item {
 
             required property string fileSuffix
 
-            property string path: filePath
+            property string path: filePath.replace("file://", "")
+            
+            property string desktopName: fileName
+            property string desktopIcon: ""
+            
+            Process {
+                id: desktopInfoProc
+                command: ["cat", path]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        var lines = text.trim().split("\n");
+                        var inDesktopEntry = false;
+                        var nameFound = false;
+                        var iconFound = false;
+                        for (var i = 0; i < lines.length; i++) {
+                            var line = lines[i].trim();
+                            if (line === "[Desktop Entry]") {
+                                inDesktopEntry = true;
+                                continue;
+                            } else if (line.startsWith("[")) {
+                                inDesktopEntry = false;
+                            }
+                            
+                            if (inDesktopEntry) {
+                                if (!nameFound && line.startsWith("Name=")) {
+                                    desktopName = line.substring(5);
+                                    nameFound = true;
+                                } else if (!iconFound && line.startsWith("Icon=")) {
+                                    desktopIcon = line.substring(5);
+                                    iconFound = true;
+                                }
+                            }
+                            if (nameFound && iconFound) break;
+                        }
+                    }
+                }
+            }
 
-            function getIconName(isDir, suffix) {
+            Component.onCompleted: {
+                if (fileName.toLowerCase().endsWith(".desktop")) {
+                    desktopInfoProc.running = true;
+                }
+            }
+
+            function getIconName(isDir, filename, suffix) {
                 if (isDir) return "folder";
                 const ext = suffix.toLowerCase();
                 const imageExts = ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"];
@@ -66,7 +111,7 @@ Item {
                 const codeExts = ["qml", "js", "html", "css", "py", "sh", "cpp", "c", "h", "json"];
                 
                 if (ext === "pdf") return "application-pdf";
-                if (ext === "desktop") return "application-x-executable";
+                if (filename.toLowerCase().endsWith(".desktop")) return desktopIcon || "application-x-executable";
                 if (imageExts.includes(ext)) return "image-x-generic";
                 if (videoExts.includes(ext)) return "video-x-generic";
                 if (archiveExts.includes(ext)) return "package-x-generic";
@@ -74,6 +119,17 @@ Item {
                 if (codeExts.includes(ext)) return "text-x-script";
                 
                 return "text-x-generic";
+            }
+            
+            function getIconSource(isDir, filename, suffix) {
+                if (filename.toLowerCase().endsWith(".desktop") && desktopIcon !== "") {
+                    // Check if it's an absolute path
+                    if (desktopIcon.startsWith("/")) {
+                        return "file://" + desktopIcon;
+                    }
+                    return Quickshell.iconPath(desktopIcon, "application-x-executable");
+                }
+                return "image://icon/" + getIconName(isDir, filename, suffix);
             }
 
             MouseArea {
@@ -84,7 +140,11 @@ Item {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: {
-                    Quickshell.execDetached(["xdg-open", path]);
+                    if (fileName.toLowerCase().endsWith(".desktop")) {
+                        Quickshell.execDetached(["kioclient", "exec", path]);
+                    } else {
+                        Quickshell.execDetached(["xdg-open", path]);
+                    }
                 }
 
                 Rectangle {
@@ -111,14 +171,14 @@ Item {
                             anchors.centerIn: parent
                             width: 64
                             height: 64
-                            source: "image://icon/" + getIconName(fileIsDir, fileSuffix)
+                            source: getIconSource(fileIsDir, fileName, fileSuffix)
                             fillMode: Image.PreserveAspectFit
                         }
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: fileName
+                        text: fileName.toLowerCase().endsWith(".desktop") ? desktopName : fileName
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.small
                         horizontalAlignment: Text.AlignHCenter
