@@ -24,29 +24,29 @@
         }
       ]
     },
-    // { TO BE IMPLEMENTED IN THE SCRIPTS
-    //   "id": "menu_shell",
-    //   "type": "submenu",
-    //   "title": "Shell settings",
-    //   "items": [
-    //     {
-    //       "id": "DEFAULT_SHELL",
-    //       "type": "select",
-    //       "title": "Default shell",
-    //       "default": "fish",
-    //       "options": [
-    //         "bash",
-    //         "zsh",
-    //         "fish"
-    //       ]
-    //     },
-    //     {
-    //       "id": "action_back",
-    //       "type": "action",
-    //       "title": "Back to Main Menu"
-    //     }
-    //   ]
-    // },
+    {
+      "id": "menu_shell",
+      "type": "submenu",
+      "title": "Shell settings",
+      "items": [
+        {
+          "id": "DEFAULT_SHELL",
+          "type": "select",
+          "title": "Default shell",
+          "default": "fish",
+          "options": [
+            "bash",
+            "zsh",
+            "fish"
+          ]
+        },
+        {
+          "id": "action_back",
+          "type": "action",
+          "title": "Back to Main Menu"
+        }
+      ]
+    },
     {
       "id": "menu_desktop",
       "type": "submenu",
