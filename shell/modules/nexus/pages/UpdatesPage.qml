@@ -21,7 +21,19 @@ PageBase {
     // ── Branch menu items ──────────────────────────────────────────────────
     property list<MenuItem> branchItems
 
+    function destroyBranchItems(items) {
+        if (!items)
+            return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item && item.destroy)
+                item.destroy();
+        }
+    }
+
     function updateBranchItems() {
+        const previousItems = root.branchItems;
         let items = [];
         for (let i = 0; i < UpdateChecker.availableBranches.length; i++) {
             items.push(Qt.createQmlObject(
@@ -30,6 +42,7 @@ PageBase {
             ));
         }
         root.branchItems = items;
+        root.destroyBranchItems(previousItems);
     }
 
     Item {
@@ -40,11 +53,17 @@ PageBase {
             function onCommitsChanged() { root.selectedVersionId = ""; }
             function onVersionSummaryModeChanged() { root.selectedVersionId = ""; }
             function onAvailableVersionsChanged() { root.selectedVersionId = ""; }
+            function onCurrentBranchChanged() { root.selectedVersionId = ""; }
+            function onCurrentVersionChanged() { root.selectedVersionId = ""; }
         }
     }
 
     Component.onCompleted: {
         root.updateBranchItems();
+    }
+
+    Component.onDestruction: {
+        root.destroyBranchItems(root.branchItems);
     }
 
     readonly property var activeBranchItem: branchItems.find(i => i.text === UpdateChecker.currentBranch) || branchItems[0]
@@ -122,9 +141,10 @@ function ingestProcessText(rawText) {
         }
         return null;
     }
+    readonly property bool timelineSelectionEnabled: UpdateChecker.versionSummaryMode
     readonly property string selectedVersionState: root.selectedEntry ? root.selectedEntry.state : ""
-    readonly property bool selectionIsRevert: root.selectedVersionState === "past"
-    readonly property bool selectionIsFuture: root.selectedVersionState === "available"
+    readonly property bool selectionIsRevert: root.timelineSelectionEnabled && root.selectedVersionState === "past"
+    readonly property bool selectionIsFuture: root.timelineSelectionEnabled && root.selectedVersionState === "available"
 
     // ── Timeline data ──────────────────────────────────────────────────────
     readonly property var timelineEntries: {
@@ -295,7 +315,7 @@ function ingestProcessText(rawText) {
                                 root.stallNoticeShown = false;
                                 root.processLineBuffer = "";
                                 root.logsExpanded = true;
-                                UpdateChecker.targetVersion = (root.selectedVersionId !== "" && root.selectedVersionId !== "##current##")
+                                UpdateChecker.targetVersion = (root.timelineSelectionEnabled && root.selectedVersionId !== "" && root.selectedVersionId !== "##current##")
                                     ? root.selectedVersionId : "";
                                 root.selectedVersionId = "";
                                 updateProcess.running = true;
@@ -362,9 +382,9 @@ function ingestProcessText(rawText) {
                     margins: Tokens.padding.medium
                 }
                 entries: root.timelineEntries
-                selectedId: root.selectedVersionId
+                selectedId: root.timelineSelectionEnabled ? root.selectedVersionId : ""
                 onEntryClicked: (entryId, entryState) => {
-                    if (root.updateRunning) return;
+                    if (root.updateRunning || !root.timelineSelectionEnabled) return;
                     // Toggle: click same dot to deselect
                     root.selectedVersionId = (root.selectedVersionId === entryId) ? "" : entryId;
                     UpdateChecker.targetVersion = "";
