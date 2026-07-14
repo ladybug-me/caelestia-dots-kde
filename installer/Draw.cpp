@@ -12,8 +12,8 @@ namespace Draw {
     const string dim = esc + "2m";
     
     // Colors
-    const string cyan = esc + "38;5;87m";
-    const string magenta = esc + "38;5;135m";
+    const string cyan = esc + "36m";
+    const string magenta = esc + "35m";
     const string green = esc + "32m";
     const string red = esc + "31m";
     const string yellow = esc + "33m";

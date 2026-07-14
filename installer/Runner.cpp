@@ -66,7 +66,7 @@ namespace Runner {
         }
     }
 
-    void draw_progress_ui(int current_step, const deque<string>& log_lines, const string& current_line) {
+    void draw_progress_ui(int current_step) {
         if (g_resized) { Term::get_size(); g_resized = false; }
         cout << Draw::sync_start() << Draw::clear();
         
@@ -82,7 +82,7 @@ namespace Runner {
         string bar = string(progress, '=') + (progress < bar_w ? ">" : "") + string(max(0, bar_w - progress - 1), ' ');
         Draw::text(2, 2, "[" + bar + "] " + to_string(current_step) + "/" + to_string(steps.size()));
 
-        int lw = w * 0.35;
+        int lw = w - 4; // Use full width of the pane
         Draw::box(1, 4, lw, h - 4, "STEPS");
         for (size_t i = 0; i < steps.size(); ++i) {
             int y = 5 + i;
@@ -99,90 +99,10 @@ namespace Runner {
             Draw::text(3, y, text, color);
         }
 
-        int rw = w - lw - 1;
-        Draw::box(lw + 2, 4, rw, h - 4, "LOGS");
-        int log_h = h - 6;
-        
-        vector<string> render_lines(log_lines.begin(), log_lines.end());
-        if (!current_line.empty()) {
-            render_lines.push_back(current_line);
-        }
-        
-        int start_idx = max(0, (int)render_lines.size() - log_h);
-        for (int i = 0; i < log_h && start_idx + i < render_lines.size(); ++i) {
-            string line = render_lines[start_idx + i];
-            string filtered = "";
-            size_t k = 0;
-            while (k < line.length()) {
-                if (line[k] == '\x1b') {
-                    if (k + 1 < line.length() && line[k+1] == '[') {
-                        // CSI sequence
-                        size_t end = k + 2;
-                        while (end < line.length() && !isalpha(line[end]) && line[end] != '~') end++;
-                        if (end < line.length() && line[end] == 'm') {
-                            filtered += line.substr(k, end - k + 1); // Keep color
-                        }
-                        k = end + 1;
-                    } else if (k + 1 < line.length() && line[k+1] == ']') {
-                        // OSC sequence
-                        size_t end = k + 2;
-                        while (end < line.length() && line[end] != '\x07' && line[end] != '\x1b') end++;
-                        if (end < line.length() && line[end] == '\x1b' && end + 1 < line.length() && line[end+1] == '\\') end++;
-                        k = end + 1;
-                    } else {
-                        k++; // Unknown escape, just skip the ESC char
-                    }
-                } else if (line[k] != '\b' && line[k] != '\r') {
-                    filtered += line[k];
-                    k++;
-                } else {
-                    k++;
-                }
-            }
-            
-            // Length calculation must ignore the remaining ANSI color codes
-            int vis_len = 0;
-            k = 0;
-            while (k < filtered.length()) {
-                if (filtered[k] == '\x1b' && k + 1 < filtered.length() && filtered[k+1] == '[') {
-                    size_t end = k + 2;
-                    while (end < filtered.length() && !isalpha(filtered[end])) end++;
-                    k = end + 1;
-                } else {
-                    vis_len++;
-                    k++;
-                }
-            }
-            
-            // Truncate safely without breaking ANSI
-            if (vis_len > rw - 4) {
-                // We must truncate the visible characters, not the raw string length!
-                string trunc_filtered = "";
-                int current_vis = 0;
-                size_t idx = 0;
-                while (idx < filtered.length() && current_vis < rw - 4) {
-                    if (filtered[idx] == '\x1b' && idx + 1 < filtered.length() && filtered[idx+1] == '[') {
-                        size_t end = idx + 2;
-                        while (end < filtered.length() && !isalpha(filtered[end])) end++;
-                        trunc_filtered += filtered.substr(idx, end - idx + 1);
-                        idx = end + 1;
-                    } else {
-                        trunc_filtered += filtered[idx];
-                        current_vis++;
-                        idx++;
-                    }
-                }
-                filtered = trunc_filtered + "\x1b[0m"; // Ensure colors reset
-            }
-            Draw::text(lw + 4, 5 + i, filtered);
-        }
-
         cout << Draw::sync_end() << flush;
     }
 
     void execute() {
-        deque<string> log_lines;
-        
         string cache_dir = string(getenv("XDG_CACHE_HOME") ? getenv("XDG_CACHE_HOME") : (string(getenv("HOME")) + "/.cache")) + "/caelestia-kde";
         setenv("CACHE_DIR", cache_dir.c_str(), 1);
         setenv("BUILDDIR", (cache_dir + "/makepkg-build").c_str(), 1);
@@ -206,185 +126,121 @@ namespace Runner {
         setenv("APPLY_DARKLY", g_config.apply_darkly ? "true" : "false", 1);
         setenv("ENABLE_MATYOU", g_config.enable_material_you ? "true" : "false", 1);
         setenv("APPLY_FONTS", g_config.apply_custom_fonts ? "true" : "false", 1);
+        
+        if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
+            system("tmux split-window -h -t caelestia_install \"bash -c 'clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
+            system("tmux select-pane -t caelestia_install:0.0");
+            this_thread::sleep_for(chrono::milliseconds(50)); // tiny wait for terminal resize propagation
+            g_resized = true; // force UI redraw after split
+        }
 
         for (size_t i = 0; i < steps.size(); ++i) {
 retry_step:
             steps[i].status = "RUNNING";
-            draw_progress_ui(i, log_lines);
+            draw_progress_ui(i);
             
             string cmd = "bash " + g_bundle_dir + "/" + steps[i].script_path;
             
-            int master;
-            struct winsize ws;
-            int w = g_term_width - 10;
-            int h = g_term_height - 6;
-            int lw = w / 2;
-            int rw = w - lw - 1;
-            int log_h = h - 6;
-            ws.ws_col = 120;
-            ws.ws_row = log_h;
-            ws.ws_xpixel = 0;
-            ws.ws_ypixel = 0;
-            pid_t pid = forkpty(&master, nullptr, nullptr, &ws);
-            if (pid == 0) {
-                // child
-                execl("/bin/bash", "bash", "-c", cmd.c_str(), nullptr);
-                exit(1);
-            }
-            
-            // Disable ONLCR on the PTY after creation so we don't inherit raw mode from STDIN
-            termios tio;
-            tcgetattr(master, &tio);
-            tio.c_oflag &= ~ONLCR;
-            tcsetattr(master, TCSANOW, &tio);
+            // Forward command to the right pane
+            if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
+                FILE* cmd_fifo = fopen("/tmp/caelestia_cmd", "w");
+                if (cmd_fifo) {
+                    string exports = "export PATH=\"/tmp/caelestia_bin:$PATH\" SUDO_ASKPASS=\"/tmp/caelestia_askpass.sh\"";
+                    exports += " CACHE_DIR=\"" + string(getenv("CACHE_DIR")) + "\"";
+                    exports += " BUILDDIR=\"" + string(getenv("BUILDDIR")) + "\"";
+                    exports += " PKGDEST=\"" + string(getenv("PKGDEST")) + "\"";
+                    exports += " SRCDEST=\"" + string(getenv("SRCDEST")) + "\"";
+                    exports += " SRCPKGDEST=\"" + string(getenv("SRCPKGDEST")) + "\"";
+                    exports += " BASE_DISTRO=\"" + string(getenv("BASE_DISTRO")) + "\"";
+                    exports += " BUNDLE_DIR=\"" + string(getenv("BUNDLE_DIR")) + "\"";
+                    exports += " CONFIRM_ARG=\"" + string(getenv("CONFIRM_ARG")) + "\"";
+                    exports += " REMOVE_CACHE=\"" + string(getenv("REMOVE_CACHE")) + "\"";
+                    exports += " ENABLE_POLONIUM=\"" + string(getenv("ENABLE_POLONIUM")) + "\"";
+                    exports += " APPLY_DARKLY=\"" + string(getenv("APPLY_DARKLY")) + "\"";
+                    exports += " ENABLE_MATYOU=\"" + string(getenv("ENABLE_MATYOU")) + "\"";
+                    exports += " APPLY_FONTS=\"" + string(getenv("APPLY_FONTS")) + "\"";
+                    
+                    
+                    // Send as a single compound command so the listener evaluates it all at once and replies once
+                    fprintf(cmd_fifo, "%s; echo -e '\\033[1;36m==> Running: %s\\033[0m'; %s\n", exports.c_str(), steps[i].name.c_str(), cmd.c_str());
+                    fflush(cmd_fifo);
+                    fclose(cmd_fifo);
+                }
 
-            
-            // Ignore SIGPIPE so writing to closed master doesn't crash the installer
-            signal(SIGPIPE, SIG_IGN);
-
-            int fd = master;
-            int in_fd = master;
-            
-            int flags = fcntl(fd, F_GETFL, 0);
-            fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
-            char buffer[1024];
-            string line_buf;
-            int ansi_state = 0;
-            string ansi_seq = "";
-            
-            while (true) {
-                fd_set fds;
-                FD_ZERO(&fds);
-                FD_SET(STDIN_FILENO, &fds);
-                FD_SET(fd, &fds);
-                
-                timeval tv{0, 100000}; // 100ms
-                int max_fd = max(STDIN_FILENO, fd);
-                
-                int res = select(max_fd + 1, &fds, nullptr, nullptr, &tv);
-                if (res > 0) {
-                    if (FD_ISSET(STDIN_FILENO, &fds)) {
-                        char buf[256];
-                        ssize_t n = read(STDIN_FILENO, buf, sizeof(buf));
-                        if (n > 0) {
-                            if (n == 1 && buf[0] == 3) { // Ctrl+C
-                                Term::restore();
-                                system("rm -rf /tmp/caelestia_pass.txt /tmp/caelestia_askpass.sh /tmp/caelestia_bin");
-                                kill(pid, SIGINT);
-                                exit(130);
-                            }
-                            // Convert \r to \n since terminal is in raw mode
-                            for (ssize_t k = 0; k < n; ++k) {
-                                if (buf[k] == '\r') buf[k] = '\n';
-                            }
-                            write(in_fd, buf, n);
+                // Continuously check for status or terminal resizes
+                int exit_code = -1;
+                while (true) {
+                    if (g_resized) draw_progress_ui(i);
+                    FILE* status_fifo = fopen("/tmp/caelestia_status", "r");
+                    if (status_fifo) {
+                        int fd = fileno(status_fifo);
+                        int flags = fcntl(fd, F_GETFL, 0);
+                        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+                        
+                        char buf[32];
+                        if (fgets(buf, sizeof(buf), status_fifo) != nullptr) {
+                            exit_code = atoi(buf);
+                            fclose(status_fifo);
+                            break;
                         }
+                        fclose(status_fifo);
                     }
-                    if (FD_ISSET(fd, &fds)) {
-                        ssize_t n = read(fd, buffer, sizeof(buffer));
-                        if (n > 0) {
-                            for (ssize_t j = 0; j < n; ++j) {
-                                char c = buffer[j];
-                                if (ansi_state == 0) {
-                                    if (c == '\x1b') {
-                                        ansi_state = 1;
-                                    } else if (c == '\n') {
-                                        log_lines.push_back(line_buf);
-                                        if (log_lines.size() > 500) log_lines.pop_front();
-                                        line_buf.clear();
-                                        draw_progress_ui(i, log_lines);
-                                    } else if (c == '\r') {
-                                        draw_progress_ui(i, log_lines, line_buf);
-                                        line_buf.clear();
-                                    } else if (c == '\b' || c == 127) {
-                                        if (!line_buf.empty()) line_buf.pop_back();
-                                    } else {
-                                        line_buf += c;
-                                    }
-                                } else if (ansi_state == 1) {
-                                    if (c == '[') {
-                                        ansi_state = 2;
-                                        ansi_seq = "";
-                                    } else {
-                                        ansi_state = 0; // abort, likely not a CSI sequence
-                                        line_buf += '\x1b';
-                                        line_buf += c;
-                                    }
-                                } else if (ansi_state == 2) {
-                                    if (isalpha(c) || c == '~') {
-                                        if (c == 'A') { // Cursor up
-                                            int count = ansi_seq.empty() ? 1 : atoi(ansi_seq.c_str());
-                                            if (count <= 0) count = 1;
-                                            if (!line_buf.empty()) { log_lines.push_back(line_buf); line_buf.clear(); }
-                                            for (int x = 0; x < count; ++x) {
-                                                if (!log_lines.empty()) {
-                                                    line_buf = log_lines.back();
-                                                    log_lines.pop_back();
-                                                }
-                                            }
-                                        } else if (c == 'B') { // Cursor down
-                                            int count = ansi_seq.empty() ? 1 : atoi(ansi_seq.c_str());
-                                            if (count <= 0) count = 1;
-                                            for (int x = 0; x < count; ++x) {
-                                                log_lines.push_back(line_buf);
-                                                line_buf.clear();
-                                            }
-                                        } else if (c == 'K') { // Erase line
-                                            line_buf.clear();
-                                        } else if (c == 'm') { // Color
-                                            line_buf += "\x1b[" + ansi_seq + "m";
-                                        }
-                                        ansi_state = 0;
-                                    } else {
-                                        ansi_seq += c;
-                                    }
-                                }
-                            }
-                            // Render partial lines immediately (e.g. for [Y/n] prompts)
-                            if (!line_buf.empty()) {
-                                draw_progress_ui(i, log_lines, line_buf);
-                            }
-                        } else if (n == 0) { // EOF
-                            break;
-                        } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                            break;
+                    this_thread::sleep_for(chrono::milliseconds(100));
+                    
+                    // Handle Ctrl+C gracefully
+                    fd_set fds;
+                    FD_ZERO(&fds);
+                    FD_SET(STDIN_FILENO, &fds);
+                    timeval tv{0, 0};
+                    if (select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0) {
+                        char c;
+                        if (read(STDIN_FILENO, &c, 1) > 0 && c == 3) { // Ctrl+C
+                            Term::restore();
+                            system("rm -rf /tmp/caelestia_pass.txt /tmp/caelestia_askpass.sh /tmp/caelestia_bin");
+                            exit(130);
                         }
                     }
                 }
-                if (g_resized) draw_progress_ui(i, log_lines, line_buf);
-            }
-            if (!line_buf.empty()) {
-                log_lines.push_back(line_buf);
-                draw_progress_ui(i, log_lines);
-            }
-            
-            close(fd);
-            close(in_fd);
-            
-            int status;
-            waitpid(pid, &status, 0);
-            int exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 
-            if (exit_code == 0) {
-                steps[i].status = "OK";
-            } else {
-                steps[i].status = "FAILED";
-                draw_progress_ui(i, log_lines);
-                
-                string action = show_error_dialog(steps[i].name, g_term_width, g_term_height);
-                if (action == "Retry") {
-                    goto retry_step;
-                } else if (action == "Ignore") {
-                    steps[i].status = "IGNORED";
+                if (exit_code == 0) {
+                    steps[i].status = "OK";
                 } else {
-                    Term::restore();
-                    exit(1);
+                    steps[i].status = "FAILED";
+                    draw_progress_ui(i);
+                    
+                    string action = show_error_dialog(steps[i].name, g_term_width, g_term_height);
+                    if (action == "Retry") {
+                        goto retry_step;
+                    } else if (action == "Ignore") {
+                        steps[i].status = "IGNORED";
+                    } else {
+                        Term::restore();
+                        exit(1);
+                    }
+                }
+            } else {
+                // Fallback if not in tmux
+                int status = system(cmd.c_str());
+                if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                    steps[i].status = "OK";
+                } else {
+                    steps[i].status = "FAILED";
+                    draw_progress_ui(i);
+                    
+                    string action = show_error_dialog(steps[i].name, g_term_width, g_term_height);
+                    if (action == "Retry") {
+                        goto retry_step;
+                    } else if (action == "Ignore") {
+                        steps[i].status = "IGNORED";
+                    } else {
+                        Term::restore();
+                        exit(1);
+                    }
                 }
             }
         }
         
-        draw_progress_ui(steps.size(), log_lines);
+        draw_progress_ui(steps.size());
         this_thread::sleep_for(chrono::seconds(2));
     }
 }

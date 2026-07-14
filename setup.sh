@@ -105,48 +105,88 @@ if ! normalize_line_endings_first; then
 fi
 
 BIN="$BUNDLE_DIR/caelestia-install"
-echo "Compiling Caelestia installer..."
 
-# Check and install requirements
-MISSING_PKGS=()
-if ! command -v g++ >/dev/null 2>&1; then
-    MISSING_PKGS+=("g++")
-fi
-if ! command -v cmake >/dev/null 2>&1; then
-    MISSING_PKGS+=("cmake")
-fi
-if ! command -v make >/dev/null 2>&1; then
-    MISSING_PKGS+=("make")
-fi
+if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
+    echo -n "Compiling Caelestia installer"
+    {
+        while true; do
+            printf "."
+            sleep 0.5
+            printf "."
+            sleep 0.5
+            printf "."
+            sleep 0.5
+            printf "\b\b\b   \b\b\b"
+        done
+    } &
+    SPINNER_PID=$!
 
-if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
-    echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
-    if [[ "$BASE_DISTRO" == "arch" ]]; then
-        sudo pacman -S --needed --noconfirm base-devel cmake
-    elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-        sudo dnf install -y gcc-c++ cmake make
-    else
-        echo "Could not auto-install build tools. Please install manually: ${MISSING_PKGS[*]}"
-        exit 1
+    # Check and install requirements
+    MISSING_PKGS=()
+    if ! command -v g++ >/dev/null 2>&1; then
+        MISSING_PKGS+=("g++")
     fi
+    if ! command -v cmake >/dev/null 2>&1; then
+        MISSING_PKGS+=("cmake")
+    fi
+    if ! command -v make >/dev/null 2>&1; then
+        MISSING_PKGS+=("make")
+    fi
+    if ! command -v tmux >/dev/null 2>&1; then
+        MISSING_PKGS+=("tmux")
+    fi
+
+    if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
+        kill $SPINNER_PID 2>/dev/null || true
+        echo ""
+        echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
+        if [[ "$BASE_DISTRO" == "arch" ]]; then
+            sudo pacman -S --needed --noconfirm base-devel cmake tmux
+        elif [[ "$BASE_DISTRO" == "fedora" ]]; then
+            sudo dnf install -y gcc-c++ cmake make tmux
+        else
+            echo "Could not auto-install build tools. Please install manually: ${MISSING_PKGS[*]}"
+            exit 1
+        fi
+        echo -n "Compiling Caelestia installer"
+        {
+            while true; do
+                printf "."
+                sleep 0.5
+                printf "."
+                sleep 0.5
+                printf "."
+                sleep 0.5
+                printf "\b\b\b   \b\b\b"
+            done
+        } &
+        SPINNER_PID=$!
+    fi
+
+    BUILD_DIR="$BUNDLE_DIR/installer/build"
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+    (
+        cd "$BUILD_DIR" || exit 1
+        cmake -DCMAKE_BUILD_TYPE=Release .. >/dev/null 2>&1 || exit 1
+        make -j"$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || exit 1
+    ) || {
+        kill $SPINNER_PID 2>/dev/null || true
+        echo ""
+        echo "[FATAL] Failed to build the Caelestia installer." >&2
+        exit 1
+    }
+    
+    kill $SPINNER_PID 2>/dev/null || true
+    wait $SPINNER_PID 2>/dev/null || true
+    echo ""
+
+    rm -f "$BIN"
+    cp "$BUILD_DIR/caelestia-install" "$BIN" || {
+        echo "[FATAL] Failed to copy the compiled Caelestia installer to $BIN." >&2
+        exit 1
+    }
 fi
-
-BUILD_DIR="$BUNDLE_DIR/installer/build"
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
-(
-    cd "$BUILD_DIR" || exit 1
-    cmake -DCMAKE_BUILD_TYPE=Release .. >/dev/null 2>&1 || exit 1
-    make -j"$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || exit 1
-) || {
-    echo "[FATAL] Failed to build the Caelestia installer." >&2
-    exit 1
-}
-
-cp "$BUILD_DIR/caelestia-install" "$BIN" || {
-    echo "[FATAL] Failed to copy the compiled Caelestia installer to $BIN." >&2
-    exit 1
-}
 
 cleanup_install_state() {
     if [[ -f /tmp/caelestia_inhibit.pid ]]; then
@@ -156,8 +196,29 @@ cleanup_install_state() {
         qdbus6 org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.UnInhibit "$(cat /tmp/caelestia_kde_inhibit.cookie)" 2>/dev/null || true
     fi
     rm -f /tmp/caelestia_inhibit.pid /tmp/caelestia_kde_inhibit.cookie
+    
+    if [[ -n "${TMUX:-}" && "${CAELESTIA_TMUX_MASTER:-0}" == "1" ]]; then
+        tmux kill-session -t caelestia_install 2>/dev/null || true
+        rm -f /tmp/caelestia_cmd /tmp/caelestia_status
+    fi
 }
 trap cleanup_install_state EXIT
+
+if [[ -z "${TMUX:-}" && "${CAELESTIA_NO_TMUX:-0}" == "0" ]]; then
+    # Kill any stale session first
+    tmux kill-session -t caelestia_install 2>/dev/null || true
+    
+    export CAELESTIA_TMUX_MASTER=1
+    rm -f /tmp/caelestia_cmd /tmp/caelestia_status
+    mkfifo /tmp/caelestia_cmd
+    mkfifo /tmp/caelestia_status
+    
+    tmux new-session -d -s caelestia_install "bash \"$0\" $@"
+    tmux set-option -t caelestia_install mouse on
+    
+    tmux attach-session -t caelestia_install
+    exit $?
+fi
 
 "$BIN" "$@"
 exit $?
