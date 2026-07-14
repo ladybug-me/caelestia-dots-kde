@@ -230,7 +230,7 @@ PageBase {
                                 root.updateProgress = 0.0;
                                 root.updateStatus = qsTr("Starting…");
                                 root.updateRunning = true;
-                                root.logsExpanded = false;
+                                root.logsExpanded = true;
                                 UpdateChecker.targetVersion = (root.selectedVersionId !== "" && root.selectedVersionId !== "##current##")
                                     ? root.selectedVersionId : "";
                                 root.selectedVersionId = "";
@@ -239,14 +239,19 @@ PageBase {
                         }
                     }
 
-                    // Secondary: Check for updates / Cancel selection
+                    // Secondary: Stop / Check for updates / Cancel selection
                     IconTextButton {
-                        visible: !root.updateRunning && root.updateProgress !== 1.0
-                        text: root.selectedVersionId !== "" ? qsTr("Cancel") : qsTr("Check")
+                        visible: root.updateProgress !== 1.0
+                        text: root.updateRunning ? qsTr("Stop") : (root.selectedVersionId !== "" ? qsTr("Cancel") : qsTr("Check"))
                         type: TextButton.Tonal
-                        icon: root.selectedVersionId !== "" ? "close" : "refresh"
+                        icon: root.updateRunning ? "stop" : (root.selectedVersionId !== "" ? "close" : "refresh")
                         onClicked: {
-                            if (root.selectedVersionId !== "") {
+                            if (root.updateRunning) {
+                                updateProcess.running = false;
+                                root.updateRunning = false;
+                                root.updateStatus = qsTr("Cancelled");
+                                root.updateLogs += "\n[Cancelled by user]";
+                            } else if (root.selectedVersionId !== "") {
                                 root.selectedVersionId = "";
                             } else {
                                 UpdateChecker.checkUpdates();
@@ -305,7 +310,7 @@ PageBase {
 
         // 4 ── UPDATE LOG (appears after update runs) ──────────────────────
         SectionHeader {
-            visible: root.updateLogs !== ""
+            visible: root.updateRunning || root.updateLogs !== ""
             text: qsTr("Update Log")
         }
 
@@ -313,7 +318,7 @@ PageBase {
             first: true
             last: true
             Layout.fillWidth: true
-            visible: root.updateLogs !== ""
+            visible: root.updateRunning || root.updateLogs !== ""
             implicitHeight: logContent.implicitHeight + Tokens.padding.medium * 2
 
             ColumnLayout {
@@ -328,6 +333,7 @@ PageBase {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: Tokens.spacing.medium
 
                     StyledText {
                         Layout.fillWidth: true
@@ -342,25 +348,34 @@ PageBase {
                     }
                 }
 
+                StyledProgressBar {
+                    Layout.fillWidth: true
+                    value: root.updateProgress
+                    indeterminate: root.updateProgress === 0.0 && root.updateRunning
+                    visible: root.updateRunning || root.updateProgress > 0.0
+                }
+
                 StyledRect {
                     Layout.fillWidth: true
                     implicitHeight: 240
-                    visible: root.logsExpanded
+                    visible: root.logsExpanded && (root.updateLogs !== "" || root.updateRunning)
                     color: Colours.tPalette.m3surfaceContainerLowest
                     radius: Tokens.rounding.small
                     clip: true
 
                     Flickable {
+                        id: logFlickable
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         contentHeight: logText.implicitHeight
                         contentWidth: width
+                        flickableDirection: Flickable.VerticalFlick
                         onContentHeightChanged: {
                             if (contentHeight > height) contentY = contentHeight - height;
                         }
                         StyledText {
                             id: logText
-                            width: parent.width
+                            width: logFlickable.width
                             text: root.updateLogs
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.body.small
