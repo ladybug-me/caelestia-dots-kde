@@ -358,7 +358,7 @@ function ingestProcessText(rawText) {
                 : qsTr("Development builds — may be unstable")
             menuItems: root.branchItems
             active: root.activeBranchItem
-            onSelected: item => {
+            onSelected: function(item) {
                 root.selectedVersionId = "";
                 UpdateChecker.checkUpdates(item.text);
             }
@@ -383,7 +383,7 @@ function ingestProcessText(rawText) {
                 }
                 entries: root.timelineEntries
                 selectedId: root.timelineSelectionEnabled ? root.selectedVersionId : ""
-                onEntryClicked: (entryId, entryState) => {
+                onEntryClicked: function(entryId, entryState) {
                     if (root.updateRunning || !root.timelineSelectionEnabled) return;
                     // Toggle: click same dot to deselect
                     root.selectedVersionId = (root.selectedVersionId === entryId) ? "" : entryId;
@@ -498,16 +498,16 @@ function ingestProcessText(rawText) {
                 CAELESTIA_SKIP_BUILD: updaterSettings.buildShell ? "0" : "1"
             })
             stdout: SplitParser {
-                onRead: text => {
+                onRead: function(text) {
                     root.ingestProcessText(text);
                 }
             }
             stderr: SplitParser {
-                onRead: text => {
+                onRead: function(text) {
                     root.ingestProcessText(text);
                 }
             }
-            onExited: code => {
+            onExited: function(code) {
                 if (root.processLineBuffer !== "") {
                     root.handleProgressLine(root.processLineBuffer);
                     root.processLineBuffer = "";
