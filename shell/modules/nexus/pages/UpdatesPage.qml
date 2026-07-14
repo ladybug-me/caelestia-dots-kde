@@ -22,6 +22,11 @@ PageBase {
     property list<MenuItem> versionItems
 
     function updateBranchItems() {
+        if (root.branchItems) {
+            for (let i = 0; i < root.branchItems.length; i++) {
+                root.branchItems[i].destroy();
+            }
+        }
         let items = [];
         for (let i = 0; i < UpdateChecker.availableBranches.length; i++) {
             items.push(Qt.createQmlObject('import qs.components.controls; MenuItem { text: "' + UpdateChecker.availableBranches[i] + '"; icon: "call_split" }', root));
