@@ -8,6 +8,17 @@ info() { echo "[INFO]  $*"; }
 ok()   { echo "[OK]    $*"; }
 warn() { echo "[WARN]  $*"; }
 
+run_stage() {
+    local timeout_seconds="$1"
+    shift
+
+    if command -v timeout >/dev/null 2>&1; then
+        timeout --foreground "$timeout_seconds" "$@"
+    else
+        "$@"
+    fi
+}
+
 BRANCH="${1:-main}"
 TARGET_REF="${2:-}"
 if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "dev" ]; then
@@ -136,7 +147,7 @@ echo "---------------------------------------------"
 if [[ "${CAELESTIA_SKIP_DEPLOY:-0}" == "1" ]]; then
     info "Skipping deploy-configs per user settings."
 else
-    bash "$UPD_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed."
+    run_stage 900 bash "$UPD_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed or timed out."
 fi
 echo "PROGRESS: 3/5: Configuration files deployed."
 
@@ -149,7 +160,22 @@ echo "---------------------------------------------"
 if [[ "${CAELESTIA_SKIP_BUILD:-0}" == "1" ]]; then
     info "Skipping build-shell per user settings."
 else
-    bash "$UPD_DIR/repo/scripts/08-build-shell.sh" || warn "Shell build reported an error, but continuing."
+    run_stage 3600 bash "$UPD_DIR/repo/scripts/08-build-shell.sh" || die "Shell build failed or timed out."
+
+    # Fail fast if QML module install is incomplete, otherwise shell startup fails
+    # with 'module "Caelestia.Config" is not installed'.
+    QML_BASE="$HOME/.local/lib/qt6/qml"
+    CONFIG_MODULE_DIR="$QML_BASE/Caelestia/Config"
+    if [[ ! -f "$CONFIG_MODULE_DIR/qmldir" ]]; then
+        die "Installed QML module metadata missing at $CONFIG_MODULE_DIR/qmldir"
+    fi
+
+    shopt -s nullglob
+    CONFIG_PLUGIN_FILES=("$CONFIG_MODULE_DIR"/*.so)
+    shopt -u nullglob
+    if [[ ${#CONFIG_PLUGIN_FILES[@]} -eq 0 ]]; then
+        die "Installed Caelestia.Config plugin library missing in $CONFIG_MODULE_DIR"
+    fi
 fi
 
 # 6. Save current commit hash

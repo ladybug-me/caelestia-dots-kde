@@ -48,6 +48,21 @@ cmake --install build || {
     exit 1
 }
 
+# Validate critical QML module presence before declaring success.
+CONFIG_MODULE_DIR="$HOME/.local/lib/qt6/qml/Caelestia/Config"
+if [[ ! -f "$CONFIG_MODULE_DIR/qmldir" ]]; then
+    err "Missing QML module metadata: $CONFIG_MODULE_DIR/qmldir"
+    exit 1
+fi
+
+shopt -s nullglob
+CONFIG_PLUGIN_FILES=("$CONFIG_MODULE_DIR"/*.so)
+shopt -u nullglob
+if [[ ${#CONFIG_PLUGIN_FILES[@]} -eq 0 ]]; then
+    err "Missing Caelestia.Config plugin library in $CONFIG_MODULE_DIR"
+    exit 1
+fi
+
 # Add wrapper config to bashrc/fish
 if ! grep -q "QML2_IMPORT_PATH=.*caelestia" ~/.bashrc; then
     echo 'export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"' >> ~/.bashrc

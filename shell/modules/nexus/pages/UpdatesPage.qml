@@ -55,34 +55,59 @@ PageBase {
     property real updateProgress: 0.0
     property string updateStatus: ""
     property bool logsExpanded: false
+    property double lastUpdateOutputMs: 0
+    property bool stallNoticeShown: false
+    property string processLineBuffer: ""
 
     function handleProgressLine(rawLine) {
-        // Strip ANSI color/control sequences and carriage returns so PROGRESS lines
-        // are still detected when tools emit colored output.
-        let line = rawLine
-            .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
-            .replace(/\r/g, "")
-            .trim();
-
-        const progressIndex = line.indexOf("PROGRESS: ");
-        if (progressIndex === -1)
+        const line = rawLine.trim();
+        if (line === "")
             return;
 
-        const pText = line.substring(progressIndex + 10).trim();
-        if (pText.startsWith("done")) {
-            root.updateProgress = 1.0;
-            root.updateStatus = qsTr("Done!");
+        const progressMatch = line.match(/PROGRESS:\s*(done.*|\d+\/\d+:\s*.+)$/);
+        if (progressMatch) {
+            const pText = progressMatch[1].trim();
+            if (pText.startsWith("done")) {
+                root.updateProgress = 1.0;
+                root.updateStatus = qsTr("Done!");
+                return;
+            }
+
+            const stageMatch = pText.match(/^(\d+)\/(\d+):\s*(.+)$/);
+            if (stageMatch) {
+                const current = parseInt(stageMatch[1]);
+                const total = parseInt(stageMatch[2]);
+                if (total > 0) {
+                    root.updateProgress = current / total;
+                    root.updateStatus = stageMatch[3];
+                }
+            }
             return;
         }
 
-        const match = pText.match(/^(\d+)\/(\d+):\s*(.+)$/);
-        if (match) {
-            const current = parseInt(match[1]);
-            const total = parseInt(match[2]);
-            if (total > 0) {
-                root.updateProgress = current / total;
-                root.updateStatus = match[3];
-            }
+        // Fallback: mark deploy stage as finished when deploy script confirms completion.
+        if (line.indexOf("Config deployment complete") !== -1 && root.updateProgress < 0.8) {
+            root.updateProgress = 0.7;
+            root.updateStatus = qsTr("Preparing shell build...");
+        }
+    }
+
+    function ingestProcessText(rawText) {
+        root.lastUpdateOutputMs = Date.now();
+        root.stallNoticeShown = false;
+
+        const cleaned = rawText
+            .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
+            .replace(/\r/g, "\n");
+
+        root.updateLogs += cleaned;
+
+        const combined = root.processLineBuffer + cleaned;
+        const lines = combined.split("\n");
+        root.processLineBuffer = lines.pop();
+
+        for (let i = 0; i < lines.length; i++) {
+            root.handleProgressLine(lines[i]);
         }
     }
 
@@ -190,10 +215,15 @@ PageBase {
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
                     font: Tokens.font.title.medium
                     color: (UpdateChecker.hasUpdate || root.updateRunning || root.updateProgress === 1.0)
                         ? Colours.palette.m3onSurface
                         : Colours.palette.m3outlineVariant
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
                     text: {
                         if (root.updateProgress === 1.0) return qsTr("Update complete — log out to apply");
                         if (root.updateRunning) return root.updateStatus || qsTr("Updating…");
@@ -260,6 +290,9 @@ PageBase {
                                 root.updateProgress = 0.0;
                                 root.updateStatus = qsTr("Starting…");
                                 root.updateRunning = true;
+                                root.lastUpdateOutputMs = Date.now();
+                                root.stallNoticeShown = false;
+                                root.processLineBuffer = "";
                                 root.logsExpanded = true;
                                 UpdateChecker.targetVersion = (root.selectedVersionId !== "" && root.selectedVersionId !== "##current##")
                                     ? root.selectedVersionId : "";
@@ -370,6 +403,9 @@ PageBase {
                         text: root.updateStatus
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.medium
+                        wrapMode: Text.NoWrap
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
                     }
 
                     IconButton {
@@ -417,6 +453,21 @@ PageBase {
         }
 
         // ── PROCESSES ─────────────────────────────────────────────────────
+        Timer {
+            interval: 30000
+            repeat: true
+            running: root.updateRunning
+            onTriggered: {
+                if (!root.updateRunning) return;
+                if (root.lastUpdateOutputMs <= 0) return;
+                const idleMs = Date.now() - root.lastUpdateOutputMs;
+                if (idleMs >= 120000 && !root.stallNoticeShown) {
+                    root.stallNoticeShown = true;
+                    root.updateLogs += "[WARN] No updater output for 120s. If this persists, stop and retry.\n";
+                }
+            }
+        }
+
         Process {
             id: updateProcess
             command: [Paths.absolutePath("~/.local/bin/caelestia-update"), UpdateChecker.currentBranch]
@@ -427,18 +478,21 @@ PageBase {
             })
             stdout: SplitParser {
                 onRead: text => {
-                    root.updateLogs += text + "\n";
-                    root.handleProgressLine(text);
+                    root.ingestProcessText(text);
                 }
             }
             stderr: SplitParser {
                 onRead: text => {
-                    root.updateLogs += text + "\n";
-                    root.handleProgressLine(text);
+                    root.ingestProcessText(text);
                 }
             }
             onExited: code => {
+                if (root.processLineBuffer !== "") {
+                    root.handleProgressLine(root.processLineBuffer);
+                    root.processLineBuffer = "";
+                }
                 root.updateRunning = false;
+                root.lastUpdateOutputMs = 0;
                 if (code === 0) {
                     Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");
                     UpdateChecker.reload();
