@@ -1,4 +1,5 @@
 #include "Draw.hpp"
+#include "Globals.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -12,12 +13,12 @@ namespace Draw {
     const string dim = esc + "2m";
     
     // Colors
-    const string cyan = esc + "36m";
-    const string magenta = esc + "35m";
-    const string green = esc + "32m";
-    const string red = esc + "31m";
-    const string yellow = esc + "33m";
-    const string white = esc + "1;37m";
+    string color(const string& name) {
+        if (!g_theme.is_null() && g_theme.contains("colors") && g_theme["colors"].contains(name)) {
+            return esc + g_theme["colors"][name].get<string>();
+        }
+        return esc + "37m"; // fallback white
+    }
     
     // Box chars
     const string h_line = "-";
@@ -35,9 +36,11 @@ namespace Draw {
     string sync_start() { return esc + "?2026h"; }
     string sync_end()   { return esc + "?2026l"; }
 
-    void box(int x, int y, int w, int h, const string& title, const string& color) {
+    void box(int x, int y, int w, int h, const string& title, const string& border_color, const string& title_color) {
         if (w < 2 || h < 2) return;
-        string out = color;
+        string c = color(border_color);
+        string tc = title_color.empty() ? reset : color(title_color);
+        string out = c;
         
         string h_str(w - 2, '-');
         out += to(y, x) + corner + h_str + corner;
@@ -51,17 +54,19 @@ namespace Draw {
         if (!title.empty()) {
             int pad = (w - title.length()) / 2;
             if (pad > 0) {
-                out += to(y, x + pad) + bold + reset + color + "[" + reset + bold + title + reset + color + "]" + reset;
+                out += to(y, x + pad) + bold + reset + c + "[" + reset + bold + tc + title + reset + c + "]" + reset;
             }
         }
         cout << out << reset;
     }
 
-    void animated_box(int x, int y, int w, int h, const string& title, const string& color) {
+    void animated_box(int x, int y, int w, int h, const string& title, const string& border_color, const string& title_color) {
         if (w < 2 || h < 2) return;
+        string c = color(border_color);
+        string tc = title_color.empty() ? reset : color(title_color);
         
         // Disable sync for animation
-        cout << sync_end() << color;
+        cout << sync_end() << c;
         
         // Draw top line left to right
         cout << to(y, x) << corner << flush;
@@ -91,14 +96,16 @@ namespace Draw {
         if (!title.empty()) {
             int pad = (w - title.length()) / 2;
             if (pad > 0) {
-                cout << to(y, x + pad) << bold << reset << color << "[" << reset << bold << title << reset << color << "]" << reset << flush;
+                cout << to(y, x + pad) << bold << reset << c << "[" << reset << bold << title << reset << c << "]" << reset << flush;
             }
         }
         
         cout << reset << sync_start();
+        this_thread::sleep_for(chrono::milliseconds(30));
     }
 
-    void text(int x, int y, const string& txt, const string& color) {
-        cout << to(y, x) << color << txt << reset;
+    void text(int x, int y, const string& txt, const string& color_name) {
+        string c = color_name.empty() ? "" : color(color_name);
+        cout << to(y, x) << c << txt << reset << flush;
     }
 }

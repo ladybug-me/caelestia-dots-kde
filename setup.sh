@@ -9,6 +9,9 @@
 
 set -uo pipefail
 
+# Hide cursor immediately for cleaner output
+tput civis 2>/dev/null || true
+
 # -- Paths ---------------------------------------------------------------------
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
@@ -189,6 +192,7 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
 fi
 
 cleanup_install_state() {
+    tput cnorm 2>/dev/null || true
     if [[ -f /tmp/caelestia_inhibit.pid ]]; then
         kill -9 "$(cat /tmp/caelestia_inhibit.pid)" 2>/dev/null || true
     fi

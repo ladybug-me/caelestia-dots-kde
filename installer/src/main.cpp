@@ -36,6 +36,8 @@ int main(int argc, char** argv) {
         }
     }
 
+    load_theme();
+
     signal(SIGWINCH, handle_sigwinch);
     signal(SIGINT, handle_sigint);
     signal(SIGTERM, handle_sigint);

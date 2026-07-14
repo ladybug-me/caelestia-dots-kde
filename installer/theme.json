@@ -1,0 +1,78 @@
+{
+  "colors": {
+    "cyan": "36m",
+    "magenta": "35m",
+    "green": "32m",
+    "red": "31m",
+    "yellow": "33m",
+    "white": "1;37m"
+  },
+  "splash_screen": {
+    "art": [
+      "   _____            _           _   _       ",
+      "  / ____|          | |         | | (_)      ",
+      " | |     __ _  ___ | | ___  ___| |_ _  __ _ ",
+      " | |    / _` |/ _ \\| |/ _ \\/ __| __| |/ _` |",
+      " | |___| (_| | (_) | |  __/\\__ \\ |_| | (_| |",
+      "  \\_____\\__,_|\\___/|_|\\___||___/\\__|_|\\__,_|"
+    ],
+    "author": "By @ladybug-me",
+    "animation_speed_ms": 3,
+    "art_color": "magenta",
+    "loading_text_color": "dim",
+    "loading_texts": [
+      "Initializing installer",
+      "Target platform: KDE Plasma 6",
+      "Original Hyprland dots: caelestia-dots",
+      "Co-maintainer: 0xSolanaceae"
+    ]
+  },
+  "layout": {
+    "progress_box": {
+      "title": "INSTALLATION PROGRESS",
+      "color": "cyan",
+      "title_color": "white",
+      "text_color": "cyan",
+      "padding_x": 4,
+      "padding_y": 2
+    },
+    "step_list": {
+      "title": "STEPS",
+      "color": "cyan",
+      "title_color": "white",
+      "offset_y": 3,
+      "offset_x": 2,
+      "spacing_x": 10
+    },
+    "sudo_prompt": {
+      "title": "PRIVILEGE ESCALATION",
+      "color": "cyan",
+      "title_color": "white",
+      "text_color": "white",
+      "prompt_color": "cyan"
+    },
+    "distro_select": {
+      "title": "DETECTED OS",
+      "color": "cyan",
+      "title_color": "white",
+      "text_color": "white"
+    },
+    "config_checklist": {
+      "title": "CONFIGURATION",
+      "color": "cyan",
+      "title_color": "white",
+      "text_color": "white"
+    },
+    "summary_screen": {
+      "title": "CAELESTIA INSTALLATION SUMMARY",
+      "color": "green",
+      "title_color": "white"
+    }
+  },
+  "strings": {
+    "status_ok": "[OK]",
+    "status_running": "[*]",
+    "status_pending": "[ ]",
+    "status_error": "[ERR]"
+  }
+}

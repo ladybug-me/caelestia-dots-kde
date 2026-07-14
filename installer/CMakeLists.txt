@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 # Find all source files
-file(GLOB SOURCES "*.cpp")
+file(GLOB SOURCES "src/*.cpp")
+include_directories(src)
 
 # Define executable
 add_executable(caelestia-install ${SOURCES})

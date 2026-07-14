@@ -13,8 +13,8 @@
 using namespace std;
 
 namespace UI {
-    bool loading_text(int x, int y, const string& text, const string& color) {
-        cout << Draw::to(y, x) << color << text << "   " << flush;
+    bool loading_text(int x, int y, const string& text, const string& color_name) {
+        cout << Draw::to(y, x) << Draw::color(color_name) << text << "   " << flush;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 20; ++j) {
                 if (!Input::get().empty()) return true;
@@ -31,15 +31,18 @@ namespace UI {
     }
 
     void splash_screen() {
-        vector<string> art = {
-            "   _____            _           _   _       ",
-            "  / ____|          | |         | | (_)      ",
-            " | |     __ _  ___ | | ___  ___| |_ _  __ _ ",
-            " | |    / _` |/ _ \\| |/ _ \\/ __| __| |/ _` |",
-            " | |___| (_| | (_) | |  __/\\__ \\ |_| | (_| |",
-            "  \\_____\\__,_|\\___/|_|\\___||___/\\__|_|\\__,_|"
-        };
-        int art_width = 46;
+        vector<string> art;
+        if (!g_theme.is_null() && g_theme.contains("splash_screen") && g_theme["splash_screen"].contains("art")) {
+            for (auto& line : g_theme["splash_screen"]["art"]) {
+                art.push_back(line.get<string>());
+            }
+        }
+        if (art.empty()) art.push_back("Caelestia Installer"); // fallback
+
+        int art_width = 0;
+        for (const auto& line : art) {
+            if (line.length() > art_width) art_width = line.length();
+        }
         int art_height = art.size();
         
         cout << Draw::clear();
@@ -50,13 +53,20 @@ namespace UI {
         if (top < 1) top = 1;
         
         // Animate art character by character
-        cout << Draw::magenta << Draw::bold;
+        string art_color_name = "magenta";
+        int speed_ms = 3;
+        if (!g_theme.is_null() && g_theme.contains("splash_screen")) {
+            if (g_theme["splash_screen"].contains("art_color")) art_color_name = g_theme["splash_screen"]["art_color"].get<string>();
+            if (g_theme["splash_screen"].contains("animation_speed_ms")) speed_ms = g_theme["splash_screen"]["animation_speed_ms"].get<int>();
+        }
+
+        cout << Draw::color(art_color_name) << Draw::bold;
         for (size_t i = 0; i < art.size(); ++i) {
             cout << Draw::to(top + i, left);
             for (char c : art[i]) {
                 if (!Input::get().empty()) return;
                 cout << c << flush;
-                this_thread::sleep_for(chrono::milliseconds(3));
+                this_thread::sleep_for(chrono::milliseconds(speed_ms));
             }
         }
         cout << Draw::reset;
@@ -68,10 +78,27 @@ namespace UI {
         int text_top = top + art_height + 2;
         int text_left = left + 4;
 
-        if (loading_text(text_left, text_top, "Initializing installer", Draw::cyan)) return;
-        if (loading_text(text_left, text_top + 1, "Target platform: KDE Plasma 6", Draw::dim)) return;
-        if (loading_text(text_left, text_top + 2, "Original Hyprland dots: caelestia-dots", Draw::dim)) return;
-        if (loading_text(text_left, text_top + 3, "KDE port: ladybug-me", Draw::dim)) return;
+        string author = "By @ladybug-me";
+        string loading_color = "dim";
+        if (!g_theme.is_null() && g_theme.contains("splash_screen")) {
+            if (g_theme["splash_screen"].contains("author")) author = g_theme["splash_screen"]["author"].get<string>();
+            if (g_theme["splash_screen"].contains("loading_text_color")) loading_color = g_theme["splash_screen"]["loading_text_color"].get<string>();
+        }
+
+        vector<string> init_texts = { "Initializing installer" };
+        if (!g_theme.is_null() && g_theme.contains("splash_screen") && g_theme["splash_screen"].contains("loading_texts")) {
+            init_texts.clear();
+            for (auto& text : g_theme["splash_screen"]["loading_texts"]) {
+                init_texts.push_back(text.get<string>());
+            }
+        }
+        
+        cout << Draw::to(text_top, text_left + 10) << author;
+        cout << Draw::sync_end() << flush;
+        
+        for (size_t i = 0; i < init_texts.size(); ++i) {
+            if (loading_text(text_left, text_top + i + 1, init_texts[i], loading_color)) return;
+        }
         
         for (int j = 0; j < 50; ++j) {
             if (!Input::get().empty()) return;
@@ -97,14 +124,27 @@ namespace UI {
             int top = (g_term_height - box_height) / 2;
             if (top < 1) top = 1;
 
+            string box_title = "PRIVILEGE ESCALATION";
+            string box_color = "magenta";
+            string title_color = "white";
+            string text_color = "white";
+            string prompt_color = "cyan";
+            if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("sudo_prompt")) {
+                auto& l = g_theme["layout"]["sudo_prompt"];
+                if (l.contains("title")) box_title = l["title"].get<string>();
+                if (l.contains("color")) box_color = l["color"].get<string>();
+                if (l.contains("title_color")) title_color = l["title_color"].get<string>();
+                if (l.contains("text_color")) text_color = l["text_color"].get<string>();
+                if (l.contains("prompt_color")) prompt_color = l["prompt_color"].get<string>();
+            }
             if (!animated_once) {
-                Draw::animated_box(left, top, box_width, box_height, "PRIVILEGE ESCALATION", Draw::magenta);
+                Draw::animated_box(left, top, box_width, box_height, box_title, box_color, title_color);
                 animated_once = true;
             } else {
-                Draw::box(left, top, box_width, box_height, "PRIVILEGE ESCALATION", Draw::magenta);
+                Draw::box(left, top, box_width, box_height, box_title, box_color, title_color);
             }
-            Draw::text(left + 2, top + 2, "Root privileges are required to install packages.", Draw::white);
-            Draw::text(left + 2, top + 3, "Password: ", Draw::bold + Draw::cyan);
+            Draw::text(left + 2, top + 2, "Root privileges are required to install packages.", text_color);
+            Draw::text(left + 2, top + 3, "Password: ", Draw::bold + Draw::color(prompt_color));
             
             // Draw masked password
             string masked(pw.length(), '*');
@@ -112,7 +152,7 @@ namespace UI {
             Draw::text(left + 12, top + 3, masked, Draw::reset);
 
             if (!error_msg.empty()) {
-                Draw::text(left + 2, top + 5, error_msg, Draw::red);
+                Draw::text(left + 2, top + 5, error_msg, Draw::color("red"));
             }
             
             cout << Draw::sync_end() << flush;
@@ -123,7 +163,7 @@ namespace UI {
                 
                 // Show verifying...
                 cout << Draw::sync_start();
-                Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::yellow);
+                Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::color("yellow"));
                 cout << Draw::sync_end() << flush;
                 
                 FILE* pipe = popen("sudo -S true 2>/dev/null", "w");
@@ -194,7 +234,7 @@ namespace UI {
                     // Trigger enter behavior
                     if (!pw.empty()) {
                         cout << Draw::sync_start();
-                        Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::yellow);
+                        Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::color("yellow"));
                         cout << Draw::sync_end() << flush;
                         FILE* pipe = popen("sudo -S true 2>/dev/null", "w");
                         if (pipe) {
@@ -272,7 +312,7 @@ namespace UI {
             for (size_t i = 0; i < options.size(); i++) {
                 int opt_y = top + 4 + i;
                 if (i == selected) {
-                    Draw::text(left + 2, opt_y, " > " + options[i], Draw::green);
+                    Draw::text(left + 2, opt_y, " > " + options[i], Draw::color("green"));
                 } else {
                     Draw::text(left + 2, opt_y, "   " + options[i]);
                 }
@@ -333,7 +373,7 @@ namespace UI {
                 string mark = *states[i] ? "X" : " ";
                 string text = "[" + mark + "] " + options[i];
                 if (i == selected) {
-                    Draw::text(left + 2, opt_y, " > " + text, Draw::green);
+                    Draw::text(left + 2, opt_y, " > " + text, Draw::color("green"));
                 } else {
                     Draw::text(left + 2, opt_y, "   " + text);
                 }
@@ -341,7 +381,7 @@ namespace UI {
 
             int proceed_y = top + 4 + options.size() + 1;
             if (selected == options.size()) {
-                Draw::text(left + 2, proceed_y, " > PROCEED", Draw::green);
+                Draw::text(left + 2, proceed_y, " > PROCEED", Draw::color("green"));
             } else {
                 Draw::text(left + 2, proceed_y, "   PROCEED");
             }
@@ -384,8 +424,18 @@ namespace UI {
             int h = g_term_height - 2;
             int left = (g_term_width - w) / 2;
             int top = 1;
+            
+            string box_title = "CAELESTIA INSTALLATION SUMMARY";
+            string box_color = "green";
+            string title_color = "white";
+            if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("summary_screen")) {
+                auto& l = g_theme["layout"]["summary_screen"];
+                if (l.contains("title")) box_title = l["title"].get<string>();
+                if (l.contains("color")) box_color = l["color"].get<string>();
+                if (l.contains("title_color")) title_color = l["title_color"].get<string>();
+            }
 
-            Draw::box(left, top, w, h, "CAELESTIA INSTALLATION SUMMARY", Draw::green);
+            Draw::box(left, top, w, h, box_title, box_color, title_color);
             
             int y = top + 2;
 
@@ -393,7 +443,7 @@ namespace UI {
                 if (y >= top + h - 2) return;
                 bool failed = check_failed(steps_file, name);
                 string mark = failed ? "[X]" : "[OK]";
-                string color = failed ? Draw::red : Draw::green;
+                string color = failed ? Draw::color("red") : Draw::color("green");
                 Draw::text(left + 2, y++, color + mark + Draw::reset + " " + desc);
             };
 
@@ -401,14 +451,14 @@ namespace UI {
                 if (y >= top + h - 2) return;
                 bool failed = check_failed(patches_file, name);
                 string mark = failed ? "[X]" : "[OK]";
-                string color = failed ? Draw::red : Draw::green;
+                string color = failed ? Draw::color("red") : Draw::color("green");
                 Draw::text(left + 2, y++, color + mark + Draw::reset + " " + desc);
             };
 
             if (g_base_distro == "arch") {
-                Draw::text(left + 2, y++, Draw::green + "[OK]" + Draw::reset + " System updated (pacman -Syu)");
+                Draw::text(left + 2, y++, Draw::color("green") + "[OK]" + Draw::reset + " System updated (pacman -Syu)");
             } else {
-                Draw::text(left + 2, y++, Draw::green + "[OK]" + Draw::reset + " System updated (dnf upgrade)");
+                Draw::text(left + 2, y++, Draw::color("green") + "[OK]" + Draw::reset + " System updated (dnf upgrade)");
             }
 
             print_step("Package installation", "Packages installed (PKGBUILDs + fonts + deps)");
@@ -421,7 +471,7 @@ namespace UI {
 
             y++;
             if (y < top + h - 2) {
-                Draw::text(left + 2, y++, "PATCH STATUS", Draw::bold + Draw::cyan);
+                Draw::text(left + 2, y++, "PATCH STATUS", Draw::bold + Draw::color("cyan"));
                 print_patch("Caelestia CLI Hyprctl Mock Patch", "Caelestia CLI Hyprctl mock patch");
                 print_patch("Caelestia CLI Record/Dolphin Patch", "Caelestia CLI record/dolphin patch");
                 print_patch("Caelestia CLI Theme Sequence Patch", "Caelestia CLI theme sequence patch");
@@ -435,22 +485,22 @@ namespace UI {
             }
             if (!failed_pkgs.empty() && y < top + h - 4) {
                 y++;
-                Draw::text(left + 2, y++, "FAILED PACKAGES", Draw::bold + Draw::red);
+                Draw::text(left + 2, y++, "FAILED PACKAGES", Draw::bold + Draw::color("red"));
                 for (const auto& p : failed_pkgs) {
                     if (y >= top + h - 2) break;
-                    Draw::text(left + 2, y++, "- " + p, Draw::red);
+                    Draw::text(left + 2, y++, "- " + p, Draw::color("red"));
                 }
             }
 
             if (check_failed(steps_file, "Build Caelestia Shell") && y < top + h - 4) {
                 y++;
-                Draw::text(left + 2, y++, "SHELL BUILD FAILED", Draw::bold + Draw::red);
-                Draw::text(left + 2, y++, "Review logs, install missing dependencies, and re-run setup.sh.", Draw::red);
+                Draw::text(left + 2, y++, "SHELL BUILD FAILED", Draw::bold + Draw::color("red"));
+                Draw::text(left + 2, y++, "Review logs, install missing dependencies, and re-run setup.sh.", Draw::color("red"));
             }
 
             y++;
             if (y < top + h - 6) {
-                Draw::text(left + 2, y++, "Next steps:", Draw::bold + Draw::yellow);
+                Draw::text(left + 2, y++, "Next steps:", Draw::bold + Draw::color("yellow"));
                 Draw::text(left + 2, y++, "1) Log out now, then log back in.");
                 Draw::text(left + 2, y++, "2) If a kernel update occurred, reboot immediately.");
                 Draw::text(left + 2, y++, "3) Remove all KDE panels after login (Super+D -> panel config).");
@@ -467,10 +517,10 @@ namespace UI {
                 long s = elapsed % 60;
                 char buf[64];
                 snprintf(buf, sizeof(buf), "[OK] Total installation time: %ldh %ldm %lds", h, m, s);
-                Draw::text(left + 2, y++, buf, Draw::green);
+                Draw::text(left + 2, y++, buf, Draw::color("green"));
             }
 
-            Draw::text(left + 2, top + h - 2, "Would you like to log out now? (y/N): ", Draw::bold + Draw::white);
+            Draw::text(left + 2, top + h - 2, "Would you like to log out now? (y/N): ", Draw::bold + Draw::color("white"));
             cout << Draw::sync_end() << flush;
             
             string key = Input::wait_key();

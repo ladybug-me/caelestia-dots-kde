@@ -1,6 +1,12 @@
 #pragma once
 #include <atomic>
 #include <string>
+#include <vector>
+#include "json.hpp"
+
+using json = nlohmann::json;
+
+extern json g_theme;
 
 extern std::atomic<bool> g_resized;
 extern std::atomic<bool> g_quit;
@@ -9,6 +15,9 @@ extern int g_term_height;
 extern std::string g_base_distro;
 extern std::string g_bundle_dir;
 extern bool g_confirm_arg;
+
+void load_bundle_dir();
+void load_theme();
 
 struct Config {
     bool enable_transaction_confirm = true;

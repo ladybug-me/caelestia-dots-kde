@@ -41,18 +41,18 @@ namespace Runner {
         vector<string> opts = {"Retry", "Ignore", "Exit"};
 
         while (true) {
-            if (g_resized) { Term::get_size(); g_resized = false; x = (g_term_width - w) / 2; y = (g_term_height - h) / 2; }
+            if (g_resized) { Term::get_size(); g_resized = false; }
             
             cout << Draw::sync_start();
-            for(int i=0; i<h; ++i) {
-                cout << Draw::to(y+i, x) << string(w, ' ');
-            }
-            Draw::box(x, y, w, h, "ERROR", Draw::red);
-            Draw::text(x + 2, y + 2, "Step failed: " + step_name, Draw::white);
+            int w = 60, h = 10;
+            int x = (g_term_width - w) / 2;
+            int y = (g_term_height - h) / 2;
+            Draw::box(x, y, w, h, "ERROR", "red");
+            Draw::text(x + 2, y + 2, "Step failed: " + step_name, "white");
             
             for (size_t i = 0; i < opts.size(); ++i) {
-                if (i == selected) {
-                    Draw::text(x + 5 + i*12, y + 5, "> " + opts[i], Draw::green);
+                if (i == (size_t)selected) {
+                    Draw::text(x + 5 + i*12, y + 5, "> " + opts[i], "green");
                 } else {
                     Draw::text(x + 5 + i*12, y + 5, "  " + opts[i]);
                 }
@@ -62,41 +62,115 @@ namespace Runner {
             string key = Input::wait_key();
             if (key == "KEY_left") { if (selected > 0) selected--; }
             else if (key == "KEY_right") { if (selected < opts.size() - 1) selected++; }
+            else if (key == "KEY_right") { if (selected > opts.size() - 1) selected++; }
             else if (key == "enter") return opts[selected];
         }
     }
 
     void draw_progress_ui(int current_step) {
         if (g_resized) { Term::get_size(); g_resized = false; }
+        
+        string box_title = "INSTALLATION PROGRESS";
+        string box_color = "cyan";
+        string box_title_color = "white";
+        string text_color = "cyan";
+        int pad_x = 4;
+        int pad_y = 2;
+        
+        string list_title = "STEPS";
+        string list_color = "cyan";
+        string list_title_color = "white";
+        int list_offset_y = 3;
+        int list_offset_x = 2;
+        int list_spacing_x = 10;
+        
+        if (!g_theme.is_null() && g_theme.contains("layout")) {
+            auto& l = g_theme["layout"];
+            if (l.contains("progress_box")) {
+                if (l["progress_box"].contains("title")) box_title = l["progress_box"]["title"].get<string>();
+                if (l["progress_box"].contains("color")) box_color = l["progress_box"]["color"].get<string>();
+                if (l["progress_box"].contains("title_color")) box_title_color = l["progress_box"]["title_color"].get<string>();
+                if (l["progress_box"].contains("text_color")) text_color = l["progress_box"]["text_color"].get<string>();
+                if (l["progress_box"].contains("padding_x")) pad_x = l["progress_box"]["padding_x"].get<int>();
+                if (l["progress_box"].contains("padding_y")) pad_y = l["progress_box"]["padding_y"].get<int>();
+            }
+            if (l.contains("step_list")) {
+                if (l["step_list"].contains("title")) list_title = l["step_list"]["title"].get<string>();
+                if (l["step_list"].contains("color")) list_color = l["step_list"]["color"].get<string>();
+                if (l["step_list"].contains("title_color")) list_title_color = l["step_list"]["title_color"].get<string>();
+                if (l["step_list"].contains("offset_y")) list_offset_y = l["step_list"]["offset_y"].get<int>();
+                if (l["step_list"].contains("offset_x")) list_offset_x = l["step_list"]["offset_x"].get<int>();
+                if (l["step_list"].contains("spacing_x")) list_spacing_x = l["step_list"]["spacing_x"].get<int>();
+            }
+        }
+        
+        string status_ok = "[OK]";
+        string status_running = "[*]";
+        string status_pending = "[ ]";
+        string status_error = "[ERR]";
+        if (!g_theme.is_null() && g_theme.contains("strings")) {
+            auto& s = g_theme["strings"];
+            if (s.contains("status_ok")) status_ok = s["status_ok"].get<string>();
+            if (s.contains("status_running")) status_running = s["status_running"].get<string>();
+            if (s.contains("status_pending")) status_pending = s["status_pending"].get<string>();
+            if (s.contains("status_error")) status_error = s["status_error"].get<string>();
+        }
+
         cout << Draw::sync_start() << Draw::clear();
         
-        int w = g_term_width;
-        int h = g_term_height;
+        int w = g_term_width - pad_x * 2;
+        int h = g_term_height - pad_y * 2;
+        if (w < 20 || h < 10) { cout << Draw::sync_end() << flush; return; }
         
-        string title = " INSTALLATION PROGRESS ";
-        int pad = (w - title.length()) / 2;
-        Draw::text(pad, 1, title, Draw::bold + Draw::cyan);
+        Draw::box(pad_x, pad_y, w, h, box_title, box_color, box_title_color);
         
-        int bar_w = w - 20;
-        int progress = (current_step * bar_w) / steps.size();
-        string bar = string(progress, '=') + (progress < bar_w ? ">" : "") + string(max(0, bar_w - progress - 1), ' ');
-        Draw::text(2, 2, "[" + bar + "] " + to_string(current_step) + "/" + to_string(steps.size()));
+        string progress_text = to_string(current_step + 1) + "/" + to_string(steps.size());
+        int bar_w = w - 7 - progress_text.length();
+        if (bar_w > 0) {
+            int progress = (current_step * bar_w) / steps.size();
+            string bar = string(progress, '=') + (progress < bar_w ? ">" : "") + string(max(0, bar_w - progress - 1), ' ');
+            Draw::text(pad_x + 2, pad_y + 1, "[" + bar + "] " + progress_text, text_color);
+        }
+        
+        // Draw the inner title (but no inner box to prevent double borders)
+        Draw::text(pad_x + list_offset_x + 2, pad_y + list_offset_y, list_title, list_title_color);
+        
+        int start_y = pad_y + list_offset_y + 1;
+        int max_items = h - (list_offset_y + 3);
+        if (max_items < 1) max_items = 1;
 
-        int lw = w - 4; // Use full width of the pane
-        Draw::box(1, 4, lw, h - 4, "STEPS");
-        for (size_t i = 0; i < steps.size(); ++i) {
-            int y = 5 + i;
-            if (y >= h - 1) break;
-            string status_mark = "[ ]";
-            string color = "";
-            if (steps[i].status == "RUNNING") { status_mark = "[*]"; color = Draw::yellow; }
-            else if (steps[i].status == "OK") { status_mark = "[OK]"; color = Draw::green; }
-            else if (steps[i].status == "FAILED") { status_mark = "[!!]"; color = Draw::red; }
-            else if (steps[i].status == "IGNORED") { status_mark = "[!!]"; color = Draw::dim; }
+        int scroll = 0;
+        if (steps.size() > (size_t)max_items) {
+            if (current_step > max_items / 2) {
+                scroll = current_step - (max_items / 2);
+            }
+            if (scroll + max_items > steps.size()) {
+                scroll = steps.size() - max_items;
+            }
+        }
+
+        for (size_t i = 0; i < (size_t)max_items && (scroll + i) < steps.size(); ++i) {
+            size_t step_idx = scroll + i;
+            int y = start_y + (int)i;
             
-            string text = status_mark + " " + steps[i].name;
-            if (text.length() > lw - 4) text = text.substr(0, lw - 7) + "...";
-            Draw::text(3, y, text, color);
+            string prefix;
+            string color_name;
+            if (steps[step_idx].status == "RUNNING") {
+                prefix = status_running + " ";
+                color_name = "yellow";
+            } else if (steps[step_idx].status == "OK") {
+                prefix = status_ok + " ";
+                color_name = "green";
+            } else if (steps[step_idx].status == "FAILED") {
+                prefix = status_error + " ";
+                color_name = "red";
+            } else {
+                prefix = status_pending + " ";
+                color_name = "white";
+            }
+            
+            string text = prefix + steps[step_idx].name;
+            Draw::text(pad_x + list_offset_x + 2, y, text, color_name);
         }
 
         cout << Draw::sync_end() << flush;
@@ -169,21 +243,18 @@ retry_step:
 
                 // Continuously check for status or terminal resizes
                 int exit_code = -1;
+                int status_fd = open("/tmp/caelestia_status", O_RDWR | O_NONBLOCK);
                 while (true) {
                     if (g_resized) draw_progress_ui(i);
-                    FILE* status_fifo = fopen("/tmp/caelestia_status", "r");
-                    if (status_fifo) {
-                        int fd = fileno(status_fifo);
-                        int flags = fcntl(fd, F_GETFL, 0);
-                        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-                        
+                    if (status_fd >= 0) {
                         char buf[32];
-                        if (fgets(buf, sizeof(buf), status_fifo) != nullptr) {
+                        int n = read(status_fd, buf, sizeof(buf)-1);
+                        if (n > 0) {
+                            buf[n] = '\0';
                             exit_code = atoi(buf);
-                            fclose(status_fifo);
+                            close(status_fd);
                             break;
                         }
-                        fclose(status_fifo);
                     }
                     this_thread::sleep_for(chrono::milliseconds(100));
                     
