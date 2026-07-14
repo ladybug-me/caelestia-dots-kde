@@ -138,6 +138,7 @@ if [[ "${CAELESTIA_SKIP_DEPLOY:-0}" == "1" ]]; then
 else
     bash "$UPD_DIR/repo/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 fi
+echo "PROGRESS: 3/5: Configuration files deployed."
 
 # 5. Build Shell
 echo "PROGRESS: 4/5: Building Caelestia Shell UI..."

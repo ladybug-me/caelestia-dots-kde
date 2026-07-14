@@ -56,6 +56,36 @@ PageBase {
     property string updateStatus: ""
     property bool logsExpanded: false
 
+    function handleProgressLine(rawLine) {
+        // Strip ANSI color/control sequences and carriage returns so PROGRESS lines
+        // are still detected when tools emit colored output.
+        let line = rawLine
+            .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
+            .replace(/\r/g, "")
+            .trim();
+
+        const progressIndex = line.indexOf("PROGRESS: ");
+        if (progressIndex === -1)
+            return;
+
+        const pText = line.substring(progressIndex + 10).trim();
+        if (pText.startsWith("done")) {
+            root.updateProgress = 1.0;
+            root.updateStatus = qsTr("Done!");
+            return;
+        }
+
+        const match = pText.match(/^(\d+)\/(\d+):\s*(.+)$/);
+        if (match) {
+            const current = parseInt(match[1]);
+            const total = parseInt(match[2]);
+            if (total > 0) {
+                root.updateProgress = current / total;
+                root.updateStatus = match[3];
+            }
+        }
+    }
+
     // ── Timeline selection state ───────────────────────────────────────────
     property string selectedVersionId: ""
 
@@ -398,23 +428,14 @@ PageBase {
             stdout: SplitParser {
                 onRead: text => {
                     root.updateLogs += text + "\n";
-                    if (text.startsWith("PROGRESS: ")) {
-                        const pText = text.substring(10);
-                        if (pText.startsWith("done")) {
-                            root.updateProgress = 1.0;
-                            root.updateStatus = qsTr("Done!");
-                        } else {
-                            const match = pText.match(/^(\d+)\/(\d+): (.+)$/);
-                            if (match) {
-                                root.updateProgress = parseInt(match[1]) / parseInt(match[2]);
-                                root.updateStatus = match[3];
-                            }
-                        }
-                    }
+                    root.handleProgressLine(text);
                 }
             }
             stderr: SplitParser {
-                onRead: text => { root.updateLogs += text + "\n"; }
+                onRead: text => {
+                    root.updateLogs += text + "\n";
+                    root.handleProgressLine(text);
+                }
             }
             onExited: code => {
                 root.updateRunning = false;
@@ -422,6 +443,7 @@ PageBase {
                     Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");
                     UpdateChecker.reload();
                 } else {
+                    root.updateStatus = qsTr("Update failed (exit code %1)").arg(code);
                     Toaster.toast(qsTr("Update Failed"), qsTr("The update script returned error code %1").arg(code), "error");
                 }
             }
