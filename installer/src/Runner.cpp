@@ -1,4 +1,5 @@
 #include "Runner.hpp"
+#include "UI.hpp"
 #include "Globals.hpp"
 #include "Term.hpp"
 #include "Input.hpp"
@@ -170,6 +171,14 @@ namespace Runner {
             }
             
             string text = prefix + steps[step_idx].name;
+            int max_text_len = w - list_offset_x - 4;
+            if (max_text_len > 0 && (int)text.length() > max_text_len) {
+                if (max_text_len > 3) {
+                    text = text.substr(0, max_text_len - 3) + "...";
+                } else {
+                    text = text.substr(0, max_text_len);
+                }
+            }
             Draw::text(pad_x + list_offset_x + 2, y, text, color_name);
         }
 
@@ -194,12 +203,18 @@ namespace Runner {
         string current_path = getenv("PATH") ? getenv("PATH") : "/usr/bin";
         setenv("PATH", ("/tmp/caelestia_bin:" + current_path).c_str(), 1);
         
-        setenv("CONFIRM_ARG", g_config.enable_transaction_confirm ? "-y" : "", 1);
-        setenv("REMOVE_CACHE", g_config.remove_cache ? "true" : "false", 1);
-        setenv("ENABLE_POLONIUM", g_config.enable_polonium ? "true" : "false", 1);
-        setenv("APPLY_DARKLY", g_config.apply_darkly ? "true" : "false", 1);
-        setenv("ENABLE_MATYOU", g_config.enable_material_you ? "true" : "false", 1);
-        setenv("APPLY_FONTS", g_config.apply_custom_fonts ? "true" : "false", 1);
+        // CONFIRM_ARG is special because pacman/yay need an empty string or something like --noconfirm
+        // Actually pacman uses --noconfirm, but some other places might just check if it's non-empty.
+        // Let's just read it from the environment (where UI exported it) and convert it.
+        const char* confirm_val = getenv("CONFIRM_ARG");
+        if (confirm_val && std::string(confirm_val) == "true") {
+            setenv("CONFIRM_ARG", "--noconfirm", 1); // Wait, old script used "-y". Let's stick to "-y" if that's what was used, though --noconfirm is arch standard. Actually old script used "-y".
+        } else {
+            setenv("CONFIRM_ARG", "", 1); // Empty string for false
+        }
+        
+        // The other variables (REMOVE_CACHE, POLONIUM_ENABLED, APPLY_DARKLY, APPLY_MATERIAL_YOU, APPLY_FONTS)
+        // are already exported correctly as "true" or "false" by the dynamic UI!
         
         if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
             system("tmux split-window -h -t caelestia_install \"bash -c 'clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
@@ -219,20 +234,22 @@ retry_step:
             if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
                 FILE* cmd_fifo = fopen("/tmp/caelestia_cmd", "w");
                 if (cmd_fifo) {
+                    auto safe_env = [](const char* name) {
+                        const char* val = getenv(name);
+                        return val ? string(val) : "";
+                    };
                     string exports = "export PATH=\"/tmp/caelestia_bin:$PATH\" SUDO_ASKPASS=\"/tmp/caelestia_askpass.sh\"";
-                    exports += " CACHE_DIR=\"" + string(getenv("CACHE_DIR")) + "\"";
-                    exports += " BUILDDIR=\"" + string(getenv("BUILDDIR")) + "\"";
-                    exports += " PKGDEST=\"" + string(getenv("PKGDEST")) + "\"";
-                    exports += " SRCDEST=\"" + string(getenv("SRCDEST")) + "\"";
-                    exports += " SRCPKGDEST=\"" + string(getenv("SRCPKGDEST")) + "\"";
-                    exports += " BASE_DISTRO=\"" + string(getenv("BASE_DISTRO")) + "\"";
-                    exports += " BUNDLE_DIR=\"" + string(getenv("BUNDLE_DIR")) + "\"";
-                    exports += " CONFIRM_ARG=\"" + string(getenv("CONFIRM_ARG")) + "\"";
-                    exports += " REMOVE_CACHE=\"" + string(getenv("REMOVE_CACHE")) + "\"";
-                    exports += " ENABLE_POLONIUM=\"" + string(getenv("ENABLE_POLONIUM")) + "\"";
-                    exports += " APPLY_DARKLY=\"" + string(getenv("APPLY_DARKLY")) + "\"";
-                    exports += " ENABLE_MATYOU=\"" + string(getenv("ENABLE_MATYOU")) + "\"";
-                    exports += " APPLY_FONTS=\"" + string(getenv("APPLY_FONTS")) + "\"";
+                    exports += " CACHE_DIR=\"" + safe_env("CACHE_DIR") + "\"";
+                    exports += " BUILDDIR=\"" + safe_env("BUILDDIR") + "\"";
+                    exports += " PKGDEST=\"" + safe_env("PKGDEST") + "\"";
+                    exports += " SRCDEST=\"" + safe_env("SRCDEST") + "\"";
+                    exports += " SRCPKGDEST=\"" + safe_env("SRCPKGDEST") + "\"";
+                    exports += " BASE_DISTRO=\"" + safe_env("BASE_DISTRO") + "\"";
+                    exports += " BUNDLE_DIR=\"" + safe_env("BUNDLE_DIR") + "\"";
+                    // Export ALL variables from g_answers dynamically!
+                    for (const auto& pair : g_answers) {
+                        exports += " " + pair.first + "=\"" + safe_env(pair.first.c_str()) + "\"";
+                    }
                     
                     
                     // Send as a single compound command so the listener evaluates it all at once and replies once

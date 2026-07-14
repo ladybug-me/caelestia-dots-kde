@@ -36,13 +36,15 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Hide cursor immediately to prevent flashing in tmux
+    std::cout << "\x1b[?25l" << std::flush;
+    Term::init();
+
     load_theme();
 
     signal(SIGWINCH, handle_sigwinch);
     signal(SIGINT, handle_sigint);
     signal(SIGTERM, handle_sigint);
-
-    Term::init();
 
     // Phase 1: Splash
     UI::splash_screen();
@@ -53,26 +55,24 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    // Phase 3: Distro
+    // Phase 3 & 4: Dynamic Menu
+    if (!g_menu.is_null() && g_menu.contains("menu")) {
+        if (!UI::render_menu(g_menu["menu"], "CONFIGURATION MENU")) {
+            Term::restore();
+            return 0; // User backed out or exited
+        }
+        
+        // Export all answers as environment variables for the bash scripts
+        for (const auto& pair : g_answers) {
+            setenv(pair.first.c_str(), pair.second.c_str(), 1);
+        }
+    }
+
+    // Fallback distro logic if somehow not set
     const char* env_distro = getenv("BASE_DISTRO");
     if (env_distro && string(env_distro) != "") {
         g_base_distro = env_distro;
     }
-
-    if (g_base_distro == "unknown") {
-        string res = UI::distro_select();
-        if (res == "Exit") {
-            Term::restore();
-            return 0;
-        } else if (res == "Arch-based") {
-            g_base_distro = "arch";
-        } else if (res == "Fedora") {
-            g_base_distro = "fedora";
-        }
-    }
-
-    // Phase 4: Checklist
-    UI::config_checklist();
 
     // Phase 5: Execute
     Runner::execute();
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     UI::summary_screen();
     Term::restore();
 
-    if (g_config.remove_cache) {
+    if (g_answers["REMOVE_CACHE"] == "true") {
         string cache_dir = string(getenv("XDG_CACHE_HOME") ? getenv("XDG_CACHE_HOME") : (string(getenv("HOME")) + "/.cache")) + "/caelestia-kde";
         system(("rm -rf \"" + cache_dir + "\"").c_str());
     }

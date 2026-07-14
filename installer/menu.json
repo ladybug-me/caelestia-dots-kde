@@ -1,0 +1,92 @@
+{
+  "menu": [
+    {
+      "id": "menu_system",
+      "type": "submenu",
+      "title": "System Configuration",
+      "items": [
+        {
+          "id": "CONFIRM_ARG",
+          "type": "boolean",
+          "title": "Auto package confirmation (-y / --noconfirm)",
+          "default": true
+        },
+        {
+          "id": "REMOVE_CACHE",
+          "type": "boolean",
+          "title": "Remove build cache after successful install",
+          "default": false
+        },
+        {
+          "id": "action_back",
+          "type": "action",
+          "title": "Back to Main Menu"
+        }
+      ]
+    },
+    // { TO BE IMPLEMENTED IN THE SCRIPTS
+    //   "id": "menu_shell",
+    //   "type": "submenu",
+    //   "title": "Shell settings",
+    //   "items": [
+    //     {
+    //       "id": "DEFAULT_SHELL",
+    //       "type": "select",
+    //       "title": "Default shell",
+    //       "default": "fish",
+    //       "options": [
+    //         "bash",
+    //         "zsh",
+    //         "fish"
+    //       ]
+    //     },
+    //     {
+    //       "id": "action_back",
+    //       "type": "action",
+    //       "title": "Back to Main Menu"
+    //     }
+    //   ]
+    // },
+    {
+      "id": "menu_desktop",
+      "type": "submenu",
+      "title": "KDE Plasma Customizations",
+      "items": [
+        {
+          "id": "APPLY_DARKLY",
+          "type": "boolean",
+          "title": "Apply Darkly Theme (Plasma style, window decorations, Kvantum)",
+          "default": true
+        },
+        {
+          "id": "APPLY_MATERIAL_YOU",
+          "type": "boolean",
+          "title": "Enable Material You colors (kde-material-you-colors)",
+          "default": true
+        },
+        {
+          "id": "APPLY_FONTS",
+          "type": "boolean",
+          "title": "Apply included custom fonts",
+          "default": true
+        },
+        {
+          "id": "POLONIUM_ENABLED",
+          "type": "boolean",
+          "title": "Enable Polonium (tiling window manager plugin)",
+          "default": false
+        },
+        {
+          "id": "action_back",
+          "type": "action",
+          "title": "Back to Main Menu"
+        }
+      ]
+    },
+    {
+      "id": "action_proceed",
+      "type": "action",
+      "title": "Begin Installation"
+    }
+  ]
+}

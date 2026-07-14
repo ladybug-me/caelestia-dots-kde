@@ -1,3 +1,4 @@
+#include <functional>
 #include "UI.hpp"
 #include "Globals.hpp"
 #include "Term.hpp"
@@ -11,6 +12,8 @@
 #include <vector>
 
 using namespace std;
+
+std::map<std::string, std::string> g_answers;
 
 namespace UI {
     bool loading_text(int x, int y, const string& text, const string& color_name) {
@@ -328,77 +331,6 @@ namespace UI {
         }
     }
 
-    void config_checklist() {
-        vector<string> options = {
-            "Enable automatic package transaction confirmation",
-            "Remove downloaded cache after install",
-            "Enable Polonium tiling plugin",
-            "Apply Darkly theme",
-            "Enable Material You colors",
-            "Apply included custom fonts"
-        };
-        vector<bool*> states = {
-            &g_config.enable_transaction_confirm,
-            &g_config.remove_cache,
-            &g_config.enable_polonium,
-            &g_config.apply_darkly,
-            &g_config.enable_material_you,
-            &g_config.apply_custom_fonts
-        };
-        int selected = 0;
-        int box_width = 63;
-        int box_height = 11 + options.size();
-
-        bool animated_once = false;
-
-        while (true) {
-            if (g_resized) { Term::get_size(); g_resized = false; animated_once = false; }
-            cout << Draw::sync_start() << Draw::clear();
-            
-            int left = (g_term_width - box_width) / 2;
-            if (left < 1) left = 1;
-            int top = (g_term_height - box_height) / 2;
-            if (top < 1) top = 1;
-
-            if (!animated_once) {
-                Draw::animated_box(left, top, box_width, box_height, "INSTALLER CONFIGURATION");
-                animated_once = true;
-            } else {
-                Draw::box(left, top, box_width, box_height, "INSTALLER CONFIGURATION");
-            }
-            Draw::text(left + 2, top + 2, "Use UP/DOWN to navigate, SPACE to toggle, ENTER to confirm.");
-
-            for (size_t i = 0; i < options.size(); i++) {
-                int opt_y = top + 4 + i;
-                string mark = *states[i] ? "X" : " ";
-                string text = "[" + mark + "] " + options[i];
-                if (i == selected) {
-                    Draw::text(left + 2, opt_y, " > " + text, Draw::color("green"));
-                } else {
-                    Draw::text(left + 2, opt_y, "   " + text);
-                }
-            }
-
-            int proceed_y = top + 4 + options.size() + 1;
-            if (selected == options.size()) {
-                Draw::text(left + 2, proceed_y, " > PROCEED", Draw::color("green"));
-            } else {
-                Draw::text(left + 2, proceed_y, "   PROCEED");
-            }
-            
-            cout << Draw::sync_end() << flush;
-
-            string key = Input::wait_key();
-            if (key == "KEY_up") { if (selected > 0) selected--; }
-            else if (key == "KEY_down") { if (selected < options.size()) selected++; }
-            else if (key == " ") {
-                if (selected < options.size()) *states[selected] = !*states[selected];
-            } else if (key == "enter") {
-                if (selected == options.size()) break;
-                else *states[selected] = !*states[selected];
-            }
-        }
-    }
 
     bool check_failed(const string& file, const string& target) {
         ifstream f(file);
@@ -533,4 +465,186 @@ namespace UI {
             }
         }
     }
+}
+
+namespace UI {
+    bool render_menu(const json& menu_items, const std::string& title) {
+        int selected = 0;
+        int num_items = menu_items.size();
+        if (num_items == 0) return true;
+
+        string box_title = title;
+        string box_color = "cyan";
+        string title_color = "white";
+        string text_color = "white";
+        if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("config_checklist")) {
+            auto& l = g_theme["layout"]["config_checklist"];
+            if (l.contains("color")) box_color = l["color"].get<string>();
+            if (l.contains("title_color")) title_color = l["title_color"].get<string>();
+            if (l.contains("text_color")) text_color = l["text_color"].get<string>();
+        }
+
+        // Initialize defaults recursively in g_answers
+        std::function<void(const json&)> init_defaults = [&](const json& items) {
+            for (size_t i = 0; i < items.size(); ++i) {
+                auto& item = items[i];
+                if (item.contains("type") && item["type"] == "submenu" && item.contains("items")) {
+                    init_defaults(item["items"]);
+                } else if (item.contains("id") && item.contains("default") && g_answers.find(item["id"].get<string>()) == g_answers.end()) {
+                    if (item["default"].is_boolean()) {
+                        g_answers[item["id"].get<string>()] = item["default"].get<bool>() ? "true" : "false";
+                    } else if (item["default"].is_string()) {
+                        g_answers[item["id"].get<string>()] = item["default"].get<string>();
+                    }
+                }
+            }
+        };
+        init_defaults(menu_items);
+
+        bool typing_mode = false;
+
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
+            
+            int w = 60;
+            for (int i = 0; i < num_items; ++i) {
+                auto& item = menu_items[i];
+                string type = item.contains("type") ? item["type"].get<string>() : "action";
+                string item_title = item.contains("title") ? item["title"].get<string>() : "Unknown";
+                string id = item.contains("id") ? item["id"].get<string>() : "";
+                int len = item_title.length();
+                if (type == "submenu") {
+                    len += 3;
+                } else if (type == "boolean") {
+                    len += 6;
+                } else if (type == "select") {
+                    len += 5 + g_answers[id].length();
+                } else if (type == "text") {
+                    len += 3 + g_answers[id].length() + 2;
+                }
+                if (len + 8 > w) w = len + 8;
+            }
+            if (w > g_term_width - 4) w = g_term_width - 4;
+
+            int h = num_items + 6;
+            if (h > g_term_height - 4) h = g_term_height - 4;
+            int left = (g_term_width - w) / 2;
+            int top = (g_term_height - h) / 2;
+            
+            cout << Draw::sync_start() << Draw::clear();
+            Draw::box(left, top, w, h, box_title, box_color, title_color);
+
+            string inst = "Arrow keys to navigate, Enter/Space to select/toggle";
+            if ((int)inst.length() > w - 4) {
+                inst = inst.substr(0, w - 7) + "...";
+            }
+            Draw::text(left + 2, top + 2, inst, text_color);
+            
+            int start_y = top + 4;
+            for (int i = 0; i < num_items; ++i) {
+                if (start_y + i >= top + h - 1) break;
+                auto& item = menu_items[i];
+                string type = item.contains("type") ? item["type"].get<string>() : "action";
+                string item_title = item.contains("title") ? item["title"].get<string>() : "Unknown";
+                string id = item.contains("id") ? item["id"].get<string>() : "";
+                
+                string display = item_title;
+                if (type == "submenu") {
+                    display += " ->";
+                } else if (type == "boolean") {
+                    bool val = (g_answers[id] == "true");
+                    display = (val ? "[x] " : "[ ] ") + item_title;
+                } else if (type == "select") {
+                    display = item_title + ": < " + g_answers[id] + " >";
+                } else if (type == "text") {
+                    display = item_title + ": [" + g_answers[id];
+                    if (typing_mode && i == selected) display += "_";
+                    display += "]";
+                }
+
+                int max_len = w - 8;
+                if ((int)display.length() > max_len) {
+                    display = display.substr(0, max_len - 3) + "...";
+                }
+
+                if (i == selected) {
+                    Draw::text(left + 4, start_y + i, "> " + display, "bold_" + box_color);
+                } else {
+                    Draw::text(left + 4, start_y + i, "  " + display, text_color);
+                }
+            }
+            
+            cout << Draw::sync_end() << flush;
+            
+            string key = Input::wait_key();
+            auto& item = menu_items[selected];
+            string type = item.contains("type") ? item["type"].get<string>() : "action";
+            string id = item.contains("id") ? item["id"].get<string>() : "";
+            string item_title = item.contains("title") ? item["title"].get<string>() : "Unknown";
+
+            if (typing_mode) {
+                if (key == "enter" || key == "escape") {
+                    typing_mode = false;
+                } else if (key == "backspace" || (key.length() == 1 && (key[0] == '\x7f' || key[0] == '\x08'))) {
+                    if (!g_answers[id].empty()) g_answers[id].pop_back();
+                } else if (key.find("KEY_") != 0) {
+                    // printable char
+                    bool all_printable = true;
+                    for (char c : key) {
+                        if ((unsigned char)c < 32 || c == 127) all_printable = false;
+                    }
+                    if (all_printable && !key.empty()) g_answers[id] += key;
+                }
+                continue;
+            }
+
+            if (key == "KEY_up") { if (selected > 0) selected--; }
+            else if (key == "KEY_down") { if (selected < num_items - 1) selected++; }
+            else if (key == "KEY_right" || key == "enter" || key == " ") {
+                if (type == "action") {
+                    if (id == "action_back") return false;
+                    if (id == "action_proceed") return true;
+                } else if (type == "submenu") {
+                    if (item.contains("items")) {
+                        bool proceed = render_menu(item["items"], item_title);
+                        if (proceed) return true; // If they clicked proceed from deep inside, bubble up!
+                    }
+                } else if (type == "boolean") {
+                    g_answers[id] = (g_answers[id] == "true") ? "false" : "true";
+                } else if (type == "select") {
+                    if (item.contains("options")) {
+                        auto& opts = item["options"];
+                        int current_idx = 0;
+                        for (size_t i = 0; i < opts.size(); ++i) {
+                            if (opts[i].get<string>() == g_answers[id]) { current_idx = i; break; }
+                        }
+                        if (key == "KEY_right" || key == "enter" || key == " ") {
+                            current_idx = (current_idx + 1) % opts.size();
+                        }
+                        g_answers[id] = opts[current_idx].get<string>();
+                    }
+                } else if (type == "text") {
+                    typing_mode = true;
+                }
+            } else if (key == "KEY_left") {
+                if (type == "select") {
+                    if (item.contains("options")) {
+                        auto& opts = item["options"];
+                        int current_idx = 0;
+                        for (size_t i = 0; i < opts.size(); ++i) {
+                            if (opts[i].get<string>() == g_answers[id]) { current_idx = i; break; }
+                        }
+                        current_idx = (current_idx - 1 + opts.size()) % opts.size();
+                        g_answers[id] = opts[current_idx].get<string>();
+                    }
+                } else {
+                    return false; // Back out of submenu
+                }
+            } else if (key == "escape") {
+                return false;
+            }
+        }
+        return false;
+    }
+
 }

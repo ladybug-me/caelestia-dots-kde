@@ -7,6 +7,7 @@
 using json = nlohmann::json;
 
 extern json g_theme;
+extern json g_menu;
 
 extern std::atomic<bool> g_resized;
 extern std::atomic<bool> g_quit;
