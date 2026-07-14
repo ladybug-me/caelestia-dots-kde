@@ -3,8 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Caelestia.Config
 import qs.components
-import qs.services
-
 Item {
     id: root
 
