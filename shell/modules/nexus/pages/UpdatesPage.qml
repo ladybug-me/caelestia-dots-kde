@@ -92,24 +92,25 @@ PageBase {
         }
     }
 
-    function ingestProcessText(rawText) {
-        root.lastUpdateOutputMs = Date.now();
-        root.stallNoticeShown = false;
+function ingestProcessText(rawText) {
+    root.lastUpdateOutputMs = Date.now();
+    root.stallNoticeShown = false;
 
-        const cleaned = rawText
-            .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
-            .replace(/\r/g, "\n");
+    const cleaned = rawText
+        .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
+        .replace(/\r/g, "\n");
 
-        root.updateLogs += cleaned;
+    const chunk = cleaned.endsWith("\n") ? cleaned : (cleaned + "\n");
+    root.updateLogs += chunk;
 
-        const combined = root.processLineBuffer + cleaned;
-        const lines = combined.split("\n");
-        root.processLineBuffer = lines.pop();
+    const combined = root.processLineBuffer + chunk;
+    const lines = combined.split("\n");
+    root.processLineBuffer = lines.pop();
 
-        for (let i = 0; i < lines.length; i++) {
-            root.handleProgressLine(lines[i]);
-        }
+    for (let i = 0; i < lines.length; i++) {
+        root.handleProgressLine(lines[i]);
     }
+}
 
     // ── Timeline selection state ───────────────────────────────────────────
     property string selectedVersionId: ""
