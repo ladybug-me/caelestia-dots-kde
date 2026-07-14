@@ -27,12 +27,26 @@ fi
 # Uses `caelestia shell -d`: starts Caelestia shell as a daemon
 # detaches it from the autostart process so KDE doesn't wait for it.
 echo "  Creating Caelestia Shell autostart entry..."
+cat > "$HOME/.local/bin/caelestia-autostart.sh" << EOF
+#!/bin/bash
+export QML2_IMPORT_PATH="\$HOME/.local/lib/qt6/qml"
+STATE_DIR="\${XDG_STATE_HOME:-\$HOME/.local/state}/caelestia"
+SCHEME_FILE="\$STATE_DIR/scheme.json"
+i=0
+while [ \$i -lt 15 ] && [ ! -s "\$SCHEME_FILE" ]; do
+    sleep 1
+    i=\$((i + 1))
+done
+"$CAELESTIA_PATH" shell -d &
+EOF
+chmod +x "$HOME/.local/bin/caelestia-autostart.sh"
+
 cat > "$AUTOSTART_DIR/caelestiashell.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=Caelestia Shell
 Comment=Start Caelestia Shell
-Exec=bash -c 'STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"; SCHEME_FILE="$STATE_DIR/scheme.json"; i=0; while [ $i -lt 15 ] && [ ! -s "$SCHEME_FILE" ]; do sleep 1; i=$((i + 1)); done; "$CAELESTIA_PATH" shell -d &'
+Exec=$HOME/.local/bin/caelestia-autostart.sh
 Icon=quickshell
 Hidden=false
 NoDisplay=false
