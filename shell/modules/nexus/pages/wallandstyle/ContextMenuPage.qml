@@ -27,7 +27,7 @@ PageBase {
     readonly property real emptyZoneHeight: Math.max(root.height - 120, 72)
 
     property var componentMeta: ({
-        "refresh": { icon: "refresh", name: qsTr("Refresh") },
+        "toggle_desktop_icons": { icon: "desktop_windows", name: qsTr("Desktop Icons") },
         "wallpaper_style": { icon: "wallpaper", name: qsTr("Wallpaper & style") },
         "next_wallpaper": { icon: "skip_next", name: qsTr("Next Wallpaper") },
         "system_settings": { icon: "settings", name: qsTr("System Settings") },
@@ -90,9 +90,9 @@ PageBase {
                     
                     if (!json || json.length === 0) {
                         json = [
-                            { id: "refresh", label: qsTr("Refresh"), icon: "refresh", action: "Quickshell.reload()", enabled: true, type: "default" },
-                            { id: "wallpaper_style", label: qsTr("Wallpaper & style"), icon: "wallpaper", action: "WindowFactory.create()", enabled: true, type: "default" },
+                            { id: "toggle_desktop_icons", label: qsTr("Desktop Icons"), icon: "desktop_windows", action: "ToggleDesktopIcons", enabled: true, type: "default" },
                             { id: "next_wallpaper", label: qsTr("Next Wallpaper"), icon: "skip_next", action: "Wallpapers.next()", enabled: true, type: "default" },
+                            { id: "wallpaper_style", label: qsTr("Wallpaper & style"), icon: "wallpaper", action: "WindowFactory.create()", enabled: true, type: "default" },
                             { id: "system_settings", label: qsTr("System Settings"), icon: "settings", command: "systemsettings", enabled: true, type: "default" },
                             { id: "open_terminal", label: qsTr("Open Terminal"), icon: "terminal", command: "terminal", enabled: true, type: "default" },
                             { id: "add_shortcut", label: qsTr("Add Shortcut..."), icon: "add", action: "OpenRightClickMenu", enabled: true, type: "default" }

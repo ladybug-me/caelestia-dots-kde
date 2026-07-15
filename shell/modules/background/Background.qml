@@ -57,6 +57,7 @@ Variants {
         DesktopContextMenu {
             id: desktopContextMenu
             attachTo: contextMenuAnchor
+            screenName: win.modelData.name
             z: 9999
         }
 

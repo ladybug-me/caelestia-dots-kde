@@ -9,6 +9,7 @@ import qs.components.controls
 import qs.services
 import qs.modules.nexus.common
 import qs.utils
+import Quickshell
 
 PageBase {
     id: root
@@ -36,15 +37,29 @@ PageBase {
                 first: true
                 text: qsTr("Show KDE Desktop")
                 checked: !Config.background.wallpaperEnabled
-                onToggled: GlobalConfig.background.wallpaperEnabled = !checked
+                onToggled: { 
+                    GlobalConfig.background.wallpaperEnabled = !checked; 
+                    for (let i = 0; i < Quickshell.screens.length; i++) {
+                        let sConf = GlobalConfig.forScreen(Quickshell.screens[i].name);
+                        if (sConf) sConf.background.resetOption("wallpaperEnabled");
+                    }
+                    GlobalConfig.save(); 
+                }
             }
 
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Desktop icons")
+                text: qsTr("Show Desktop Icons")
                 checked: Config.background.desktopIconsEnabled
-                onToggled: GlobalConfig.background.desktopIconsEnabled = checked
+                onToggled: { 
+                    GlobalConfig.background.desktopIconsEnabled = checked; 
+                    for (let i = 0; i < Quickshell.screens.length; i++) {
+                        let sConf = GlobalConfig.forScreen(Quickshell.screens[i].name);
+                        if (sConf) sConf.background.resetOption("desktopIconsEnabled");
+                    }
+                    GlobalConfig.save(); 
+                }
                 enabled: Config.background.wallpaperEnabled
             }
 
@@ -54,7 +69,14 @@ PageBase {
                 text: Strings.localizeEnglishSpelling(qsTr("Recolour wallpaper"))
                 subtext: Strings.localizeEnglishSpelling(qsTr("Tint the wallpaper to match static colour schemes"))
                 checked: Config.background.wallpaperRecolor
-                onToggled: GlobalConfig.background.wallpaperRecolor = checked
+                onToggled: { 
+                    GlobalConfig.background.wallpaperRecolor = checked; 
+                    for (let i = 0; i < Quickshell.screens.length; i++) {
+                        let sConf = GlobalConfig.forScreen(Quickshell.screens[i].name);
+                        if (sConf) sConf.background.resetOption("wallpaperRecolor");
+                    }
+                    GlobalConfig.save(); 
+                }
                 enabled: Config.background.wallpaperEnabled
             }
 

@@ -15,6 +15,7 @@ Controls.Menu {
     attachSideY: Controls.Menu.Bottom
     thisSideX: Controls.Menu.Left
     thisSideY: Controls.Menu.Top
+    property string screenName: ""
 
     Component {
         id: menuItemComp
@@ -36,9 +37,9 @@ Controls.Menu {
                 
                 if (!json || json.length === 0) {
                     json = [
-                        { id: "refresh", label: qsTr("Refresh"), icon: "refresh", action: "Quickshell.reload()", enabled: true, type: "default" },
-                        { id: "wallpaper_style", label: qsTr("Wallpaper & style"), icon: "wallpaper", action: "WindowFactory.create()", enabled: true, type: "default" },
+                        { id: "toggle_desktop_icons", label: qsTr("Desktop Icons"), icon: "desktop_windows", action: "ToggleDesktopIcons", enabled: true, type: "default" },
                         { id: "next_wallpaper", label: qsTr("Next Wallpaper"), icon: "skip_next", action: "Wallpapers.next()", enabled: true, type: "default" },
+                        { id: "wallpaper_style", label: qsTr("Wallpaper & style"), icon: "wallpaper", action: "WindowFactory.create()", enabled: true, type: "default" },
                         { id: "system_settings", label: qsTr("System Settings"), icon: "settings", command: "systemsettings", enabled: true, type: "default" },
                         { id: "open_terminal", label: qsTr("Open Terminal"), icon: "terminal", command: "terminal", enabled: true, type: "default" },
                         { id: "add_shortcut", label: qsTr("Add Shortcut..."), icon: "add", action: "OpenRightClickMenu", enabled: true, type: "default" }
@@ -61,6 +62,15 @@ Controls.Menu {
                             if (entry.action === "Wallpapers.next()") Wallpapers.next();
                             else if (entry.action === "Quickshell.reload()") Quickshell.reload();
                             else if (entry.action === "WindowFactory.create()") WindowFactory.create();
+                            else if (entry.action === "ToggleDesktopIcons") {
+                                let newState = !GlobalConfig.background.desktopIconsEnabled;
+                                GlobalConfig.background.desktopIconsEnabled = newState;
+                                for (let i = 0; i < Quickshell.screens.length; i++) {
+                                    let sConf = GlobalConfig.forScreen(Quickshell.screens[i].name);
+                                    if (sConf) sConf.background.resetOption("desktopIconsEnabled");
+                                }
+                                GlobalConfig.save();
+                            }
                             else if (entry.action === "OpenRightClickMenu") {
                                 let win = WindowFactory.create();
                                 win.nexus.nState.currentPageIdx = 0; // Wallpaper & Style
