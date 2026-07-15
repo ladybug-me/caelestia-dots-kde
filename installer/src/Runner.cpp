@@ -241,6 +241,18 @@ retry_step:
             
             // Forward command to the right pane
             if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
+                // Fail-safe: check if the right pane is dead (no reader on FIFO)
+                int test_fd = open("/tmp/caelestia_cmd", O_WRONLY | O_NONBLOCK);
+                if (test_fd == -1 && errno == ENXIO) {
+                    // Pane crashed previously, recreate it so variables and state are retained on retry!
+                    system("tmux split-window -h -t caelestia_install \"bash -c 'clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
+                    system("tmux select-pane -t caelestia_install:0.0");
+                    this_thread::sleep_for(chrono::milliseconds(50));
+                    g_resized = true;
+                } else if (test_fd != -1) {
+                    close(test_fd);
+                }
+
                 FILE* cmd_fifo = fopen("/tmp/caelestia_cmd", "w");
                 if (cmd_fifo) {
                     auto safe_env = [](const char* name) {
@@ -282,6 +294,17 @@ retry_step:
                             break;
                         }
                     }
+                    
+                    // Fail-safe check: did the tmux pane crash while we were waiting?
+                    int test_fd = open("/tmp/caelestia_cmd", O_WRONLY | O_NONBLOCK);
+                    if (test_fd == -1 && errno == ENXIO) {
+                        exit_code = 1; // treat as failure
+                        if (status_fd >= 0) close(status_fd);
+                        break;
+                    } else if (test_fd != -1) {
+                        close(test_fd);
+                    }
+                    
                     this_thread::sleep_for(chrono::milliseconds(100));
                     
                     // Handle Ctrl+C gracefully
