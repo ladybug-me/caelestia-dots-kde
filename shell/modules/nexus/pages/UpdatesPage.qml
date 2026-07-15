@@ -45,6 +45,7 @@ PageBase {
             function onAvailableVersionsChanged() { root.selectedVersionId = ""; }
             function onCurrentBranchChanged() { root.selectedVersionId = ""; }
             function onCurrentVersionChanged() { root.selectedVersionId = ""; }
+            function onInstalledCommitHashChanged() { root.selectedVersionId = ""; }
         }
     }
 
@@ -126,7 +127,7 @@ function ingestProcessText(rawText) {
         }
         return null;
     }
-    readonly property bool timelineSelectionEnabled: UpdateChecker.versionSummaryMode
+    readonly property bool timelineSelectionEnabled: true
     readonly property string selectedVersionState: root.selectedEntry ? root.selectedEntry.state : ""
     readonly property bool selectionIsRevert: root.timelineSelectionEnabled && root.selectedVersionState === "past"
     readonly property bool selectionIsFuture: root.timelineSelectionEnabled && root.selectedVersionState === "available"
@@ -154,20 +155,42 @@ function ingestProcessText(rawText) {
             }
             return result;
         } else {
-            // Commit mode (dev branch): pending commits above current marker
-            const pending = UpdateChecker.commits.map(c => ({
-                id: c.hash,
-                label: c.hash.substring(0, 7),
-                subject: c.subject || "",
-                state: "available"
-            }));
-            pending.push({
-                id: "##current##",
-                label: qsTr("installed"),
-                subject: UpdateChecker.currentBranch,
-                state: "current"
-            });
-            return pending;
+            // Commit mode (dev branch): full git-log-style history (newest first).
+            // Commits ahead of the installed one are "available", the installed
+            // commit itself is "current", and older commits are "past" — mirroring
+            // how the version timeline treats releases.
+            const commits = UpdateChecker.commits;
+            const localHash = UpdateChecker.installedCommitHash;
+            const localIdx = localHash !== "" ? commits.findIndex(c => c.fullHash === localHash) : -1;
+            const result = [];
+            for (let i = 0; i < commits.length; i++) {
+                const c = commits[i];
+                let state;
+                if (localHash === "") {
+                    // No installed commit on record: only mark the newest as current.
+                    state = i === 0 ? "current" : "past";
+                } else if (localIdx === -1) {
+                    // Installed commit is older than the displayed window — every
+                    // commit shown is ahead of it.
+                    state = "available";
+                } else if (i < localIdx) {
+                    state = "available";
+                } else if (i === localIdx) {
+                    state = "current";
+                } else {
+                    state = "past";
+                }
+                result.push({
+                    id: c.hash,
+                    label: c.hash,
+                    subject: c.subject || "",
+                    state: state,
+                    isMerge: !!c.isMerge,
+                    author: c.author || "",
+                    date: c.date || ""
+                });
+            }
+            return result;
         }
     }
 
@@ -300,8 +323,7 @@ function ingestProcessText(rawText) {
                                 root.stallNoticeShown = false;
                                 root.processLineBuffer = "";
                                 root.logsExpanded = true;
-                                UpdateChecker.targetVersion = (root.timelineSelectionEnabled && root.selectedVersionId !== "" && root.selectedVersionId !== "##current##")
-                                    ? root.selectedVersionId : "";
+                                UpdateChecker.targetVersion = root.selectedVersionId;
                                 root.selectedVersionId = "";
                                 updateProcess.running = true;
                             }

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Caelestia.Config
 import qs.components
+import qs.components.controls
 import qs.services
 Item {
     id: root
@@ -46,6 +47,14 @@ Item {
             readonly property bool isPast: modelData.state === "past"
             readonly property bool isSelected: root.selectedId === modelData.id
             readonly property bool isClickable: (isAvailable || isPast) && modelData.id !== "##current##"
+            readonly property bool isMerge: !!modelData.isMerge
+            readonly property string tooltipText: {
+                const author = modelData.author || "";
+                const date = modelData.date || "";
+                if (author === "" && date === "")
+                    return "";
+                return author !== "" && date !== "" ? `${author} • ${date}` : (author || date);
+            }
 
             property bool hovered: false
 
@@ -95,7 +104,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: r * 2
                 height: r * 2
-                radius: r
+                // Merge commits are rendered as a diamond to stand out from
+                // regular commits/versions in the same vertical timeline.
+                radius: entry.isMerge ? 2 : r
+                rotation: entry.isMerge ? 45 : 0
 
                 color: {
                     if (entry.isCurrent) return Colours.palette.m3primary;
@@ -154,6 +166,19 @@ Item {
                 onClicked: {
                     if (entry.isClickable) {
                         root.entryClicked(entry.modelData.id, entry.modelData.state);
+                    }
+                }
+            }
+
+            // Author/date tooltip - positioned absolutely, doesn't affect layout
+            Loader {
+                asynchronous: true
+                active: entry.tooltipText !== ""
+                z: 10000
+                sourceComponent: Component {
+                    Tooltip {
+                        target: entry
+                        text: entry.tooltipText
                     }
                 }
             }
