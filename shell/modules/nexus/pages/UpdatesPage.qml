@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtCore
+import Quickshell
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
@@ -19,37 +20,26 @@ PageBase {
     title: qsTr("Updates")
 
     // ── Branch menu items ──────────────────────────────────────────────────
-    property list<MenuItem> branchItems
-
-    function destroyBranchItems(items) {
-        if (!items)
-            return;
-
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item && item.destroy)
-                item.destroy();
-        }
-    }
-
-    function updateBranchItems() {
-        const previousItems = root.branchItems;
-        let items = [];
-        for (let i = 0; i < UpdateChecker.availableBranches.length; i++) {
-            items.push(Qt.createQmlObject(
-                'import qs.components.controls; MenuItem { text: "' + UpdateChecker.availableBranches[i] + '"; icon: "call_split" }',
-                root
-            ));
-        }
-        root.branchItems = items;
-        root.destroyBranchItems(previousItems);
-    }
+    readonly property list<MenuItem> branchItems: branchVariants.instances
 
     Item {
         visible: false
+
+        Variants {
+            id: branchVariants
+
+            model: UpdateChecker.availableBranches
+
+            MenuItem {
+                required property string modelData
+
+                text: modelData
+                icon: "call_split"
+            }
+        }
+
         Connections {
             target: UpdateChecker
-            function onAvailableBranchesChanged() { root.updateBranchItems(); }
             function onCommitsChanged() { root.selectedVersionId = ""; }
             function onVersionSummaryModeChanged() { root.selectedVersionId = ""; }
             function onAvailableVersionsChanged() { root.selectedVersionId = ""; }
@@ -58,15 +48,10 @@ PageBase {
         }
     }
 
-    Component.onCompleted: {
-        root.updateBranchItems();
+    readonly property var activeBranchItem: {
+        const found = branchItems.find(function(i) { return i.text === UpdateChecker.currentBranch; });
+        return found || (branchItems.length > 0 ? branchItems[0] : null);
     }
-
-    Component.onDestruction: {
-        root.destroyBranchItems(root.branchItems);
-    }
-
-    readonly property var activeBranchItem: branchItems.find(i => i.text === UpdateChecker.currentBranch) || branchItems[0]
 
     // ── Update process state ───────────────────────────────────────────────
     property string updateLogs: ""
@@ -358,6 +343,8 @@ function ingestProcessText(rawText) {
                 : qsTr("Development builds — may be unstable")
             menuItems: root.branchItems
             active: root.activeBranchItem
+            fallbackText: UpdateChecker.currentBranch
+            fallbackIcon: "call_split"
             onSelected: function(item) {
                 root.selectedVersionId = "";
                 UpdateChecker.checkUpdates(item.text);
