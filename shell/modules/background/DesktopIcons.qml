@@ -20,10 +20,10 @@ Item {
     property int cellHeight: 120
 
     // How many columns fit given the grid width
-    function getIconCols() { return Math.max(1, Math.floor(root.width / root.cellWidth)); }
+    function getIconCols() { return Math.max(1, Math.floor(gridItem.width / root.cellWidth)); }
         
     // How many rows are occupied
-    function getIconRows() { return Math.max(1, Math.floor(root.height / root.cellHeight)); }
+    function getIconRows() { return Math.max(1, Math.floor(gridItem.height / root.cellHeight)); }
 
     anchors.fill: parent
     visible: GlobalConfig.forScreen(screenData.name).background.enabled && GlobalConfig.forScreen(screenData.name).background.wallpaperEnabled && GlobalConfig.forScreen(screenData.name).background.desktopIconsEnabled
@@ -100,7 +100,15 @@ Item {
     Item {
         id: gridItem
         anchors.fill: parent
-        anchors.margins: Tokens.padding.large * 2
+        
+        readonly property int barZone: Visibilities.bars.get(root.screenData.name)?.exclusiveZone ?? (Tokens.sizes.bar.innerWidth + Math.max(Tokens.padding.small, Config.border.thickness))
+        readonly property int baseMargin: Tokens.padding.large * 2
+        
+        anchors.margins: baseMargin
+        anchors.leftMargin: Config.bar.position === "left" ? baseMargin + barZone : baseMargin
+        anchors.rightMargin: Config.bar.position === "right" ? baseMargin + barZone : baseMargin
+        anchors.topMargin: Config.bar.position === "top" ? baseMargin + barZone : baseMargin
+        anchors.bottomMargin: Config.bar.position === "bottom" ? baseMargin + barZone : baseMargin
 
         Instantiator {
             id: instantiator
