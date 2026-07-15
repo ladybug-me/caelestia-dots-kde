@@ -226,7 +226,7 @@ namespace Runner {
         // are already exported correctly as "true" or "false" by the dynamic UI!
         
         if (getenv("CAELESTIA_TMUX_MASTER") != nullptr) {
-            system("tmux split-window -h -t caelestia_install \"bash -c 'clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
+            system("tmux split-window -h -t caelestia_install \"bash -c 'trap \\\":\\\" SIGINT SIGQUIT SIGTSTP; clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
             system("tmux select-pane -t caelestia_install:0.0");
             this_thread::sleep_for(chrono::milliseconds(50)); // tiny wait for terminal resize propagation
             g_resized = true; // force UI redraw after split
@@ -245,7 +245,7 @@ retry_step:
                 int test_fd = open("/tmp/caelestia_cmd", O_WRONLY | O_NONBLOCK);
                 if (test_fd == -1 && errno == ENXIO) {
                     // Pane crashed previously, recreate it so variables and state are retained on retry!
-                    system("tmux split-window -h -t caelestia_install \"bash -c 'clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
+                    system("tmux split-window -h -t caelestia_install \"bash -c 'trap \\\":\\\" SIGINT SIGQUIT SIGTSTP; clear; echo \\\"Waiting for installer...\\\"; exec 3<> /tmp/caelestia_cmd; while read -u 3 -r cmd; do if [[ \\\"\\$cmd\\\" == \\\"EXIT\\\" ]]; then break; fi; eval \\\"\\$cmd\\\"; echo \\$? > /tmp/caelestia_status; done'\"");
                     system("tmux select-pane -t caelestia_install:0.0");
                     this_thread::sleep_for(chrono::milliseconds(50));
                     g_resized = true;
