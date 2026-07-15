@@ -79,6 +79,24 @@ EOF
 chmod +x "$UPD_DIR/bin/sudo"
 export PATH="$UPD_DIR/bin:$PATH"
 
+# --- Prime privilege escalation once, then keep it alive ---
+# Several steps below need root (system package update, the shell install
+# step). Authenticate once up front and refresh the cached credential in the
+# background so later sudo calls (which can happen well after the initial
+# prompt, e.g. after a long shell build) reuse it instead of prompting again.
+if [ "$EUID" -ne 0 ] && { [ -t 1 ] || command -v ksshaskpass &> /dev/null; }; then
+    info "Requesting administrator privileges (used for system update and installing the shell)..."
+    "$UPD_DIR/bin/sudo" -v || die "Failed to obtain administrator privileges."
+    (
+        while kill -0 "$$" 2>/dev/null; do
+            sleep 60
+            sudo -n true 2>/dev/null
+        done
+    ) &
+    SUDO_KEEPALIVE_PID=$!
+    trap '[ -n "${SUDO_KEEPALIVE_PID:-}" ] && kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
+fi
+
 # 1. Fetch from GitHub
 echo "PROGRESS: 1/5: Fetching updates from GitHub..."
 info "Checking for local repository cache..."

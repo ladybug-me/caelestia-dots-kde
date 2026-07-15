@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import QtCore
 import Quickshell
 import Quickshell.Io
@@ -377,26 +378,46 @@ function ingestProcessText(rawText) {
         SectionHeader { text: qsTr("Version History") }
 
         ConnectedRect {
+            id: timelineCard
             first: true
             last: true
             Layout.fillWidth: true
-            implicitHeight: timeline.implicitHeight + Tokens.padding.medium * 2
+            // Dev branch can list up to ~150 commits — cap the card height and
+            // let it scroll internally instead of pushing the log/actions
+            // below it far down the page.
+            readonly property real maxListHeight: 6 * 48
+            implicitHeight: Math.min(timeline.implicitHeight, maxListHeight) + Tokens.padding.medium * 2
 
-            UpdateTimeline {
-                id: timeline
+            Flickable {
+                id: timelineFlickable
                 anchors {
                     left: parent.left
                     right: parent.right
                     top: parent.top
                     margins: Tokens.padding.medium
                 }
-                entries: root.timelineEntries
-                selectedId: root.timelineSelectionEnabled ? root.selectedVersionId : ""
-                onEntryClicked: function(entryId, entryState) {
-                    if (root.updateRunning || !root.timelineSelectionEnabled) return;
-                    // Toggle: click same dot to deselect
-                    root.selectedVersionId = (root.selectedVersionId === entryId) ? "" : entryId;
-                    UpdateChecker.targetVersion = "";
+                height: Math.min(timeline.implicitHeight, timelineCard.maxListHeight)
+                contentWidth: width
+                contentHeight: timeline.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+
+                ScrollBar.vertical: StyledScrollBar {
+                    flickable: timelineFlickable
+                }
+
+                UpdateTimeline {
+                    id: timeline
+                    width: parent.width
+                    entries: root.timelineEntries
+                    selectedId: root.timelineSelectionEnabled ? root.selectedVersionId : ""
+                    onEntryClicked: function(entryId, entryState) {
+                        if (root.updateRunning || !root.timelineSelectionEnabled) return;
+                        // Toggle: click same dot to deselect
+                        root.selectedVersionId = (root.selectedVersionId === entryId) ? "" : entryId;
+                        UpdateChecker.targetVersion = "";
+                    }
                 }
             }
         }
