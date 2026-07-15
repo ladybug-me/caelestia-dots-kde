@@ -1,10 +1,10 @@
-[submodule "shell/plugin/src/QMLTermWidget"]
-	path = shell/plugin/src/QMLTermWidget
-	url = https://github.com/Swordfish90/qmltermwidget.git
 [submodule "caelestia"]
 	path = src/dots
 	url = https://github.com/caelestia-dots/caelestia.git
 	branch = main
 [submodule "yet-another-monochrome-icon-set"]
+	path = shell/assets/icons/yet-another-monochrome-icon-set
+	url = https://bitbucket.org/dirn-typo/yet-another-monochrome-icon-set.git
+[submodule "shell/assets/icons/yet-another-monochrome-icon-set"]
 	path = shell/assets/icons/yet-another-monochrome-icon-set
 	url = https://bitbucket.org/dirn-typo/yet-another-monochrome-icon-set.git
