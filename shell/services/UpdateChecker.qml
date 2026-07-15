@@ -34,6 +34,7 @@ Singleton {
     // top-level Nexus page and back (see Pages.qml `loadPage`).
     property string updateLogs: ""
     property bool updateRunning: false
+    property bool updateCancelled: false
     property real updateProgress: 0.0
     property string updateStatus: ""
     property bool logsExpanded: false
@@ -321,6 +322,7 @@ fi
         if (root.updateRunning)
             return;
         root.targetVersion = targetVersion;
+        root.updateCancelled = false;
         root.updateLogs = "";
         root.updateProgress = 0.0;
         root.updateStatus = qsTr("Starting…");
@@ -335,6 +337,7 @@ fi
     function stopUpdate(): void {
         if (!root.updateRunning)
             return;
+        root.updateCancelled = true;
         updateProcess.running = false;
         root.updateRunning = false;
         root.updateStatus = qsTr("Cancelled");
@@ -588,6 +591,11 @@ fi
             }
             root.updateRunning = false;
             root.lastUpdateOutputMs = 0;
+            if (root.updateCancelled) {
+                root.updateCancelled = false;
+                root.updateStatus = qsTr("Cancelled");
+                return;
+            }
             if (code === 0) {
                 Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");
                 root.reload();
