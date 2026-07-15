@@ -56,67 +56,14 @@ PageBase {
     }
 
     // ── Update process state ───────────────────────────────────────────────
-    property string updateLogs: ""
-    property bool updateRunning: false
-    property real updateProgress: 0.0
-    property string updateStatus: ""
-    property bool logsExpanded: false
-    property double lastUpdateOutputMs: 0
-    property bool stallNoticeShown: false
-    property string processLineBuffer: ""
-
-    function handleProgressLine(rawLine) {
-        const line = rawLine.trim();
-        if (line === "")
-            return;
-
-        const progressMatch = line.match(/PROGRESS:\s*(done.*|\d+\/\d+:\s*.+)$/);
-        if (progressMatch) {
-            const pText = progressMatch[1].trim();
-            if (pText.startsWith("done")) {
-                root.updateProgress = 1.0;
-                root.updateStatus = qsTr("Done!");
-                return;
-            }
-
-            const stageMatch = pText.match(/^(\d+)\/(\d+):\s*(.+)$/);
-            if (stageMatch) {
-                const current = parseInt(stageMatch[1]);
-                const total = parseInt(stageMatch[2]);
-                if (total > 0) {
-                    root.updateProgress = current / total;
-                    root.updateStatus = stageMatch[3];
-                }
-            }
-            return;
-        }
-
-        // Fallback: mark deploy stage as finished when deploy script confirms completion.
-        if (line.indexOf("Config deployment complete") !== -1 && root.updateProgress < 0.8) {
-            root.updateProgress = 0.7;
-            root.updateStatus = qsTr("Preparing shell build...");
-        }
-    }
-
-function ingestProcessText(rawText) {
-    root.lastUpdateOutputMs = Date.now();
-    root.stallNoticeShown = false;
-
-    const cleaned = rawText
-        .replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
-        .replace(/\r/g, "\n");
-
-    const chunk = cleaned.endsWith("\n") ? cleaned : (cleaned + "\n");
-    root.updateLogs += chunk;
-
-    const combined = root.processLineBuffer + chunk;
-    const lines = combined.split("\n");
-    root.processLineBuffer = lines.pop();
-
-    for (let i = 0; i < lines.length; i++) {
-        root.handleProgressLine(lines[i]);
-    }
-}
+    // Backed by the UpdateChecker singleton (not local properties) so the
+    // running update, its progress and logs survive navigating away from
+    // this page and back — see Pages.qml, which destroys/recreates the page
+    // Item on every top-level page switch.
+    readonly property bool updateRunning: UpdateChecker.updateRunning
+    readonly property real updateProgress: UpdateChecker.updateProgress
+    readonly property string updateStatus: UpdateChecker.updateStatus
+    readonly property string updateLogs: UpdateChecker.updateLogs
 
     // ── Timeline selection state ───────────────────────────────────────────
     property string selectedVersionId: ""
@@ -192,16 +139,6 @@ function ingestProcessText(rawText) {
                 });
             }
             return result;
-        }
-    }
-
-    // ── Hidden settings (preserved for update process) ─────────────────────
-    Item {
-        Settings {
-            id: updaterSettings
-            category: "Updater"
-            property bool deployConfigs: true
-            property bool buildShell: true
         }
     }
 
@@ -316,17 +253,9 @@ function ingestProcessText(rawText) {
                             if (root.updateProgress === 1.0) {
                                 logoutProcess.running = true;
                             } else {
-                                root.updateLogs = "";
-                                root.updateProgress = 0.0;
-                                root.updateStatus = qsTr("Starting…");
-                                root.updateRunning = true;
-                                root.lastUpdateOutputMs = Date.now();
-                                root.stallNoticeShown = false;
-                                root.processLineBuffer = "";
-                                root.logsExpanded = true;
-                                UpdateChecker.targetVersion = root.selectedVersionId;
+                                const target = root.selectedVersionId;
                                 root.selectedVersionId = "";
-                                updateProcess.running = true;
+                                UpdateChecker.startUpdate(target);
                             }
                         }
                     }
@@ -339,10 +268,7 @@ function ingestProcessText(rawText) {
                         icon: root.updateRunning ? "stop" : (root.selectedVersionId !== "" ? "close" : "refresh")
                         onClicked: {
                             if (root.updateRunning) {
-                                updateProcess.running = false;
-                                root.updateRunning = false;
-                                root.updateStatus = qsTr("Cancelled");
-                                root.updateLogs += "\n[Cancelled by user]";
+                                UpdateChecker.stopUpdate();
                             } else if (root.selectedVersionId !== "") {
                                 root.selectedVersionId = "";
                             } else {
@@ -460,8 +386,8 @@ function ingestProcessText(rawText) {
                     }
 
                     IconButton {
-                        icon: root.logsExpanded ? "expand_less" : "expand_more"
-                        onClicked: root.logsExpanded = !root.logsExpanded
+                        icon: UpdateChecker.logsExpanded ? "expand_less" : "expand_more"
+                        onClicked: UpdateChecker.logsExpanded = !UpdateChecker.logsExpanded
                     }
                 }
 
@@ -475,7 +401,7 @@ function ingestProcessText(rawText) {
                 StyledRect {
                     Layout.fillWidth: true
                     implicitHeight: 240
-                    visible: root.logsExpanded && (root.updateLogs !== "" || root.updateRunning)
+                    visible: UpdateChecker.logsExpanded && (root.updateLogs !== "" || root.updateRunning)
                     color: Colours.tPalette.m3surfaceContainerLowest
                     radius: Tokens.rounding.small
                     clip: true
@@ -504,56 +430,10 @@ function ingestProcessText(rawText) {
         }
 
         // ── PROCESSES ─────────────────────────────────────────────────────
-        Timer {
-            interval: 30000
-            repeat: true
-            running: root.updateRunning
-            onTriggered: {
-                if (!root.updateRunning) return;
-                if (root.lastUpdateOutputMs <= 0) return;
-                const idleMs = Date.now() - root.lastUpdateOutputMs;
-                if (idleMs >= 120000 && !root.stallNoticeShown) {
-                    root.stallNoticeShown = true;
-                    root.updateLogs += "[WARN] No updater output for 120s. If this persists, stop and retry.\n";
-                }
-            }
-        }
-
-        Process {
-            id: updateProcess
-            command: [Paths.absolutePath("~/.local/bin/caelestia-update"), UpdateChecker.currentBranch]
-                .concat(UpdateChecker.targetVersion !== "" ? [UpdateChecker.targetVersion] : [])
-            environment: ({
-                CAELESTIA_SKIP_DEPLOY: updaterSettings.deployConfigs ? "0" : "1",
-                CAELESTIA_SKIP_BUILD: updaterSettings.buildShell ? "0" : "1"
-            })
-            stdout: SplitParser {
-                onRead: function(text) {
-                    root.ingestProcessText(text);
-                }
-            }
-            stderr: SplitParser {
-                onRead: function(text) {
-                    root.ingestProcessText(text);
-                }
-            }
-            onExited: function(code) {
-                if (root.processLineBuffer !== "") {
-                    root.handleProgressLine(root.processLineBuffer);
-                    root.processLineBuffer = "";
-                }
-                root.updateRunning = false;
-                root.lastUpdateOutputMs = 0;
-                if (code === 0) {
-                    Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");
-                    UpdateChecker.reload();
-                } else {
-                    root.updateStatus = qsTr("Update failed (exit code %1)").arg(code);
-                    Toaster.toast(qsTr("Update Failed"), qsTr("The update script returned error code %1").arg(code), "error");
-                }
-            }
-        }
-
+        // Note: the actual update Process now lives on the UpdateChecker
+        // singleton so it (and its progress/logs) survives this page being
+        // destroyed/recreated on navigation. Only the one-off logout process
+        // stays local since it doesn't need to persist.
         Process {
             id: logoutProcess
             command: ["qdbus6", "org.kde.Shutdown", "/Shutdown", "org.kde.Shutdown.logout"]

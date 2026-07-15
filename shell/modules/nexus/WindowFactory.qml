@@ -30,6 +30,15 @@ Singleton {
             surfaceFormat.opaque: false
 
             onVisibleChanged: {
+                // Some Quickshell versions do not expose a cancellable close
+                // signal on FloatingWindow. If the window is being hidden while
+                // an update runs, reopen and route through Nexus' close guard.
+                if (!visible && UpdateChecker.updateRunning) {
+                    visible = true;
+                    nexus.requestClose();
+                    return;
+                }
+
                 if (!visible)
                     destroy();
             }

@@ -1,10 +1,12 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import Caelestia.Blobs
 import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.components.effects
 import qs.services
 import qs.modules.nexus
 
@@ -14,11 +16,21 @@ Item {
     readonly property NexusState nState: NexusState {
         id: nState
 
-        onClose: root.close()
+        onClose: root.requestClose()
     }
     property color blobColour: Colours.tPalette.m3surfaceContainerLow
 
     signal close
+
+    // Entry point for anything that wants to close Nexus (in-app close
+    // button, native window close, etc). Intercepts the close when an
+    // update is running so the user can decide whether to cancel it first.
+    function requestClose(): void {
+        if (UpdateChecker.updateRunning)
+            closeConfirmDialog.visible = true;
+        else
+            root.close();
+    }
 
     implicitWidth: implicitHeight * Tokens.sizes.nexus.ratio
     implicitHeight: nState.screen.height * Tokens.sizes.nexus.heightMult
@@ -71,9 +83,12 @@ Item {
         inactiveOnColour: hovered ? nState.isWindow ? Colours.palette.m3error : Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
         stateLayer.opacity: 0
         onClicked: {
-            if (!nState.isWindow)
+            if (!nState.isWindow) {
                 WindowFactory.create();
-            root.close();
+                root.close();
+                return;
+            }
+            root.requestClose();
         }
 
         label.scale: pressed ? 0.8 : 1
@@ -105,5 +120,126 @@ Item {
         anchors.margins: Tokens.padding.extraLarge
 
         nState: nState
+    }
+
+    // ── Update-in-progress close confirmation ───────────────────────────────
+    // Guards the close paths above (in-app close button, native window close
+    // via WindowFactory) so an in-progress update isn't silently abandoned.
+    Item {
+        id: closeConfirmDialog
+
+        anchors.fill: parent
+        visible: false
+        z: 1000
+
+        Connections {
+            // If the update finishes/is cancelled elsewhere while this dialog
+            // is open, don't leave a stale confirmation on screen.
+            target: UpdateChecker
+            function onUpdateRunningChanged(): void {
+                if (!UpdateChecker.updateRunning)
+                    closeConfirmDialog.visible = false;
+            }
+        }
+
+        MouseArea {
+            // Click outside the card dismisses the dialog without closing.
+            anchors.fill: parent
+            onClicked: closeConfirmDialog.visible = false
+        }
+
+        StyledRect {
+            anchors.fill: parent
+            radius: Tokens.rounding.large
+            color: Qt.alpha(Colours.palette.m3shadow, 0.55)
+        }
+
+        Elevation {
+            level: 3
+            radius: dialogBg.radius
+            anchors.fill: dialogBg
+        }
+
+        StyledRect {
+            id: dialogBg
+
+            anchors.centerIn: parent
+            implicitWidth: Math.min(340, root.width - Tokens.padding.large * 4)
+            implicitHeight: dialogCol.implicitHeight + Tokens.padding.large * 2
+            radius: Tokens.rounding.large
+            color: Colours.palette.m3surfaceContainerHigh
+
+            MouseArea {
+                // Swallow clicks so they don't fall through to the scrim behind.
+                anchors.fill: parent
+            }
+
+            ColumnLayout {
+                id: dialogCol
+
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    margins: Tokens.padding.large
+                }
+                spacing: Tokens.spacing.medium
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.small
+
+                    MaterialIcon {
+                        text: "sync"
+                        color: Colours.palette.m3primary
+                        fontStyle: Tokens.font.icon.large
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: qsTr("Update in progress")
+                        font: Tokens.font.title.small
+                        color: Colours.palette.m3onSurface
+                    }
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: qsTr("Closing now will let the update keep running in the background, or you can cancel it first.")
+                    wrapMode: Text.Wrap
+                    color: Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.body.medium
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Tokens.spacing.small
+                    spacing: Tokens.spacing.small
+
+                    Item { Layout.fillWidth: true }
+
+                    IconTextButton {
+                        text: qsTr("Cancel Update")
+                        icon: "stop"
+                        type: TextButton.Tonal
+                        onClicked: {
+                            UpdateChecker.stopUpdate();
+                            closeConfirmDialog.visible = false;
+                            root.close();
+                        }
+                    }
+
+                    IconTextButton {
+                        text: qsTr("Keep Running")
+                        icon: "close"
+                        type: TextButton.Filled
+                        onClicked: {
+                            closeConfirmDialog.visible = false;
+                            root.close();
+                        }
+                    }
+                }
+            }
+        }
     }
 }
