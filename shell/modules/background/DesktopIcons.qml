@@ -10,6 +10,7 @@ import qs.components.containers
 import qs.services
 import Qt.labs.folderlistmodel
 import Quickshell.Io
+import qs.components.effects
 
 Item {
     id: root
@@ -260,6 +261,7 @@ Item {
                 }
 
                 property bool useMaterialYouIcons: GlobalConfig.forScreen(screenData.name).background.materialYouIconsEnabled
+                property bool useVibrantIcons: GlobalConfig.forScreen(screenData.name).background.materialYouIconsVibrant
 
                 function getIconSource(isDir, filename, suffix) {
                     if (filename.toLowerCase().endsWith(".desktop") && desktopIcon !== "") {
@@ -307,9 +309,22 @@ Item {
                             width: 64; height: 64
                             source: getIconSource(fileIsDir, fileName, fileSuffix)
                             fillMode: Image.PreserveAspectFit
+                            // Tint with the shell's primary accent when Material You icons are active
+                            layer.enabled: useMaterialYouIcons
+                            layer.effect: Colouriser {
+                                sourceColor: "black"
+                                colorizationColor: {
+                                    let c = Colours.palette.m3primary;
+                                    if (useVibrantIcons) {
+                                        return Qt.hsla(c.hslHue, 1.0, Math.max(0.4, Math.min(0.6, c.hslLightness)), c.a);
+                                    }
+                                    return c;
+                                }
+                            }
                             // If the Material You SVG is missing, fall back to KDE icon
                             onStatusChanged: {
                                 if (status === Image.Error && useMaterialYouIcons) {
+                                    layer.enabled = false;
                                     source = getFallbackIconSource(fileIsDir, fileName, fileSuffix);
                                 }
                             }
