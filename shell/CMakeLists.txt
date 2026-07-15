@@ -1,13 +1,26 @@
 cmake_minimum_required(VERSION 3.19)
 
 if(NOT DEFINED VERSION)
-    execute_process(COMMAND git describe --tags --match "v*" --abbrev=0
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
+    # 1. Prefer version.env — canonical source of truth, kept in sync by CI
+    set(_VERSION_ENV "${CMAKE_SOURCE_DIR}/../.github/version.env")
+    if(EXISTS "${_VERSION_ENV}")
+        file(STRINGS "${_VERSION_ENV}" _VER_LINE REGEX "^VERSION=")
+        if(_VER_LINE)
+            string(REGEX REPLACE "^VERSION=" "" VERSION "${_VER_LINE}")
+        endif()
+    endif()
 
+    # 2. Fallback: git describe (nearest tag)
+    if(NOT VERSION OR "${VERSION}" STREQUAL "")
+        execute_process(COMMAND git describe --tags --match "v*" --abbrev=0
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            OUTPUT_VARIABLE VERSION
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+
+    # Last resort hardcoded
     if("${VERSION}" STREQUAL "" OR "${VERSION}" STREQUAL "rolling")
         set(VERSION "v2.1.0")
     endif()
@@ -26,7 +39,27 @@ if(NOT DEFINED GIT_REVISION)
     endif()
 endif()
 
+set(DISPLAY_VERSION "${VERSION}")
+
+# On dev branch: append -dev+<short-hash> to distinguish from stable
+execute_process(COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE _GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+)
+if("${_GIT_BRANCH}" STREQUAL "dev")
+    execute_process(COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE _SHORT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+    )
+    if(NOT "${_SHORT_HASH}" STREQUAL "")
+        set(DISPLAY_VERSION "${VERSION}-dev+${_SHORT_HASH}")
+    endif()
+endif()
+
 string(REGEX REPLACE "^v" "" VERSION "${VERSION}")
+string(REGEX REPLACE "^v" "" DISPLAY_VERSION "${DISPLAY_VERSION}")
 
 project(caelestia-shell VERSION ${VERSION} LANGUAGES CXX)
 
