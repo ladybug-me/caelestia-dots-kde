@@ -66,6 +66,23 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
+                text: qsTr("Material You Icons")
+                subtext: qsTr("Use Material You icon set instead of KDE theme")
+                checked: Config.background.materialYouIconsEnabled
+                onToggled: {
+                    GlobalConfig.background.materialYouIconsEnabled = checked;
+                    for (let i = 0; i < Quickshell.screens.length; i++) {
+                        let sConf = GlobalConfig.forScreen(Quickshell.screens[i].name);
+                        if (sConf) sConf.background.resetOption("materialYouIconsEnabled");
+                    }
+                    GlobalConfig.save();
+                }
+                enabled: Config.background.wallpaperEnabled && Config.background.desktopIconsEnabled
+            }
+
+            ToggleRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+                Layout.fillWidth: true
                 text: Strings.localizeEnglishSpelling(qsTr("Recolour wallpaper"))
                 subtext: Strings.localizeEnglishSpelling(qsTr("Tint the wallpaper to match static colour schemes"))
                 checked: Config.background.wallpaperRecolor

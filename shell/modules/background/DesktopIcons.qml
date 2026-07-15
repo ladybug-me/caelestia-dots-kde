@@ -234,8 +234,51 @@ Item {
                     
                     return "text-x-generic";
                 }
-                
+
+                // Returns the search directories within the icon set, ordered by priority
+                readonly property string iconSetBase: Qt.resolvedUrl(Quickshell.shellDir + "/assets/icons/yet-another-monochrome-icon-set")
+                readonly property var iconSetDirs: ["apps/scalable", "mimetypes/scalable", "places/scalable", "actions/scalable", "devices/scalable", "status/scalable"]
+
+                function getMaterialYouIconUrl(iconName) {
+                    if (!iconName) return "";
+                    for (let i = 0; i < iconSetDirs.length; i++) {
+                        let url = iconSetBase + "/" + iconSetDirs[i] + "/" + iconName + ".svg";
+                        // Qt.resolvedUrl normalises it; we return it for use as Image.source
+                        return url; // try first candidate; Image will report Error and we fallback
+                    }
+                    return "";
+                }
+
+                function getMaterialYouIconUrlByPriority(iconName) {
+                    // Build ordered candidate list: apps first (for .desktop icons), then mimetypes, then places
+                    if (!iconName) return "";
+                    let candidates = [];
+                    for (let i = 0; i < iconSetDirs.length; i++) {
+                        candidates.push(iconSetBase + "/" + iconSetDirs[i] + "/" + iconName + ".svg");
+                    }
+                    return candidates;
+                }
+
+                property bool useMaterialYouIcons: GlobalConfig.forScreen(screenData.name).background.materialYouIconsEnabled
+
                 function getIconSource(isDir, filename, suffix) {
+                    if (filename.toLowerCase().endsWith(".desktop") && desktopIcon !== "") {
+                        if (desktopIcon.startsWith("/")) return "file://" + desktopIcon;
+                        if (useMaterialYouIcons) {
+                            return iconSetBase + "/apps/scalable/" + desktopIcon + ".svg";
+                        }
+                        return Quickshell.iconPath(desktopIcon, "application-x-executable");
+                    }
+                    const iconName = getIconName(isDir, filename, suffix);
+                    if (useMaterialYouIcons) {
+                        // For generic types, mimetypes dir has them; for folder, places dir
+                        if (isDir) return iconSetBase + "/places/scalable/folder.svg";
+                        return iconSetBase + "/mimetypes/scalable/" + iconName + ".svg";
+                    }
+                    return "image://icon/" + iconName;
+                }
+
+                function getFallbackIconSource(isDir, filename, suffix) {
                     if (filename.toLowerCase().endsWith(".desktop") && desktopIcon !== "") {
                         if (desktopIcon.startsWith("/")) return "file://" + desktopIcon;
                         return Quickshell.iconPath(desktopIcon, "application-x-executable");
@@ -259,10 +302,17 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Image {
+                            id: iconImage
                             anchors.centerIn: parent
                             width: 64; height: 64
                             source: getIconSource(fileIsDir, fileName, fileSuffix)
                             fillMode: Image.PreserveAspectFit
+                            // If the Material You SVG is missing, fall back to KDE icon
+                            onStatusChanged: {
+                                if (status === Image.Error && useMaterialYouIcons) {
+                                    source = getFallbackIconSource(fileIsDir, fileName, fileSuffix);
+                                }
+                            }
                         }
                     }
                     Text {
