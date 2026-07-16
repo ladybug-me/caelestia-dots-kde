@@ -14,6 +14,26 @@ Scope {
     required property Lock lock
     readonly property bool enabled: !GlobalConfig.general.idle.inhibitWhenAudio || !Players.list.some(p => p.isPlaying)
 
+    function isSuspendIdleAction(action: var): bool {
+        if (!action)
+            return false;
+
+        if (typeof action === "string") {
+            const normalized = action.trim().toLowerCase();
+            return normalized === "suspendthenhibernate" || normalized === "suspend" || normalized === "suspend-then-hibernate" || normalized === "systemctl suspend" || normalized === "systemctl suspend-then-hibernate";
+        }
+
+        const isArrayLike = action instanceof Array || (typeof action === "object" && action.length !== undefined);
+        if (isArrayLike) {
+            for (const a of action) {
+                if (root.isSuspendIdleAction(a))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     function handleIdleAction(action: var): void {
         if (!action)
             return;
@@ -51,7 +71,7 @@ Scope {
         IdleMonitor {
             required property var modelData
 
-            enabled: root.enabled && (modelData.enabled ?? true)
+            enabled: root.enabled && (modelData.enabled !== undefined ? modelData.enabled : !root.isSuspendIdleAction(modelData.idleAction))
             timeout: modelData.timeout
             respectInhibitors: modelData.respectInhibitors ?? true
             onIsIdleChanged: root.handleIdleAction(isIdle ? modelData.idleAction : modelData.returnAction)

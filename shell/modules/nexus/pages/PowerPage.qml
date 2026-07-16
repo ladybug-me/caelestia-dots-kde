@@ -72,7 +72,7 @@ PageBase {
 
         for (const entry of entries) {
             if (root.isSuspendIdleAction(entry.idleAction))
-                return entry.enabled ?? true;
+                return entry.enabled ?? false;
         }
 
         return false;

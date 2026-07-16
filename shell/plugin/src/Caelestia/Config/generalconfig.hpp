@@ -43,6 +43,7 @@ class GeneralIdle : public ConfigObject {
             vmap({
                 { u"timeout"_s, 600 },
                 { u"idleAction"_s, QStringList{ u"suspendThenHibernate"_s } },
+                { u"enabled"_s, false },
             }),
         })
 
