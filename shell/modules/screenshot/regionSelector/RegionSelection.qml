@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Caelestia
 
 PanelWindow {
     id: root
@@ -183,17 +184,6 @@ PanelWindow {
     property real regionY: Math.min(dragStartY, draggingY)
 
     // Screenshot stuff
-    TempScreenshotProcess {
-        id: screenshotProc
-        running: true
-        screen: root.screen
-        screenshotDir: root.screenshotDir
-        screenshotPath: root.screenshotPath
-        onExited: (exitCode, exitStatus) => {
-            if (root.enableContentRegions) imageDetectionProcess.running = true;
-            root.preparationDone = !checkRecordingProc.running;
-        }
-    }
     property bool isRecording: root.action === RegionSelection.SnipAction.Record || root.action === RegionSelection.SnipAction.RecordWithSound
     property bool recordingShouldStop: false
     Process {
@@ -201,10 +191,30 @@ PanelWindow {
         running: isRecording
         command: ["pidof", "gpu-screen-recorder"]
         onExited: (exitCode, exitStatus) => {
-            root.preparationDone = !screenshotProc.running
             root.recordingShouldStop = (exitCode === 0);
+            if (isRecording) {
+                root.preparationDone = true;
+            }
         }
     }
+
+    ScreencopyView {
+        id: screencopy
+        anchors.fill: parent
+        captureSource: root.screen
+        visible: !root.preparationDone && !root.isRecording
+
+        onHasContentChanged: {
+            if (hasContent && !root.isRecording && !root.preparationDone) {
+                Quickshell.execDetached(["bash", "-c", `mkdir -p '${root.screenshotDir}'`]);
+                CUtils.saveItem(screencopy, Qt.resolvedUrl("file://" + root.screenshotPath), Qt.rect(0, 0, root.screen.width, root.screen.height), path => {
+                    if (root.enableContentRegions) imageDetectionProcess.running = true;
+                    root.preparationDone = true;
+                });
+            }
+        }
+    }
+
     property bool preparationDone: false
     property string frozenImageSource: ""
     onPreparationDoneChanged: {
@@ -214,7 +224,9 @@ PanelWindow {
             root.dismiss();
             return;
         }
-        root.frozenImageSource = "file://" + root.screenshotPath;
+        if (!root.isRecording) {
+            root.frozenImageSource = "file://" + root.screenshotPath;
+        }
         root.visible = true;
     }
 
@@ -284,8 +296,8 @@ PanelWindow {
             "" : "";
         var screenshotAction = root.getScreenshotAction();
         const command = ScreenshotAction.getCommand(
-            (root.regionX + root.monitorOffsetX) * root.monitorScale, //
-            (root.regionY + root.monitorOffsetY) * root.monitorScale, //
+            root.regionX * root.monitorScale, //
+            root.regionY * root.monitorScale, //
             root.regionWidth * root.monitorScale,// 
             root.regionHeight * root.monitorScale, //
             root.screenshotPath, //
