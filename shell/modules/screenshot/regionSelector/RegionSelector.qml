@@ -23,7 +23,7 @@ Scope {
         delegate: Loader {
             id: regionSelectorLoader
             required property var modelData
-            active: root.screenshotActive
+            active: root.screenshotActive && modelData.name === Hypr.focusedMonitor.name
 
             sourceComponent: RegionSelection {
                 screen: regionSelectorLoader.modelData
