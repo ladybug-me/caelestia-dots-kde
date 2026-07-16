@@ -28,6 +28,9 @@ Singleton {
                         property int id: 0
                         property string name: ""
                         property bool focused: false
+                        property real scale: 1.0
+                        property real x: 0
+                        property real y: 0
                         property var activeWorkspace: ({ id: 1 })
                         property var specialWorkspace: ({ name: "" })
                         property var lastIpcObject: null
@@ -62,6 +65,9 @@ Singleton {
                                         property int id: 0
                                         property string name: ""
                                         property bool focused: false
+                                        property real scale: 1.0
+                                        property real x: 0
+                                        property real y: 0
                                         property var activeWorkspace: ({ id: 1 })
                                         property var specialWorkspace: ({ name: "" })
                                         property var lastIpcObject: null
@@ -73,6 +79,9 @@ Singleton {
                             cached.id = m.id;
                             cached.name = m.name;
                             cached.focused = m.focused;
+                            cached.scale = m.scale || 1.0;
+                            cached.x = m.x || 0;
+                            cached.y = m.y || 0;
                             cached.activeWorkspace = m.activeWorkspace || { id: root.mockActiveWs };
                             cached.specialWorkspace = m.specialWorkspace || { name: "" };
                             cached.lastIpcObject = cached;
@@ -214,6 +223,9 @@ Singleton {
                     property int id: 0
                     property string name: ""
                     property bool focused: false
+                    property real scale: 1.0
+                    property real x: 0
+                    property real y: 0
                     property var activeWorkspace: ({ id: 1 })
                     property var specialWorkspace: ({ name: "" })
                     property var lastIpcObject: null
