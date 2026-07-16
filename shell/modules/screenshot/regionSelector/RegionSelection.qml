@@ -13,7 +13,7 @@ import Caelestia
 
 PanelWindow {
     id: root
-    visible: false
+    visible: true
     color: "transparent"
     WlrLayershell.namespace: "quickshell:regionSelector"
     WlrLayershell.layer: WlrLayer.Overlay
