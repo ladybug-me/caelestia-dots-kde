@@ -186,7 +186,7 @@ PanelWindow {
     TempScreenshotProcess {
         id: screenshotProc
         running: true
-        screen: Hypr.focusedMonitor.name
+        screen: root.screen
         screenshotDir: root.screenshotDir
         screenshotPath: root.screenshotPath
         onExited: (exitCode, exitStatus) => {
