@@ -9,11 +9,10 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Caelestia
 
 PanelWindow {
     id: root
-    visible: true
+    visible: false
     color: "transparent"
     WlrLayershell.namespace: "quickshell:regionSelector"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -62,7 +61,7 @@ PanelWindow {
     readonly property real falsePositivePreventionRatio: 0.5
 
     // Screen & interaction vars
-    readonly property var hyprlandMonitor: Hypr.monitorFor(screen)
+    readonly property HyprlandMonitor hyprlandMonitor: Hyprland.monitorFor(screen)
     readonly property real monitorScale: (hyprlandMonitor && hyprlandMonitor.scale > 0) ? hyprlandMonitor.scale : (screen.devicePixelRatio || 1.0)
     readonly property real monitorOffsetX: hyprlandMonitor ? (hyprlandMonitor.x || 0) : 0
     readonly property real monitorOffsetY: hyprlandMonitor ? (hyprlandMonitor.y || 0) : 0
@@ -184,6 +183,17 @@ PanelWindow {
     property real regionY: Math.min(dragStartY, draggingY)
 
     // Screenshot stuff
+    TempScreenshotProcess {
+        id: screenshotProc
+        running: true
+        screen: root.screen
+        screenshotDir: root.screenshotDir
+        screenshotPath: root.screenshotPath
+        onExited: (exitCode, exitStatus) => {
+            if (root.enableContentRegions) imageDetectionProcess.running = true;
+            root.preparationDone = !checkRecordingProc.running;
+        }
+    }
     property bool isRecording: root.action === RegionSelection.SnipAction.Record || root.action === RegionSelection.SnipAction.RecordWithSound
     property bool recordingShouldStop: false
     Process {
@@ -191,38 +201,10 @@ PanelWindow {
         running: isRecording
         command: ["pidof", "gpu-screen-recorder"]
         onExited: (exitCode, exitStatus) => {
+            root.preparationDone = !screenshotProc.running
             root.recordingShouldStop = (exitCode === 0);
-            if (isRecording) {
-                root.preparationDone = true;
-            }
         }
     }
-
-    ScreencopyView {
-        id: screencopy
-        anchors.fill: parent
-        captureSource: root.screen
-        visible: !root.preparationDone && !root.isRecording
-
-        function trySave() {
-            console.log("[RegionSelection] trySave called. hasContent:", hasContent, "isRecording:", root.isRecording, "preparationDone:", root.preparationDone);
-            if (hasContent && !root.isRecording && !root.preparationDone) {
-                console.log("[RegionSelection] Saving screenshot to:", root.screenshotPath);
-                Quickshell.execDetached(["bash", "-c", `mkdir -p '${root.screenshotDir}'`]);
-                CUtils.saveItem(screencopy, Qt.resolvedUrl("file://" + root.screenshotPath), path => {
-                    console.log("[RegionSelection] Saved successfully:", path);
-                    if (root.enableContentRegions) imageDetectionProcess.running = true;
-                    root.preparationDone = true;
-                }, err => {
-                    console.error("[RegionSelection] Failed to save screenshot:", err);
-                });
-            }
-        }
-
-        onHasContentChanged: trySave()
-        Component.onCompleted: trySave()
-    }
-
     property bool preparationDone: false
     property string frozenImageSource: ""
     onPreparationDoneChanged: {
@@ -232,9 +214,7 @@ PanelWindow {
             root.dismiss();
             return;
         }
-        if (!root.isRecording) {
-            root.frozenImageSource = "file://" + root.screenshotPath;
-        }
+        root.frozenImageSource = "file://" + root.screenshotPath;
         root.visible = true;
     }
 
@@ -304,8 +284,8 @@ PanelWindow {
             "" : "";
         var screenshotAction = root.getScreenshotAction();
         const command = ScreenshotAction.getCommand(
-            root.regionX * root.monitorScale, //
-            root.regionY * root.monitorScale, //
+            (root.regionX + root.monitorOffsetX) * root.monitorScale, //
+            (root.regionY + root.monitorOffsetY) * root.monitorScale, //
             root.regionWidth * root.monitorScale,// 
             root.regionHeight * root.monitorScale, //
             root.screenshotPath, //
