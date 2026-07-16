@@ -204,15 +204,23 @@ PanelWindow {
         captureSource: root.screen
         visible: !root.preparationDone && !root.isRecording
 
-        onHasContentChanged: {
+        function trySave() {
+            console.log("[RegionSelection] trySave called. hasContent:", hasContent, "isRecording:", root.isRecording, "preparationDone:", root.preparationDone);
             if (hasContent && !root.isRecording && !root.preparationDone) {
+                console.log("[RegionSelection] Saving screenshot to:", root.screenshotPath);
                 Quickshell.execDetached(["bash", "-c", `mkdir -p '${root.screenshotDir}'`]);
-                CUtils.saveItem(screencopy, Qt.resolvedUrl("file://" + root.screenshotPath), Qt.rect(0, 0, root.screen.width, root.screen.height), path => {
+                CUtils.saveItem(screencopy, Qt.resolvedUrl("file://" + root.screenshotPath), path => {
+                    console.log("[RegionSelection] Saved successfully:", path);
                     if (root.enableContentRegions) imageDetectionProcess.running = true;
                     root.preparationDone = true;
+                }, err => {
+                    console.error("[RegionSelection] Failed to save screenshot:", err);
                 });
             }
         }
+
+        onHasContentChanged: trySave()
+        Component.onCompleted: trySave()
     }
 
     property bool preparationDone: false
