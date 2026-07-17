@@ -71,7 +71,7 @@ Scope {
         IdleMonitor {
             required property var modelData
 
-            enabled: root.enabled && (modelData.enabled !== undefined ? modelData.enabled : !root.isSuspendIdleAction(modelData.idleAction))
+            enabled: root.enabled && (modelData.enabled ?? !root.isSuspendIdleAction(modelData.idleAction))
             timeout: modelData.timeout
             respectInhibitors: modelData.respectInhibitors ?? true
             onIsIdleChanged: root.handleIdleAction(isIdle ? modelData.idleAction : modelData.returnAction)

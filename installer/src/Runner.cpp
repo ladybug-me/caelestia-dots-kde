@@ -21,6 +21,9 @@ using namespace std;
 namespace {
     bool tmux_has_worker_pane() {
         int rc = system("tmux list-panes -t caelestia_install -F '#{pane_index}' 2>/dev/null | grep -qx '1'");
+        if (rc == -1) {
+            return false;
+        }
         return WIFEXITED(rc) && WEXITSTATUS(rc) == 0;
     }
 
