@@ -135,7 +135,8 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
     if ! command -v make >/dev/null 2>&1; then
         MISSING_PKGS+=("make")
     fi
-    if ! command -v tmux >/dev/null 2>&1; then
+    # tmux is used for the split-pane installer view unless explicitly disabled
+    if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]] && ! command -v tmux >/dev/null 2>&1; then
         MISSING_PKGS+=("tmux")
     fi
 
@@ -144,9 +145,17 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
         echo ""
         echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
         if [[ "$BASE_DISTRO" == "arch" ]]; then
-            sudo pacman -S --needed --noconfirm base-devel cmake tmux
+            if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+                sudo pacman -S --needed --noconfirm base-devel cmake tmux
+            else
+                sudo pacman -S --needed --noconfirm base-devel cmake
+            fi
         elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-            sudo dnf install -y gcc-c++ cmake make tmux
+            if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+                sudo dnf install -y gcc-c++ cmake make tmux
+            else
+                sudo dnf install -y gcc-c++ cmake make
+            fi
         else
             echo "Could not auto-install build tools. Please install manually: ${MISSING_PKGS[*]}"
             exit 1
@@ -208,7 +217,7 @@ cleanup_install_state() {
 }
 trap cleanup_install_state EXIT
 
-if [[ -z "${TMUX:-}" && "${CAELESTIA_NO_TMUX:-0}" == "0" ]]; then
+if [[ -z "${TMUX:-}" && "${CAELESTIA_NO_TMUX:-0}" == "0" && "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
     # Kill any stale session first
     tmux kill-session -t caelestia_install 2>/dev/null || true
     
