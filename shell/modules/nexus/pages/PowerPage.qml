@@ -4,32 +4,13 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
     property bool idleSuspendEnabledState: false
     property int idleSuspendMinutesState: 10
-
-    function isSuspendIdleAction(action: var): bool {
-        if (!action)
-            return false;
-
-        if (typeof action === "string") {
-            const normalized = action.trim().toLowerCase();
-            return normalized === "suspendthenhibernate" || normalized === "suspend" || normalized === "suspend-then-hibernate" || normalized === "systemctl suspend" || normalized === "systemctl suspend-then-hibernate";
-        }
-
-        const isArrayLike = action instanceof Array || (typeof action === "object" && action.length !== undefined);
-        if (isArrayLike) {
-            for (const a of action) {
-                if (root.isSuspendIdleAction(a))
-                    return true;
-            }
-        }
-
-        return false;
-    }
 
     function cloneEntry(entry: var): var {
         const out = {};
@@ -57,7 +38,7 @@ PageBase {
         const entries = GlobalConfig.general.idle.timeouts ?? [];
 
         for (const entry of entries) {
-            if (root.isSuspendIdleAction(entry.idleAction)) {
+            if (IdleActions.isSuspendIdleAction(entry.idleAction)) {
                 const seconds = Number(entry.timeout);
                 if (isFinite(seconds) && seconds > 0)
                     return Math.max(1, Math.round(seconds / 60));
@@ -71,7 +52,7 @@ PageBase {
         const entries = GlobalConfig.general.idle.timeouts ?? [];
 
         for (const entry of entries) {
-            if (root.isSuspendIdleAction(entry.idleAction))
+            if (IdleActions.isSuspendIdleAction(entry.idleAction))
                 return entry.enabled ?? false;
         }
 
@@ -85,7 +66,7 @@ PageBase {
         let found = false;
 
         for (let i = 0; i < updated.length; i++) {
-            if (!root.isSuspendIdleAction(updated[i].idleAction))
+            if (!IdleActions.isSuspendIdleAction(updated[i].idleAction))
                 continue;
 
             updated[i].timeout = timeoutSeconds;
@@ -112,7 +93,7 @@ PageBase {
         let found = false;
 
         for (let i = 0; i < updated.length; i++) {
-            if (!root.isSuspendIdleAction(updated[i].idleAction))
+            if (!IdleActions.isSuspendIdleAction(updated[i].idleAction))
                 continue;
 
             updated[i].enabled = enabled;
