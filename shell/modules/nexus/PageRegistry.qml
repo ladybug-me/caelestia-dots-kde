@@ -9,15 +9,21 @@ QtObject {
     readonly property list<var> pages: [
         // Personalization
         {
-            label: qsTr("Desktop"),
-            icon: "desktop_windows",
-            description: qsTr("Desktop addons, right click menu"),
-            category: "personalization"
-        },
-        {
             label: qsTr("Appearance"),
             icon: "palette",
             description: Strings.localizeEnglishSpelling(qsTr("Wallpapers, fonts, colours")),
+            category: "personalization"
+        },
+        {
+            label: qsTr("Desktop"),
+            icon: "desktop_windows",
+            description: qsTr("Enable Kde Desktop, addons, right click menu"),
+            category: "personalization"
+        },
+        {
+            label: qsTr("Panels"),
+            icon: "dock_to_bottom",
+            description: qsTr("Dashboard, taskbar, launcher, sidebar"),
             category: "personalization"
         },
 
@@ -64,12 +70,6 @@ QtObject {
 
         // Shell
         {
-            label: qsTr("Panels"),
-            icon: "dock_to_bottom",
-            description: qsTr("Dashboard, taskbar, launcher, sidebar"),
-            category: "shell"
-        },
-        {
             label: qsTr("Apps"),
             icon: "apps",
             description: Strings.localizeEnglishSpelling(qsTr("Default apps, favourites, hidden apps")),
@@ -81,14 +81,14 @@ QtObject {
             description: qsTr("Polling, lyrics backend, service tuning"),
             category: "shell"
         },
-
-        // System
         {
             label: qsTr("Language & region"),
             icon: "globe",
             description: qsTr("UI language, weather location, display units"),
-            category: "system"
+            category: "shell"
         },
+
+        // System
         {
             label: qsTr("Updates"),
             icon: "update",
@@ -101,13 +101,11 @@ QtObject {
             description: qsTr("Manage plugins"),
             category: "system"
         },
-
-        // About
         {
             label: qsTr("About"),
             icon: "info",
             description: qsTr("System information, credits"),
-            category: "about"
+            category: "system"
         },
     ]
 }

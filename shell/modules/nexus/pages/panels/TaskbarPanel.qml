@@ -78,6 +78,7 @@ PageBase {
         }
 
         StepperRow {
+            last: true
             label: qsTr("Drag threshold")
             subtext: qsTr("Pixels dragged before the bar reveals")
             value: GlobalConfig.bar.dragThreshold
@@ -87,7 +88,12 @@ PageBase {
             onMoved: v => GlobalConfig.bar.dragThreshold = v
         }
 
+        SectionHeader {
+            text: Strings.localizeEnglishSpelling(qsTr("Scaling"))
+        }
+
         StepperRow {
+            first: true
             label: qsTr("Bar scale")
             subtext: qsTr("Scales taskbar thickness and component sizing")
             value: GlobalConfig.bar.scale
@@ -138,7 +144,7 @@ PageBase {
         NavRow {
             first: true
             icon: "view_agenda"
-            label: qsTr("Toggle & rearrange")
+            label: qsTr("Toggle & Rearrange")
             status: qsTr("Add, remove or reorder components")
             onClicked: root.nState.openSubPage(5)
         }
@@ -146,7 +152,7 @@ PageBase {
         NavRow {
             last: true
             icon: "tune"
-            label: qsTr("Elements & modules")
+            label: qsTr("Elements & Modules")
             status: qsTr("Workspaces, tray, status icons, clock, dock and more")
             onClicked: root.nState.openSubPage(14)
         }

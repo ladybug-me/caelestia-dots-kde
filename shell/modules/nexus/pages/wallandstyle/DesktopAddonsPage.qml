@@ -64,6 +64,7 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 text: qsTr("Background visualiser")
+                subtext: qsTr("Show music visualiser on wallpaper (May consume more power)")
                 checked: Config.background.visualiser.enabled
                 onToggled: {
                     GlobalConfig.background.visualiser.enabled = checked;
@@ -76,7 +77,7 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 text: qsTr("Auto-hide visualiser")
-                subtext: qsTr("Hide visualiser when a window is open")
+                subtext: qsTr("Hide visualiser when a window is fullscreen")
                 checked: Config.background.visualiser.autoHide
                 onToggled: GlobalConfig.background.visualiser.autoHide = checked
                 enabled: Config.background.visualiser.enabled || Config.background.visualiser.autoHide

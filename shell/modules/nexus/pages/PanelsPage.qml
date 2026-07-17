@@ -13,11 +13,6 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
-        SectionHeader {
-            first: true
-            text: qsTr("Main surfaces")
-        }
-
         NavRow {
             first: true
             icon: "dashboard"
@@ -27,19 +22,13 @@ PageBase {
         }
 
         NavRow {
-            last: true
             icon: "dock_to_bottom"
             label: qsTr("Taskbar")
             status: Config.bar.persistent ? qsTr("Always visible") : Config.bar.showOnHover ? qsTr("Reveal on hover") : qsTr("Reveal on drag")
             onClicked: root.nState.openSubPage(2)
         }
 
-        SectionHeader {
-            text: qsTr("Launch & utilities")
-        }
-
         NavRow {
-            first: true
             icon: "apps"
             label: qsTr("Launcher")
             status: Config.launcher.enabled ? qsTr("Enabled") : qsTr("Disabled")

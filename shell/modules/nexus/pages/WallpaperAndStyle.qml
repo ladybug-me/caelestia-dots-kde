@@ -218,7 +218,7 @@ PageBase {
             NavRow {
                 last: true
                 icon: "style"
-                label: qsTr("Appearance")
+                label: qsTr("Theme & Effects")
                 status: qsTr("Islands, Pitch Black, Transparency, Dark Theme")
                 onClicked: root.nState.openSubPage(8)
             }

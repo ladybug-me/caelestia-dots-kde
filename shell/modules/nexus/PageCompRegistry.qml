@@ -21,20 +21,6 @@ QtObject {
     readonly property list<Component> pageComps: [
         // Personalization
         Component {
-            // Desktop
-            StackPage {
-                Component {
-                    DesktopPage {}
-                }
-                Component {
-                    DesktopAddonsPage {}
-                }
-                Component {
-                    ContextMenuPage {}
-                }
-            }
-        },
-        Component {
             // Appearance
             StackPage {
                 Component {
@@ -63,6 +49,72 @@ QtObject {
                 }
                 Component {
                     AppearancePage {}
+                }
+            }
+        },
+        Component {
+            // Desktop
+            StackPage {
+                Component {
+                    DesktopPage {}
+                }
+                Component {
+                    DesktopAddonsPage {}
+                }
+                Component {
+                    ContextMenuPage {}
+                }
+            }
+        },
+        Component {
+            // Panels
+            StackPage {
+                Component {
+                    PanelsPage {}
+                }
+                Component {
+                    DashboardPanel {}
+                }
+                Component {
+                    TaskbarPanel {}
+                }
+                Component {
+                    LauncherPanel {}
+                }
+                Component {
+                    SidebarPanel {}
+                }
+
+                // Taskbar component sub-pages
+                Component {
+                    BarComponents {}
+                }
+                Component {
+                    BarWorkspaces {}
+                }
+                Component {
+                    BarActiveWindow {}
+                }
+                Component {
+                    BarTray {}
+                }
+                Component {
+                    BarStatusIcons {}
+                }
+                Component {
+                    BarClock {}
+                }
+                Component {
+                    BarDock {}
+                }
+                Component {
+                    BarGithub {}
+                }
+                Component {
+                    BarPreviewScales {}
+                }
+                Component {
+                    TaskbarElements {}
                 }
             }
         },
@@ -136,58 +188,6 @@ QtObject {
 
         // Shell
         Component {
-            // Panels
-            StackPage {
-                Component {
-                    PanelsPage {}
-                }
-                Component {
-                    DashboardPanel {}
-                }
-                Component {
-                    TaskbarPanel {}
-                }
-                Component {
-                    LauncherPanel {}
-                }
-                Component {
-                    SidebarPanel {}
-                }
-
-                // Taskbar component sub-pages
-                Component {
-                    BarComponents {}
-                }
-                Component {
-                    BarWorkspaces {}
-                }
-                Component {
-                    BarActiveWindow {}
-                }
-                Component {
-                    BarTray {}
-                }
-                Component {
-                    BarStatusIcons {}
-                }
-                Component {
-                    BarClock {}
-                }
-                Component {
-                    BarDock {}
-                }
-                Component {
-                    BarGithub {}
-                }
-                Component {
-                    BarPreviewScales {}
-                }
-                Component {
-                    TaskbarElements {}
-                }
-            }
-        },
-        Component {
             // Apps
             StackPage {
                 Component {
@@ -212,8 +212,6 @@ QtObject {
                 }
             }
         },
-
-        // System
         Component {
             // Language & region
             StackPage {
@@ -222,6 +220,8 @@ QtObject {
                 }
             }
         },
+
+        // System
         Component {
             // Updates
             StackPage {
@@ -238,8 +238,6 @@ QtObject {
                 }
             }
         },
-
-        // About
         Component {
             StackPage {
                 Component {
