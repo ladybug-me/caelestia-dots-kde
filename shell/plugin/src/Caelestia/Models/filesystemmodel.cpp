@@ -434,51 +434,27 @@ void FileSystemModel::applyChanges(const QSet<QString>& removedPaths, const QSet
         return compareEntries(a, b);
     });
 
-    // Pre-calculate insertion rows for all new entries before any mutations
-    QList<int> insertRows;
-    insertRows.reserve(newEntries.size());
-    for (const auto& entry : std::as_const(newEntries)) {
-        const auto it = std::lower_bound(
-            m_entries.begin(), m_entries.end(), entry, [this](const FileSystemEntry* a, const FileSystemEntry* b) {
-                return compareEntries(a, b);
-            });
-        insertRows << static_cast<int>(it - m_entries.begin());
-    }
+    // Batch insert new entries (each run lands contiguously before m_entries[row])
+    int i = 0;
+    while (i < newEntries.size()) {
+        const auto it = std::lower_bound(m_entries.begin(), m_entries.end(), newEntries[i], [this](const FileSystemEntry* a, const FileSystemEntry* b) {
+            return compareEntries(a, b);
+        });
+        const int row = static_cast<int>(it - m_entries.begin());
 
-    // Batch insert new entries
-    int offset = 0;
-    int currentOriginalRow = -1;
-    QList<FileSystemEntry*> batchItems;
-    for (int i = 0; i < newEntries.size(); ++i) {
-        const auto entry = newEntries[i];
-        const int originalRow = insertRows[i];
-
-        if (currentOriginalRow == -1) {
-            currentOriginalRow = originalRow;
-            batchItems << entry;
-        } else if (originalRow == currentOriginalRow) {
-            batchItems << entry;
-        } else {
-            int insertPos = currentOriginalRow + offset;
-            beginInsertRows(QModelIndex(), insertPos, insertPos + static_cast<int>(batchItems.size()) - 1);
-            for (int j = 0; j < batchItems.size(); ++j) {
-                m_entries.insert(insertPos + j, batchItems[j]);
-            }
-            endInsertRows();
-
-            offset += batchItems.size();
-            currentOriginalRow = originalRow;
-            batchItems.clear();
-            batchItems << entry;
+        // Extend the run while the next new entry still sorts before the existing element at row
+        int j = i + 1;
+        while (j < newEntries.size() && (row >= m_entries.size() || compareEntries(newEntries[j], m_entries[row]))) {
+            ++j;
         }
-    }
-    if (!batchItems.isEmpty()) {
-        int insertPos = currentOriginalRow + offset;
-        beginInsertRows(QModelIndex(), insertPos, insertPos + static_cast<int>(batchItems.size()) - 1);
-        for (int j = 0; j < batchItems.size(); ++j) {
-            m_entries.insert(insertPos + j, batchItems[j]);
+
+        beginInsertRows(QModelIndex(), row, row + (j - i) - 1);
+        for (int k = i; k < j; ++k) {
+            m_entries.insert(row + (k - i), newEntries[k]);
         }
         endInsertRows();
+
+        i = j;
     }
 
     emit entriesChanged();
