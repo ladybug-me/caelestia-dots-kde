@@ -11,6 +11,8 @@
 
 .SRCINFO
 backups/
+.copilot-tmp-*/
+build/
 src/bin/build/
 
 # Python
