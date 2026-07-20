@@ -194,15 +194,7 @@ StyledRect {
                             captureSource: root.previewCaptureSource(modelData)
                             live: true
                             smooth: true
-                            opacity: 0.0
-                        }
-
-                        ShaderEffectSource {
-                            anchors.fill: parent
-                            sourceItem: previewCopy.videoOutput
                             sourceRect: root.sourceRectForWindow(modelData)
-                            live: true
-                            smooth: true
                         }
 
                         Rectangle {
