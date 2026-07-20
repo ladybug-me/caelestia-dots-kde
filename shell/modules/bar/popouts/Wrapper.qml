@@ -92,6 +92,7 @@ Item {
     PopoutState {
         id: popoutState
 
+        screen: root.screen
         sidebarOpen: root.visibilities.sidebar
         isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
 
