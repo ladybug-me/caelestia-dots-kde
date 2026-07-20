@@ -1,8 +1,10 @@
 #include "iutils.hpp"
 
 #include "cachingimageprovider.hpp"
+#include "kwinwindowthumbnailprovider.hpp"
 
 #include <qfileinfo.h>
+#include <qurlquery.h>
 
 namespace caelestia::images {
 
@@ -23,6 +25,7 @@ IUtils* IUtils::create(QQmlEngine* engine, QJSEngine* jsEngine) {
     engine->addImageProvider(QStringLiteral("fcache"), new CachingImageProvider(CachingImageProvider::FillMode::Fit));
     engine->addImageProvider(
         QStringLiteral("scache"), new CachingImageProvider(CachingImageProvider::FillMode::Stretch));
+    engine->addImageProvider(QStringLiteral("kwinthumb"), new KWinWindowThumbnailProvider());
 
     s_instance = new IUtils(engine);
     return s_instance;
@@ -49,6 +52,24 @@ QUrl IUtils::urlForPath(const QString& path, int fillMode) {
     url.setScheme(QStringLiteral("image"));
     url.setHost(prefix);
     url.setPath(path.startsWith(QLatin1Char('/')) ? path : QLatin1Char('/') + path);
+    return url;
+}
+
+QUrl IUtils::kwinThumbnailUrl(const QString& handle, const QString& cacheKey) {
+    if (handle.isEmpty())
+        return QUrl();
+
+    QUrl url;
+    url.setScheme(QStringLiteral("image"));
+    url.setHost(QStringLiteral("kwinthumb"));
+    url.setPath(handle.startsWith(QLatin1Char('/')) ? handle : QLatin1Char('/') + handle);
+
+    if (!cacheKey.isEmpty()) {
+        QUrlQuery query;
+        query.addQueryItem(QStringLiteral("t"), cacheKey);
+        url.setQuery(query);
+    }
+
     return url;
 }
 

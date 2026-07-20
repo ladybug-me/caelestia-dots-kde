@@ -7,7 +7,10 @@ qml_module(caelestia-images
         imagecacher.hpp
         iutils.cpp
         iutils.hpp
+        kwinwindowthumbnailprovider.cpp
+        kwinwindowthumbnailprovider.hpp
     LIBRARIES
+        Qt::DBus
         Qt::Gui
         Qt::Quick
         Qt::Concurrent

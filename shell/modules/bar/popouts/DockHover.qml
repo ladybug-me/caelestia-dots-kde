@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
 import Caelestia.Config
+import Caelestia.Images
 import Caelestia.Services
 import qs.components
 import qs.services
@@ -35,6 +36,7 @@ StyledRect {
     readonly property int previewColumns: root.model && root.model.toplevels && root.model.toplevels.length > 1 ? 2 : 1
     readonly property int previewTileWidth: Math.round(previewWidth || 220)
     readonly property int previewTileHeight: Math.round(previewTileWidth * 9 / 16)
+    readonly property color previewFallbackColor: Colours.tPalette.m3surfaceContainerHighest
 
     function focusWindow(address) {
         if (!address)
@@ -73,15 +75,31 @@ StyledRect {
         if (!screen || !windowData)
             return Qt.rect(0, 0, 1, 1);
 
-        const x = Math.max(0, Math.round((windowData.x ?? 0) - (screen.x ?? 0)));
-        const y = Math.max(0, Math.round((windowData.y ?? 0) - (screen.y ?? 0)));
+        const screenWidth = Math.max(1, Math.round(screen.width ?? 1));
+        const screenHeight = Math.max(1, Math.round(screen.height ?? 1));
+        const localX = Math.round((windowData.x ?? 0) - (screen.x ?? 0));
+        const localY = Math.round((windowData.y ?? 0) - (screen.y ?? 0));
         const width = Math.max(1, Math.round(windowData.width ?? 1));
         const height = Math.max(1, Math.round(windowData.height ?? 1));
-        return Qt.rect(x, y, width, height);
+
+        const clampedX = Math.max(0, Math.min(localX, screenWidth - 1));
+        const clampedY = Math.max(0, Math.min(localY, screenHeight - 1));
+        const clampedWidth = Math.max(1, Math.min(width, screenWidth - clampedX));
+        const clampedHeight = Math.max(1, Math.min(height, screenHeight - clampedY));
+
+        return Qt.rect(clampedX, clampedY, clampedWidth, clampedHeight);
     }
 
-    function previewCaptureSource(windowData) {
-        return screenForWindow(windowData);
+    function hasPreviewGeometry(windowData) {
+        if (!windowData)
+            return false;
+
+        const screen = screenForWindow(windowData);
+        if (!screen)
+            return false;
+
+        const rect = sourceRectForWindow(windowData);
+        return rect.width > 1 && rect.height > 1 && screen.width > 0 && screen.height > 0;
     }
 
     radius: Tokens.rounding.medium
@@ -188,13 +206,78 @@ StyledRect {
                         height: root.previewTileHeight
                         clip: true
 
-                        ScreencopyView {
-                            id: previewCopy
+                        property bool useKWinThumbnail: !!(modelData && modelData.address && typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList)
+                        property bool hasPreview: root.hasPreviewGeometry(modelData)
+                        property var targetScreen: root.screenForWindow(modelData)
+                        property rect sourceRect: root.sourceRectForWindow(modelData)
+                        property string thumbnailKey: [modelData.title || "", modelData.x || 0, modelData.y || 0, modelData.width || 0, modelData.height || 0].join(":")
+                        property real previewScale: {
+                            if (!hasPreview)
+                                return 1;
+
+                            const widthScale = width / Math.max(1, sourceRect.width);
+                            const heightScale = height / Math.max(1, sourceRect.height);
+                            return Math.min(widthScale, heightScale);
+                        }
+                        property real contentWidth: Math.max(1, sourceRect.width * previewScale)
+                        property real contentHeight: Math.max(1, sourceRect.height * previewScale)
+                        property real offsetX: (width - contentWidth) / 2
+                        property real offsetY: (height - contentHeight) / 2
+
+                        StyledRect {
                             anchors.fill: parent
-                            captureSource: root.previewCaptureSource(modelData)
+                            color: root.previewFallbackColor
+
+                            Image {
+                                id: kwinThumbnail
+                                anchors.fill: parent
+                                asynchronous: true
+                                cache: false
+                                fillMode: Image.PreserveAspectFit
+                                source: previewArea.useKWinThumbnail ? IUtils.kwinThumbnailUrl(modelData.address, previewArea.thumbnailKey) : ""
+                                sourceSize.width: Math.max(1, Math.round(previewArea.width))
+                                sourceSize.height: Math.max(1, Math.round(previewArea.height))
+                            }
+                        }
+
+                        StyledRect {
+                            anchors.fill: parent
+                            color: root.previewFallbackColor
+                            visible: (!previewArea.useKWinThumbnail || kwinThumbnail.status !== Image.Ready) && !previewArea.hasPreview
+
+                            ColumnLayout {
+                                anchors.centerIn: parent
+                                spacing: Tokens.spacing.small
+
+                                IconImage {
+                                    asynchronous: true
+                                    Layout.alignment: Qt.AlignHCenter
+                                    implicitSize: Math.max(Tokens.font.body.large.pointSize * root.fontScale * 2, Tokens.spacing.large * scaleOffset * 2)
+                                    source: root.model ? Icons.getAppIcon(root.model.iconName, "image-missing") : ""
+                                }
+
+                                StyledText {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.maximumWidth: previewArea.width - Tokens.padding.medium * scaleOffset * 2
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: modelData.title || (root.model ? root.model.appClass : "")
+                                    font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+                                    color: Colours.palette.m3onSurfaceVariant
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+
+                        ScreencopyView {
+                            id: screenCapture
+                            visible: previewArea.hasPreview && (!previewArea.useKWinThumbnail || kwinThumbnail.status !== Image.Ready)
+                            x: previewArea.offsetX - previewArea.sourceRect.x * previewArea.previewScale
+                            y: previewArea.offsetY - previewArea.sourceRect.y * previewArea.previewScale
+                            width: Math.max(1, previewArea.targetScreen ? previewArea.targetScreen.width * previewArea.previewScale : 1)
+                            height: Math.max(1, previewArea.targetScreen ? previewArea.targetScreen.height * previewArea.previewScale : 1)
+                            captureSource: previewArea.targetScreen
                             live: true
                             smooth: true
-                            sourceRect: root.sourceRectForWindow(modelData)
                         }
 
                         Rectangle {
