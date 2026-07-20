@@ -108,6 +108,7 @@ function notifyWindowList() {
                 pid: w.pid || 0,
                 title: w.caption || "",
                 class: w.resourceClass || "",
+                screen: w.output ? w.output.name : "",
                 x: w.frameGeometry ? w.frameGeometry.x : w.x,
                 y: w.frameGeometry ? w.frameGeometry.y : w.y,
                 width: w.frameGeometry ? w.frameGeometry.width : w.width,
