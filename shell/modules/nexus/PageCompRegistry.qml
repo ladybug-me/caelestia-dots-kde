@@ -116,6 +116,9 @@ QtObject {
                 Component {
                     TaskbarElements {}
                 }
+                Component {
+                    BarShowDesktop {}
+                }
             }
         },
 

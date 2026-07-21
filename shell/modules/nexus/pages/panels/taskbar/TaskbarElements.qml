@@ -65,6 +65,13 @@ PageBase {
         }
 
         NavRow {
+            icon: "vertical_align_bottom"
+            label: qsTr("Show desktop")
+            status: qsTr("Minimize all windows")
+            onClicked: root.nState.openSubPage(15)
+        }
+
+        NavRow {
             last: true
             icon: "code"
             label: qsTr("GitHub")

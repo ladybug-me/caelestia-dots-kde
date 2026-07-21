@@ -327,6 +327,13 @@ Item {
                 }
             }
             DelegateChoice {
+                roleValue: "showDesktop"
+                delegate: WrappedLoader {
+                    visible: !root.fullscreen
+                    sourceComponent: ShowDesktop {}
+                }
+            }
+            DelegateChoice {
                 roleValue: "activeWindow"
                 delegate: WrappedLoader {
                     visible: !root.fullscreen
