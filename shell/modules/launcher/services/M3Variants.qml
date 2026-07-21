@@ -95,8 +95,10 @@ Searcher {
         required property string name
         required property string description
 
-        function onClicked(list: AppList): void {
-            list.visibilities.launcher = false;
+        function onClicked(list: var): void {
+            if (list) {
+                list.visibilities.launcher = false;
+            }
             Quickshell.execDetached(["caelestia", "scheme", "set", "-v", variant]);
         }
     }

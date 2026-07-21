@@ -12,8 +12,7 @@ Item {
 
     implicitHeight: Tokens.sizes.launcher.itemHeight
 
-    anchors.left: parent?.left
-    anchors.right: parent?.right
+    width: parent ? parent.width : 0
 
     StateLayer {
         radius: Tokens.rounding.large

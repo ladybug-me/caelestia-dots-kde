@@ -5,6 +5,8 @@ import qs.components
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
+import qs.modules.launcher.items
+import qs.modules.launcher.services
 
 PageBase {
     id: root
@@ -12,36 +14,50 @@ PageBase {
     title: Strings.localizeEnglishSpelling(qsTr("Colours"))
     isSubPage: true
 
-    Item {
+    Component.onCompleted: {
+        Schemes.reload();
+    }
+
+    ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
-        implicitHeight: {
-            const f = parent.parent as Flickable;
-            return f.height - f.topMargin - f.bottomMargin;
+        anchors.top: parent.top
+        width: root.cappedWidth
+        spacing: Tokens.spacing.small
+
+        StyledText {
+            Layout.topMargin: Tokens.spacing.medium
+            text: qsTr("Schemes")
+            font: Tokens.font.title.small
         }
 
-        ColumnLayout {
-            anchors.centerIn: parent
-            spacing: Tokens.padding.extraSmall
+        Column {
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.small
 
-            MaterialIcon {
-                Layout.alignment: Qt.AlignHCenter
-                text: "handyman"
-                color: Colours.palette.m3outlineVariant
-                fontStyle: Tokens.font.icon.extraLarge
+            Repeater {
+                model: Schemes.list
+                delegate: SchemeItem {
+                    list: null
+                }
             }
+        }
 
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Page under construction")
-                color: Colours.palette.m3outlineVariant
-                font: Tokens.font.title.large
-            }
+        StyledText {
+            Layout.topMargin: Tokens.spacing.large
+            text: qsTr("Variants")
+            font: Tokens.font.title.small
+        }
 
-            StyledText {
-                Layout.alignment: Qt.AlignHCenter
-                text: qsTr("This page will be available in a future update.")
-                color: Colours.palette.m3outlineVariant
-                font: Tokens.font.body.large
+        Column {
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.small
+            Layout.bottomMargin: Tokens.spacing.large
+
+            Repeater {
+                model: M3Variants.list
+                delegate: VariantItem {
+                    list: null
+                }
             }
         }
     }
