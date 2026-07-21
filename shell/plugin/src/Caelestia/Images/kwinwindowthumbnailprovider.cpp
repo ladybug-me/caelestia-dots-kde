@@ -6,11 +6,14 @@
 #include <qfile.h>
 #include <qimage.h>
 #include <qloggingcategory.h>
+#include <qregularexpression.h>
 #include <qrunnable.h>
 #include <qthreadpool.h>
+#include <quuid.h>
 #include <qvariantlist.h>
 #include <qvariantmap.h>
 
+#include <limits>
 #include <unistd.h>
 
 Q_LOGGING_CATEGORY(lcKWinThumbProv, "caelestia.images.kwinthumb", QtInfoMsg)
@@ -48,6 +51,43 @@ private:
         return handle;
     }
 
+    static QString normalizeHandle(QString handle, QString* error) {
+        handle = handle.trimmed();
+        if (handle.isEmpty()) {
+            *error = QStringLiteral("Missing KWin window handle");
+            return {};
+        }
+
+        handle.remove(QLatin1Char('{'));
+        handle.remove(QLatin1Char('}'));
+
+        if (handle.startsWith(QStringLiteral("urn:uuid:"), Qt::CaseInsensitive))
+            handle = handle.mid(9);
+
+        static const QRegularExpression kUuidPattern(
+            QStringLiteral("([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"));
+        QRegularExpressionMatch match = kUuidPattern.match(handle);
+        if (match.hasMatch())
+            handle = match.captured(1);
+
+        QString compact = handle;
+        compact.remove(QLatin1Char('-'));
+
+        static const QRegularExpression kHex32Pattern(QStringLiteral("^[0-9a-fA-F]{32}$"));
+        if (kHex32Pattern.match(compact).hasMatch()) {
+            handle = QStringLiteral("%1-%2-%3-%4-%5")
+                         .arg(compact.first(8), compact.mid(8, 4), compact.mid(12, 4), compact.mid(16, 4), compact.mid(20, 12));
+        }
+
+        const QUuid uuid = QUuid::fromString(handle);
+        if (uuid.isNull()) {
+            *error = QStringLiteral("Invalid KWin window handle format: ") + handle;
+            return {};
+        }
+
+        return uuid.toString(QUuid::WithoutBraces).toLower();
+    }
+
     static QByteArray readPipeFully(int fd, QString* error) {
         QFile pipeFile;
         if (!pipeFile.open(fd, QIODevice::ReadOnly, QFileDevice::AutoCloseHandle)) {
@@ -65,9 +105,9 @@ private:
     }
 
     void process() {
-        const QString handle = decodeHandle(m_id);
+        const QString decodedHandle = decodeHandle(m_id);
+        const QString handle = normalizeHandle(decodedHandle, &m_error);
         if (handle.isEmpty()) {
-            m_error = QStringLiteral("Missing KWin window handle");
             qCWarning(lcKWinThumbProv).noquote() << m_error;
             return;
         }
@@ -104,9 +144,9 @@ private:
         }
 
         const QVariantList args = reply.arguments();
-        if (args.isEmpty()) {
+        if (args.isEmpty() || !args.constFirst().canConvert<QVariantMap>()) {
             ::close(pipeFds[0]);
-            m_error = QStringLiteral("KWin screenshot returned no metadata for handle: ") + handle;
+            m_error = QStringLiteral("KWin screenshot returned invalid metadata for handle: ") + handle;
             qCWarning(lcKWinThumbProv).noquote() << m_error;
             return;
         }
@@ -138,7 +178,12 @@ private:
         const auto format = static_cast<QImage::Format>(results.value(QStringLiteral("format")).toInt());
         const double scale = results.value(QStringLiteral("scale")).toDouble();
 
-        if (width <= 0 || height <= 0 || stride <= 0 || rawBytes.size() < height * stride) {
+        const quint64 expectedMinBytes = static_cast<quint64>(height) * static_cast<quint64>(stride);
+        const bool bytesOutOfRange = expectedMinBytes > static_cast<quint64>(std::numeric_limits<qsizetype>::max())
+            || rawBytes.size() < static_cast<qsizetype>(expectedMinBytes);
+        const bool invalidFormat = format <= QImage::Format_Invalid || format >= QImage::NImageFormats;
+
+        if (width <= 0 || height <= 0 || stride <= 0 || invalidFormat || bytesOutOfRange) {
             m_error = QStringLiteral("Invalid KWin screenshot payload for handle: ") + handle;
             qCWarning(lcKWinThumbProv).noquote() << m_error;
             return;

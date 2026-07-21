@@ -42,6 +42,36 @@ let lastMaximized = null;
 let lastOut = null;
 let lastTitle = null;
 
+function normalizeWindowId(windowId) {
+    if (!windowId)
+        return "";
+
+    let raw = "";
+    try { raw = windowId.toString(); } catch (e) {}
+    if (!raw)
+        raw = String(windowId);
+    if (!raw)
+        return "";
+
+    const uuidMatch = raw.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+    if (uuidMatch && uuidMatch[0])
+        return uuidMatch[0].toLowerCase();
+
+    let compact = raw.trim();
+    compact = compact.replace(/[{}]/g, "");
+    compact = compact.replace(/^urn:uuid:/i, "");
+
+    if (/^[0-9a-fA-F]{32}$/.test(compact)) {
+        compact = compact.slice(0, 8) + "-" + compact.slice(8, 12) + "-" + compact.slice(12, 16) + "-" +
+                  compact.slice(16, 20) + "-" + compact.slice(20);
+    }
+
+    if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(compact))
+        return compact.toLowerCase();
+
+    return compact;
+}
+
 function notifyActiveWindowReal() {
     let window = workspace.activeWindow;
     let cursorScreen = workspace.screenAt(workspace.cursorPos);
@@ -54,7 +84,7 @@ function notifyActiveWindowReal() {
         return;
     }
 
-    let uuid = window.internalId ? String(window.internalId) : "";
+    let uuid = normalizeWindowId(window.internalId);
     let title = window.caption || "";
     let appClass = window.resourceClass || "";
     let isFullscreen = window.fullScreen ? true : false;
@@ -104,7 +134,7 @@ function notifyWindowList() {
                 deskId = String(d.id || d.name || d);
             }
             arr.push({
-                address: w.internalId ? String(w.internalId) : "",
+                address: normalizeWindowId(w.internalId),
                 pid: w.pid || 0,
                 title: w.caption || "",
                 class: w.resourceClass || "",
@@ -204,9 +234,40 @@ void KWinActiveWindowBridge::focusWindow(const QString& address) {
     }
 
     QString scriptSource = QString(R"(
+        function normalizeWindowId(windowId) {
+            if (!windowId)
+                return "";
+
+            let raw = "";
+            try { raw = windowId.toString(); } catch (e) {}
+            if (!raw)
+                raw = String(windowId);
+            if (!raw)
+                return "";
+
+            const uuidMatch = raw.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+            if (uuidMatch && uuidMatch[0])
+                return uuidMatch[0].toLowerCase();
+
+            let compact = raw.trim();
+            compact = compact.replace(/[{}]/g, "");
+            compact = compact.replace(/^urn:uuid:/i, "");
+
+            if (/^[0-9a-fA-F]{32}$/.test(compact)) {
+                compact = compact.slice(0, 8) + "-" + compact.slice(8, 12) + "-" + compact.slice(12, 16) + "-" +
+                          compact.slice(16, 20) + "-" + compact.slice(20);
+            }
+
+            if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(compact))
+                return compact.toLowerCase();
+
+            return compact;
+        }
+
+        const target = normalizeWindowId("%1");
         let wins = workspace.windowList();
         for (let i = 0; i < wins.length; ++i) {
-            if (wins[i].internalId && String(wins[i].internalId) === "%1") {
+            if (normalizeWindowId(wins[i].internalId) === target) {
                 workspace.activeWindow = wins[i];
                 break;
             }
@@ -237,9 +298,40 @@ void KWinActiveWindowBridge::closeWindow(const QString& address) {
     }
 
     QString scriptSource = QString(R"(
+        function normalizeWindowId(windowId) {
+            if (!windowId)
+                return "";
+
+            let raw = "";
+            try { raw = windowId.toString(); } catch (e) {}
+            if (!raw)
+                raw = String(windowId);
+            if (!raw)
+                return "";
+
+            const uuidMatch = raw.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+            if (uuidMatch && uuidMatch[0])
+                return uuidMatch[0].toLowerCase();
+
+            let compact = raw.trim();
+            compact = compact.replace(/[{}]/g, "");
+            compact = compact.replace(/^urn:uuid:/i, "");
+
+            if (/^[0-9a-fA-F]{32}$/.test(compact)) {
+                compact = compact.slice(0, 8) + "-" + compact.slice(8, 12) + "-" + compact.slice(12, 16) + "-" +
+                          compact.slice(16, 20) + "-" + compact.slice(20);
+            }
+
+            if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(compact))
+                return compact.toLowerCase();
+
+            return compact;
+        }
+
+        const target = normalizeWindowId("%1");
         let wins = workspace.windowList();
         for (let i = 0; i < wins.length; ++i) {
-            if (wins[i].internalId && String(wins[i].internalId) === "%1") {
+            if (normalizeWindowId(wins[i].internalId) === target) {
                 wins[i].closeWindow();
                 break;
             }
