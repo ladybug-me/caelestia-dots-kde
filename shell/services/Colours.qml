@@ -210,6 +210,7 @@ Singleton {
         if (!isPreview) {
             root.schemeLoaded = true;
             root.schemeRetryCount = 0;
+            Qt.callLater(root.syncKMYC);
         }
     }
 
@@ -224,6 +225,26 @@ Singleton {
 
     function setMode(mode: string): void {
         Quickshell.execDetached(["caelestia", "scheme", "set", "--notify", "-m", mode]);
+    }
+
+    function syncKMYC(): void {
+        const variantMap = {
+            "content": 0,
+            "expressive": 1,
+            "fidelity": 2,
+            "monochrome": 3,
+            "neutral": 4,
+            "tonal-spot": 5,
+            "vibrant": 6,
+            "rainbow": 7,
+            "fruit-salad": 8
+        };
+        const varNum = variantMap[root.variant] ?? 5;
+        const color = String(root.palette.m3primary_paletteKeyColor);
+        const lightMode = root.currentLight ? "True" : "False";
+        
+        const scriptPath = Quickshell.shellPath("scripts/sync-kmyc.sh");
+        Quickshell.execDetached(["bash", scriptPath, color, varNum, lightMode]);
     }
 
     function reloadHyprRules(): void {
