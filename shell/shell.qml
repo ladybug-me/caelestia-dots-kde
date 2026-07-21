@@ -26,6 +26,7 @@ ShellRoot {
     settings.watchFiles: false
 
     GSFLoader {}
+    ServiceLoader {}
 
     Background {}
     // BadAppleOverlay {}
