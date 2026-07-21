@@ -65,18 +65,8 @@ require_command git
 require_command nproc
 
 if command -v pkg-config >/dev/null 2>&1; then
-    require_pkg_module Qt6Core
-    require_pkg_module Qt6Gui
-    require_pkg_module Qt6Qml
-    require_pkg_module Qt6Quick
-    require_pkg_module Qt6QuickControls2
-    require_pkg_module Qt6Concurrent
-    require_pkg_module Qt6Sql
-    require_pkg_module Qt6Network
-    require_pkg_module Qt6DBus
-    require_pkg_module Qt6ShaderTools
-    require_pkg_module Qt6WaylandClient
-    require_pkg_module Qt6Widgets
+    # Qt modules are resolved via CMake find_package(Qt6 ...).
+    # Some distros provide Qt CMake configs without matching pkg-config files.
     require_pkg_module libqalculate
     require_pkg_module libpipewire-0.3
     require_pkg_module aubio

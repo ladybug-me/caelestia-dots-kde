@@ -89,7 +89,9 @@ private:
             QStringLiteral("/org/kde/KWin/ScreenShot2"),
             QStringLiteral("org.kde.KWin.ScreenShot2"),
             QStringLiteral("CaptureWindow"));
-        message << handle << options << QDBusUnixFileDescriptor(pipeFds[1]);
+        QVariantList callArgs;
+        callArgs << handle << options << QVariant::fromValue(QDBusUnixFileDescriptor(pipeFds[1]));
+        message.setArguments(callArgs);
 
         const QDBusMessage reply = QDBusConnection::sessionBus().call(message, QDBus::Block, 30000);
         ::close(pipeFds[1]);
