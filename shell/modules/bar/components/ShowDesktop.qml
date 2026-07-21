@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 
 StyledRect {
@@ -13,7 +14,14 @@ StyledRect {
     readonly property var windows: (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList)
         ? KWinActiveWindowBridge.windowList
         : []
-    readonly property bool hasUnminimizedWindow: windows.some(w => !!w.address && !w.minimized)
+
+    function hasUnminimizedWindow(): bool {
+        for (const win of root.windows) {
+            if (win && win.address && !win.minimized)
+                return true;
+        }
+        return false;
+    }
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.full
@@ -27,7 +35,7 @@ StyledRect {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
             if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
-                const shouldMinimize = root.hasUnminimizedWindow;
+                const shouldMinimize = root.hasUnminimizedWindow();
                 for (const win of root.windows) {
                     if (win.address)
                         KWinActiveWindowBridge.setWindowProperty(String(win.address), "minimized", shouldMinimize);
@@ -35,7 +43,7 @@ StyledRect {
                 return;
             }
 
-            Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "org.kde.KWin.toggleShowDesktop"]);
+            Quickshell.execDetached(["sh", "-c", "qdbus6 org.kde.KWin /KWin org.kde.KWin.toggleShowDesktop >/dev/null 2>&1 || qdbus6 org.kde.KWin /KWin org.kde.KWin.showDesktop >/dev/null 2>&1"]);
         }
     }
 

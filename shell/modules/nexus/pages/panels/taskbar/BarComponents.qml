@@ -42,7 +42,7 @@ PageBase {
         "perfGpu": { icon: "desktop_windows", name: qsTr("GPU"), available: Gpu.type !== Gpu.None, unavailableText: qsTr("GPU not detected") },
         "perfBattery": { icon: "battery_full", name: qsTr("Battery"), available: UPower.displayDevice.isLaptopBattery, unavailableText: qsTr("Battery not detected") },
         "dock": { icon: "apps", name: qsTr("Dock") },
-        "showDesktop": { icon: "vertical_align_bottom", name: qsTr("Show desktop"), available: typeof KWinActiveWindowBridge !== "undefined" },
+        "showDesktop": { icon: "vertical_align_bottom", name: qsTr("Show desktop") },
         "power": { icon: "power_settings_new", name: qsTr("Power menu") }
     }
 

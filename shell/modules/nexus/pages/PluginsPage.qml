@@ -54,7 +54,7 @@ PageBase {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("No third-party plugins installed")
-                    color: Colours.palette.m3outlineVariant
+                    color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.large
                 }
             }
