@@ -50,6 +50,9 @@ QtObject {
                 Component {
                     AppearancePage {}
                 }
+                Component {
+                    KMYCSettings {}
+                }
             }
         },
         Component {

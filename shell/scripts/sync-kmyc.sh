@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Syncs Caelestia shell colors to kde-material-you-colors
-# Arguments:
-# 1: color (hex e.g. #ff0000)
-# 2: variant (0-8)
-# 3: light mode (True or False)
-
-COLOR="$1"
-VARIANT="$2"
-LIGHT="$3"
+# Syncs or modifies kde-material-you-colors configuration
 
 CONF_DIR="$HOME/.config/kde-material-you-colors"
 CONF_FILE="$CONF_DIR/config.conf"
@@ -33,6 +25,29 @@ update_or_uncomment() {
     fi
 }
 
-update_or_uncomment "color" "$COLOR"
-update_or_uncomment "scheme_variant" "$VARIANT"
-update_or_uncomment "light" "$LIGHT"
+# If the first argument is a hex color (e.g. #ff0000), use the legacy positional format
+if [[ "$1" == "#"* ]]; then
+    update_or_uncomment "color" "$1"
+    update_or_uncomment "scheme_variant" "$2"
+    update_or_uncomment "light" "$3"
+    exit 0
+fi
+
+# Modern argument parsing for arbitrary key-value sets
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --set)
+            if [ -n "$2" ] && [ -n "$3" ]; then
+                update_or_uncomment "$2" "$3"
+                shift 3
+            else
+                echo "Error: --set requires KEY and VALUE"
+                exit 1
+            fi
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            exit 1
+            ;;
+    esac
+done

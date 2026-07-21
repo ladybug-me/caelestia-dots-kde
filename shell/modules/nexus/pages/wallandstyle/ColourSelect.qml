@@ -27,8 +27,58 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.large
 
-        StyledText {
+        StyledRect {
+            Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.medium
+            implicitHeight: row.implicitHeight + Tokens.padding.large * 2
+            radius: Tokens.rounding.large
+            color: Colours.tPalette.m3surfaceContainer
+            
+            StateLayer {
+                anchors.fill: parent
+                radius: parent.radius
+                onClicked: root.nState.openSubPage(9)
+            }
+            
+            RowLayout {
+                id: row
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.margins: Tokens.padding.large
+                spacing: Tokens.spacing.large
+                
+                MaterialIcon {
+                    text: "settings_suggest"
+                    fontStyle: Tokens.font.icon.extraLarge
+                    color: Colours.palette.m3onSurface
+                }
+                
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.extraSmall
+                    StyledText {
+                        text: "Advanced Material You Settings"
+                        font: Tokens.font.title.small
+                        color: Colours.palette.m3onSurface
+                    }
+                    StyledText {
+                        text: "Configure advanced color engine settings and integrations"
+                        font: Tokens.font.body.medium
+                        color: Colours.palette.m3outline
+                    }
+                }
+                
+                MaterialIcon {
+                    text: "chevron_right"
+                    fontStyle: Tokens.font.icon.large
+                    color: Colours.palette.m3onSurfaceVariant
+                }
+            }
+        }
+
+        StyledText {
+            Layout.topMargin: Tokens.spacing.small
             text: qsTr("Schemes")
             font: Tokens.font.title.medium
         }
@@ -152,6 +202,7 @@ PageBase {
                     
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.preferredWidth: 1
                     implicitHeight: varCol.implicitHeight + Tokens.padding.large * 2
                     radius: Tokens.rounding.large
                     color: isSelected ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainer
