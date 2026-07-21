@@ -109,7 +109,7 @@ Item {
                     type: TextButton.Tonal
                     icon: "logout"
                     text: qsTr("Log Out")
-                    onClicked: root.triggerSessionCommand(Config.session.commands.logout)
+                    onClicked: Quickshell.execDetached(["sh", "-c", "qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null"])
                 }
 
                 IconTextButton {
