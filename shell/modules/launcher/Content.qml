@@ -93,12 +93,12 @@ Item {
             anchors.margins: Tokens.padding.medium
             spacing: Tokens.spacing.small
 
-            StyledText {
-                Layout.fillWidth: true
-                text: qsTr("Quick session controls")
-                color: Colours.palette.m3onSurfaceVariant
-                font: Tokens.font.label.large
-            }
+            // StyledText {
+            //     Layout.fillWidth: true
+            //     text: qsTr("Quick session controls")
+            //     color: Colours.palette.m3onSurfaceVariant
+            //     font: Tokens.font.label.large
+            // }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -109,7 +109,7 @@ Item {
                     type: TextButton.Tonal
                     icon: "logout"
                     text: qsTr("Log Out")
-                    onClicked: Quickshell.execDetached(["sh", "-c", "qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null"])
+                    onClicked: root.triggerSessionCommand(["sh", "-c", "qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null"])
                 }
 
                 IconTextButton {
