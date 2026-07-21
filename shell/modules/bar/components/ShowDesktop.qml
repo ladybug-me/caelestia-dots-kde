@@ -52,6 +52,6 @@ StyledRect {
 
         anchors.centerIn: parent
         text: "vertical_align_bottom"
-        color: Colours.palette.m3secondary
+        color: Colours.palette.m3onSurface
     }
 }

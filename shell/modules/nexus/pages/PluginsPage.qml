@@ -47,14 +47,14 @@ PageBase {
                 MaterialIcon {
                     Layout.alignment: Qt.AlignHCenter
                     text: "extension"
-                    color: Colours.palette.m3outlineVariant
+                    color: Colours.palette.m3onSurface
                     fontStyle: Tokens.font.icon.extraLarge
                 }
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("No third-party plugins installed")
-                    color: Colours.palette.m3onSurfaceVariant
+                    color: Colours.palette.m3onSurface
                     font: Tokens.font.body.large
                 }
             }
