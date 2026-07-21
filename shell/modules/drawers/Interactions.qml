@@ -116,6 +116,7 @@ CustomMouseArea {
             else if (visibilities.session && inRightPanel(panels.sessionWrapper, event.x, event.y)) inside = true;
             else if (visibilities.sidebar && inRightPanel(panels.sidebar, event.x, event.y)) inside = true;
             else if (visibilities.dashboard && inTopPanel(panels.dashboard, event.x, event.y) && withinPanelWidth(panels.dashboard, event.x, event.y)) inside = true;
+            else if (visibilities.utilities && (Config.bar.position === "bottom" ? inTopPanel(panels.utilities, event.x, event.y) : inBottomPanel(panels.utilities, event.x, event.y, true)) && withinPanelWidth(panels.utilities, event.x, event.y)) inside = true;
             else if (popouts.hasCurrent && inLeftPanel(panels.popoutsWrapper, event.x, event.y)) inside = true;
 
             if (!inside) {
@@ -131,10 +132,10 @@ CustomMouseArea {
                 root.panels.osd.hovered = false;
             }
 
-            if (!dashboardShortcutActive)
+            if (Config.dashboard.showOnHover && !dashboardShortcutActive)
                 visibilities.dashboard = false;
 
-            if (!utilitiesShortcutActive)
+            if (Config.utilities.showOnHover && !utilitiesShortcutActive)
                 visibilities.utilities = false;
 
             if (!popoutHideTimer.running)
@@ -270,11 +271,13 @@ CustomMouseArea {
         const showDashboard = Config.dashboard.showOnHover && inTopPanel(panels.dashboard, x, y);
 
         // Always update visibility based on hover if not in shortcut mode
-        if (!dashboardShortcutActive) {
-            visibilities.dashboard = showDashboard;
-        } else if (showDashboard) {
-            // If hovering over dashboard area while in shortcut mode, transition to hover control
-            dashboardShortcutActive = false;
+        if (Config.dashboard.showOnHover) {
+            if (!dashboardShortcutActive) {
+                visibilities.dashboard = showDashboard;
+            } else if (showDashboard) {
+                // If hovering over dashboard area while in shortcut mode, transition to hover control
+                dashboardShortcutActive = false;
+            }
         }
 
         // Show/hide dashboard on drag (for touchscreen devices)
@@ -304,14 +307,37 @@ CustomMouseArea {
         const inUtilitiesArea = Config.bar.position === "bottom" 
             ? inTopPanel(panels.utilities, x, y) && (root.visibilities.utilities ? inUtilitiesAreaOpen : inUtilitiesAreaClosed)
             : inBottomPanel(panels.utilities, x, y, true) && (root.visibilities.utilities ? inUtilitiesAreaOpen : inUtilitiesAreaClosed);
-        const showUtilities = !popouts.hasCurrent && panels.popoutsWrapper.offsetScale > 0.99 && inUtilitiesArea;
+        const showUtilities = Config.utilities.showOnHover && !popouts.hasCurrent && panels.popoutsWrapper.offsetScale > 0.99 && inUtilitiesArea;
 
         // Always update visibility based on hover if not in shortcut mode
-        if (!utilitiesShortcutActive) {
-            visibilities.utilities = showUtilities;
-        } else if (showUtilities) {
-            // If hovering over utilities area while in shortcut mode, transition to hover control
-            utilitiesShortcutActive = false;
+        if (Config.utilities.showOnHover) {
+            if (!utilitiesShortcutActive) {
+                visibilities.utilities = showUtilities;
+            } else if (showUtilities) {
+                // If hovering over utilities area while in shortcut mode, transition to hover control
+                utilitiesShortcutActive = false;
+            }
+        }
+
+        // Show/hide utilities on drag
+        if (pressed) {
+            const inUtilitiesDragStart = Config.bar.position === "bottom" 
+                ? inTopPanel(panels.utilities, dragStart.x, dragStart.y) 
+                : inBottomPanel(panels.utilities, dragStart.x, dragStart.y, true);
+
+            if (inUtilitiesDragStart && (Config.bar.position === "bottom" ? withinPanelWidth(panels.utilities, x, y) : withinPanelWidth(panels.utilities, x, y))) {
+                if (Config.bar.position === "bottom") {
+                    if (dragY > Config.utilities.dragThreshold)
+                        visibilities.utilities = true;
+                    else if (dragY < -Config.utilities.dragThreshold)
+                        visibilities.utilities = false;
+                } else {
+                    if (dragY < -Config.utilities.dragThreshold)
+                        visibilities.utilities = true;
+                    else if (dragY > Config.utilities.dragThreshold)
+                        visibilities.utilities = false;
+                }
+            }
         }
 
         // If in shortcut mode, we only check if cursor is STILL in the area, but we DON'T update visibility
