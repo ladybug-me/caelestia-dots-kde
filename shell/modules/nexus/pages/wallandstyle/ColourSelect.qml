@@ -49,6 +49,7 @@ PageBase {
                     readonly property bool isSelected: `${modelData?.name} ${modelData?.flavour}` === Schemes.currentScheme
                     
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     implicitHeight: schemeRow.implicitHeight + Tokens.padding.large * 2
                     radius: Tokens.rounding.large
                     color: isSelected ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainer
@@ -150,7 +151,7 @@ PageBase {
                     readonly property bool isSelected: modelData?.variant === Schemes.currentVariant
                     
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignTop
+                    Layout.fillHeight: true
                     implicitHeight: varCol.implicitHeight + Tokens.padding.large * 2
                     radius: Tokens.rounding.large
                     color: isSelected ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainer
