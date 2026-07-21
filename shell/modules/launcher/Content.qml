@@ -2,8 +2,11 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
+import Quickshell
 import Caelestia
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -19,9 +22,16 @@ Item {
     readonly property int padding: Tokens.padding.large
     readonly property int rounding: Tokens.rounding.extraLarge
     readonly property bool isClipboardMode: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
+    readonly property int footerSpacing: Tokens.spacing.small
 
     function clearClipboardHistory(): void {
         Clipboard.clearHistory();
+    }
+
+    function triggerSessionCommand(command: list<string>): void {
+        root.visibilities.launcher = false;
+        if (!SessionManager.exec(command))
+            Quickshell.execDetached(command);
     }
 
     Connections {
@@ -36,7 +46,7 @@ Item {
     }
 
     implicitWidth: listWrapper.width + padding * 2
-    implicitHeight: searchWrapper.height + listWrapper.height + padding + searchWrapper.anchors.bottomMargin
+    implicitHeight: listWrapper.height + sessionFooter.height + searchWrapper.height + listWrapper.anchors.bottomMargin + sessionFooter.anchors.bottomMargin + searchWrapper.anchors.bottomMargin
 
     Item {
         id: listWrapper
@@ -45,8 +55,8 @@ Item {
         implicitHeight: list.implicitHeight + root.padding
 
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: searchWrapper.top
-        anchors.bottomMargin: root.padding
+        anchors.bottom: sessionFooter.top
+        anchors.bottomMargin: root.footerSpacing
 
         ContentList {
             id: list
@@ -54,10 +64,82 @@ Item {
             content: root
             visibilities: root.visibilities
             panels: root.panels
-            maxHeight: root.maxHeight - searchWrapper.implicitHeight - root.padding * 3
+            maxHeight: root.maxHeight - searchWrapper.implicitHeight - sessionFooter.implicitHeight - root.padding * 2 - root.footerSpacing * 2
             search: search
             padding: root.padding
             rounding: root.rounding
+        }
+    }
+
+    StyledRect {
+        id: sessionFooter
+
+        color: Colours.layer(Colours.palette.m3surfaceContainerLow, 2)
+        radius: Tokens.rounding.extraLarge
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: searchWrapper.top
+        anchors.bottomMargin: root.footerSpacing
+        anchors.leftMargin: root.padding
+        anchors.rightMargin: root.padding
+
+        implicitHeight: footerLayout.implicitHeight + Tokens.padding.medium * 2
+
+        ColumnLayout {
+            id: footerLayout
+
+            anchors.fill: parent
+            anchors.margins: Tokens.padding.medium
+            spacing: Tokens.spacing.small
+
+            StyledText {
+                Layout.fillWidth: true
+                text: qsTr("Quick session controls")
+                color: Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.label.large
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Tokens.spacing.small
+
+                IconTextButton {
+                    Layout.fillWidth: true
+                    type: TextButton.Tonal
+                    icon: "logout"
+                    text: qsTr("Log Out")
+                    onClicked: root.triggerSessionCommand(Config.session.commands.logout)
+                }
+
+                IconTextButton {
+                    Layout.fillWidth: true
+                    type: TextButton.Tonal
+                    icon: "bedtime"
+                    text: qsTr("Sleep")
+                    onClicked: root.triggerSessionCommand(["suspendThenHibernate"])
+                }
+
+                IconTextButton {
+                    Layout.fillWidth: true
+                    type: TextButton.Tonal
+                    icon: "restart_alt"
+                    text: qsTr("Restart")
+                    inactiveColour: Colours.palette.m3secondaryContainer
+                    inactiveOnColour: Colours.palette.m3onSecondaryContainer
+                    onClicked: root.triggerSessionCommand(Config.session.commands.reboot)
+                }
+
+                IconTextButton {
+                    Layout.fillWidth: true
+                    type: TextButton.Tonal
+                    icon: "power_settings_new"
+                    text: qsTr("Shut Down")
+                    inactiveColour: Colours.palette.m3errorContainer
+                    inactiveOnColour: Colours.palette.m3onErrorContainer
+                    onClicked: root.triggerSessionCommand(Config.session.commands.shutdown)
+                }
+            }
         }
     }
 
