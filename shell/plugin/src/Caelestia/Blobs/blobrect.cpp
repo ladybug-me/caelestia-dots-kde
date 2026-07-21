@@ -138,36 +138,36 @@ void BlobRect::updatePhysics() {
     checkAtRest(speed);
 }
 
-void BlobRect::setTopLeftRadius(qreal r) {
-    if (!qFuzzyCompare(m_topLeftRadius, r)) {
-        m_topLeftRadius = r;
+void BlobRect::setTopLeftRadius(qreal radius) {
+    if (!qFuzzyCompare(m_topLeftRadius, radius)) {
+        m_topLeftRadius = radius;
         emit topLeftRadiusChanged();
         if (m_group)
             m_group->markDirty();
     }
 }
 
-void BlobRect::setTopRightRadius(qreal r) {
-    if (!qFuzzyCompare(m_topRightRadius, r)) {
-        m_topRightRadius = r;
+void BlobRect::setTopRightRadius(qreal radius) {
+    if (!qFuzzyCompare(m_topRightRadius, radius)) {
+        m_topRightRadius = radius;
         emit topRightRadiusChanged();
         if (m_group)
             m_group->markDirty();
     }
 }
 
-void BlobRect::setBottomLeftRadius(qreal r) {
-    if (!qFuzzyCompare(m_bottomLeftRadius, r)) {
-        m_bottomLeftRadius = r;
+void BlobRect::setBottomLeftRadius(qreal radius) {
+    if (!qFuzzyCompare(m_bottomLeftRadius, radius)) {
+        m_bottomLeftRadius = radius;
         emit bottomLeftRadiusChanged();
         if (m_group)
             m_group->markDirty();
     }
 }
 
-void BlobRect::setBottomRightRadius(qreal r) {
-    if (!qFuzzyCompare(m_bottomRightRadius, r)) {
-        m_bottomRightRadius = r;
+void BlobRect::setBottomRightRadius(qreal radius) {
+    if (!qFuzzyCompare(m_bottomRightRadius, radius)) {
+        m_bottomRightRadius = radius;
         emit bottomRightRadiusChanged();
         if (m_group)
             m_group->markDirty();

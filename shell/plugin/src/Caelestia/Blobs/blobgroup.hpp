@@ -21,15 +21,15 @@ public:
 
     qreal smoothing() const { return m_smoothing; }
 
-    void setSmoothing(qreal s);
+    void setSmoothing(qreal smoothing);
 
     QColor color() const { return m_color; }
 
-    void setColor(const QColor& c);
+    void setColor(const QColor& color);
 
     bool cornerFill() const { return m_cornerFill; }
 
-    void setCornerFill(bool e);
+    void setCornerFill(bool enabled);
 
     void addShape(BlobShape* shape);
     void removeShape(BlobShape* shape);

@@ -23,11 +23,11 @@ public:
 
     BlobGroup* group() const { return m_group; }
 
-    void setGroup(BlobGroup* g);
+    void setGroup(BlobGroup* group);
 
     qreal radius() const { return m_radius; }
 
-    void setRadius(qreal r);
+    void setRadius(qreal radius);
 
     QMatrix4x4 deformMatrix() const { return m_centeredDeformMatrix; }
 

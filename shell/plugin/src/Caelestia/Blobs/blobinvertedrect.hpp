@@ -18,19 +18,19 @@ public:
 
     qreal borderLeft() const { return m_borderLeft; }
 
-    void setBorderLeft(qreal v);
+    void setBorderLeft(qreal border);
 
     qreal borderRight() const { return m_borderRight; }
 
-    void setBorderRight(qreal v);
+    void setBorderRight(qreal border);
 
     qreal borderTop() const { return m_borderTop; }
 
-    void setBorderTop(qreal v);
+    void setBorderTop(qreal border);
 
     qreal borderBottom() const { return m_borderBottom; }
 
-    void setBorderBottom(qreal v);
+    void setBorderBottom(qreal border);
 
 signals:
     void borderLeftChanged();

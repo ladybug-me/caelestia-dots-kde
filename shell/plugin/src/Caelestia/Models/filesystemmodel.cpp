@@ -466,7 +466,7 @@ void FileSystemModel::applyChanges(const QSet<QString>& removedPaths, const QSet
             }
             endInsertRows();
 
-            offset += batchItems.size();
+            offset += static_cast<int>(batchItems.size());
             currentOriginalRow = originalRow;
             batchItems.clear();
             batchItems << entry;

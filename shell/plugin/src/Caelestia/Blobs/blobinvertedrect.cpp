@@ -137,37 +137,37 @@ BlobInvertedRect::~BlobInvertedRect() {
         m_group->clearInvertedRect(this);
 }
 
-void BlobInvertedRect::setBorderLeft(qreal v) {
-    if (qFuzzyCompare(m_borderLeft, v))
+void BlobInvertedRect::setBorderLeft(qreal border) {
+    if (qFuzzyCompare(m_borderLeft, border))
         return;
-    m_borderLeft = v;
+    m_borderLeft = border;
     emit borderLeftChanged();
     if (m_group)
         m_group->markDirty();
 }
 
-void BlobInvertedRect::setBorderRight(qreal v) {
-    if (qFuzzyCompare(m_borderRight, v))
+void BlobInvertedRect::setBorderRight(qreal border) {
+    if (qFuzzyCompare(m_borderRight, border))
         return;
-    m_borderRight = v;
+    m_borderRight = border;
     emit borderRightChanged();
     if (m_group)
         m_group->markDirty();
 }
 
-void BlobInvertedRect::setBorderTop(qreal v) {
-    if (qFuzzyCompare(m_borderTop, v))
+void BlobInvertedRect::setBorderTop(qreal border) {
+    if (qFuzzyCompare(m_borderTop, border))
         return;
-    m_borderTop = v;
+    m_borderTop = border;
     emit borderTopChanged();
     if (m_group)
         m_group->markDirty();
 }
 
-void BlobInvertedRect::setBorderBottom(qreal v) {
-    if (qFuzzyCompare(m_borderBottom, v))
+void BlobInvertedRect::setBorderBottom(qreal border) {
+    if (qFuzzyCompare(m_borderBottom, border))
         return;
-    m_borderBottom = v;
+    m_borderBottom = border;
     emit borderBottomChanged();
     if (m_group)
         m_group->markDirty();

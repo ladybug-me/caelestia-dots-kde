@@ -44,7 +44,7 @@ public:
     [[nodiscard]] qreal completeEndDuration() const;
 
     [[nodiscard]] IndeterminateAnimationType indeterminateAnimationType() const;
-    void setIndeterminateAnimationType(IndeterminateAnimationType t);
+    void setIndeterminateAnimationType(IndeterminateAnimationType animationType);
 
 signals:
     void startFractionChanged();

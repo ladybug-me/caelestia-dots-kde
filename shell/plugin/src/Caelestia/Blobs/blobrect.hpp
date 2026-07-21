@@ -27,27 +27,27 @@ public:
 
     qreal stiffness() const { return m_stiffness; }
 
-    void setStiffness(qreal s) {
-        if (!qFuzzyCompare(m_stiffness, s)) {
-            m_stiffness = s;
+    void setStiffness(qreal stiffness) {
+        if (!qFuzzyCompare(m_stiffness, stiffness)) {
+            m_stiffness = stiffness;
             emit stiffnessChanged();
         }
     }
 
     qreal damping() const { return m_damping; }
 
-    void setDamping(qreal d) {
-        if (!qFuzzyCompare(m_damping, d)) {
-            m_damping = d;
+    void setDamping(qreal damping) {
+        if (!qFuzzyCompare(m_damping, damping)) {
+            m_damping = damping;
             emit dampingChanged();
         }
     }
 
     qreal deformScale() const { return m_deformScale; }
 
-    void setDeformScale(qreal s) {
-        if (!qFuzzyCompare(m_deformScale, s)) {
-            m_deformScale = s;
+    void setDeformScale(qreal deformScale) {
+        if (!qFuzzyCompare(m_deformScale, deformScale)) {
+            m_deformScale = deformScale;
             emit deformScaleChanged();
         }
     }

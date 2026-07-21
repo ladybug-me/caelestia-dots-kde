@@ -16,6 +16,84 @@ err()  { echo -e "${RED}[ERR]   $*${RST}"; }
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
 
+missing_tools=()
+missing_pkg_modules=()
+
+require_command() {
+    local name="$1"
+    if ! command -v "$name" >/dev/null 2>&1; then
+        missing_tools+=("$name")
+    fi
+}
+
+require_pkg_module() {
+    local module="$1"
+    if ! pkg-config --exists "$module" >/dev/null 2>&1; then
+        missing_pkg_modules+=("$module")
+    fi
+}
+
+require_alt_pkg_module() {
+    local primary="$1"
+    local fallback="$2"
+    if pkg-config --exists "$primary" >/dev/null 2>&1; then
+        return 0
+    fi
+    if pkg-config --exists "$fallback" >/dev/null 2>&1; then
+        return 0
+    fi
+    missing_pkg_modules+=("$primary or $fallback")
+}
+
+require_sensors_support() {
+    if pkg-config --exists sensors >/dev/null 2>&1; then
+        return 0
+    fi
+    if pkg-config --exists libsensors >/dev/null 2>&1; then
+        return 0
+    fi
+    if [[ -f /usr/include/sensors/sensors.h || -f /usr/local/include/sensors/sensors.h ]]; then
+        return 0
+    fi
+    missing_pkg_modules+=("sensors/libsensors (or lm_sensors development headers)")
+}
+
+require_command cmake
+require_command pkg-config
+require_command make
+require_command git
+require_command nproc
+
+if command -v pkg-config >/dev/null 2>&1; then
+    require_pkg_module Qt6Core
+    require_pkg_module Qt6Gui
+    require_pkg_module Qt6Qml
+    require_pkg_module Qt6Quick
+    require_pkg_module Qt6QuickControls2
+    require_pkg_module Qt6Concurrent
+    require_pkg_module Qt6Sql
+    require_pkg_module Qt6Network
+    require_pkg_module Qt6DBus
+    require_pkg_module Qt6ShaderTools
+    require_pkg_module Qt6WaylandClient
+    require_pkg_module Qt6Widgets
+    require_pkg_module libqalculate
+    require_pkg_module libpipewire-0.3
+    require_pkg_module aubio
+    require_alt_pkg_module libcava cava
+    require_sensors_support
+fi
+
+if (( ${#missing_tools[@]} > 0 || ${#missing_pkg_modules[@]} > 0 )); then
+    if (( ${#missing_tools[@]} > 0 )); then
+        err "Missing required tools: ${missing_tools[*]}"
+    fi
+    if (( ${#missing_pkg_modules[@]} > 0 )); then
+        err "Missing required pkg-config modules: ${missing_pkg_modules[*]}"
+    fi
+    exit 1
+fi
+
 
 # UPDATER ONLY BLOCK START
 
@@ -69,8 +147,14 @@ fi
 # UPDATER ONLY BLOCK END
 
 info "Patching Recorder.qml to wait for portal selection..."
-sed -i 's/command: \["pidof", "gpu-screen-recorder"\]/command: \["sh", "-c", "pidof gpu-screen-recorder >\\\/dev\\\/null \&\& test -f $HOME\\\/.local\\\/state\\\/caelestia\\\/record\\\/recording.mp4"\]/g' "$HOME/.local/share/caelestia-shell/services/Recorder.qml" 2>/dev/null || true
-sed -i 's/command: \["pidof", "gpu-screen-recorder"\]/command: \["sh", "-c", "pidof gpu-screen-recorder >\\\/dev\\\/null \&\& test -f $HOME\\\/.local\\\/state\\\/caelestia\\\/record\\\/recording.mp4"\]/g' "shell/services/Recorder.qml" 2>/dev/null || true
+for recorder_qml in \
+    "$HOME/.config/quickshell/caelestia/services/Recorder.qml" \
+    "$HOME/.local/share/caelestia-shell/services/Recorder.qml" \
+    "shell/services/Recorder.qml"; do
+    if [[ -f "$recorder_qml" ]]; then
+        sed -i 's/command: \["pidof", "gpu-screen-recorder"\]/command: \["sh", "-c", "pidof gpu-screen-recorder >\\\/dev\\\/null \&\& test -f $HOME\\\/.local\\\/state\\\/caelestia\\\/record\\\/recording.mp4"\]/g' "$recorder_qml" 2>/dev/null || true
+    fi
+done
 
 info "Building Caelestia Shell..."
 

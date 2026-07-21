@@ -62,10 +62,10 @@ void BlobShape::setGroup(BlobGroup* g) {
         m_group->markDirty();
 }
 
-void BlobShape::setRadius(qreal r) {
-    if (qFuzzyCompare(m_radius, r))
+void BlobShape::setRadius(qreal radius) {
+    if (qFuzzyCompare(m_radius, radius))
         return;
-    m_radius = r;
+    m_radius = radius;
     emit radiusChanged();
     if (m_group)
         m_group->markDirty();

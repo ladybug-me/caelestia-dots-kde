@@ -12,26 +12,26 @@ BlobGroup::~BlobGroup() {
         static_cast<BlobShape*>(m_invertedRect)->m_group = nullptr;
 }
 
-void BlobGroup::setSmoothing(qreal s) {
-    if (qFuzzyCompare(m_smoothing, s))
+void BlobGroup::setSmoothing(qreal smoothing) {
+    if (qFuzzyCompare(m_smoothing, smoothing))
         return;
-    m_smoothing = s;
+    m_smoothing = smoothing;
     emit smoothingChanged();
     markDirty();
 }
 
-void BlobGroup::setColor(const QColor& c) {
-    if (m_color == c)
+void BlobGroup::setColor(const QColor& color) {
+    if (m_color == color)
         return;
-    m_color = c;
+    m_color = color;
     emit colorChanged();
     markDirty();
 }
 
-void BlobGroup::setCornerFill(bool e) {
-    if (m_cornerFill == e)
+void BlobGroup::setCornerFill(bool enabled) {
+    if (m_cornerFill == enabled)
         return;
-    m_cornerFill = e;
+    m_cornerFill = enabled;
     emit cornerFillChanged();
     markDirty();
 }

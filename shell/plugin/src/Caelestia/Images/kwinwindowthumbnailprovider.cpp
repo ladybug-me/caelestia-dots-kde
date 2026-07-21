@@ -6,9 +6,10 @@
 #include <qfile.h>
 #include <qimage.h>
 #include <qloggingcategory.h>
-#include <qquicktexturefactory.h>
 #include <qrunnable.h>
 #include <qthreadpool.h>
+#include <qvariantlist.h>
+#include <qvariantmap.h>
 
 #include <unistd.h>
 

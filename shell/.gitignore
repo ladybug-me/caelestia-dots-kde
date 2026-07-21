@@ -2,5 +2,6 @@
 /result
 /.qmlls.ini
 build/
+build-check/
 .cache/
 logs
