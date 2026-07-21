@@ -6,6 +6,27 @@ set -uo pipefail
 log()  { echo -e "\033[0;36m[INFO]\033[0m $*"; }
 err()  { echo -e "\033[0;31m[ERR]\033[0m  $*"; }
 
+refresh_pkg_dbs() {
+    log "Refreshing pacman package databases..."
+    sudo pacman -Syy --noconfirm || true
+}
+
+install_with_yay_retry() {
+    local pkg="$1"
+    local attempt
+
+    for attempt in 1 2 3; do
+        if yay -S --needed --noconfirm "$pkg"; then
+            return 0
+        fi
+
+        log "Attempt $attempt/3 failed for $pkg. Refreshing databases and retrying..."
+        refresh_pkg_dbs
+    done
+
+    return 1
+}
+
 log "Installing Arch packages..."
 
 INSTALL_FISH="${INSTALL_FISH:-true}"
@@ -67,7 +88,19 @@ FAILED_PKGS=()
 yay -Syu --noconfirm || true
 
 for pkg in "${PACKAGES[@]}"; do
-    if ! yay -S --needed --noconfirm "$pkg"; then
+    if ! install_with_yay_retry "$pkg"; then
+        if pacman -Si "$pkg" >/dev/null 2>&1; then
+            log "$pkg appears to be an official repo package. Trying pacman fallback..."
+            refresh_pkg_dbs
+            if sudo pacman -S --needed --noconfirm "$pkg"; then
+                continue
+            fi
+
+            err "Repository installation failed for $pkg after retries."
+            FAILED_PKGS+=("$pkg")
+            continue
+        fi
+
         log "yay failed to install $pkg. Attempting manual build from AUR..."
         tmpdir="$(mktemp -d)"
         if git clone "https://aur.archlinux.org/${pkg}.git" "$tmpdir"; then

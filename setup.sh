@@ -110,6 +110,41 @@ fi
 
 BIN="$BUNDLE_DIR/caelestia-install"
 
+install_arch_build_tools() {
+    local -a base_pkgs=(base-devel cmake)
+    local -a install_pkgs=("${base_pkgs[@]}")
+    local attempt
+    local need_tmux="false"
+
+    if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+        install_pkgs+=(tmux)
+        need_tmux="true"
+    fi
+
+    for attempt in 1 2 3; do
+        echo "[INFO] Arch build-tool install attempt ${attempt}/3..."
+        sudo pacman -Syy --noconfirm || true
+        if sudo pacman -S --needed --noconfirm "${install_pkgs[@]}"; then
+            return 0
+        fi
+        echo "[WARN] Build-tool install attempt ${attempt} failed; retrying after database refresh..."
+    done
+
+    if [[ "$need_tmux" == "true" ]]; then
+        echo "[WARN] Falling back to non-tmux mode and retrying build-tool installation..."
+        for attempt in 1 2 3; do
+            echo "[INFO] Arch build-tool install (without tmux) attempt ${attempt}/3..."
+            sudo pacman -Syy --noconfirm || true
+            if sudo pacman -S --needed --noconfirm "${base_pkgs[@]}"; then
+                export CAELESTIA_USE_TMUX=0
+                return 0
+            fi
+        done
+    fi
+
+    return 1
+}
+
 if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
     echo -n "Compiling Caelestia installer"
     {
@@ -146,10 +181,10 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
         echo ""
         echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
         if [[ "$BASE_DISTRO" == "arch" ]]; then
-            if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
-                sudo pacman -S --needed --noconfirm base-devel cmake tmux
-            else
-                sudo pacman -S --needed --noconfirm base-devel cmake
+            if ! install_arch_build_tools; then
+                echo "[FATAL] Failed to install Arch build tools after multiple retries." >&2
+                echo "[HINT] Mirror may be out of sync. Refresh your mirrorlist, then rerun setup.sh." >&2
+                exit 1
             fi
         elif [[ "$BASE_DISTRO" == "fedora" ]]; then
             if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
