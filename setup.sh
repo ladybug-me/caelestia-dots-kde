@@ -147,14 +147,20 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
         echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
         if [[ "$BASE_DISTRO" == "arch" ]]; then
             if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+                # Refresh pacman package databases first to avoid stale-mirror 404s
+                sudo pacman -Syy >/dev/null 2>&1 || true
                 sudo pacman -S --needed --noconfirm base-devel cmake tmux
             else
+                sudo pacman -Syy >/dev/null 2>&1 || true
                 sudo pacman -S --needed --noconfirm base-devel cmake
             fi
         elif [[ "$BASE_DISTRO" == "fedora" ]]; then
             if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+                # Refresh dnf metadata before installing
+                sudo dnf makecache --refresh -y >/dev/null 2>&1 || true
                 sudo dnf install -y gcc-c++ cmake make tmux
             else
+                sudo dnf makecache --refresh -y >/dev/null 2>&1 || true
                 sudo dnf install -y gcc-c++ cmake make
             fi
         else
