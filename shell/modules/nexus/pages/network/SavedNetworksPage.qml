@@ -47,8 +47,8 @@ PageBase {
                 anchors.right: savedList.list.contentItem.right
                 implicitHeight: savedLayout.implicitHeight + savedLayout.anchors.margins * 2
                 radius: Tokens.rounding.extraSmall
-                bottomLeftRadius: root?.last && index === savedList.list.count - 1 ? Tokens.rounding.extraLarge : radius
-                bottomRightRadius: root?.last && index === savedList.list.count - 1 ? Tokens.rounding.extraLarge : radius
+                bottomLeftRadius: savedList?.last && index === savedList.list.count - 1 ? Tokens.rounding.extraLarge : radius
+                bottomRightRadius: savedList?.last && index === savedList.list.count - 1 ? Tokens.rounding.extraLarge : radius
 
                 onClicked: {
                     root.nState.selectedNetworkSsid = modelData;

@@ -180,8 +180,8 @@ Singleton {
 
             Requests.get("http://ip-api.com/json?fields=status,message,city,lat,lon", (text, metadata) => {
                 ipApiRequestPending = false;
-                recordIpApiRateLimit(metadata);
-
+                if (recordIpApiRateLimit(metadata))
+                    return;
                 // Protect against stale responses overwriting the manually-set location,
                 // in case the config was updated while this request was in-flight.
                 if (GlobalConfig.services.weatherLocation)
