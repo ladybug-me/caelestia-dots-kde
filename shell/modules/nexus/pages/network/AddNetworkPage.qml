@@ -16,8 +16,6 @@ PageBase {
     title: qsTr("Add network")
     isSubPage: true
 
-    property bool hiddenNetwork: false
-
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -51,12 +49,6 @@ PageBase {
                     Layout.fillWidth: true
                     placeholderText: qsTr("Password")
                     echoMode: TextInput.Password
-                }
-
-                ToggleRow {
-                    text: qsTr("Hidden network")
-                    checked: root.hiddenNetwork
-                    onToggled: root.hiddenNetwork = checked
                 }
             }
         }

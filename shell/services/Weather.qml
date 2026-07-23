@@ -178,7 +178,7 @@ Singleton {
         } else if ((!loc || timer.elapsed() > 900) && !ipApiRequestPending && Date.now() >= ipApiBlockedUntil) {
             ipApiRequestPending = true;
 
-            Requests.get("http://ip-api.com/json?fields=status,message,city,lat,lon", (text, metadata) => {
+            Requests.get("https://ip-api.com/json?fields=status,message,city,lat,lon", (text, metadata) => {
                 ipApiRequestPending = false;
                 if (recordIpApiRateLimit(metadata))
                     return;

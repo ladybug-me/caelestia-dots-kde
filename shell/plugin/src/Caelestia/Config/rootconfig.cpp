@@ -239,6 +239,8 @@ std::optional<QString> RootConfig::reloadFromFile() {
 
     if (!file.exists()) {
         qCDebug(lcConfig) << "File does not exist:" << m_filePath;
+        m_lastLoadedJson = QJsonObject{};
+        m_lastUnknownKeys.clear();
         return std::nullopt;
     }
 
