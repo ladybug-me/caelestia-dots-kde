@@ -8,11 +8,11 @@ ButtonBase {
     id: root
 
     property alias icon: iconLabel.text
-    property alias text: label.text
     property alias spacing: row.spacing
 
     readonly property alias iconLabel: iconLabel
-    readonly property alias label: label
+
+    label.visible: false
 
     horizontalPadding: Tokens.padding.medium
     verticalPadding: Tokens.padding.small
@@ -65,10 +65,11 @@ ButtonBase {
         }
 
         StyledText {
-            id: label
+            id: textLabel
 
             Layout.alignment: Qt.AlignVCenter
             Layout.topMargin: 1
+            text: root.text
             color: root.onColour
             font: root.font
         }
