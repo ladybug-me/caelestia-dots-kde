@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 """Checks QML files for Qt coding convention violations.
 
 https://doc.qt.io/qt-6/qml-codingconventions.html
@@ -52,6 +54,7 @@ SECTION_NAMES = {
 RULE_COLOURS = {
     "file-structure": RED,
     "import-order": GREEN,
+    "missing-scriptmodel-import": RED,
     "section-order": YELLOW,
     "missing-section-separator": CYAN,
     "blank-after-open-brace": MAGENTA,
@@ -59,6 +62,46 @@ RULE_COLOURS = {
 }
 
 IMPORT_RE = re.compile(r"^import\s+(\S+)")
+SCRIPT_MODEL_RE = re.compile(r"\bScriptModel\s*\{")
+
+
+def check_scriptmodel_import(lines: list[str], rel: str) -> list["Violation"]:
+    """Ensure files using ScriptModel import its required provider modules."""
+    violations: list["Violation"] = []
+
+    first_scriptmodel_line = None
+    for i, line in enumerate(lines):
+        if SCRIPT_MODEL_RE.search(line):
+            first_scriptmodel_line = i + 1
+            break
+
+    if first_scriptmodel_line is None:
+        return violations
+
+    has_qs_utils_import = any(line.strip().startswith("import qs.utils") for line in lines)
+    has_quickshell_import = any(re.match(r"^import\s+Quickshell(?:\.|\s|$)", line.strip()) for line in lines)
+
+    if not has_qs_utils_import:
+        violations.append(
+            Violation(
+                rel,
+                first_scriptmodel_line,
+                "missing-scriptmodel-import",
+                "ScriptModel is used but 'import qs.utils' is missing",
+            )
+        )
+
+    if not has_quickshell_import:
+        violations.append(
+            Violation(
+                rel,
+                first_scriptmodel_line,
+                "missing-scriptmodel-import",
+                "ScriptModel is used but no 'import Quickshell' provider import is present",
+            )
+        )
+
+    return violations
 
 
 def import_group(module: str) -> tuple[int, int] | None:
@@ -479,6 +522,7 @@ def check_file(filepath: Path) -> list[Violation]:
 
     violations.extend(check_file_structure(lines, rel))
     violations.extend(check_imports(filepath, lines, rel))
+    violations.extend(check_scriptmodel_import(lines, rel))
 
     scopes: dict[str, ScopeTracker] = {}  # indent -> tracker
     in_block_comment = False

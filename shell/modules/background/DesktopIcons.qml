@@ -245,8 +245,8 @@ Item {
                     if (!iconName) return "";
                     for (let i = 0; i < iconSetDirs.length; i++) {
                         let url = iconSetBase + "/" + iconSetDirs[i] + "/" + iconName + ".svg";
-                        // Qt.resolvedUrl normalises it; we return it for use as Image.source
-                        return url; // try first candidate; Image will report Error and we fallback
+                        // Qt.resolvedUrl normalises it; return the first candidate in priority order.
+                        return url;
                     }
                     return "";
                 }

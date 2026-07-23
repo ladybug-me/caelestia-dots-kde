@@ -6,6 +6,7 @@ import Caelestia.Components
 import Caelestia.Config
 import qs.components
 import qs.services
+import qs.utils
 
 LazyListView {
     id: root

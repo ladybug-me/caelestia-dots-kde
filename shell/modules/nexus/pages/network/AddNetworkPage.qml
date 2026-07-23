@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Caelestia.Components
 import Caelestia.Config
 import qs.components
 import qs.components.controls

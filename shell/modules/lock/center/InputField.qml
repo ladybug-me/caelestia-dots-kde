@@ -6,6 +6,7 @@ import M3Shapes
 import Caelestia.Config
 import qs.components
 import qs.services
+import qs.utils
 import qs.modules.lock
 
 Item {

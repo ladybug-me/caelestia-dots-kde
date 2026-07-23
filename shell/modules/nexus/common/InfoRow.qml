@@ -8,6 +8,7 @@ import qs.modules.nexus.common
 ConnectedRect {
     id: root
 
+    property alias icon: icon.text
     property alias label: label.text
     property string subtext
     property alias value: value.text
@@ -23,6 +24,14 @@ ConnectedRect {
         anchors.leftMargin: Tokens.padding.largeIncreased
         anchors.rightMargin: Tokens.padding.largeIncreased
         spacing: Tokens.spacing.medium
+
+        MaterialIcon {
+            id: icon
+
+            visible: text
+            color: Colours.palette.m3onSurfaceVariant
+            fontStyle: Tokens.font.icon.medium
+        }
 
         ColumnLayout {
             Layout.fillWidth: true

@@ -13,6 +13,7 @@ StyledRect {
     }
 
     property bool checked
+    property alias text: label.text
     property alias disabled: stateLayer.disabled
     property bool isToggle
     property bool isRound
@@ -25,8 +26,10 @@ StyledRect {
     property int type: ButtonBase.Filled
 
     property real padding
-    property real horizontalPadding: padding
-    property real verticalPadding: padding
+    property real horizontalPadding: padding || Tokens.padding.medium
+    property real verticalPadding: padding || Tokens.padding.small
+
+    readonly property alias label: label
 
     readonly property alias pressed: stateLayer.pressed
     readonly property alias hovered: stateLayer.containsMouse
@@ -49,6 +52,9 @@ StyledRect {
     property real defaultRadius: Tokens.rounding.large
 
     signal clicked
+
+    implicitWidth: label.implicitWidth + horizontalPadding * 2
+    implicitHeight: label.implicitHeight + verticalPadding * 2
 
     onCheckedChanged: internalChecked = checked
 
@@ -77,6 +83,14 @@ StyledRect {
                 root.internalChecked = !root.internalChecked;
             root.clicked();
         }
+    }
+
+    StyledText {
+        id: label
+
+        anchors.centerIn: parent
+        color: root.onColour
+        font: root.font
     }
 
     Behavior on radius {
