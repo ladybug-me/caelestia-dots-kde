@@ -11,6 +11,7 @@ ButtonBase {
     property alias spacing: row.spacing
 
     readonly property alias iconLabel: iconLabel
+    readonly property alias contentLabel: textLabel
 
     label.visible: false
 
