@@ -1,0 +1,406 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import Caelestia.Config
+import qs.components
+import qs.components.controls
+import qs.services
+import qs.utils
+import qs.modules.nexus.common
+
+PageBase {
+    id: root
+
+    title: qsTr("AI Assistant")
+
+    property string claudeVersion: ""
+    readonly property bool claudeInstalled: claudeVersion !== "" && claudeVersion !== "NOT_INSTALLED"
+    property bool installing: false
+    property string installStatus: ""
+
+    function homeDir() {
+        return Quickshell.env("HOME") || "";
+    }
+    function claudeBin() {
+        return homeDir() + "/.local/bin/claude";
+    }
+    function refreshStatus() {
+        statusProc.running = false;
+        statusProc.running = true;
+    }
+
+    // Real login names / emails resolved from each account's .claude.json.
+    property var resolvedNames: ({})
+    property var resolvedEmails: ({})
+    function accountJsonPath(id) {
+        if (!id || id === "")
+            return homeDir() + "/.claude.json";
+        return homeDir() + "/.config/caelestia/claude/" + id + "/.claude.json";
+    }
+    function accountIds() {
+        const a = accounts();
+        const ids = [];
+        for (let i = 0; i < a.length; i++)
+            ids.push(a[i].id);
+        return ids;
+    }
+    function displayName(id, fallback) {
+        return resolvedNames[id] || fallback;
+    }
+
+    // ---- Account helpers (mirror AiAssistant's model) ----
+    function accounts() {
+        const list = [{ id: "", name: qsTr("Default"), dir: "" }];
+        try {
+            const parsed = JSON.parse(GlobalConfig.ai.claudeAccountsJson || "[]");
+            if (Array.isArray(parsed))
+                for (let i = 0; i < parsed.length; i++) {
+                    const a = parsed[i];
+                    if (a && a.id)
+                        list.push({
+                            id: String(a.id),
+                            name: String(a.name || a.id),
+                            dir: root.homeDir() + "/.config/caelestia/claude/" + String(a.id)
+                        });
+                }
+        } catch (e) {}
+        return list;
+    }
+    function accountDir(id) {
+        const a = accounts();
+        for (let i = 0; i < a.length; i++)
+            if (a[i].id === id)
+                return a[i].dir;
+        return "";
+    }
+    function rawAccounts() {
+        try {
+            const p = JSON.parse(GlobalConfig.ai.claudeAccountsJson || "[]");
+            if (Array.isArray(p))
+                return p;
+        } catch (e) {}
+        return [];
+    }
+    function addAndLogin() {
+        const arr = rawAccounts();
+        const id = "acc_" + Date.now();
+        arr.push({ id: id, name: qsTr("Account") + " " + (arr.length + 1) });
+        GlobalConfig.ai.claudeAccountsJson = JSON.stringify(arr);
+        GlobalConfig.ai.activeClaudeAccount = id;
+        loginActive();
+    }
+    // Drop any added account whose login resolves to an email already used by an
+    // earlier account (default first) — e.g. logging a new slot into the same account.
+    function dedupAccounts() {
+        const arr = rawAccounts();
+        const seen = {};
+        const def = resolvedEmails[""];
+        if (def)
+            seen[def] = true;
+        const kept = [];
+        let removedActive = false;
+        for (let i = 0; i < arr.length; i++) {
+            const a = arr[i];
+            const em = resolvedEmails[a.id];
+            if (em && seen[em]) {
+                if ((GlobalConfig.ai.activeClaudeAccount || "") === a.id)
+                    removedActive = true;
+                continue;
+            }
+            if (em)
+                seen[em] = true;
+            kept.push(a);
+        }
+        if (kept.length !== arr.length) {
+            GlobalConfig.ai.claudeAccountsJson = JSON.stringify(kept);
+            if (removedActive)
+                GlobalConfig.ai.activeClaudeAccount = "";
+        }
+    }
+    function removeAccount(id) {
+        if (!id || id === "")
+            return; // the Default (~/.claude) account is the system login — not removable
+        const arr = rawAccounts().filter(a => a && a.id !== id);
+        GlobalConfig.ai.claudeAccountsJson = JSON.stringify(arr);
+        if ((GlobalConfig.ai.activeClaudeAccount || "") === id)
+            GlobalConfig.ai.activeClaudeAccount = "";
+    }
+    // Log out the Default (~/.claude) login so a different account can sign in.
+    // This clears the CLI's base credentials (WinTone01), not the Claude Desktop app.
+    function logoutDefault() {
+        logoutProc.command = ["sh", "-c", JSON.stringify(root.claudeBin()) + " auth logout"];
+        logoutProc.running = true;
+    }
+    function loginActive() {
+        const id = GlobalConfig.ai.activeClaudeAccount || "";
+        const dir = accountDir(id);
+        const term = GlobalConfig.ai.loginTerminal || "konsole";
+        let inner = "";
+        if (dir !== "")
+            inner = "mkdir -p " + JSON.stringify(dir) + "; export CLAUDE_CONFIG_DIR=" + JSON.stringify(dir) + "; ";
+        inner += JSON.stringify(root.claudeBin()) + " auth login; echo; echo " + JSON.stringify(qsTr("Login done? You can close this window.")) + "; read -n1";
+        loginProc.command = [term, "-e", "sh", "-lc", inner];
+        loginProc.running = true;
+    }
+
+    ColumnLayout {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        width: root.cappedWidth
+        spacing: Tokens.spacing.large
+
+        // Non-visual helpers live inside the single Item child (PageBase's default
+        // property is one Item; Process objects are kept as layout resources).
+        Process {
+            id: statusProc
+            running: true
+            command: ["sh", "-c", "test -x " + JSON.stringify(root.claudeBin()) + " && " + JSON.stringify(root.claudeBin()) + " --version 2>/dev/null || echo NOT_INSTALLED"]
+            stdout: StdioCollector {
+                onStreamFinished: root.claudeVersion = (text || "").trim()
+            }
+        }
+
+        Process {
+            id: installProc
+            command: ["sh", "-c", "curl -fsSL https://claude.ai/install.sh | bash"]
+            stdout: SplitParser {
+                onRead: line => root.installStatus = line
+            }
+            stderr: SplitParser {
+                onRead: line => root.installStatus = line
+            }
+            onExited: code => {
+                root.installing = false;
+                root.installStatus = code === 0 ? qsTr("Installed.") : (qsTr("Failed") + " (" + code + ")");
+                root.refreshStatus();
+            }
+        }
+
+        Process {
+            id: loginProc
+        }
+
+        Process {
+            id: logoutProc
+            onExited: root.refreshStatus()
+        }
+
+        // Resolve real login names from each account's .claude.json.
+        Instantiator {
+            model: root.accountIds()
+            delegate: FileView {
+                required property string modelData
+                path: root.accountJsonPath(modelData)
+                printErrors: false
+                watchChanges: false
+                onLoaded: {
+                    try {
+                        const d = JSON.parse(text());
+                        const oa = d.oauthAccount || {};
+                        const email = oa.emailAddress || "";
+                        const nm = oa.displayName || email || "";
+                        if (nm) {
+                            const map = root.resolvedNames;
+                            map[modelData] = nm;
+                            root.resolvedNames = Object.assign({}, map);
+                        }
+                        if (email) {
+                            const em = root.resolvedEmails;
+                            em[modelData] = email;
+                            root.resolvedEmails = Object.assign({}, em);
+                            root.dedupAccounts();
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+
+        // ── Providers ──────────────────────────────────────────────
+        SectionHeader {
+            first: true
+            text: qsTr("Providers")
+        }
+        ToggleRow {
+            first: true
+            text: qsTr("Enable Ollama")
+            checked: GlobalConfig.ai.enableOllama
+            onToggled: GlobalConfig.ai.enableOllama = checked
+        }
+        ToggleRow {
+            text: qsTr("Enable Claude Code")
+            subtext: qsTr("Uses the claude CLI + your Claude login — no API key")
+            checked: GlobalConfig.ai.enableClaudeCode
+            onToggled: GlobalConfig.ai.enableClaudeCode = checked
+        }
+        ToggleRow {
+            last: true
+            text: qsTr("Enable Claude API (API key)")
+            subtext: qsTr("Pay-per-token HTTP API; needs ANTHROPIC_API_KEY")
+            checked: GlobalConfig.ai.enableClaude
+            onToggled: GlobalConfig.ai.enableClaude = checked
+        }
+
+        // API key input — only when Claude API is enabled.
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: GlobalConfig.ai.enableClaude
+            spacing: Tokens.spacing.small
+
+            ConnectedRect {
+                first: true
+                last: true
+                Layout.fillWidth: true
+                implicitHeight: apiKeyRow.implicitHeight + Tokens.padding.medium * 2
+
+                RowLayout {
+                    id: apiKeyRow
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    anchors.leftMargin: Tokens.padding.largeIncreased
+                    anchors.rightMargin: Tokens.padding.largeIncreased
+                    spacing: Tokens.spacing.medium
+
+                    StyledText {
+                        text: qsTr("API key")
+                        font: Tokens.font.body.small
+                        color: Colours.palette.m3onSurface
+                    }
+                    StyledInputField {
+                        Layout.fillWidth: true
+                        horizontalAlignment: TextInput.AlignLeft
+                        text: GlobalConfig.ai.anthropicApiKey
+                        onEditingFinished: GlobalConfig.ai.anthropicApiKey = text
+                    }
+                }
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                Layout.leftMargin: Tokens.padding.largeIncreased
+                text: qsTr("The ANTHROPIC_API_KEY environment variable overrides this value.")
+                color: Colours.palette.m3outline
+                font: Tokens.font.label.small
+                wrapMode: Text.Wrap
+            }
+        }
+
+        // ── Claude Code ────────────────────────────────────────────
+        SectionHeader {
+            text: qsTr("Claude Code")
+        }
+        InfoRow {
+            first: true
+            label: qsTr("Status")
+            value: root.claudeInstalled ? root.claudeVersion : qsTr("Not installed")
+        }
+        NavRow {
+            last: true
+            icon: "download"
+            label: root.claudeInstalled ? qsTr("Update Claude Code") : qsTr("Install Claude Code")
+            status: root.installing ? (root.installStatus || qsTr("Installing…")) : root.installStatus
+            onClicked: {
+                if (root.installing)
+                    return;
+                root.installing = true;
+                root.installStatus = qsTr("Installing…");
+                installProc.running = true;
+            }
+        }
+
+        // ── Accounts ───────────────────────────────────────────────
+        SectionHeader {
+            text: qsTr("Claude accounts")
+        }
+        Repeater {
+            model: root.accounts()
+
+            ConnectedRect {
+                id: accRect
+                required property var modelData
+                required property int index
+
+                readonly property bool isActive: (GlobalConfig.ai.activeClaudeAccount || "") === modelData.id
+                readonly property bool isDefault: modelData.id === ""
+
+                Layout.fillWidth: true
+                first: index === 0
+                implicitHeight: accRow.implicitHeight + Tokens.padding.medium * 2
+
+                StateLayer {
+                    onClicked: GlobalConfig.ai.activeClaudeAccount = accRect.modelData.id
+                }
+
+                RowLayout {
+                    id: accRow
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.medium
+                    anchors.leftMargin: Tokens.padding.largeIncreased
+                    anchors.rightMargin: Tokens.padding.largeIncreased
+                    spacing: Tokens.spacing.medium
+
+                    MaterialIcon {
+                        text: accRect.isActive ? "check_circle" : "person"
+                        color: Colours.palette.m3onSurfaceVariant
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: root.displayName(accRect.modelData.id, accRect.modelData.name)
+                            font: Tokens.font.body.small
+                            elide: Text.ElideRight
+                        }
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: accRect.isActive ? qsTr("Active") : qsTr("Tap to select")
+                            color: Colours.palette.m3outline
+                            font: Tokens.font.label.small
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    // Named accounts get a delete button; the Default (system login)
+                    // gets a log-out button that clears its ~/.claude credentials.
+                    MaterialIcon {
+                        text: accRect.isDefault ? "logout" : "delete"
+                        color: delMouse.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
+
+                        MouseArea {
+                            id: delMouse
+                            anchors.fill: parent
+                            anchors.margins: -8
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: accRect.isDefault ? root.logoutDefault() : root.removeAccount(accRect.modelData.id)
+                        }
+                    }
+                }
+            }
+        }
+        NavRow {
+            icon: "login"
+            label: qsTr("Log in to selected account")
+            status: root.claudeInstalled ? "" : qsTr("Install Claude Code first")
+            onClicked: {
+                if (root.claudeInstalled)
+                    root.loginActive();
+            }
+        }
+        NavRow {
+            last: true
+            icon: "person_add"
+            label: qsTr("Add another account & log in")
+            status: root.claudeInstalled ? qsTr("Log into a different Claude account") : qsTr("Install Claude Code first")
+            onClicked: {
+                if (root.claudeInstalled)
+                    root.addAndLogin();
+            }
+        }
+    }
+}

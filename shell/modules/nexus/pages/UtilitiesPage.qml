@@ -45,21 +45,21 @@ PageBase {
             StyledText {
                 width: parent.width
                 wrapMode: Text.Wrap
-                text: qsTr("Caelestia's AI assistant runs entirely locally using Ollama for maximum privacy. No API keys are required!\n\nTo enable it:\n1. Install Ollama (e.g. 'sudo pacman -S ollama')\n2. Start the Ollama daemon\n3. Download a model (e.g., 'ollama run llama3')\n\nOnce Ollama is running on port 11434, the assistant connects automatically.")
+                text: qsTr("The AI Assistant supports three providers:\n\n• Claude Code (recommended) — uses your Claude subscription through the 'claude' CLI. No API key needed.\n• Ollama — fully local models for maximum privacy (install Ollama, then e.g. 'ollama run llama3').\n• Claude API — pay-per-token; needs an API key (or the ANTHROPIC_API_KEY env var).\n\nInstall Claude Code, log in, add accounts and toggle providers in Settings → AI Assistant. Pick the active provider and model from the selectors at the top of the chat.\n\nThe assistant tab appears in the sidebar whenever at least one provider is enabled.")
             }
         }
 
         ToggleRow {
-            text: qsTr("Enable Assistant")
-            subtext: qsTr("Show the AI Assistant in the sidebar")
-            checked: GlobalConfig.ai.enableOllama
-            onToggled: GlobalConfig.ai.enableOllama = checked
+            text: qsTr("Enable AI Assistant")
+            subtext: qsTr("Show the AI Assistant tab in the sidebar — manage providers in Settings → AI Assistant")
+            checked: GlobalConfig.ai.enableAiAssistant
+            onToggled: GlobalConfig.ai.enableAiAssistant = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Enable Tool Usage")
-            subtext: qsTr("Allow the assistant to search the web, take screenshots, etc.")
+            subtext: qsTr("Lets Ollama / Claude API models use built-in tools (web search, screenshots…). Claude Code has its own agent tools and ignores this.")
             checked: GlobalConfig.ai.enableCelestialMode
             onToggled: GlobalConfig.ai.enableCelestialMode = checked
         }

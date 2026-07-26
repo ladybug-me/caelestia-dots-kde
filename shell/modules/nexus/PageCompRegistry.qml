@@ -250,6 +250,13 @@ QtObject {
                     AboutPage {}
                 }
             }
+        },
+        Component {
+            StackPage {
+                Component {
+                    AiSettingsPage {}
+                }
+            }
         }
     ]
 

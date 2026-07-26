@@ -186,5 +186,13 @@ QtObject {
             description: qsTr("System information, credits"),
             category: "system"
         },
+
+        // AI
+        {
+            label: qsTr("AI Assistant"),
+            icon: "smart_toy",
+            description: qsTr("Claude Code, accounts, providers"),
+            category: "controls"
+        },
     ]
 }
