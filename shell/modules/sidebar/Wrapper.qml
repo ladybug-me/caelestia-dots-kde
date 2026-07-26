@@ -14,6 +14,16 @@ Item {
     readonly property Props props: Props {}
 
     readonly property bool shouldBeActive: visibilities.sidebar && Config.sidebar.enabled
+
+    property bool aiBusy: false
+
+    Connections {
+        target: content.item
+        ignoreUnknownSignals: true
+        function onAiBusyChanged(): void {
+            root.aiBusy = content.item ? content.item.aiBusy : false;
+        }
+    }
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
@@ -36,7 +46,11 @@ Item {
         anchors.margins: CUtils.clamp(anchors.leftMargin - Config.border.thickness, 0, anchors.leftMargin)
         anchors.bottomMargin: 0
 
-        active: root.shouldBeActive || root.visible
+        // Closing the sidebar used to destroy the assistant along with any request
+        // it had in flight, losing the answer. Stay loaded until it has finished.
+        // root.aiBusy is assigned rather than bound: reading content.item from this
+        // binding would make the loader's own contents decide whether it loads.
+        active: root.shouldBeActive || root.visible || root.aiBusy
 
         sourceComponent: Content {
             implicitWidth: Tokens.sizes.sidebar.width - content.anchors.leftMargin - content.anchors.margins

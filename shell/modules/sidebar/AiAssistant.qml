@@ -67,6 +67,7 @@ Item {
     // Refresh the model list when switching to an OpenAI-compatible provider, so a
     // key added after startup takes effect without a reload.
     onProviderChanged: {
+        cancelRateLimitRetry();
         if (isOpenaiCompat)
             fetchOpenaiCompatModels(provider);
         else if (isClaude)
@@ -525,6 +526,66 @@ Item {
     }
     property bool inAgentLoop: false
 
+    // Rate limiting. Providers answer a 429 with how long to wait, so honour that
+    // instead of surfacing an error the user can only respond to by waiting anyway.
+    property int rateLimitRetries: 0
+    readonly property int maxRateLimitRetries: 3
+    property bool onFreeTier: false   // learned from the quota metric name in a 429
+
+    // Ticks once a second so the status line counts down rather than showing a
+    // number frozen at whatever the wait started as.
+    property int rateLimitSecondsLeft: 0
+
+    // A pending retry belongs to the conversation and model it was scheduled for.
+    // Without this a wait left over from a cancelled chat fires later and answers
+    // a prompt the user has already moved on from — on whatever model is selected
+    // by then — and those stray requests go on to trigger fresh rate limits.
+    function cancelRateLimitRetry(): void {
+        rateLimitRetryTimer.stop();
+        rateLimitRetryTimer.retryFn = null;
+        rateLimitSecondsLeft = 0;
+        rateLimitRetries = 0;
+    }
+
+    Timer {
+        id: rateLimitRetryTimer
+        interval: 1000
+        repeat: true
+        property var retryFn: null
+        property string forChat: ""
+        property string forModel: ""
+        onTriggered: {
+            root.rateLimitSecondsLeft--;
+            if (root.rateLimitSecondsLeft > 0) {
+                root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                return;
+            }
+            stop();
+            if (forChat !== root.currentChatId || forModel !== root.activeModel()) {
+                retryFn = null;          // the user moved on; the answer is no longer wanted
+                root.currentActionText = "";
+                root.isTyping = false;
+                root.isThinking = false;
+                root.inAgentLoop = false;
+                return;
+            }
+            if (retryFn) { const f = retryFn; retryFn = null; f(); }
+        }
+    }
+
+    // Seconds to wait, from the provider's own answer: the Retry-After header if
+    // present, else the "retry in 12.3s" the message spells out. Falls back to a
+    // short pause when neither is given.
+    function rateLimitDelayMs(xhr) {
+        const header = xhr.getResponseHeader("Retry-After");
+        if (header && !isNaN(parseFloat(header)))
+            return Math.ceil(parseFloat(header) * 1000) + 500;
+        const m = /retry in ([0-9.]+)\s*s/i.exec(xhr.responseText || "");
+        if (m)
+            return Math.ceil(parseFloat(m[1]) * 1000) + 500;
+        return 15000;
+    }
+
     function shellQuote(str) {
         if (str === null || str === undefined) return "''";
         return "'" + String(str).replace(/'/g, "'\\''") + "'";
@@ -614,7 +675,7 @@ Item {
         } else if (type === "screenshot_encode") {
             var b64 = stdout.replace(/\n/g, "").trim();
             accumulatedToolImage = b64;
-            accumulatedToolResults += "Tool: take_screenshot\nResult: Screenshot taken. Analyze the attached image.\n\n";
+            accumulatedToolResults += "Result of take_screenshot:\nScreenshot taken. Analyse the attached image.\n\n";
             runningToolsCount--;
             checkToolsFinished();
         } else if (type.startsWith("exec_")) {
@@ -624,7 +685,13 @@ Item {
             if (!outText && !errText) {
                 outText = "(Command completed with no output. If it was a background task, it has been launched successfully.)";
             }
-            accumulatedToolResults += "Tool: " + toolName + "\nCommand executed: " + cmd + "\nOutput: " + outText + "\nError: " + errText + "\n\n";
+            // Plain prose, not a pseudo-protocol dump. The old "Tool:/Command
+            // executed:/Output:/Error:" framing made Gemini either imitate the
+            // format back (answering with fake tool output) or refuse outright with
+            // finish_reason function_call_filter: MALFORMED_FUNCTION_CALL and an
+            // empty response, which looked like generation stopping dead. Echoing
+            // the raw command array back at the model never helped it either.
+            accumulatedToolResults += "Result of " + toolName + ":\n" + outText + (errText ? "\n\nErrors reported:\n" + errText : "") + "\n\n";
             runningToolsCount--;
             checkToolsFinished();
         }
@@ -1063,8 +1130,15 @@ Item {
         return root.openaiCompatModels[p || provider] || [];
     }
 
-    function fetchOpenaiCompatModels(p) {
+    // Providers charge a request for their model list too, and on a free tier that
+    // is quota the user would rather spend on answers — so fetch each provider's
+    // list once per session instead of every time the sidebar opens.
+    property var modelsFetched: ({})
+
+    function fetchOpenaiCompatModels(p, force = false) {
         const which = p || provider;
+        if (!force && root.modelsFetched[which])
+            return;
         const key = root.getApiKeyFor(which);
         // OpenRouter publishes its catalogue without auth; the other two need the key.
         if (key === "" && which !== "openrouter")
@@ -1103,6 +1177,10 @@ Item {
                 next[which] = list;
                 root.openaiCompatModels = next;
 
+                const seen = root.modelsFetched;
+                seen[which] = true;
+                root.modelsFetched = seen;
+
                 // Keep the saved default honest: if it isn't offered, fall back to the first.
                 const cfgKey = which === "openai" ? "defaultOpenaiModel" : (which === "gemini" ? "defaultGeminiModel" : "defaultOpenrouterModel");
                 if (list.indexOf(GlobalConfig.ai[cfgKey]) === -1)
@@ -1117,6 +1195,7 @@ Item {
     property var allChatSessions: []
 
     function createNewChat() {
+        cancelRateLimitRetry();
         typingTimer.stop();
         stopClaudeCode();
         isTyping = false;
@@ -1128,6 +1207,7 @@ Item {
     }
 
     function loadChat(id) {
+        cancelRateLimitRetry();
         typingTimer.stop();
         stopClaudeCode();
         isTyping = false;
@@ -1248,6 +1328,7 @@ Item {
     }
 
     function deleteChat(id) {
+        cancelRateLimitRetry();
         var idx = -1;
         for (var i = 0; i < allChatSessions.length; i++) {
             if (allChatSessions[i].id === id) {
@@ -1278,6 +1359,7 @@ Item {
     }
 
     function clearAllHistory() {
+        cancelRateLimitRetry();
         allChatSessions = [];
         historySessionsModel.clear();
         GlobalConfig.ai.ollamaHistoryJson = "[]";
@@ -1419,13 +1501,16 @@ Item {
         saveHistory();
     }
 
-    function sendPrompt(promptText, isSystemToolResult = false, base64Image = null, toolName = "") {
+    function sendPrompt(promptText, isSystemToolResult = false, base64Image = null, toolName = "", isRetry = false) {
         if (!promptText.trim() && !base64Image) return;
 
         // Sending a message dismisses any open prompt suggestions.
         promptSuggestions = [];
 
-        if (!isSystemToolResult) {
+        if (!isRetry)
+            cancelRateLimitRetry();   // a new send supersedes any wait still pending
+
+        if (!isSystemToolResult && !isRetry) {
             chatHistory.append({
                 "isUser": true,
                 "text": promptText || "",
@@ -1653,7 +1738,8 @@ Item {
                 
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
-                        chatHistory.setProperty(chatHistory.count - 1, "isFinished", true);
+                            root.rateLimitRetries = 0;
+                    chatHistory.setProperty(chatHistory.count - 1, "isFinished", true);
                         saveHistory();
                         
                         var enableTools = GlobalConfig.ai.enableCelestialMode;
@@ -1750,7 +1836,60 @@ Item {
                         }
                     } else {
                         var providerName = root.providerLabel(root.provider);
-                        var errMsg = (xhr.status === 0) ? "Generation cancelled" : (providerName + " request failed (status " + xhr.status + ")." + ((root.needsApiKey && (xhr.status === 401 || xhr.status === 403)) ? " Check your API key." : ""));
+                        // Providers explain themselves in the error body — a rate limit
+                        // even says how long to wait. Surfacing that beats a bare status
+                        // code the user can do nothing with.
+                        var apiDetail = "";
+                        try {
+                            const errBody = JSON.parse(xhr.responseText);
+                            const e = Array.isArray(errBody) ? (errBody[0] || {}).error : errBody.error;
+                            if (e) {
+                                // OpenRouter wraps the upstream provider's error: its own
+                                // message is just "Provider returned error", and the part
+                                // worth reading (which model, which provider, what to do)
+                                // sits in metadata.raw.
+                                const raw = e.metadata && e.metadata.raw ? String(e.metadata.raw) : "";
+                                const provider = e.metadata && e.metadata.provider_name ? String(e.metadata.provider_name) : "";
+                                if (raw)
+                                    apiDetail = " " + (provider ? provider + ": " : "") + raw.split("\n")[0];
+                                else if (e.message)
+                                    apiDetail = " " + String(e.message).split("\n")[0];
+                            }
+                        } catch (e) {}
+                        // A rate limit is not really a failure — the provider told us
+                        // when it will accept the next request, so wait that long and
+                        // finish the answer instead of dropping it on the user.
+                        // A daily quota does not come back in the seconds the provider
+                        // suggests retrying after, so retrying just spends more of the
+                        // very allowance that ran out. Only wait out short-term limits.
+                        const perDayQuota = /PerDay|per day/i.test(xhr.responseText || "");
+                        if (xhr.status === 429 && perDayQuota)
+                            root.cancelRateLimitRetry();
+
+                        if (xhr.status === 429 && !perDayQuota && root.rateLimitRetries < root.maxRateLimitRetries) {
+                            if ((xhr.responseText || "").indexOf("free_tier") !== -1)
+                                root.onFreeTier = true;
+                            const waitMs = root.rateLimitDelayMs(xhr);
+                            root.rateLimitRetries++;
+                            root.rateLimitSecondsLeft = Math.max(1, Math.round(waitMs / 1000));
+                            root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                            root.isTyping = true;
+                            root.isThinking = true;
+                            rateLimitRetryTimer.forChat = root.currentChatId;
+                            rateLimitRetryTimer.forModel = root.activeModel();
+                            rateLimitRetryTimer.retryFn = () => root.sendPrompt(promptText, isSystemToolResult, base64Image, toolName, true);
+                            rateLimitRetryTimer.restart();
+                            return;
+                        }
+
+                        var hint = "";
+                        if (xhr.status === 429 && perDayQuota)
+                            hint = " This model's daily free quota is used up — it resets tomorrow. Pick another model, or use Claude Code, which is not on this quota.";
+                        else if (xhr.status === 429)
+                            hint = " Rate limit reached and still limited after " + root.maxRateLimitRetries + " retries — wait a minute and try again.";
+                        else if (root.needsApiKey && (xhr.status === 401 || xhr.status === 403))
+                            hint = " Check your API key.";
+                        var errMsg = (xhr.status === 0) ? "Generation cancelled" : (providerName + " request failed (status " + xhr.status + ")." + hint + apiDetail);
                         var currentText = chatHistory.get(chatHistory.count - 1).text;
                         if (currentText.trim() === "") {
                             chatHistory.setProperty(chatHistory.count - 1, "text", errMsg);
@@ -2798,6 +2937,7 @@ Item {
                                      cursorShape: (inputArea.text.length > 0 || root.isTyping) ? Qt.PointingHandCursor : Qt.ArrowCursor
                                      onClicked: {
                                          if (root.isTyping) {
+                                             root.cancelRateLimitRetry();
                                              if (root.currentRequest) {
                                                  root.currentRequest.abort();
                                              }
