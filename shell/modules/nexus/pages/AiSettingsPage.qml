@@ -61,11 +61,31 @@ PageBase {
         StyledText {
             Layout.fillWidth: true
             Layout.leftMargin: Tokens.padding.largeIncreased
-            text: qsTr("The %1 environment variable overrides this value.").arg(keyField.envName)
+            text: qsTr("Stored in your session keyring, not in shell.json. The %1 environment variable overrides it.").arg(keyField.envName)
             color: Colours.palette.m3outline
             font: Tokens.font.label.small
             wrapMode: Text.Wrap
         }
+    }
+
+    // Keys are held in the session keyring, not shell.json — see AiAssistant.
+    property var keyringKeys: ({})
+
+    function apiKeyFor(p) {
+        return root.keyringKeys[p] || "";
+    }
+
+    function storeApiKey(p, key) {
+        const m = root.keyringKeys;
+        m[p] = key;
+        root.keyringKeys = Object.assign({}, m);
+        const attr = "caelestia-ai-" + p;
+        const script = key === ""
+            ? "secret-tool clear service caelestia key " + JSON.stringify(attr)
+            : "printf %s \"$1\" | secret-tool store --label=" + JSON.stringify("Caelestia " + p + " API key") +
+              " service caelestia key " + JSON.stringify(attr);
+        keyStoreProc.command = key === "" ? ["sh", "-c", script] : ["sh", "-c", script, "--", key];
+        keyStoreProc.running = true;
     }
 
     property string claudeVersion: ""
@@ -82,7 +102,16 @@ PageBase {
 
     // Ask what the newest published version is whenever this page is opened, so
     // the button below is offering the right action rather than a stale one.
-    Component.onCompleted: UpdateChecker.checkClaudeCodeUpdate()
+    Component.onCompleted: {
+        UpdateChecker.checkClaudeCodeUpdate();
+        loadStoredKeys();
+    }
+
+    function loadStoredKeys() {
+        const provs = ["claude", "openai", "gemini", "openrouter"];
+        for (let i = 0; i < provs.length; i++)
+            keyLoadComp.createObject(root, { provider: provs[i] });
+    }
 
     function homeDir() {
         return Quickshell.env("HOME") || "";
@@ -218,6 +247,32 @@ PageBase {
         // Non-visual helpers live inside the single Item child (PageBase's default
         // property is one Item; Process objects are kept as layout resources).
         Process {
+            id: keyStoreProc
+        }
+
+        Component {
+            id: keyLoadComp
+
+            Process {
+                id: kl
+                required property string provider
+                running: true
+                command: ["secret-tool", "lookup", "service", "caelestia", "key", "caelestia-ai-" + provider]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        const k = (text || "").trim();
+                        if (k !== "") {
+                            const m = root.keyringKeys;
+                            m[kl.provider] = k;
+                            root.keyringKeys = Object.assign({}, m);
+                        }
+                        kl.destroy();
+                    }
+                }
+            }
+        }
+
+        Process {
             id: statusProc
             running: true
             command: ["sh", "-c", "test -x " + JSON.stringify(root.claudeBin()) + " && " + JSON.stringify(root.claudeBin()) + " --version 2>/dev/null || echo NOT_INSTALLED"]
@@ -330,27 +385,27 @@ PageBase {
         // Key entry, shown only for the providers that are actually enabled.
         ApiKeyField {
             visible: GlobalConfig.ai.enableClaude
-            value: GlobalConfig.ai.anthropicApiKey
+            value: root.apiKeyFor("claude")
             envName: "ANTHROPIC_API_KEY"
-            onCommitted: v => GlobalConfig.ai.anthropicApiKey = v
+            onCommitted: v => root.storeApiKey("claude", v)
         }
         ApiKeyField {
             visible: GlobalConfig.ai.enableOpenai
-            value: GlobalConfig.ai.openaiApiKey
+            value: root.apiKeyFor("openai")
             envName: "OPENAI_API_KEY"
-            onCommitted: v => GlobalConfig.ai.openaiApiKey = v
+            onCommitted: v => root.storeApiKey("openai", v)
         }
         ApiKeyField {
             visible: GlobalConfig.ai.enableGemini
-            value: GlobalConfig.ai.geminiApiKey
+            value: root.apiKeyFor("gemini")
             envName: "GEMINI_API_KEY"
-            onCommitted: v => GlobalConfig.ai.geminiApiKey = v
+            onCommitted: v => root.storeApiKey("gemini", v)
         }
         ApiKeyField {
             visible: GlobalConfig.ai.enableOpenrouter
-            value: GlobalConfig.ai.openrouterApiKey
+            value: root.apiKeyFor("openrouter")
             envName: "OPENROUTER_API_KEY"
-            onCommitted: v => GlobalConfig.ai.openrouterApiKey = v
+            onCommitted: v => root.storeApiKey("openrouter", v)
         }
 
         // ── Claude Code ────────────────────────────────────────────

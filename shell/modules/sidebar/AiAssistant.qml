@@ -109,6 +109,7 @@ Item {
     }
 
     Component.onCompleted: {
+        loadAllKeys();
         refreshAllModels();
         loadHistory();
     }
@@ -440,6 +441,72 @@ Item {
     // The API key for a provider. The environment variable wins over the config
     // field, so a key exported in the session is never overridden by a stale one
     // saved in settings.
+    // API keys live in the session keyring (Secret Service — KWallet on KDE,
+    // gnome-keyring elsewhere), not in shell.json. A config file is world-readable
+    // by anything running as the user and ends up in dotfile backups and git
+    // repos; a key is not the kind of thing to leave sitting there.
+    //
+    // The config fields are kept only so an existing plaintext key can be moved
+    // across once and then cleared.
+    property var keyringKeys: ({})
+
+    function keyringAttr(p) {
+        return "caelestia-ai-" + (p || provider);
+    }
+
+    function loadKeyring(p) {
+        const which = p || provider;
+        const cmd = ["secret-tool", "lookup", "service", "caelestia", "key", root.keyringAttr(which)];
+        const qml = 'import QtQuick\nimport Quickshell.Io\n' +
+            'Process {\n    id: kp\n    command: ' + JSON.stringify(cmd) + '\n' +
+            '    stdout: StdioCollector { onStreamFinished: root.onKeyringKey(' + JSON.stringify(which) + ', (text || "").trim(), kp); }\n' +
+            '    onExited: code => { if (code !== 0) kp.destroy(); }\n}';
+        try {
+            const o = Qt.createQmlObject(qml, root, "keyringProc");
+            o.running = true;
+        } catch (e) {}
+    }
+
+    function onKeyringKey(p, key, proc) {
+        if (key !== "") {
+            const m = root.keyringKeys;
+            m[p] = key;
+            root.keyringKeys = Object.assign({}, m);
+        }
+        if (proc)
+            proc.destroy();
+    }
+
+    function storeKeyring(p, key) {
+        const which = p || provider;
+        const m = root.keyringKeys;
+        m[which] = key;
+        root.keyringKeys = Object.assign({}, m);
+
+        const attr = root.keyringAttr(which);
+        // The key goes in on stdin so it never appears in the process list.
+        const script = key === ""
+            ? "secret-tool clear service caelestia key " + JSON.stringify(attr)
+            : "printf %s \"$1\" | secret-tool store --label=" + JSON.stringify("Caelestia " + which + " API key") +
+              " service caelestia key " + JSON.stringify(attr);
+        const cmd = key === "" ? ["sh", "-c", script] : ["sh", "-c", script, "--", key];
+        try {
+            const o = Qt.createQmlObject('import QtQuick\nimport Quickshell.Io\nProcess { id: sp; command: ' +
+                JSON.stringify(cmd) + '\n onExited: code => sp.destroy() }', root, "keyringStore");
+            o.running = true;
+        } catch (e) {}
+    }
+
+    // Move a key that predates keyring storage out of the config, once.
+    function migratePlaintextKey(p, configKey) {
+        const existing = (GlobalConfig.ai[configKey] || "").trim();
+        if (existing === "")
+            return;
+        root.storeKeyring(p, existing);
+        GlobalConfig.ai[configKey] = "";
+        Logger.log("[AI] moved " + p + " API key from shell.json into the keyring");
+    }
+
     function getApiKeyFor(p) {
         const which = p || provider;
         var envName = "ANTHROPIC_API_KEY";
@@ -457,7 +524,28 @@ Item {
         const envKey = Quickshell.env(envName);
         if (envKey && envKey.trim() !== "")
             return envKey.trim();
+
+        // Keyring next. A value still sitting in the config is a leftover from
+        // before keyring storage — hand it back this once, migrateKeys() moves it.
+        const stored = root.keyringKeys[which];
+        if (stored && stored !== "")
+            return stored;
         return (configured || "").trim();
+    }
+
+    // Config field backing each provider, used only for the one-time migration.
+    readonly property var legacyKeyFields: ({
+        "claude": "anthropicApiKey",
+        "openai": "openaiApiKey",
+        "gemini": "geminiApiKey",
+        "openrouter": "openrouterApiKey"
+    })
+
+    function loadAllKeys() {
+        for (const p in root.legacyKeyFields) {
+            root.loadKeyring(p);
+            root.migratePlaintextKey(p, root.legacyKeyFields[p]);
+        }
     }
 
     function getApiKey() {
