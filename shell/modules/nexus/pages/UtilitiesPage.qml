@@ -45,7 +45,7 @@ PageBase {
             StyledText {
                 width: parent.width
                 wrapMode: Text.Wrap
-                text: qsTr("The AI Assistant supports three providers:\n\n• Claude Code (recommended) — uses your Claude subscription through the 'claude' CLI. No API key needed.\n• Ollama — fully local models for maximum privacy (install Ollama, then e.g. 'ollama run llama3').\n• Claude API — pay-per-token; needs an API key (or the ANTHROPIC_API_KEY env var).\n\nInstall Claude Code, log in, add accounts and toggle providers in Settings → AI Assistant. Pick the active provider and model from the selectors at the top of the chat.\n\nThe assistant tab appears in the sidebar whenever at least one provider is enabled.")
+                text: qsTr("The AI Assistant supports several providers:\n\n• Claude Code (recommended) — uses your Claude subscription through the 'claude' CLI. No API key needed.\n• Ollama — fully local models for maximum privacy (install Ollama, then e.g. 'ollama run llama3').\n• Claude API, ChatGPT, Gemini, OpenRouter — pay-per-token; each needs its own API key (or the matching ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / OPENROUTER_API_KEY env var, which takes precedence).\n\nInstall Claude Code, log in, add accounts, toggle providers and enter keys in Settings → AI Assistant. Pick the active provider and model from the selectors at the top of the chat.\n\nThe assistant tab appears in the sidebar whenever at least one provider is enabled.")
             }
         }
 

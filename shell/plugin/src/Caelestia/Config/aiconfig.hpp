@@ -58,7 +58,32 @@ class AiConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, enableClaude, false)
     CONFIG_PROPERTY(QString, anthropicApiKey, u""_s)
     CONFIG_PROPERTY(QString, anthropicUrl, u"https://api.anthropic.com"_s)
-    CONFIG_PROPERTY(QString, defaultClaudeModel, u"claude-sonnet-5"_s)
+    CONFIG_PROPERTY(QString, defaultClaudeModel, u""_s)
+
+    // OpenAI-compatible providers. All three speak the same /chat/completions and
+    // /models API, so they share one code path in AiAssistant.qml and differ only
+    // by base URL, key and model list. Each is off by default; the matching
+    // environment variable takes precedence over the key stored here.
+    // The model defaults are empty on purpose: the list is fetched from the
+    // provider, and the first entry is selected until the user picks one, so no
+    // model name has to be maintained here as vendors ship new ones.
+    // OPENAI_API_KEY
+    CONFIG_PROPERTY(bool, enableOpenai, false)
+    CONFIG_PROPERTY(QString, openaiApiKey, u""_s)
+    CONFIG_PROPERTY(QString, openaiUrl, u"https://api.openai.com/v1"_s)
+    CONFIG_PROPERTY(QString, defaultOpenaiModel, u""_s)
+
+    // GEMINI_API_KEY — Google's OpenAI-compatible endpoint, not the native one.
+    CONFIG_PROPERTY(bool, enableGemini, false)
+    CONFIG_PROPERTY(QString, geminiApiKey, u""_s)
+    CONFIG_PROPERTY(QString, geminiUrl, u"https://generativelanguage.googleapis.com/v1beta/openai"_s)
+    CONFIG_PROPERTY(QString, defaultGeminiModel, u""_s)
+
+    // OPENROUTER_API_KEY — aggregator, model ids look like "vendor/model".
+    CONFIG_PROPERTY(bool, enableOpenrouter, false)
+    CONFIG_PROPERTY(QString, openrouterApiKey, u""_s)
+    CONFIG_PROPERTY(QString, openrouterUrl, u"https://openrouter.ai/api/v1"_s)
+    CONFIG_PROPERTY(QString, defaultOpenrouterModel, u""_s)
 
 public:
     explicit AiConfig(QObject* parent = nullptr)

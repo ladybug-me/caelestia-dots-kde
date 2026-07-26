@@ -64,9 +64,18 @@ Item {
     
     property real savedContentY: -1
 
+    // Refresh the model list when switching to an OpenAI-compatible provider, so a
+    // key added after startup takes effect without a reload.
+    onProviderChanged: {
+        if (isOpenaiCompat)
+            fetchOpenaiCompatModels(provider);
+        else if (isClaude)
+            fetchClaudeModels();
+    }
+
     onVisibleChanged: {
         if (visible) {
-            fetchOllamaModels();
+            refreshAllModels();
             if (savedContentY >= 0) {
                 Qt.callLater(function() { listView.contentY = savedContentY; });
             }
@@ -85,27 +94,74 @@ Item {
         listView.positionViewAtEnd();
     }
 
-    Component.onCompleted: {
+    // Ask every enabled provider what it offers, rather than shipping lists that
+    // go stale each time a vendor releases a model.
+    function refreshAllModels() {
         fetchOllamaModels();
         fetchClaudeCodeModels();
+        fetchClaudeModels();
+        const compat = ["openai", "gemini", "openrouter"];
+        for (var i = 0; i < compat.length; i++) {
+            if (providerList.indexOf(compat[i]) !== -1)
+                fetchOpenaiCompatModels(compat[i]);
+        }
+    }
+
+    Component.onCompleted: {
+        refreshAllModels();
         loadHistory();
     }
 
     property var ollamaModelsList: []
 
-    // Static curated list of Claude models (Anthropic has no public "list models"
-    // discovery that the free-form chat needs; these are the current chat-capable IDs).
-    readonly property var claudeModelsList: [
-        "claude-sonnet-5",
-        "claude-opus-4-8",
-        "claude-opus-4-7",
-        "claude-haiku-4-5"
-    ]
+    // Every provider's model list is discovered from that provider, so none of
+    // them need editing here when a vendor ships a new model. Anthropic's list
+    // comes from GET /v1/models (needs the API key the provider requires anyway).
+    property var claudeModelsList: []
 
-    // "Model" choices for the Claude Code (subscription CLI) provider. "default"
-    // means: don't pass --model, let the CLI use the subscription's default.
-    // Populated at startup by fetchClaudeCodeModels() from the installed CLI binary.
-    property var claudeCodeModelsList: ["default", "opus", "sonnet", "haiku"]
+    function fetchClaudeModels() {
+        const key = root.getApiKeyFor("claude");
+        if (key === "")
+            return;
+        const base = GlobalConfig.ai.anthropicUrl || "https://api.anthropic.com";
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", base + "/v1/models?limit=100", true);
+        xhr.setRequestHeader("x-api-key", key);
+        xhr.setRequestHeader("anthropic-version", "2023-06-01");
+        xhr.setRequestHeader("anthropic-dangerous-direct-browser-access", "true");
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState !== XMLHttpRequest.DONE)
+                return;
+            if (xhr.status !== 200) {
+                Logger.log("[AI] Claude model list failed (status " + xhr.status + ")");
+                return;
+            }
+            try {
+                const parsed = JSON.parse(xhr.responseText);
+                var list = [];
+                for (var i = 0; i < (parsed.data || []).length; i++) {
+                    if (parsed.data[i].id)
+                        list.push(parsed.data[i].id);
+                }
+                if (list.length === 0)
+                    return;
+                // Newest first — the API returns them in creation order.
+                list.reverse();
+                root.claudeModelsList = list;
+                if (list.indexOf(GlobalConfig.ai.defaultClaudeModel) === -1)
+                    GlobalConfig.ai.defaultClaudeModel = list[0];
+            } catch (e) {
+                Logger.log("[AI] Error parsing Claude models: " + e.message);
+            }
+        };
+        xhr.send();
+    }
+
+    // Model choices for the Claude Code (subscription CLI) provider. "default"
+    // means: don't pass --model at all and let the CLI use whatever the
+    // subscription defaults to. The concrete ids are read out of the installed
+    // binary by fetchClaudeCodeModels(), so they track the CLI as it updates.
+    property var claudeCodeModelsList: ["default"]
 
     // Effort/thinking levels vary per model: recent models add xhigh/max, some support
     // fewer, and several (haiku, older sonnet, opus ≤4.1) support none at all. Returns
@@ -180,25 +236,39 @@ Item {
     }
 
     function applyClaudeCodeModels(text) {
-        var out = ["default", "opus", "sonnet", "haiku"];
+        // The binary also embeds unrelated strings that merely start with "claude-"
+        // and long-dead models, so only ids shaped like <family>-<version> survive,
+        // minus dated snapshots (…-20250514) and the ".0" aliases of a base version.
+        var ids = [];
         var seen = {};
-        for (var k = 0; k < out.length; k++)
-            seen[out[k]] = true;
-        var lines = (text || "").split("\n");
+        const lines = (text || "").split("\n");
         for (var i = 0; i < lines.length; i++) {
-            var id = lines[i].trim();
-            if (id === "")
+            const id = lines[i].trim();
+            if (id === "" || seen[id])
                 continue;
-            // Drop dated snapshots (…-20250514) and the deprecated .0 base versions
-            // (claude-opus-4-0, claude-sonnet-4-0) — these aren't selectable models.
             if (/-\d{5,}$/.test(id) || /-0$/.test(id))
                 continue;
-            if (!seen[id]) {
-                out.push(id);
-                seen[id] = true;
-            }
+            seen[id] = true;
+            ids.push(id);
         }
-        claudeCodeModelsList = out;
+
+        // A family's bare major ("claude-opus-4") is just a stub for its newest
+        // minor, so drop it when a more specific id for the same major exists.
+        ids = ids.filter(id => !ids.some(other => other !== id && other.indexOf(id + "-") === 0));
+
+        // Newest first: sort by family version, descending.
+        ids.sort((a, b) => {
+            const va = (a.match(/\d+/g) || []).map(Number);
+            const vb = (b.match(/\d+/g) || []).map(Number);
+            for (var k = 0; k < Math.max(va.length, vb.length); k++) {
+                const d = (vb[k] || 0) - (va[k] || 0);
+                if (d !== 0)
+                    return d;
+            }
+            return a.localeCompare(b);
+        });
+
+        claudeCodeModelsList = ["default"].concat(ids);
     }
 
     // Currently selected provider ("ollama" | "claude-code" | "claude"), persisted in config.
@@ -352,20 +422,64 @@ Item {
     }
 
     // Resolve the Anthropic API key: ANTHROPIC_API_KEY env var wins, config field is the fallback.
-    function getApiKey() {
-        var envKey = Quickshell.env("ANTHROPIC_API_KEY");
-        if (envKey && envKey.trim() !== "")
-            return envKey.trim();
-        return (GlobalConfig.ai.anthropicApiKey || "").trim();
+    // OpenAI, Gemini and OpenRouter all expose the same /chat/completions and
+    // /models API, so they share one request/parse path and differ only in the
+    // three values below.
+    readonly property bool isOpenaiCompat: provider === "openai" || provider === "gemini" || provider === "openrouter"
+
+    function openaiCompatBase(p) {
+        const which = p || provider;
+        if (which === "gemini")
+            return GlobalConfig.ai.geminiUrl || "https://generativelanguage.googleapis.com/v1beta/openai";
+        if (which === "openrouter")
+            return GlobalConfig.ai.openrouterUrl || "https://openrouter.ai/api/v1";
+        return GlobalConfig.ai.openaiUrl || "https://api.openai.com/v1";
     }
 
-    // The model to send for the active provider.
+    // The API key for a provider. The environment variable wins over the config
+    // field, so a key exported in the session is never overridden by a stale one
+    // saved in settings.
+    function getApiKeyFor(p) {
+        const which = p || provider;
+        var envName = "ANTHROPIC_API_KEY";
+        var configured = GlobalConfig.ai.anthropicApiKey;
+        if (which === "openai") {
+            envName = "OPENAI_API_KEY";
+            configured = GlobalConfig.ai.openaiApiKey;
+        } else if (which === "gemini") {
+            envName = "GEMINI_API_KEY";
+            configured = GlobalConfig.ai.geminiApiKey;
+        } else if (which === "openrouter") {
+            envName = "OPENROUTER_API_KEY";
+            configured = GlobalConfig.ai.openrouterApiKey;
+        }
+        const envKey = Quickshell.env(envName);
+        if (envKey && envKey.trim() !== "")
+            return envKey.trim();
+        return (configured || "").trim();
+    }
+
+    function getApiKey() {
+        return root.getApiKeyFor(root.provider);
+    }
+
+    // Providers that need a key before they can send anything.
+    readonly property bool needsApiKey: isClaude || isOpenaiCompat
+
+    // The model to send for the active provider. Nothing is hardcoded: until a
+    // provider's list has been fetched the saved choice is used as-is, and when
+    // there is no saved choice the first model the provider offered wins.
     function activeModel() {
         if (isClaudeCode)
             return GlobalConfig.ai.defaultClaudeCodeModel || "default";
         if (isClaude)
-            return GlobalConfig.ai.defaultClaudeModel || "claude-sonnet-5";
-        return GlobalConfig.ai.defaultOllamaModel || "llama3";
+            return GlobalConfig.ai.defaultClaudeModel || root.claudeModelsList[0] || "";
+        if (isOpenaiCompat) {
+            const cfgKey = provider === "openai" ? "defaultOpenaiModel"
+                         : provider === "gemini" ? "defaultGeminiModel" : "defaultOpenrouterModel";
+            return GlobalConfig.ai[cfgKey] || root.openaiCompatModelList()[0] || "";
+        }
+        return GlobalConfig.ai.defaultOllamaModel || root.ollamaModelsList[0] || "";
     }
 
     // Providers exposed in the provider selector (respecting the enable toggles).
@@ -377,6 +491,12 @@ Item {
             l.push("claude-code");
         if (GlobalConfig.ai.enableClaude)
             l.push("claude");
+        if (GlobalConfig.ai.enableOpenai)
+            l.push("openai");
+        if (GlobalConfig.ai.enableGemini)
+            l.push("gemini");
+        if (GlobalConfig.ai.enableOpenrouter)
+            l.push("openrouter");
         if (l.length === 0)
             l.push("ollama");
         return l;
@@ -387,6 +507,12 @@ Item {
             return "Claude Code";
         if (p === "claude")
             return "Claude API";
+        if (p === "openai")
+            return "ChatGPT";
+        if (p === "gemini")
+            return "Gemini";
+        if (p === "openrouter")
+            return "OpenRouter";
         return "Ollama";
     }
 
@@ -912,22 +1038,77 @@ Item {
                                 list.push(response.models[i].name);
                             }
                         }
-                        if (list.length > 0) {
-                            ollamaModelsList = list;
-                            if (list.indexOf(GlobalConfig.ai.defaultOllamaModel) === -1) {
-                                GlobalConfig.ai.defaultOllamaModel = list[0];
-                            }
-                        } else {
-                            ollamaModelsList = ["llama3", "mistral", "phi3", "gemma"];
-                        }
+                        // Only what this Ollama instance actually has pulled — a
+                        // guessed list would just offer models that aren't installed.
+                        ollamaModelsList = list;
+                        if (list.length > 0 && list.indexOf(GlobalConfig.ai.defaultOllamaModel) === -1)
+                            GlobalConfig.ai.defaultOllamaModel = list[0];
                     } catch (e) {
                         Logger.log("Error parsing Ollama models: " + e.message);
-                        ollamaModelsList = ["llama3", "mistral", "phi3", "gemma"];
                     }
                 } else {
                     Logger.log("Ollama tags request failed (status " + xhr.status + ")");
-                    ollamaModelsList = ["llama3", "mistral", "phi3", "gemma"];
                 }
+            }
+        };
+        xhr.send();
+    }
+
+    // Models offered by the OpenAI-compatible providers, keyed by provider id.
+    // Fetched from /models on demand; the fallbacks below are used until a fetch
+    // succeeds (and when it can't, e.g. no key yet).
+    property var openaiCompatModels: ({})
+
+    function openaiCompatModelList(p) {
+        return root.openaiCompatModels[p || provider] || [];
+    }
+
+    function fetchOpenaiCompatModels(p) {
+        const which = p || provider;
+        const key = root.getApiKeyFor(which);
+        // OpenRouter publishes its catalogue without auth; the other two need the key.
+        if (key === "" && which !== "openrouter")
+            return;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", root.openaiCompatBase(which) + "/models", true);
+        if (key !== "")
+            xhr.setRequestHeader("Authorization", "Bearer " + key);
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState !== XMLHttpRequest.DONE)
+                return;
+            if (xhr.status !== 200) {
+                Logger.log("[AI] " + root.providerLabel(which) + " model list failed (status " + xhr.status + ")");
+                return;
+            }
+            try {
+                const parsed = JSON.parse(xhr.responseText);
+                var list = [];
+                for (var i = 0; i < (parsed.data || []).length; i++) {
+                    const id = parsed.data[i].id;
+                    if (!id)
+                        continue;
+                    // Gemini prefixes ids with "models/"; the chat endpoint accepts either,
+                    // but the bare id is what users recognise.
+                    list.push(id.indexOf("models/") === 0 ? id.substring(7) : id);
+                }
+                // Only chat-capable models are useful here — drop embedding/audio/image ones.
+                list = list.filter(m => !/embed|whisper|tts|audio|image|vision-preview|moderation|rerank|dall-e/i.test(m));
+                list.sort();
+                if (list.length === 0)
+                    return;
+                var next = {};
+                for (var k in root.openaiCompatModels)
+                    next[k] = root.openaiCompatModels[k];
+                next[which] = list;
+                root.openaiCompatModels = next;
+
+                // Keep the saved default honest: if it isn't offered, fall back to the first.
+                const cfgKey = which === "openai" ? "defaultOpenaiModel" : (which === "gemini" ? "defaultGeminiModel" : "defaultOpenrouterModel");
+                if (list.indexOf(GlobalConfig.ai[cfgKey]) === -1)
+                    GlobalConfig.ai[cfgKey] = list[0];
+            } catch (e) {
+                Logger.log("[AI] Error parsing " + root.providerLabel(which) + " models: " + e.message);
             }
         };
         xhr.send();
@@ -1152,6 +1333,32 @@ Item {
             return;
         }
 
+        if (root.isOpenaiCompat) {
+            if (root.getApiKey() === "")
+                return;
+            xhr.open("POST", root.openaiCompatBase() + "/chat/completions", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " + root.getApiKey());
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    try {
+                        var oaiParsed = JSON.parse(xhr.responseText);
+                        if (oaiParsed.choices && oaiParsed.choices.length > 0 && oaiParsed.choices[0].message)
+                            root.applyGeneratedTitle(chatId, oaiParsed.choices[0].message.content || "");
+                    } catch (e) {}
+                }
+            };
+            xhr.send(JSON.stringify({
+                model: root.activeModel(),
+                messages: [
+                    { role: "system", content: titleSystem },
+                    { role: "user", content: "Message: " + safeMsg + "\nTitle:" }
+                ],
+                stream: false
+            }));
+            return;
+        }
+
         var url = (GlobalConfig.ai.ollamaUrl || "http://localhost:11434") + "/api/generate";
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -1229,8 +1436,15 @@ Item {
             saveHistory();
         }
 
-        if (root.isClaude && root.getApiKey() === "") {
-            addAiMessage("⚠️ No Claude API key configured. Set the ANTHROPIC_API_KEY environment variable, or add a key in the AI settings.");
+        if (root.needsApiKey && root.getApiKey() === "") {
+            const envNames = {
+                "claude": "ANTHROPIC_API_KEY",
+                "openai": "OPENAI_API_KEY",
+                "gemini": "GEMINI_API_KEY",
+                "openrouter": "OPENROUTER_API_KEY"
+            };
+            addAiMessage("⚠️ No " + root.providerLabel(root.provider) + " API key configured. Set the "
+                + (envNames[root.provider] || "API") + " environment variable, or add a key in the AI settings.");
             return;
         }
 
@@ -1272,6 +1486,15 @@ Item {
             xhr.setRequestHeader("anthropic-version", "2023-06-01");
             // QML's XMLHttpRequest presents a browser-like origin; this header opts into direct access.
             xhr.setRequestHeader("anthropic-dangerous-direct-browser-access", "true");
+        } else if (root.isOpenaiCompat) {
+            xhr.open("POST", root.openaiCompatBase() + "/chat/completions", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " + root.getApiKey());
+            if (root.provider === "openrouter") {
+                // OpenRouter attributes requests to an app via these; harmless elsewhere.
+                xhr.setRequestHeader("HTTP-Referer", "https://github.com/ladybug-me/caelestia-dots-kde");
+                xhr.setRequestHeader("X-Title", "Caelestia Shell");
+            }
         } else {
             var ollamaUrl = GlobalConfig.ai.ollamaUrl || "http://localhost:11434";
             xhr.open("POST", ollamaUrl + "/api/chat", true);
@@ -1345,6 +1568,33 @@ Item {
                                         chunkReasoning = evt.delta.thinking || "";
                                 } else if (evt.type === "error") {
                                     Logger.log("[AI] Claude stream error: " + JSON.stringify(evt.error || {}));
+                                }
+                            } catch (e) {
+                                break;
+                            }
+                        } else if (root.isOpenaiCompat) {
+                            // OpenAI-compatible streaming: SSE where each "data:" line is a
+                            // chunk holding choices[0].delta. "[DONE]" ends the stream.
+                            if (line.indexOf("data:") !== 0) {
+                                processedTextLength += rawLine.length + 1;
+                                continue;
+                            }
+                            var oaiJson = line.substring(5).trim();
+                            if (oaiJson === "" || oaiJson === "[DONE]") {
+                                processedTextLength += rawLine.length + 1;
+                                continue;
+                            }
+                            try {
+                                var oaiEvt = JSON.parse(oaiJson);
+                                processedTextLength += rawLine.length + 1;
+                                if (oaiEvt.error) {
+                                    Logger.log("[AI] " + root.providerLabel(root.provider) + " stream error: " + JSON.stringify(oaiEvt.error));
+                                } else if (oaiEvt.choices && oaiEvt.choices.length > 0) {
+                                    var delta = oaiEvt.choices[0].delta || {};
+                                    chunkContent = delta.content || "";
+                                    // Reasoning models expose their thinking under different
+                                    // keys depending on the provider.
+                                    chunkReasoning = delta.reasoning_content || delta.reasoning || "";
                                 }
                             } catch (e) {
                                 break;
@@ -1499,8 +1749,8 @@ Item {
                             inAgentLoop = false;
                         }
                     } else {
-                        var providerName = root.isClaude ? "Claude" : "Ollama";
-                        var errMsg = (xhr.status === 0) ? "Generation cancelled" : (providerName + " request failed (status " + xhr.status + ")." + ((root.isClaude && xhr.status === 401) ? " Check your API key." : ""));
+                        var providerName = root.providerLabel(root.provider);
+                        var errMsg = (xhr.status === 0) ? "Generation cancelled" : (providerName + " request failed (status " + xhr.status + ")." + ((root.needsApiKey && (xhr.status === 401 || xhr.status === 403)) ? " Check your API key." : ""));
                         var currentText = chatHistory.get(chatHistory.count - 1).text;
                         if (currentText.trim() === "") {
                             chatHistory.setProperty(chatHistory.count - 1, "text", errMsg);
@@ -1581,7 +1831,16 @@ Item {
                     "content": promptText
                 };
                 if (base64Image) {
-                    toolMsg["images"] = [base64Image];
+                    if (root.isOpenaiCompat) {
+                        // OpenAI carries images inline in the content array as data URLs;
+                        // Ollama takes a separate base64 "images" field.
+                        toolMsg["content"] = [
+                            { "type": "text", "text": promptText },
+                            { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64," + base64Image } }
+                        ];
+                    } else {
+                        toolMsg["images"] = [base64Image];
+                    }
                 }
                 messages.push(toolMsg);
             }
@@ -1781,6 +2040,12 @@ Item {
                          GlobalConfig.ai.claudeCodeEffort = "default";
                      } else if (root.isClaude)
                          GlobalConfig.ai.defaultClaudeModel = item.modelData;
+                     else if (root.provider === "openai")
+                         GlobalConfig.ai.defaultOpenaiModel = item.modelData;
+                     else if (root.provider === "gemini")
+                         GlobalConfig.ai.defaultGeminiModel = item.modelData;
+                     else if (root.provider === "openrouter")
+                         GlobalConfig.ai.defaultOpenrouterModel = item.modelData;
                      else
                          GlobalConfig.ai.defaultOllamaModel = item.modelData;
                  }
@@ -1798,7 +2063,9 @@ Item {
                              return root.claudeCodeModelsList;
                          if (root.isClaude)
                              return root.claudeModelsList;
-                         return root.ollamaModelsList && root.ollamaModelsList.length > 0 ? root.ollamaModelsList : ["llama3", "mistral", "phi3", "gemma"];
+                         if (root.isOpenaiCompat)
+                             return root.openaiCompatModelList();
+                         return root.ollamaModelsList;
                      }
 
                      delegate: MenuItem {

@@ -16,10 +16,73 @@ PageBase {
 
     title: qsTr("AI Assistant")
 
+    // API key entry for one provider. The value is pushed back out through
+    // committed() so each instance keeps a plain static binding to its own
+    // config field rather than looking one up by name.
+    component ApiKeyField: ColumnLayout {
+        id: keyField
+
+        property string value
+        property string envName
+
+        signal committed(string v)
+
+        Layout.fillWidth: true
+        spacing: Tokens.spacing.small
+
+        ConnectedRect {
+            first: true
+            last: true
+            Layout.fillWidth: true
+            implicitHeight: keyRow.implicitHeight + Tokens.padding.medium * 2
+
+            RowLayout {
+                id: keyRow
+                anchors.fill: parent
+                anchors.margins: Tokens.padding.medium
+                anchors.leftMargin: Tokens.padding.largeIncreased
+                anchors.rightMargin: Tokens.padding.largeIncreased
+                spacing: Tokens.spacing.medium
+
+                StyledText {
+                    text: qsTr("API key")
+                    font: Tokens.font.body.small
+                    color: Colours.palette.m3onSurface
+                }
+                StyledInputField {
+                    Layout.fillWidth: true
+                    horizontalAlignment: TextInput.AlignLeft
+                    text: keyField.value
+                    onEditingFinished: keyField.committed(text)
+                }
+            }
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            Layout.leftMargin: Tokens.padding.largeIncreased
+            text: qsTr("The %1 environment variable overrides this value.").arg(keyField.envName)
+            color: Colours.palette.m3outline
+            font: Tokens.font.label.small
+            wrapMode: Text.Wrap
+        }
+    }
+
     property string claudeVersion: ""
     readonly property bool claudeInstalled: claudeVersion !== "" && claudeVersion !== "NOT_INSTALLED"
     property bool installing: false
     property string installStatus: ""
+
+    // `claude --version` prints "2.1.220 (Claude Code)"; the bare number is what
+    // reads well next to the published one.
+    readonly property string claudeVersionShort: {
+        const m = (claudeVersion || "").match(/[0-9]+\.[0-9]+\.[0-9]+/);
+        return m ? m[0] : claudeVersion;
+    }
+
+    // Ask what the newest published version is whenever this page is opened, so
+    // the button below is offering the right action rather than a stale one.
+    Component.onCompleted: UpdateChecker.checkClaudeCodeUpdate()
 
     function homeDir() {
         return Quickshell.env("HOME") || "";
@@ -176,6 +239,9 @@ PageBase {
                 root.installing = false;
                 root.installStatus = code === 0 ? qsTr("Installed.") : (qsTr("Failed") + " (" + code + ")");
                 root.refreshStatus();
+                // Re-read both versions so the button settles on "Check for
+                // updates" instead of still offering the update just applied.
+                UpdateChecker.checkClaudeCodeUpdate();
             }
         }
 
@@ -236,74 +302,109 @@ PageBase {
             onToggled: GlobalConfig.ai.enableClaudeCode = checked
         }
         ToggleRow {
-            last: true
             text: qsTr("Enable Claude API (API key)")
             subtext: qsTr("Pay-per-token HTTP API; needs ANTHROPIC_API_KEY")
             checked: GlobalConfig.ai.enableClaude
             onToggled: GlobalConfig.ai.enableClaude = checked
         }
+        ToggleRow {
+            text: qsTr("Enable ChatGPT (API key)")
+            subtext: qsTr("OpenAI pay-per-token API; needs OPENAI_API_KEY")
+            checked: GlobalConfig.ai.enableOpenai
+            onToggled: GlobalConfig.ai.enableOpenai = checked
+        }
+        ToggleRow {
+            text: qsTr("Enable Gemini (API key)")
+            subtext: qsTr("Google's OpenAI-compatible endpoint; needs GEMINI_API_KEY")
+            checked: GlobalConfig.ai.enableGemini
+            onToggled: GlobalConfig.ai.enableGemini = checked
+        }
+        ToggleRow {
+            last: true
+            text: qsTr("Enable OpenRouter (API key)")
+            subtext: qsTr("One key for many vendors' models; needs OPENROUTER_API_KEY")
+            checked: GlobalConfig.ai.enableOpenrouter
+            onToggled: GlobalConfig.ai.enableOpenrouter = checked
+        }
 
-        // API key input — only when Claude API is enabled.
-        ColumnLayout {
-            Layout.fillWidth: true
+        // Key entry, shown only for the providers that are actually enabled.
+        ApiKeyField {
             visible: GlobalConfig.ai.enableClaude
-            spacing: Tokens.spacing.small
-
-            ConnectedRect {
-                first: true
-                last: true
-                Layout.fillWidth: true
-                implicitHeight: apiKeyRow.implicitHeight + Tokens.padding.medium * 2
-
-                RowLayout {
-                    id: apiKeyRow
-                    anchors.fill: parent
-                    anchors.margins: Tokens.padding.medium
-                    anchors.leftMargin: Tokens.padding.largeIncreased
-                    anchors.rightMargin: Tokens.padding.largeIncreased
-                    spacing: Tokens.spacing.medium
-
-                    StyledText {
-                        text: qsTr("API key")
-                        font: Tokens.font.body.small
-                        color: Colours.palette.m3onSurface
-                    }
-                    StyledInputField {
-                        Layout.fillWidth: true
-                        horizontalAlignment: TextInput.AlignLeft
-                        text: GlobalConfig.ai.anthropicApiKey
-                        onEditingFinished: GlobalConfig.ai.anthropicApiKey = text
-                    }
-                }
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                Layout.leftMargin: Tokens.padding.largeIncreased
-                text: qsTr("The ANTHROPIC_API_KEY environment variable overrides this value.")
-                color: Colours.palette.m3outline
-                font: Tokens.font.label.small
-                wrapMode: Text.Wrap
-            }
+            value: GlobalConfig.ai.anthropicApiKey
+            envName: "ANTHROPIC_API_KEY"
+            onCommitted: v => GlobalConfig.ai.anthropicApiKey = v
+        }
+        ApiKeyField {
+            visible: GlobalConfig.ai.enableOpenai
+            value: GlobalConfig.ai.openaiApiKey
+            envName: "OPENAI_API_KEY"
+            onCommitted: v => GlobalConfig.ai.openaiApiKey = v
+        }
+        ApiKeyField {
+            visible: GlobalConfig.ai.enableGemini
+            value: GlobalConfig.ai.geminiApiKey
+            envName: "GEMINI_API_KEY"
+            onCommitted: v => GlobalConfig.ai.geminiApiKey = v
+        }
+        ApiKeyField {
+            visible: GlobalConfig.ai.enableOpenrouter
+            value: GlobalConfig.ai.openrouterApiKey
+            envName: "OPENROUTER_API_KEY"
+            onCommitted: v => GlobalConfig.ai.openrouterApiKey = v
         }
 
         // ── Claude Code ────────────────────────────────────────────
+        // Everything below is only meaningful while the provider is on, so it
+        // follows the toggle the same way the API key fields do.
         SectionHeader {
+            visible: GlobalConfig.ai.enableClaudeCode
             text: qsTr("Claude Code")
         }
         InfoRow {
+            visible: GlobalConfig.ai.enableClaudeCode
             first: true
             label: qsTr("Status")
-            value: root.claudeInstalled ? root.claudeVersion : qsTr("Not installed")
+            value: {
+                if (!root.claudeInstalled)
+                    return qsTr("Not installed");
+                if (UpdateChecker.claudeCodeHasUpdate)
+                    return root.claudeVersionShort + " → " + UpdateChecker.claudeCodeLatestVersion;
+                return root.claudeVersionShort;
+            }
         }
         NavRow {
+            visible: GlobalConfig.ai.enableClaudeCode
             last: true
-            icon: "download"
-            label: root.claudeInstalled ? qsTr("Update Claude Code") : qsTr("Install Claude Code")
-            status: root.installing ? (root.installStatus || qsTr("Installing…")) : root.installStatus
-            onClicked: {
+            // One button, three jobs: install it, update it, or — when it is
+            // already current — re-check whether that is still true.
+            icon: root.claudeInstalled && !UpdateChecker.claudeCodeHasUpdate ? "refresh" : "download"
+            label: {
+                if (!root.claudeInstalled)
+                    return qsTr("Download Claude Code");
+                if (UpdateChecker.claudeCodeHasUpdate)
+                    return qsTr("Update Claude Code");
+                return qsTr("Check for updates");
+            }
+            status: {
                 if (root.installing)
+                    return root.installStatus || qsTr("Installing…");
+                if (UpdateChecker.claudeCodeChecking)
+                    return qsTr("Checking…");
+                if (root.installStatus !== "")
+                    return root.installStatus;
+                if (root.claudeInstalled && !UpdateChecker.claudeCodeHasUpdate && UpdateChecker.claudeCodeLatestVersion !== "")
+                    return qsTr("Up to date");
+                return "";
+            }
+            onClicked: {
+                if (root.installing || UpdateChecker.claudeCodeChecking)
                     return;
+                // Up to date — the button is a re-check, not a reinstall.
+                if (root.claudeInstalled && !UpdateChecker.claudeCodeHasUpdate) {
+                    root.installStatus = "";
+                    UpdateChecker.checkClaudeCodeUpdate();
+                    return;
+                }
                 root.installing = true;
                 root.installStatus = qsTr("Installing…");
                 installProc.running = true;
@@ -312,6 +413,7 @@ PageBase {
 
         // ── Accounts ───────────────────────────────────────────────
         SectionHeader {
+            visible: GlobalConfig.ai.enableClaudeCode
             text: qsTr("Claude accounts")
         }
         Repeater {
@@ -325,6 +427,7 @@ PageBase {
                 readonly property bool isActive: (GlobalConfig.ai.activeClaudeAccount || "") === modelData.id
                 readonly property bool isDefault: modelData.id === ""
 
+                visible: GlobalConfig.ai.enableClaudeCode
                 Layout.fillWidth: true
                 first: index === 0
                 implicitHeight: accRow.implicitHeight + Tokens.padding.medium * 2
@@ -384,6 +487,7 @@ PageBase {
             }
         }
         NavRow {
+            visible: GlobalConfig.ai.enableClaudeCode
             icon: "login"
             label: qsTr("Log in to selected account")
             status: root.claudeInstalled ? "" : qsTr("Install Claude Code first")
@@ -393,6 +497,7 @@ PageBase {
             }
         }
         NavRow {
+            visible: GlobalConfig.ai.enableClaudeCode
             last: true
             icon: "person_add"
             label: qsTr("Add another account & log in")

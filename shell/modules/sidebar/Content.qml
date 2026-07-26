@@ -20,7 +20,7 @@ Item {
     property string activeTab: "notifications"
 
     // The AI tab shows when the master switch is on AND at least one provider is enabled.
-    readonly property bool aiEnabled: GlobalConfig.ai.enableAiAssistant && (GlobalConfig.ai.enableOllama || GlobalConfig.ai.enableClaudeCode || GlobalConfig.ai.enableClaude)
+    readonly property bool aiEnabled: GlobalConfig.ai.enableAiAssistant && (GlobalConfig.ai.enableOllama || GlobalConfig.ai.enableClaudeCode || GlobalConfig.ai.enableClaude || GlobalConfig.ai.enableOpenai || GlobalConfig.ai.enableGemini || GlobalConfig.ai.enableOpenrouter)
 
     Connections {
         target: GlobalConfig.ai
@@ -28,6 +28,9 @@ Item {
         function onEnableOllamaChanged() { checkAiTab(); }
         function onEnableClaudeCodeChanged() { checkAiTab(); }
         function onEnableClaudeChanged() { checkAiTab(); }
+        function onEnableOpenaiChanged() { checkAiTab(); }
+        function onEnableGeminiChanged() { checkAiTab(); }
+        function onEnableOpenrouterChanged() { checkAiTab(); }
         function onShowNewsChanged() { checkAiTab(); }
     }
 

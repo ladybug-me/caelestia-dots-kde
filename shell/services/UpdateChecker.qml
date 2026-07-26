@@ -53,6 +53,7 @@ Singleton {
         if (branch !== "") currentBranch = clampBranch(branch);
         else currentBranch = clampBranch(currentBranch);
         checkingUpdates = true;
+        checkClaudeCodeUpdate();
         
         let bashCmd = `
     CURRENT_BRANCH="$1"
@@ -558,6 +559,51 @@ fi
 
     property alias deployConfigs: updaterSettings.deployConfigs
     property alias buildShell: updaterSettings.buildShell
+
+    // ---- Claude Code (the `claude` CLI backing the AI assistant) ----
+    // Checked alongside the shell's own updates so the AI settings page can offer
+    // "Update" or "Check for updates" without having to poll on its own.
+    property string claudeCodeVersion: ""       // installed, "" when not installed
+    property string claudeCodeLatestVersion: "" // newest published, "" when unknown
+    property bool claudeCodeChecking: false
+    readonly property bool claudeCodeInstalled: claudeCodeVersion !== ""
+    readonly property bool claudeCodeHasUpdate: claudeCodeInstalled
+        && claudeCodeLatestVersion !== ""
+        && claudeCodeLatestVersion !== claudeCodeVersion
+
+    function checkClaudeCodeUpdate(): void {
+        if (!GlobalConfig.ai.enableClaudeCode)
+            return;
+        claudeCodeChecking = true;
+        claudeCodeProcess.running = false;
+        claudeCodeProcess.running = true;
+    }
+
+    Process {
+        id: claudeCodeProcess
+
+        // Prints "<installed>|<latest>". The published version comes from the same
+        // endpoint claude.ai/install.sh reads, which is what the settings page's
+        // install/update button runs, so the two can't disagree about what "latest" is.
+        command: ["sh", "-c", `
+BIN="$HOME/.local/bin/claude"
+INSTALLED=""
+[ -x "$BIN" ] && INSTALLED="$("$BIN" --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)"
+LATEST="$(curl -fsSL --max-time 10 https://downloads.claude.ai/claude-code-releases/latest 2>/dev/null | head -1)"
+case "$LATEST" in [0-9]*) ;; *) LATEST="" ;; esac
+echo "$INSTALLED|$LATEST"
+`]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const parts = (text || "").trim().split("|");
+                root.claudeCodeVersion = (parts[0] || "").trim();
+                root.claudeCodeLatestVersion = (parts[1] || "").trim();
+                root.claudeCodeChecking = false;
+            }
+        }
+        onExited: root.claudeCodeChecking = false
+    }
 
     Timer {
         interval: 30000
