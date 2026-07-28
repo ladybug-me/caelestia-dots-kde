@@ -1,25 +1,38 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "keybindsmodel.hpp"
 
-#include <QFile>
-#include <QRegularExpression>
-#include <QTextStream>
-#include <qdir.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
 #include <qloggingcategory.h>
-#include <qprocess.h>
-#include <qsettings.h>
-#include <qstandardpaths.h>
 
 Q_LOGGING_CATEGORY(lcKeybinds, "caelestia.services.keybindsmodel", QtInfoMsg)
 
 namespace caelestia::services {
 
-KeybindsModel::KeybindsModel(QObject* parent)
-    : QObject(parent) {
-    load();
+namespace {
+
+// Formats a KDE key string the way the cheatsheet shows it. Returns an empty
+// string for anything that isn't actually bound.
+QString formatBind(const QString& key) {
+    auto bind = key.trimmed();
+    if (bind.isEmpty() || bind == "none") {
+        return {};
+    }
+
+    // A shortcut may declare alternates as "Meta+Space; Meta"; show the first.
+    bind = bind.split(';').first().trimmed();
+    if (bind.isEmpty()) {
+        return {};
+    }
+
+    // Match the naming used elsewhere in the shell.
+    bind.replace("Meta", "Super");
+    bind.replace("+", " + ");
+    return bind;
 }
+
+} // namespace
+
+KeybindsModel::KeybindsModel(QObject* parent)
+    : QObject(parent) {}
 
 QVariantList KeybindsModel::keybinds() const {
     return m_keybinds;
@@ -29,116 +42,77 @@ bool KeybindsModel::initialized() const {
     return m_initialized;
 }
 
-void KeybindsModel::load() {
-    if (m_process) {
-        m_process->kill();
-        m_process->deleteLater();
-        m_process = nullptr;
+void KeybindsModel::registerKeybind(
+    QObject* shortcut, const QString& name, const QString& key, const QString& description) {
+    if (!shortcut) {
+        qCWarning(lcKeybinds) << "registerKeybind called with a null shortcut";
+        return;
     }
 
-    m_initialized = false;
-    emit initializedChanged();
+    if (!m_registered.contains(shortcut)) {
+        m_order.append(shortcut);
+        // Safety net: a shortcut destroyed without Component.onDestruction
+        // running must not leave a stale entry behind.
+        connect(shortcut, &QObject::destroyed, this, [this](QObject* obj) { unregisterKeybind(obj); });
+    }
+
+    m_registered.insert(shortcut, Keybind{ name, key, description });
+    scheduleRebuild();
+}
+
+void KeybindsModel::unregisterKeybind(QObject* shortcut) {
+    if (m_registered.remove(shortcut) > 0) {
+        m_order.removeOne(shortcut);
+        scheduleRebuild();
+    }
+}
+
+void KeybindsModel::scheduleRebuild() {
+    // Shortcuts register one by one as the QML tree is built, and their keys
+    // can settle a moment later; coalesce that into a single rebuild.
+    if (m_rebuildQueued) {
+        return;
+    }
+    m_rebuildQueued = true;
+    QMetaObject::invokeMethod(this, &KeybindsModel::rebuild, Qt::QueuedConnection);
+}
+
+void KeybindsModel::rebuild() {
+    m_rebuildQueued = false;
 
     QVariantList result;
+    result.reserve(m_order.size());
 
-    QString configPath =
-        QStandardPaths::locate(QStandardPaths::GenericConfigLocation, "quickshell/caelestia/modules/Shortcuts.qml");
-    if (configPath.isEmpty()) {
-        configPath = QDir::currentPath() + "/shell/modules/Shortcuts.qml";
-    }
-
-    QFile file(configPath);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
-
-        int braceCount = 0;
-        bool inShortcut = false;
-        QString name, bind, desc;
-
-        QRegularExpression nameRe(R"(name:\s*["`]([^"`]+)["`])");
-        QRegularExpression bindRe(R"(key:\s*["`]([^"`]+)["`])");
-        QRegularExpression descRe(R"(description:\s*["`]([^"`]+)["`])");
-
-        while (!in.atEnd()) {
-            QString line = in.readLine().trimmed();
-
-            if (line.startsWith("CustomShortcut {")) {
-                inShortcut = true;
-                braceCount = 1;
-                name.clear();
-                bind.clear();
-                desc.clear();
-                continue;
-            }
-
-            if (inShortcut) {
-                if (line.contains("{"))
-                    braceCount += line.count("{");
-                if (line.contains("}"))
-                    braceCount -= line.count("}");
-
-                if (braceCount == 1) {
-                    auto nameMatch = nameRe.match(line);
-                    if (nameMatch.hasMatch())
-                        name = nameMatch.captured(1);
-
-                    auto bindMatch = bindRe.match(line);
-                    if (bindMatch.hasMatch())
-                        bind = bindMatch.captured(1);
-
-                    auto descMatch = descRe.match(line);
-                    if (descMatch.hasMatch())
-                        desc = descMatch.captured(1);
-                }
-
-                if (braceCount == 0) {
-                    inShortcut = false;
-
-                    if (name.contains("${"))
-                        continue; // Skip template items
-
-                    if (!name.isEmpty()) {
-                        if (bind.isEmpty() || bind == "none") {
-                            continue; // Skip unbound keybinds
-                        } else {
-                            // Format the binding to look like hyprland keys for consistency
-                            bind.replace("Meta", "Super");
-                            bind = bind.replace("+", " + ");
-                            // Handle cases with semicolon like "Meta+Space; Meta"
-                            bind = bind.split(";").first().trimmed();
-                        }
-
-                        if (desc.isEmpty())
-                            desc = name;
-
-                        result.append(QVariantMap{
-                            { "bind", bind },
-                            { "action", name },
-                            { "description", desc },
-                        });
-                    }
-                }
-            }
+    for (const auto* shortcut : std::as_const(m_order)) {
+        const auto it = m_registered.constFind(const_cast<QObject*>(shortcut));
+        if (it == m_registered.constEnd() || it->name.isEmpty()) {
+            continue;
         }
 
-        // Add workspace shortcuts manually since they are templated in QML
-        for (int i = 1; i <= 10; ++i) {
-            int keyNum = (i == 10) ? 0 : i;
-            result.append(QVariantMap{
-                { "bind", QString("Super + %1").arg(keyNum) },
-                { "action", QString("workspace%1").arg(i) },
-                { "description", QString("Switch to workspace %1").arg(i) },
-            });
+        const auto bind = formatBind(it->key);
+        if (bind.isEmpty()) {
+            continue; // Not bound on this session
         }
-    } else {
-        qWarning(lcKeybinds) << "Failed to open Shortcuts.qml at" << configPath;
+
+        result.append(QVariantMap{
+            { "bind", bind },
+            { "action", it->name },
+            { "description", it->description.isEmpty() ? it->name : it->description },
+        });
     }
 
     m_keybinds = result;
-    m_initialized = true;
     emit keybindsChanged();
-    emit initializedChanged();
+
+    if (!m_initialized) {
+        m_initialized = true;
+        emit initializedChanged();
+    }
     emit loaded();
+}
+
+void KeybindsModel::load() {
+    rebuild();
 }
 
 QVariantList KeybindsModel::query(const QString& searchText) const {

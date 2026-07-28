@@ -15,6 +15,20 @@ Loader {
 
     active: true
 
+    // Report to the keybind cheatsheet directly. Doing it here means a
+    // shortcut whose name or key comes from a variable, ternary or template
+    // literal is listed exactly like one written as a plain string.
+    function publishKeybind(): void {
+        Caelestia.KeybindsModel.registerKeybind(root, root.name, root.key, root.description);
+    }
+
+    onNameChanged: publishKeybind()
+    onKeyChanged: publishKeybind()
+    onDescriptionChanged: publishKeybind()
+
+    Component.onCompleted: publishKeybind()
+    Component.onDestruction: Caelestia.KeybindsModel.unregisterKeybind(root)
+
     sourceComponent: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") ? hyprShortcut : kdeShortcut
 
     Component {
