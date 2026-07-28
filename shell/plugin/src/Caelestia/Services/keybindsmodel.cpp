@@ -1,12 +1,13 @@
-// SPDX-License-Identifier: GPL-3.0-only
 #include "keybindsmodel.hpp"
+#include "../Config/config.hpp"
+#include "../Config/generalconfig.hpp"
 #include "../Config/keybindsdefaults.hpp"
 
-#include <QCoreApplication>
-#include <QDir>
 #include <KGlobalAccel>
 #include <KGlobalShortcutInfo>
+#include <QCoreApplication>
 #include <QDBusInterface>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -19,7 +20,7 @@ namespace caelestia::services {
 
 KeybindsModel::KeybindsModel(QObject* parent)
     : QAbstractListModel(parent) {
-    
+
     // Load keybinds JSON or populate defaults
     QString path = keybindsPath();
     QFile file(path);
@@ -27,8 +28,16 @@ KeybindsModel::KeybindsModel(QObject* parent)
 
     // Start with defaults
     QJsonObject defaults = caelestia::config::defaultKeybinds();
+    bool krohnkiteEnabled = caelestia::config::GlobalConfig::instance()->general()->krohnkiteEnabled();
+
     for (auto it = defaults.begin(); it != defaults.end(); ++it) {
-        m_keybinds.insert(it.key(), it.value().toString());
+        if (it.key().startsWith("krohnkite") && !krohnkiteEnabled) {
+            continue;
+        }
+        // Don't inject empty defaults into m_keybinds to allow QML to set the initial key
+        if (!it.value().toString().isEmpty()) {
+            m_keybinds.insert(it.key(), it.value().toString());
+        }
     }
 
     if (file.open(QIODevice::ReadOnly)) {
@@ -37,6 +46,9 @@ KeybindsModel::KeybindsModel(QObject* parent)
             QJsonObject obj = doc.object();
             // Merge user JSON over defaults
             for (auto it = obj.begin(); it != obj.end(); ++it) {
+                if (it.key().startsWith("krohnkite") && !krohnkiteEnabled) {
+                    continue;
+                }
                 if (it.value().isString()) {
                     m_keybinds.insert(it.key(), it.value().toString());
                 }
@@ -46,10 +58,10 @@ KeybindsModel::KeybindsModel(QObject* parent)
         shouldSave = true; // file didn't exist, save the generated defaults
     }
 
-    connect(GlobalShortcutDispatcher::instance(), &GlobalShortcutDispatcher::shortcutRegistered,
-            this, &KeybindsModel::onShortcutRegistered);
-    connect(GlobalShortcutDispatcher::instance(), &GlobalShortcutDispatcher::shortcutUnregistered,
-            this, &KeybindsModel::onShortcutUnregistered);
+    connect(GlobalShortcutDispatcher::instance(), &GlobalShortcutDispatcher::shortcutRegistered, this,
+        &KeybindsModel::onShortcutRegistered);
+    connect(GlobalShortcutDispatcher::instance(), &GlobalShortcutDispatcher::shortcutUnregistered, this,
+        &KeybindsModel::onShortcutUnregistered);
 
     m_saveTimer = new QTimer(this);
     m_saveTimer->setSingleShot(true);
@@ -86,19 +98,24 @@ void KeybindsModel::load() {
 }
 
 int KeybindsModel::rowCount(const QModelIndex& parent) const {
-    if (parent.isValid()) return 0;
+    if (parent.isValid())
+        return 0;
     return m_rows.size();
 }
 
 QVariant KeybindsModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || index.row() >= m_rows.size()) return QVariant();
+    if (!index.isValid() || index.row() >= m_rows.size())
+        return QVariant();
 
     GlobalShortcut* sc = m_rows.at(index.row());
-    
+
     switch (role) {
-    case NameRole: return sc->name();
-    case KeyRole: return sc->key();
-    case DescriptionRole: return sc->description();
+    case NameRole:
+        return sc->name();
+    case KeyRole:
+        return sc->key();
+    case DescriptionRole:
+        return sc->description();
     case IsOverriddenRole: {
         QJsonObject defaults = caelestia::config::defaultKeybinds();
         return defaults.value(sc->name()).toString() != sc->key();
@@ -140,21 +157,15 @@ void KeybindsModel::resetKey(const QString& name) {
 QVariantList KeybindsModel::query(const QString& searchText) const {
     QVariantList result;
     const auto lower = searchText.toLower();
-    
+
     for (GlobalShortcut* sc : m_rows) {
-        if (searchText.isEmpty() ||
-            sc->key().toLower().contains(lower) ||
-            sc->description().toLower().contains(lower) ||
-            sc->name().toLower().contains(lower)) {
-            
+        if (searchText.isEmpty() || sc->key().toLower().contains(lower) ||
+            sc->description().toLower().contains(lower) || sc->name().toLower().contains(lower)) {
+
             QJsonObject defaults = caelestia::config::defaultKeybinds();
-            result.append(QVariantMap{
-                { "bind", sc->key() },
-                { "action", sc->name() },
-                { "name", sc->name() },
+            result.append(QVariantMap{ { "bind", sc->key() }, { "action", sc->name() }, { "name", sc->name() },
                 { "description", sc->description() },
-                { "isOverridden", defaults.value(sc->name()).toString() != sc->key() }
-            });
+                { "isOverridden", defaults.value(sc->name()).toString() != sc->key() } });
         }
     }
     return result;
@@ -173,7 +184,7 @@ void KeybindsModel::onShortcutRegistered(GlobalShortcut* sc) {
     beginInsertRows(QModelIndex(), row, row);
     m_rows.append(sc);
     endInsertRows();
-    
+
     if (QCoreApplication::instance()) {
         m_loadTimer->start();
     }
@@ -181,7 +192,7 @@ void KeybindsModel::onShortcutRegistered(GlobalShortcut* sc) {
     connect(sc, &GlobalShortcut::keyChanged, this, [this, sc] {
         int idx = m_rows.indexOf(sc);
         if (idx >= 0) {
-            emit dataChanged(index(idx), index(idx), {KeyRole, IsOverriddenRole});
+            emit dataChanged(index(idx), index(idx), { KeyRole, IsOverriddenRole });
             if (QCoreApplication::instance()) {
                 m_loadTimer->start();
             }
@@ -190,7 +201,8 @@ void KeybindsModel::onShortcutRegistered(GlobalShortcut* sc) {
 }
 
 QString KeybindsModel::getKeyCollision(const QString& actionName) const {
-    if (actionName.isEmpty()) return QString();
+    if (actionName.isEmpty())
+        return QString();
 
     GlobalShortcut* sc = GlobalShortcut::findByName(actionName);
     if (!sc) {

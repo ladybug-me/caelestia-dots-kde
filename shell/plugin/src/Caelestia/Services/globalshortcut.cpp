@@ -11,6 +11,17 @@
 
 Q_GLOBAL_STATIC(GlobalShortcutDispatcher, s_dispatcher)
 
+namespace {
+
+QString escapeGVariantString(const QString& value) {
+    QString escaped = value;
+    escaped.replace('\\', QStringLiteral("\\\\"));
+    escaped.replace('\'', QStringLiteral("\\'"));
+    return escaped;
+}
+
+} // namespace
+
 GlobalShortcutDispatcher* GlobalShortcutDispatcher::instance() {
     return s_dispatcher;
 }
@@ -45,14 +56,17 @@ GlobalShortcut::~GlobalShortcut() {
             arrayStr = "[([0, 0, 0, 0],)]";
         }
 
-        QString cmd = QString("gdbus call --session --dest org.kde.kglobalaccel "
-                              "--object-path /kglobalaccel "
-                              "--method org.kde.KGlobalAccel.setShortcutKeys "
-                              "\"['%1', '%2', '', '']\" \"%3\" 4 > /dev/null 2>&1")
-                          .arg(stolen.component)
-                          .arg(stolen.action)
-                          .arg(arrayStr);
-        QProcess::startDetached("bash", { "-c", cmd });
+        QStringList args = {
+            QStringLiteral("call"),
+            QStringLiteral("--session"),
+            QStringLiteral("--dest"), QStringLiteral("org.kde.kglobalaccel"),
+            QStringLiteral("--object-path"), QStringLiteral("/kglobalaccel"),
+            QStringLiteral("--method"), QStringLiteral("org.kde.KGlobalAccel.setShortcutKeys"),
+            QString("['%1', '%2', '', '']").arg(escapeGVariantString(stolen.component), escapeGVariantString(stolen.action)),
+            arrayStr,
+            QStringLiteral("4")
+        };
+        QProcess::startDetached(QStringLiteral("gdbus"), args);
     }
 }
 
@@ -157,7 +171,7 @@ void GlobalShortcut::updateShortcut() {
         return;
     }
 
-    QList<QString> stealCmds;
+    QList<QStringList> stealCmds;
 
     // 1. Find system-wide collisions for all sequences
     for (const QKeySequence& seq : seqs) {
@@ -175,14 +189,18 @@ void GlobalShortcut::updateShortcut() {
                              << "from component:" << info.componentUniqueName();
                 }
 
-                // 2. Prepare gdbus steal command
-                QString cmd = QString("gdbus call --session --dest org.kde.kglobalaccel "
-                                      "--object-path /kglobalaccel "
-                                      "--method org.kde.KGlobalAccel.setShortcutKeys "
-                                      "\"['%1', '%2', '', '']\" \"[([0, 0, 0, 0],)]\" 4")
-                                  .arg(info.componentUniqueName())
-                                  .arg(info.uniqueName());
-                stealCmds.append(cmd);
+                // 2. Prepare gdbus steal command args
+                QStringList args = {
+                    QStringLiteral("call"),
+                    QStringLiteral("--session"),
+                    QStringLiteral("--dest"), QStringLiteral("org.kde.kglobalaccel"),
+                    QStringLiteral("--object-path"), QStringLiteral("/kglobalaccel"),
+                    QStringLiteral("--method"), QStringLiteral("org.kde.KGlobalAccel.setShortcutKeys"),
+                    QString("['%1', '%2', '', '']").arg(escapeGVariantString(info.componentUniqueName()), escapeGVariantString(info.uniqueName())),
+                    QStringLiteral("[([0, 0, 0, 0],)]"),
+                    QStringLiteral("4")
+                };
+                stealCmds.append(args);
             }
         }
     }
@@ -194,7 +212,7 @@ void GlobalShortcut::updateShortcut() {
 
     // 3. Run all steal commands concurrently and wait for the last one
     auto pending = std::make_shared<QAtomicInt>(stealCmds.size());
-    for (const QString& cmd : stealCmds) {
+    for (const QStringList& args : stealCmds) {
         auto* proc = new QProcess();
         connect(proc, &QProcess::finished, proc, [this, pending, seqs, myGeneration, proc](int, QProcess::ExitStatus) {
             proc->deleteLater();
@@ -204,6 +222,6 @@ void GlobalShortcut::updateShortcut() {
                 }
             }
         });
-        proc->start("bash", { "-c", cmd + " > /dev/null 2>&1" });
+        proc->start(QStringLiteral("gdbus"), args);
     }
 }
