@@ -99,7 +99,8 @@ PageBase {
                 required property int index
 
                 first: index === 0
-                last: index === parent.count - 1
+                last: index === root.shellShortcuts.length - 1
+                actionName: modelData.name
                 label: modelData.description
                 keybind: modelData.bind
                 isOverridden: modelData.isOverridden
@@ -122,7 +123,8 @@ PageBase {
                 required property int index
 
                 first: index === 0
-                last: index === parent.count - 1
+                last: index === root.appShortcuts.length - 1
+                actionName: modelData.name
                 label: modelData.description
                 keybind: modelData.bind
                 isOverridden: modelData.isOverridden
@@ -144,7 +146,8 @@ PageBase {
                 required property int index
 
                 first: index === 0
-                last: index === parent.count - 1
+                last: index === root.workspaceShortcuts.length - 1
+                actionName: modelData.name
                 label: modelData.description
                 keybind: modelData.bind
                 isOverridden: modelData.isOverridden
@@ -167,7 +170,8 @@ PageBase {
                 required property int index
 
                 first: index === 0
-                last: index === parent.count - 1
+                last: index === root.tilingShortcuts.length - 1
+                actionName: modelData.name
                 label: modelData.description
                 keybind: modelData.bind
                 isOverridden: modelData.isOverridden

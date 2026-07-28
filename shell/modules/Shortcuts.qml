@@ -16,7 +16,10 @@ Scope {
     property string lastAction: ""
     readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels?.values?.some(t => (t?.lastIpcObject?.fullscreen ?? 0) > 1) ?? false
 
-
+    Component.onCompleted: {
+        // Force KeybindsModel to instantiate and load shortcuts from disk
+        let _ = KeybindsModel;
+    }
 
     // qmllint disable unresolved-type
     CustomShortcut {

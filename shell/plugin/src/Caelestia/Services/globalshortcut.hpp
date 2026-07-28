@@ -42,6 +42,9 @@ public:
 
     QString description() const;
     void setDescription(const QString &description);
+    
+    QString getCollisionName() const;
+    int stolenCount() const { return m_stolenShortcuts.size(); }
 
 signals:
     void nameChanged();
@@ -69,6 +72,8 @@ private:
         QString component;
         QString action;
         QList<QKeySequence> keys;
+        QString componentFriendlyName;
+        QString actionFriendlyName;
     };
     QList<StolenShortcut> m_stolenShortcuts;
 };

@@ -8,15 +8,20 @@ import qs.services
 import qs.modules.nexus.common
 
 import QtQuick.Effects
+import QtQuick.Controls
 
 ConnectedRect {
     id: root
 
     property alias label: label.text
     property alias status: status.text
+    property string actionName: ""
     property string keybind: ""
     property bool isOverridden: false
     property bool isShell: false
+    property string collisionName: KeybindsModel.getKeyCollision(actionName)
+
+    onActionNameChanged: collisionName = KeybindsModel.getKeyCollision(actionName)
 
     signal clicked
     signal addClicked(var target)
@@ -61,7 +66,7 @@ ConnectedRect {
             spacing: Tokens.spacing.small
 
             Rectangle {
-                visible: KeybindsModel.isKeyCollision(root.keybind) && !root.isShell
+                visible: root.collisionName !== ""
                 Layout.preferredWidth: 8
                 Layout.preferredHeight: 8
                 Layout.alignment: Qt.AlignVCenter
@@ -79,6 +84,14 @@ ConnectedRect {
                     shadowEnabled: true
                     shadowColor: Colours.palette.m3error
                     shadowBlur: 0.8
+                }
+                
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    ToolTip.visible: containsMouse
+                    ToolTip.text: qsTr("Collides with: ") + root.collisionName
                 }
             }
 

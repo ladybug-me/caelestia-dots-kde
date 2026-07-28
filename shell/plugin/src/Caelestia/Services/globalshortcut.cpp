@@ -99,6 +99,16 @@ void GlobalShortcut::setKey(const QString &key)
     updateShortcut();
 }
 
+QString GlobalShortcut::getCollisionName() const {
+    if (m_stolenShortcuts.isEmpty()) {
+        return QString();
+    }
+    const auto& s = m_stolenShortcuts.first();
+    QString actionName = s.actionFriendlyName;
+    if (actionName.isEmpty()) actionName = s.action;
+    return s.componentFriendlyName + " - " + actionName;
+}
+
 QString GlobalShortcut::description() const
 {
     return m_description;
@@ -123,6 +133,8 @@ QList<GlobalShortcut*> GlobalShortcut::allShortcuts()
 {
     return s_registry.values();
 }
+
+
 
 void GlobalShortcut::updateShortcut()
 {
@@ -162,10 +174,12 @@ void GlobalShortcut::updateShortcut()
     for (const QKeySequence &seq : seqs) {
         QList<KGlobalShortcutInfo> conflicts = KGlobalAccel::globalShortcutsByKey(seq);
         for (const auto &info : conflicts) {
-            if (info.componentUniqueName() != "caelestia" && 
-                info.componentUniqueName() != QCoreApplication::applicationName()) {
+            if (info.componentUniqueName() != "caelestia" &&
+                info.componentUniqueName() != QCoreApplication::applicationName() &&
+                info.componentUniqueName() != "quickshell") {
                 // Store it to restore on destruction
-                m_stolenShortcuts.append({info.componentUniqueName(), info.uniqueName(), info.keys()});
+                m_stolenShortcuts.append({info.componentUniqueName(), info.uniqueName(), info.keys(), info.componentFriendlyName(), info.friendlyName()});
+                qDebug() << "[Caelestia] Stored stolen shortcut for" << m_name << "now stolenCount=" << m_stolenShortcuts.size();
                 
                 if (caelestia::config::GlobalConfig::instance()->general()->debugLogs()) {
                     qDebug() << "[Caelestia] Unbinding shortcut" << seq.toString() << "from component:" << info.componentUniqueName();

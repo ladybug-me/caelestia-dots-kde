@@ -164,68 +164,21 @@ void KeybindsModel::onShortcutRegistered(GlobalShortcut* sc) {
     });
 }
 
-bool KeybindsModel::isKeyCollision(const QString& keybind) const {
-    if (keybind.isEmpty()) return false;
-    
-    QString configPath = QDir::homePath() + "/.config/kglobalshortcutsrc";
-    QFile file(configPath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return false;
-    }
-    
-    QStringList targetParts = keybind.split(';', Qt::SkipEmptyParts);
-    for (QString& part : targetParts) {
-        part = part.trimmed().toLower();
-    }
-    if (targetParts.isEmpty()) return false;
+QString KeybindsModel::getKeyCollision(const QString& actionName) const {
+    if (actionName.isEmpty()) return QString();
 
-    QTextStream in(&file);
-    bool inIgnoredSection = false;
-    
-    while (!in.atEnd()) {
-        QString line = in.readLine().trimmed();
-        if (line.isEmpty() || line.startsWith('#')) continue;
-        
-        if (line.startsWith('[') && line.endsWith(']')) {
-            QString section = line.mid(1, line.length() - 2);
-            inIgnoredSection = (section == "caelestia" || section == "quickshell");
-            continue;
-        }
-        
-        if (inIgnoredSection) continue;
-        
-        int eqIndex = line.indexOf('=');
-        if (eqIndex == -1) continue;
-        
-        QString value = line.mid(eqIndex + 1);
-        QStringList fields = value.split(',');
-        if (fields.size() < 2) continue; // Needs at least default and current shortcut
-        
-        QString currentShortcut = fields[0].trimmed().toLower();
-        QString defaultShortcut = fields[1].trimmed().toLower();
-        
-        for (const QString& part : targetParts) {
-            QKeySequence partSeq(part);
-            if (partSeq.isEmpty()) continue;
-            QString normalizedPart = partSeq.toString().toLower();
-            
-            // Check if the keybind matches either the current or default shortcut
-            // Note: kglobalshortcutsrc separates multiple shortcuts for the same action with '\t'
-            QStringList currentList = currentShortcut.split('\t');
-            QStringList defaultList = defaultShortcut.split('\t');
-            
-            for (const QString& curr : currentList) {
-                QKeySequence seq(curr);
-                if (!seq.isEmpty() && seq.toString().toLower() == normalizedPart) return true;
-            }
-            for (const QString& def : defaultList) {
-                QKeySequence seq(def);
-                if (!seq.isEmpty() && seq.toString().toLower() == normalizedPart) return true;
-            }
-        }
+    GlobalShortcut* sc = GlobalShortcut::findByName(actionName);
+    if (!sc) {
+        qDebug() << "[Caelestia] getKeyCollision: no shortcut found for" << actionName;
+        return QString();
     }
-    
-    return false;
+    QString result = sc->getCollisionName();
+    if (!result.isEmpty()) {
+        qDebug() << "[Caelestia] getKeyCollision(" << actionName << ") = " << result;
+    } else {
+        qDebug() << "[Caelestia] getKeyCollision(" << actionName << ") = (empty) stolenCount=" << sc->stolenCount();
+    }
+    return result;
 }
 
 void KeybindsModel::onShortcutUnregistered(GlobalShortcut* sc) {
