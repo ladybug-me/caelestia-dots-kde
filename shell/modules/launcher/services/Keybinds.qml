@@ -6,16 +6,13 @@ import Caelestia.Services
 QtObject {
     id: root
 
-    readonly property var keybinds: KeybindsModel.keybinds
-    readonly property bool initialized: KeybindsModel.initialized
+    readonly property bool initialized: true
 
     signal loaded
 
     function loadKeybinds() {
-        if (KeybindsModel.initialized && KeybindsModel.keybinds.length > 0) {
-            return;
-        }
-        KeybindsModel.load();
+        // KeybindsModel is initialized synchronously in C++
+        root.loaded();
     }
 
     function query(searchText) {
@@ -24,7 +21,7 @@ QtObject {
 
     property Connections _conn: Connections {
         target: KeybindsModel
-        function onLoaded(): void { root.loaded(); }
+        function onKeybindsChanged(): void { root.loaded(); }
     }
 
     Component.onCompleted: loadKeybinds()
