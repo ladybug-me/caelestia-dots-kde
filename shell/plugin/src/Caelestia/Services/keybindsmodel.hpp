@@ -25,7 +25,15 @@ public:
         IsOverriddenRole,
     };
 
+    Q_PROPERTY(QVariantList keybinds READ keybinds NOTIFY keybindsChanged)
+    Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
+
     explicit KeybindsModel(QObject* parent = nullptr);
+
+    [[nodiscard]] QVariantList keybinds() const;
+    [[nodiscard]] bool initialized() const;
+
+    Q_INVOKABLE void load();
 
     int rowCount(const QModelIndex& parent = {}) const override;
     QVariant data(const QModelIndex& index, int role) const override;
@@ -38,6 +46,8 @@ public:
 
 signals:
     void keybindsChanged();
+    void initializedChanged();
+    void loaded();
 
 private slots:
     void onShortcutRegistered(GlobalShortcut* sc);
@@ -48,6 +58,7 @@ private:
     QList<GlobalShortcut*> m_rows;
     QHash<QString, QString> m_keybinds;
     QTimer* m_saveTimer = nullptr;
+    QTimer* m_loadTimer = nullptr;
 
     QString keybindsPath() const;
     void saveKeybinds();

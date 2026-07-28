@@ -51,18 +51,38 @@ KeybindsModel::KeybindsModel(QObject* parent)
     connect(GlobalShortcutDispatcher::instance(), &GlobalShortcutDispatcher::shortcutUnregistered,
             this, &KeybindsModel::onShortcutUnregistered);
 
-    for (GlobalShortcut* sc : GlobalShortcut::allShortcuts()) {
-        onShortcutRegistered(sc);
-    }
-
     m_saveTimer = new QTimer(this);
     m_saveTimer->setSingleShot(true);
     m_saveTimer->setInterval(300);
     connect(m_saveTimer, &QTimer::timeout, this, &KeybindsModel::flushOverridesToDisk);
 
+    m_loadTimer = new QTimer(this);
+    m_loadTimer->setSingleShot(true);
+    m_loadTimer->setInterval(10);
+    connect(m_loadTimer, &QTimer::timeout, this, [this] {
+        emit keybindsChanged();
+        emit loaded();
+    });
+
+    for (GlobalShortcut* sc : GlobalShortcut::allShortcuts()) {
+        onShortcutRegistered(sc);
+    }
+
     if (shouldSave) {
         saveKeybinds();
     }
+}
+
+QVariantList KeybindsModel::keybinds() const {
+    return QVariantList(); // Dummy list to satisfy QML length check
+}
+
+bool KeybindsModel::initialized() const {
+    return true; // We are initialized synchronously
+}
+
+void KeybindsModel::load() {
+    emit loaded(); // Signal that we are loaded so QML can proceed
 }
 
 int KeybindsModel::rowCount(const QModelIndex& parent) const {
@@ -154,12 +174,17 @@ void KeybindsModel::onShortcutRegistered(GlobalShortcut* sc) {
     m_rows.append(sc);
     endInsertRows();
     
-    emit keybindsChanged();
+    if (QCoreApplication::instance()) {
+        m_loadTimer->start();
+    }
 
     connect(sc, &GlobalShortcut::keyChanged, this, [this, sc] {
         int idx = m_rows.indexOf(sc);
         if (idx >= 0) {
             emit dataChanged(index(idx), index(idx), {KeyRole, IsOverriddenRole});
+            if (QCoreApplication::instance()) {
+                m_loadTimer->start();
+            }
         }
     });
 }
@@ -187,7 +212,9 @@ void KeybindsModel::onShortcutUnregistered(GlobalShortcut* sc) {
         beginRemoveRows(QModelIndex(), idx, idx);
         m_rows.removeAt(idx);
         endRemoveRows();
-        emit keybindsChanged();
+        if (QCoreApplication::instance()) {
+            m_loadTimer->start();
+        }
     }
 }
 
