@@ -44,6 +44,7 @@ public:
     void setDescription(const QString &description);
     
     QString getCollisionName() const;
+    QString getCollisionNameForKey(const QString& keyPart) const;
     int stolenCount() const { return m_stolenShortcuts.size(); }
 
 signals:

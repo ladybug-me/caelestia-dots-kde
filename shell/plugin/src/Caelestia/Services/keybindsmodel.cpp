@@ -218,6 +218,16 @@ QString KeybindsModel::getKeyCollision(const QString& actionName) const {
     return result;
 }
 
+QString KeybindsModel::getKeyCollisionForPart(const QString& actionName, const QString& keyPart) const {
+    if (actionName.isEmpty() || keyPart.isEmpty())
+        return QString();
+
+    GlobalShortcut* sc = GlobalShortcut::findByName(actionName);
+    if (!sc) return QString();
+
+    return sc->getCollisionNameForKey(keyPart);
+}
+
 void KeybindsModel::onShortcutUnregistered(GlobalShortcut* sc) {
     int idx = m_rows.indexOf(sc);
     if (idx >= 0) {

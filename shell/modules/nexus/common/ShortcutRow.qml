@@ -20,9 +20,6 @@ ConnectedRect {
     property string keybind: ""
     property bool isOverridden: false
     property bool isShell: false
-    property string collisionName: KeybindsModel.getKeyCollision(actionName)
-
-    onActionNameChanged: collisionName = KeybindsModel.getKeyCollision(actionName)
 
     signal clicked
     signal addClicked(var target)
@@ -66,36 +63,6 @@ ConnectedRect {
         RowLayout {
             spacing: Tokens.spacing.small
 
-            Rectangle {
-                visible: root.collisionName !== ""
-                Layout.preferredWidth: 8
-                Layout.preferredHeight: 8
-                Layout.alignment: Qt.AlignVCenter
-                radius: width / 2
-                color: Colours.palette.m3error
-
-                SequentialAnimation on opacity {
-                    loops: Animation.Infinite
-                    NumberAnimation { from: 0.3; to: 1.0; duration: 1000 }
-                    NumberAnimation { from: 1.0; to: 0.3; duration: 1000 }
-                }
-
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                    shadowEnabled: true
-                    shadowColor: Colours.palette.m3error
-                    shadowBlur: 0.8
-                }
-                
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    ToolTip.visible: containsMouse
-                    ToolTip.text: qsTr("Collides with: ") + root.collisionName
-                }
-            }
-
             Repeater {
                 model: {
                     let parts = root.keybind.split(";").map(s => s.trim()).filter(s => s.length > 0)
@@ -121,6 +88,37 @@ ConnectedRect {
                             text: modelData
                             font: Tokens.font.label.medium
                             color: Colours.palette.m3onSurfaceVariant
+                        }
+
+                        Rectangle {
+                            property string partCollisionName: KeybindsModel.getKeyCollisionForPart(root.actionName, modelData)
+                            visible: partCollisionName !== ""
+                            Layout.preferredWidth: 8
+                            Layout.preferredHeight: 8
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: width / 2
+                            color: Colours.palette.m3error
+
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.3; to: 1.0; duration: 1000 }
+                                NumberAnimation { from: 1.0; to: 0.3; duration: 1000 }
+                            }
+
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                shadowEnabled: true
+                                shadowColor: Colours.palette.m3error
+                                shadowBlur: 0.8
+                            }
+                            
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                ToolTip.visible: containsMouse
+                                ToolTip.text: qsTr("Collides with: ") + parent.partCollisionName
+                            }
                         }
 
                         MaterialIcon {

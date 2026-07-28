@@ -119,6 +119,21 @@ QString GlobalShortcut::getCollisionName() const {
     return s.componentFriendlyName + " - " + actionName;
 }
 
+QString GlobalShortcut::getCollisionNameForKey(const QString& keyPart) const {
+    QKeySequence targetSeq(keyPart.trimmed());
+    if (targetSeq.isEmpty()) return QString();
+
+    for (const auto& s : m_stolenShortcuts) {
+        if (s.keys.contains(targetSeq)) {
+            QString actionName = s.actionFriendlyName;
+            if (actionName.isEmpty())
+                actionName = s.action;
+            return s.componentFriendlyName + " - " + actionName;
+        }
+    }
+    return QString();
+}
+
 QString GlobalShortcut::description() const {
     return m_description;
 }

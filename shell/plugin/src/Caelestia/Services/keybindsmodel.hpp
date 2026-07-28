@@ -43,6 +43,7 @@ public:
     Q_INVOKABLE void resetKey(const QString& name);
     Q_INVOKABLE QVariantList query(const QString& searchText) const;
     Q_INVOKABLE QString getKeyCollision(const QString& actionName) const;
+    Q_INVOKABLE QString getKeyCollisionForPart(const QString& actionName, const QString& keyPart) const;
 
 signals:
     void keybindsChanged();
