@@ -1,13 +1,13 @@
 #include "globalshortcut.hpp"
 
-#include <KGlobalAccel>
-#include <QKeySequence>
-#include <QDebug>
-#include <QProcess>
-#include <QCoreApplication>
-#include <cstdlib>
 #include "../Config/config.hpp"
 #include "../Config/generalconfig.hpp"
+#include <KGlobalAccel>
+#include <QCoreApplication>
+#include <QDebug>
+#include <QKeySequence>
+#include <QProcess>
+#include <cstdlib>
 
 Q_GLOBAL_STATIC(GlobalShortcutDispatcher, s_dispatcher)
 
@@ -17,53 +17,50 @@ GlobalShortcutDispatcher* GlobalShortcutDispatcher::instance() {
 
 QHash<QString, GlobalShortcut*> GlobalShortcut::s_registry;
 
-GlobalShortcut::GlobalShortcut(QObject *parent)
-    : QObject(parent), m_action(new QAction(this))
-{
+GlobalShortcut::GlobalShortcut(QObject* parent)
+    : QObject(parent)
+    , m_action(new QAction(this)) {
     connect(m_action, &QAction::triggered, this, &GlobalShortcut::activated);
 }
 
-GlobalShortcut::~GlobalShortcut()
-{
+GlobalShortcut::~GlobalShortcut() {
     if (!m_name.isEmpty()) {
         s_registry.remove(m_name);
-        emit GlobalShortcutDispatcher::instance()->shortcutUnregistered(this);
+        emit GlobalShortcutDispatcher::instance() -> shortcutUnregistered(this);
     }
 
     // Restore any KDE shortcuts we stole on startup
-    for (const auto &stolen : m_stolenShortcuts) {
+    for (const auto& stolen : m_stolenShortcuts) {
         QStringList seqStrings;
-        for (const QKeySequence &seq : stolen.keys) {
+        for (const QKeySequence& seq : stolen.keys) {
             int k1 = seq.count() > 0 ? seq[0].toCombined() : 0;
             int k2 = seq.count() > 1 ? seq[1].toCombined() : 0;
             int k3 = seq.count() > 2 ? seq[2].toCombined() : 0;
             int k4 = seq.count() > 3 ? seq[3].toCombined() : 0;
             seqStrings.append(QString("([%1, %2, %3, %4],)").arg(k1).arg(k2).arg(k3).arg(k4));
         }
-        
+
         QString arrayStr = "[" + seqStrings.join(", ") + "]";
         if (seqStrings.isEmpty()) {
             arrayStr = "[([0, 0, 0, 0],)]";
         }
-        
+
         QString cmd = QString("gdbus call --session --dest org.kde.kglobalaccel "
                               "--object-path /kglobalaccel "
                               "--method org.kde.KGlobalAccel.setShortcutKeys "
                               "\"['%1', '%2', '', '']\" \"%3\" 4 > /dev/null 2>&1")
-                              .arg(stolen.component)
-                              .arg(stolen.action)
-                              .arg(arrayStr);
-        QProcess::startDetached("bash", {"-c", cmd});
+                          .arg(stolen.component)
+                          .arg(stolen.action)
+                          .arg(arrayStr);
+        QProcess::startDetached("bash", { "-c", cmd });
     }
 }
 
-QString GlobalShortcut::name() const
-{
+QString GlobalShortcut::name() const {
     return m_name;
 }
 
-void GlobalShortcut::setName(const QString &name)
-{
+void GlobalShortcut::setName(const QString& name) {
     if (m_name == name)
         return;
 
@@ -73,24 +70,22 @@ void GlobalShortcut::setName(const QString &name)
 
     m_name = name;
     m_action->setObjectName("caelestia-shortcut-" + m_name);
-    
+
     if (!m_name.isEmpty()) {
         s_registry.insert(m_name, this);
     }
 
     emit nameChanged();
-    emit GlobalShortcutDispatcher::instance()->shortcutRegistered(this);
-    
+    emit GlobalShortcutDispatcher::instance() -> shortcutRegistered(this);
+
     updateShortcut();
 }
 
-QString GlobalShortcut::key() const
-{
+QString GlobalShortcut::key() const {
     return m_key;
 }
 
-void GlobalShortcut::setKey(const QString &key)
-{
+void GlobalShortcut::setKey(const QString& key) {
     if (m_key == key)
         return;
 
@@ -105,17 +100,16 @@ QString GlobalShortcut::getCollisionName() const {
     }
     const auto& s = m_stolenShortcuts.first();
     QString actionName = s.actionFriendlyName;
-    if (actionName.isEmpty()) actionName = s.action;
+    if (actionName.isEmpty())
+        actionName = s.action;
     return s.componentFriendlyName + " - " + actionName;
 }
 
-QString GlobalShortcut::description() const
-{
+QString GlobalShortcut::description() const {
     return m_description;
 }
 
-void GlobalShortcut::setDescription(const QString &description)
-{
+void GlobalShortcut::setDescription(const QString& description) {
     if (m_description == description)
         return;
 
@@ -124,20 +118,15 @@ void GlobalShortcut::setDescription(const QString &description)
     updateShortcut();
 }
 
-GlobalShortcut* GlobalShortcut::findByName(const QString& name)
-{
+GlobalShortcut* GlobalShortcut::findByName(const QString& name) {
     return s_registry.value(name, nullptr);
 }
 
-QList<GlobalShortcut*> GlobalShortcut::allShortcuts()
-{
+QList<GlobalShortcut*> GlobalShortcut::allShortcuts() {
     return s_registry.values();
 }
 
-
-
-void GlobalShortcut::updateShortcut()
-{
+void GlobalShortcut::updateShortcut() {
     if (m_name.isEmpty()) {
         return;
     }
@@ -156,7 +145,7 @@ void GlobalShortcut::updateShortcut()
 
     QList<QKeySequence> seqs;
     QStringList parts = m_key.split(";");
-    for (const QString &part : parts) {
+    for (const QString& part : parts) {
         QString trimmed = part.trimmed();
         if (!trimmed.isEmpty()) {
             seqs.append(QKeySequence(trimmed));
@@ -171,18 +160,19 @@ void GlobalShortcut::updateShortcut()
     QList<QString> stealCmds;
 
     // 1. Find system-wide collisions for all sequences
-    for (const QKeySequence &seq : seqs) {
+    for (const QKeySequence& seq : seqs) {
         QList<KGlobalShortcutInfo> conflicts = KGlobalAccel::globalShortcutsByKey(seq);
-        for (const auto &info : conflicts) {
+        for (const auto& info : conflicts) {
             if (info.componentUniqueName() != "caelestia" &&
                 info.componentUniqueName() != QCoreApplication::applicationName() &&
                 info.componentUniqueName() != "quickshell") {
                 // Store it to restore on destruction
-                m_stolenShortcuts.append({info.componentUniqueName(), info.uniqueName(), info.keys(), info.componentFriendlyName(), info.friendlyName()});
-                qDebug() << "[Caelestia] Stored stolen shortcut for" << m_name << "now stolenCount=" << m_stolenShortcuts.size();
-                
+                m_stolenShortcuts.append({ info.componentUniqueName(), info.uniqueName(), info.keys(),
+                    info.componentFriendlyName(), info.friendlyName() });
+
                 if (caelestia::config::GlobalConfig::instance()->general()->debugLogs()) {
-                    qDebug() << "[Caelestia] Unbinding shortcut" << seq.toString() << "from component:" << info.componentUniqueName();
+                    qDebug() << "[Caelestia] Unbinding shortcut" << seq.toString()
+                             << "from component:" << info.componentUniqueName();
                 }
 
                 // 2. Prepare gdbus steal command
@@ -190,8 +180,8 @@ void GlobalShortcut::updateShortcut()
                                       "--object-path /kglobalaccel "
                                       "--method org.kde.KGlobalAccel.setShortcutKeys "
                                       "\"['%1', '%2', '', '']\" \"[([0, 0, 0, 0],)]\" 4")
-                                      .arg(info.componentUniqueName())
-                                      .arg(info.uniqueName());
+                                  .arg(info.componentUniqueName())
+                                  .arg(info.uniqueName());
                 stealCmds.append(cmd);
             }
         }
@@ -204,17 +194,16 @@ void GlobalShortcut::updateShortcut()
 
     // 3. Run all steal commands concurrently and wait for the last one
     auto pending = std::make_shared<QAtomicInt>(stealCmds.size());
-    for (const QString &cmd : stealCmds) {
-        auto *proc = new QProcess();
-        connect(proc, &QProcess::finished, proc,
-            [this, pending, seqs, myGeneration, proc](int, QProcess::ExitStatus) {
-                proc->deleteLater();
-                if (pending->fetchAndSubRelaxed(1) == 1) {
-                    if (m_registerGeneration == myGeneration) {
-                        KGlobalAccel::self()->setShortcut(m_action, seqs, KGlobalAccel::NoAutoloading);
-                    }
+    for (const QString& cmd : stealCmds) {
+        auto* proc = new QProcess();
+        connect(proc, &QProcess::finished, proc, [this, pending, seqs, myGeneration, proc](int, QProcess::ExitStatus) {
+            proc->deleteLater();
+            if (pending->fetchAndSubRelaxed(1) == 1) {
+                if (m_registerGeneration == myGeneration) {
+                    KGlobalAccel::self()->setShortcut(m_action, seqs, KGlobalAccel::NoAutoloading);
                 }
-            });
-        proc->start("bash", {"-c", cmd + " > /dev/null 2>&1"});
+            }
+        });
+        proc->start("bash", { "-c", cmd + " > /dev/null 2>&1" });
     }
 }
