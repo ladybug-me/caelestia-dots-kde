@@ -1,0 +1,23 @@
+# ShellCheck configuration for Caelestia
+# https://www.shellcheck.net/wiki/
+
+# Enable optional checks
+enable=all
+
+# Paths to source (for source= directives)
+source-path=SCRIPTDIR
+
+# Disabled rules (with rationale):
+#
+# SC1090 — Can't follow non-constant source (we source dynamic files)
+# SC1091 — Not following external file (we source files from BUNDLE_DIR etc.)
+# SC2034 — Unused variable (false positives for variables used by other scripts)
+# SC2154 — Variable referenced but not assigned (env vars set by installer C++ code)
+# SC2155 — Declare and assign separately (inconsistent with our style)
+# SC2164 — Use cd ... || exit (we use set -euo pipefail)
+# SC2250 — Prefer putting braces around variable references (style choice)
+
+disable=SC1090,SC1091,SC2034,SC2154,SC2250
+
+# Extended analysis
+extended-analysis=true

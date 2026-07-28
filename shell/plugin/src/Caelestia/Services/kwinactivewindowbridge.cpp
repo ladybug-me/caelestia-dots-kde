@@ -14,6 +14,22 @@
 
 namespace caelestia::services {
 
+namespace {
+
+// Window addresses are interpolated into double-quoted JS string literals in
+// the generated KWin scripts. They come from KWin's own internalId today, but
+// nothing enforces that, so escape them rather than trusting the source.
+QString escapeJsString(const QString& value) {
+    QString escaped = value;
+    escaped.replace('\\', QStringLiteral("\\\\"));
+    escaped.replace('"', QStringLiteral("\\\""));
+    escaped.replace('\n', QStringLiteral("\\n"));
+    escaped.replace('\r', QStringLiteral("\\r"));
+    return escaped;
+}
+
+} // namespace
+
 KWinActiveWindowBridgeAdaptor::KWinActiveWindowBridgeAdaptor(QObject* parent)
     : QDBusAbstractAdaptor(parent) {}
 
@@ -301,7 +317,7 @@ void KWinActiveWindowBridge::focusWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(address);
+    )").arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -314,7 +330,7 @@ void KWinActiveWindowBridge::closeWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(address);
+    )").arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -327,7 +343,7 @@ void KWinActiveWindowBridge::minimizeWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(address);
+    )").arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -340,7 +356,9 @@ void KWinActiveWindowBridge::maximizeWindow(const QString& address, bool horz, b
                 break;
             }
         }
-    )").arg(address).arg(vert ? "true" : "false").arg(horz ? "true" : "false");
+    )").arg(escapeJsString(address),
+            vert ? QStringLiteral("true") : QStringLiteral("false"),
+            horz ? QStringLiteral("true") : QStringLiteral("false"));
     executeKWinScriptAction(script);
 }
 
@@ -353,7 +371,7 @@ void KWinActiveWindowBridge::raiseWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(address);
+    )").arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -369,7 +387,7 @@ void KWinActiveWindowBridge::moveWindow(const QString& address, int x, int y) {
                 break;
             }
         }
-    )").arg(address).arg(x).arg(y);
+    )").arg(escapeJsString(address), QString::number(x), QString::number(y));
     executeKWinScriptAction(script);
 }
 
@@ -385,7 +403,7 @@ void KWinActiveWindowBridge::resizeWindow(const QString& address, int width, int
                 break;
             }
         }
-    )").arg(address).arg(width).arg(height);
+    )").arg(escapeJsString(address), QString::number(width), QString::number(height));
     executeKWinScriptAction(script);
 }
 
@@ -410,7 +428,7 @@ void KWinActiveWindowBridge::setWindowProperty(const QString& address, const QSt
                 break;
             }
         }
-    )").arg(address).arg(kwinProp).arg(enable ? "true" : "false");
+    )").arg(escapeJsString(address), kwinProp, enable ? QStringLiteral("true") : QStringLiteral("false"));
     executeKWinScriptAction(script);
 }
 
@@ -431,7 +449,7 @@ void KWinActiveWindowBridge::setWindowDesktop(const QString& address, int deskto
                 break;
             }
         }
-    )").arg(address).arg(desktopId);
+    )").arg(escapeJsString(address), QString::number(desktopId));
     executeKWinScriptAction(script);
 }
 

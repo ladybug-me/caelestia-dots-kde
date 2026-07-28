@@ -121,6 +121,18 @@ def parse_imports(lines: list[str]) -> tuple[int | None, int | None, list[str], 
     return first_import, last_import, relative_imports, module_imports
 
 
+class Violation:
+    def __init__(self, file: str, line: int, rule: str, msg: str):
+        self.file = file
+        self.line = line
+        self.rule = rule
+        self.msg = msg
+
+    def __str__(self):
+        c = RULE_COLOURS.get(self.rule, "")
+        return f"{c}[{self.rule}]{RESET} {self.file}:{self.line}: {self.msg}"
+
+
 def check_imports(filepath: Path, lines: list[str], rel: str) -> list[Violation]:
     """Check that module imports are in the required order."""
     violations = []
@@ -414,18 +426,6 @@ INLINE_COMPONENT_RE = re.compile(r"^Component\s*\{")
 BEHAVIOR_ON_RE = re.compile(r"^[A-Z]\w+\s+on\s+\w[\w.]*\s*\{")
 # Attached signal handler: Component.onCompleted:, Drag.onDragStarted:, etc.
 ATTACHED_HANDLER_RE = re.compile(r"^[A-Z]\w+\.on[A-Z]\w*\s*:")
-
-
-class Violation:
-    def __init__(self, file: str, line: int, rule: str, msg: str):
-        self.file = file
-        self.line = line
-        self.rule = rule
-        self.msg = msg
-
-    def __str__(self):
-        c = RULE_COLOURS.get(self.rule, "")
-        return f"{c}[{self.rule}]{RESET} {self.file}:{self.line}: {self.msg}"
 
 
 class ScopeTracker:

@@ -23,7 +23,7 @@ ConnectedRect {
     StateLayer {
         id: stateLayer
 
-        manualHoverOverride: popup.hovered && !popup.open
+        manualHoverOverride: popup.hovered || popup.open
         onClicked: popup.open = true
     }
 

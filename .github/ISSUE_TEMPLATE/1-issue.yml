@@ -1,52 +1,52 @@
-name: Issue
-description: Report a bug or other issue
-labels: ["issue"]
+name: Bug report
+description: Something's not working right
+labels: ["bug"]
+
 body:
   - type: markdown
     attributes:
       value: |
-        Before submitting an issue, please search [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) and [Discussions](https://github.com/ladybug-me/caelestia-dots-kde/discussions) to avoid duplicates.
+        Thanks for taking the time to report a bug!
 
-        This repository is a **KDE Plasma port**. For Hyprland-specific issues, use [caelestia-dots/caelestia](https://github.com/caelestia-dots/caelestia) instead.
-  - type: checkboxes
-    attributes:
-      label: Before you submit
-      description: Confirm the following before opening the issue.
-      options:
-        - label: I have read the [troubleshooting guide](https://github.com/ladybug-me/caelestia-dots-kde#troubleshooting) and checked [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) or [Discussions](https://github.com/ladybug-me/caelestia-dots-kde/discussions).
-          required: true
-        - label: I have pulled the latest changes and re-run the installer (`bash ./setup.sh`).
-          required: false
-        - label: I have updated system packages with `sudo pacman -Syu`.
-          required: false
-  - type: textarea
-    attributes:
-      label: Diagnostics
-      description: Run `./diagnose` in the repository and paste the output below. The result is also saved as `./diagnose.result`.
-      value: "<details><summary>Quick diagnose</summary>\n\n```\n<!-- Run `./diagnose` inside the repo, and paste the result here! -->\n```\n\n</details>"
-    validations:
-      required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        Include the relevant logs and the behavior you expected if something fails.
-
-        Use `LANG=C LC_ALL=C` if you need English command output.
-
-        The `<details>` and `<summary>` tags below are used to keep long logs collapsed.
+        A quick search of [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) helps avoid duplicates - if you find one, give it a thumbs up instead.
 
   - type: textarea
     attributes:
-      label: Issue details
-      description: Describe what happened, what you expected, and anything else that may help.
-      value: "\n<!-- Describe the issue here. Include logs if relevant. -->\n\n<details><summary>Logs</summary>\n\n```\n<!-- Paste log output here. -->\n```\n\n</details>"
+      label: What happened?
+      description: What went wrong? What did you expect instead?
+      placeholder: |
+        The launcher froze when I typed "terminal" and pressed Enter. I expected it to open Konsole.
     validations:
       required: true
 
-  - type: checkboxes
+  - type: textarea
     attributes:
-      label: Confirmation
-      options:
-        - label: I understand that logs are usually required to investigate this issue.
-          required: true
+      label: Steps to reproduce
+      description: How can someone else trigger this?
+      placeholder: |
+        1. Open the launcher (Super+Space)
+        2. Type "terminal"
+        3. Press Enter
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Environment
+      description: Distro, Plasma version, anything that helps narrow it down.
+      placeholder: |
+        - Distro: CachyOS
+        - Plasma: 6.3
+        - Installed via: setup.sh
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Logs or screenshots
+      description: |
+        If relevant, paste logs or drag in screenshots. The `caelestia-shell-ipc log` command shows live shell logs.
+      placeholder: Drag and drop images here, or paste log output.
+    validations:
+      required: false

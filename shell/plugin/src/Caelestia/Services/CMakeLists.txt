@@ -1,4 +1,5 @@
 find_package(KF6GlobalAccel REQUIRED)
+find_package(X11 REQUIRED)
 qml_module(caelestia-services
     URI Caelestia.Services
     SOURCES
@@ -41,16 +42,19 @@ qml_module(caelestia-services
         kwinworkspacestate.cpp
         kwinworkspacestate.hpp
         kwinactivewindowbridge.cpp
+        windowicon.cpp
         kwinactivewindowbridge.hpp
         globalshortcut.cpp
         globalshortcut.hpp
         windowscreencast.cpp
         windowscreencast.hpp
+        windowicon.hpp
     LIBRARIES
         Qt::DBus
         Qt::Gui
         Qt::WaylandClient
         KF6::GlobalAccel
+        X11::X11
         PkgConfig::Pipewire
         PkgConfig::Aubio
         PkgConfig::Cava

@@ -1,0 +1,12 @@
+{
+  "default": true,
+  "line-length": false,
+  "no-duplicate-heading": { "siblings_only": true },
+  "no-trailing-punctuation": false,
+  "no-inline-html": false,
+  "first-line-h1": false,
+  "no-emphasis-as-heading": false,
+  "no-trailing-spaces": { "br_spaces": 0 },
+  "ul-style": { "style": "dash" },
+  "ol-prefix": { "style": "ordered" }
+}

@@ -79,7 +79,22 @@ Item {
         anchors.margins: Tokens.padding.large
 
         asynchronous: true
-        active: root.shouldBeActive || root.visible
+        active: true
+
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                if (asynchronous) {
+                    console.error("[Preload Failsafe] Utilities failed to load asynchronously. Retrying synchronously...");
+                    active = false;
+                    asynchronous = false;
+                    Qt.callLater(() => { active = true; });
+                } else {
+                    console.error("[Preload Failsafe] Utilities failed to load synchronously! Giving up.");
+                }
+            } else if (status === Loader.Ready) {
+                console.log("[Preload] Utilities loaded successfully.");
+            }
+        }
 
         sourceComponent: Content {
             implicitWidth: root.implicitWidth - root.totalPadding

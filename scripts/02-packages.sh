@@ -2,6 +2,8 @@
 # 02-packages.sh - Install plasma-wallpaper-application and ensure Python tooling
 # (Package groups are installed by the individual 02-*-packages.sh scripts)
 
+set -euo pipefail
+
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 
 echo

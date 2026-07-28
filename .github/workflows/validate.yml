@@ -2,12 +2,63 @@ name: Validate
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: ["main", "dev"]
   pull_request:
-    branches: [ "**" ]
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  repo-checks:
+  # ═══════════════════════════════════════════════════════════
+  # Job 1: Shell script quality - syntax, shellcheck, best practices
+  # ═══════════════════════════════════════════════════════════
+  shell-quality:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: Run shell quality checks
+        run: bash .github/scripts/check_shell_quality.sh
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 3: C++ build - compile the TUI installer
+  # ═══════════════════════════════════════════════════════════
+  cpp-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake g++ make
+
+      - name: Configure installer build
+        run: |
+          cd installer
+          cmake -B build -DCMAKE_BUILD_TYPE=Release .
+        env:
+          CCACHE_DISABLE: 1
+
+      - name: Build installer
+        run: cmake --build installer/build -- -j$(nproc)
+
+      - name: Verify binary exists
+        run: test -f installer/build/caelestia-install && echo "Installer binary OK"
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 4: Python quality - lint, compile, best practices
+  # ═══════════════════════════════════════════════════════════
+  python-quality:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,5 +69,153 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install lint tools
+        run: pip install flake8
+
+      - name: Python compile check
+        run: |
+          echo "::group::Python compile check"
+          find . -name '*.py' \
+            -not -path './.git/*' \
+            -not -path '*/build/*' \
+            -not -path '*/__pycache__/*' \
+            -print0 | xargs -0 -n1 python3 -m py_compile
+          echo "::endgroup::"
+
+      - name: flake8 lint
+        run: |
+          echo "::group::flake8"
+          # Only check our own Python scripts, not vendored/pre-existing ones
+          flake8 .github/scripts/ \
+            --exclude 'orion_search.py,menu_perf_stats.py' \
+            --max-line-length=120 \
+            --extend-ignore=E402,W503,E501 \
+            --count \
+            --show-source \
+            --statistics
+          echo "::endgroup::"
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 5: Repository integrity - cross-cutting consistency checks
+  # ═══════════════════════════════════════════════════════════
+  repo-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
       - name: Run repository integrity tests
         run: python3 .github/scripts/test_repo_integrity.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 6: JSON configuration validation
+  # ═══════════════════════════════════════════════════════════
+  json-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate theme.json and menu.json
+        run: python3 .github/scripts/validate_json_configs.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 7: File hygiene - large files, whitespace, merge conflicts
+  # ═══════════════════════════════════════════════════════════
+  file-hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run file hygiene checks
+        run: python3 .github/scripts/check_file_hygiene.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 8: Markdown lint
+  # ═══════════════════════════════════════════════════════════
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        continue-on-error: true
+        with:
+          globs: |
+            docs/**/*.md
+            .github/*.md
+            .github/CONTRIBUTING.md
+
+  # ═══════════════════════════════════════════════════════════
+  # Final gate: require all non-skippable jobs to pass
+  # ═══════════════════════════════════════════════════════════
+  validate-gate:
+    needs:
+      - shell-quality
+      - cpp-build
+      - python-quality
+      - repo-integrity
+      - json-validation
+      - file-hygiene
+      - markdown-lint
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Report status
+        run: |
+          echo "## Validate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          declare -A job_results
+          job_results[shell-quality]="${{ needs.shell-quality.result }}"
+          job_results[cpp-build]="${{ needs.cpp-build.result }}"
+          job_results[python-quality]="${{ needs.python-quality.result }}"
+          job_results[repo-integrity]="${{ needs.repo-integrity.result }}"
+          job_results[json-validation]="${{ needs.json-validation.result }}"
+          job_results[file-hygiene]="${{ needs.file-hygiene.result }}"
+          job_results[markdown-lint]="${{ needs.markdown-lint.result }}"
+
+          all_passed=true
+          # Jobs with pre-existing violations that don't block the gate
+          soft_fail_jobs="shell-quality qml-conventions"
+          for job in "${!job_results[@]}"; do
+            result="${job_results[$job]}"
+            if [[ "$result" == "success" ]]; then
+              echo "- [PASS] **${job}**" >> $GITHUB_STEP_SUMMARY
+            elif [[ "$result" == "skipped" ]]; then
+              echo "- [SKIP] **${job}**" >> $GITHUB_STEP_SUMMARY
+            elif [[ " $soft_fail_jobs " == *" $job "* ]]; then
+              echo "- [WARN] **${job}** - pre-existing issues (not blocking)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- [FAIL] **${job}** - ${result}" >> $GITHUB_STEP_SUMMARY
+              all_passed=false
+            fi
+          done
+
+          if [[ "$all_passed" != "true" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Some checks failed. Please review the job logs above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+

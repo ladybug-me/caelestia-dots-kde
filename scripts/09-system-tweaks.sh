@@ -11,7 +11,7 @@
 #   bash scripts/10-system-tweaks.sh           # Apply all tweaks
 #   bash scripts/10-system-tweaks.sh --list    # List available tweaks
 
-set -uo pipefail
+set -euo pipefail
 RED="\033[0;31m"
 CYAN="\033[0;36m"; GREEN="\033[0;32m"; RST="\033[0m"
 info() { echo -e "${CYAN}[INFO]  $*${RST}"; }

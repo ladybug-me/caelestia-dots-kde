@@ -2,6 +2,8 @@
 # 01-ensure-prereqs.sh  Ensure prerequisites are installed.
 # Idempotent: exits immediately if present.
 
+set -euo pipefail
+
 if [[ "$BASE_DISTRO" == "arch" ]]; then
     ensure_yay() {
         if command -v yay >/dev/null 2>&1; then

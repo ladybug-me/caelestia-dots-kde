@@ -20,6 +20,3 @@ include_directories(src)
 
 # Define executable
 add_executable(caelestia-install ${SOURCES})
-
-# Link libraries
-target_link_libraries(caelestia-install util)

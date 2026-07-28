@@ -61,6 +61,17 @@ StyledRect {
     radius: Tokens.rounding.large
     color: Colours.tPalette.m3surfaceContainer
 
+    Timer {
+        id: execTimer
+        interval: 250
+        repeat: false
+        property var pendingAction: null
+        onTriggered: {
+            if (pendingAction) pendingAction();
+            pendingAction = null;
+        }
+    }
+
     ColumnLayout {
         id: layout
 
@@ -135,7 +146,8 @@ StyledRect {
                         isToggle: false
                         onClicked: {
                             root.visibilities.utilities = false;
-                            WindowFactory.create();
+                            execTimer.pendingAction = () => WindowFactory.create();
+                            execTimer.restart();
                         }
                     }
                 }
@@ -147,7 +159,8 @@ StyledRect {
                         isToggle: false
                         onClicked: {
                             root.visibilities.utilities = false;
-                            ColorPicker.pickColor();
+                            execTimer.pendingAction = () => ColorPicker.pickColor();
+                            execTimer.restart();
                         }
                     }
                 }

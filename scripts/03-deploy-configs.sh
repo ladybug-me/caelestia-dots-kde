@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 03-deploy-configs.sh  Deploy Caelestia configuration files to ~/.config
 
+set -euo pipefail
+
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 SRC_DIR="$BUNDLE_DIR/src"
 DOTS_DIR="$SRC_DIR/dots"

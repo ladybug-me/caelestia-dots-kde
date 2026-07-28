@@ -77,11 +77,27 @@ Item {
         return false;
     }
 
+    function findMatchingIndex(list, str) {
+        if (!list || !str) return -1;
+        let arr = Array.from(list);
+        for (let i = 0; i < arr.length; i++) {
+            let pattern = arr[i];
+            if (pattern.startsWith("^") && pattern.endsWith("$")) {
+                let re = new RegExp(pattern);
+                if (re.test(str)) return i;
+            } else if (pattern === str) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     Connections {
         target: KWinActiveWindowBridge
         enabled: root.active
         ignoreUnknownSignals: true
         function onWindowListChanged() { root.updatePresence(); }
+        function onActiveWindowChanged() { root.updatePresence(); }
     }
 
     Connections {
@@ -89,6 +105,7 @@ Item {
         enabled: root.active
         function onArpcSteamAutoDetectChanged() { root.updatePresence(); }
         function onArpcTargetWindowsChanged() { root.updatePresence(); }
+        function onArpcTargetWindowLabelsChanged() { root.updatePresence(); }
         function onArpcCaelestiaInfoChanged() { root.updatePresence(); }
         function onArpcSteamBlacklistChanged() { root.updatePresence(); }
         function onArpcAppNameChanged() { root.updatePresence(); }
@@ -132,6 +149,21 @@ Item {
         let topSteamTitle = "";
         let topTargetClass = "";
         let topTargetTitle = "";
+        let topTargetMatchIdx = -1;
+
+        // Priority 2 prefers the focused window: a background app that happens
+        // to match the regex shouldn't describe you better than what you're
+        // actually looking at. Seeding the values here means the scan below
+        // only fills them in when nothing focused matched.
+        const activeClass = KWinActiveWindowBridge.activeWindow.class ?? "";
+        if (activeClass !== "") {
+            const activeIdx = root.findMatchingIndex(GlobalConfig.services.arpcTargetWindows, activeClass);
+            if (activeIdx >= 0) {
+                topTargetClass = activeClass;
+                topTargetTitle = KWinActiveWindowBridge.activeWindow.title ?? "";
+                topTargetMatchIdx = activeIdx;
+            }
+        }
 
         for (const toplevel of KWinActiveWindowBridge.windowList) {
             let winClass = toplevel.class ?? "";
@@ -147,9 +179,13 @@ Item {
                 }
             }
 
-            if (topTargetClass === "" && GlobalConfig.services.arpcTargetWindows && root.testRegexList(GlobalConfig.services.arpcTargetWindows, winClass)) {
-                topTargetClass = winClass;
-                topTargetTitle = winTitle;
+            if (topTargetClass === "") {
+                let matchIdx = root.findMatchingIndex(GlobalConfig.services.arpcTargetWindows, winClass);
+                if (matchIdx >= 0) {
+                    topTargetClass = winClass;
+                    topTargetTitle = winTitle;
+                    topTargetMatchIdx = matchIdx;
+                }
             }
         }
 
@@ -177,8 +213,18 @@ Item {
 
         // Priority 2: Custom Apps (Target Windows)
         if (topTargetClass !== "") {
+            let displayDetails = topTargetTitle;
+            let labels = GlobalConfig.services.arpcTargetWindowLabels;
+            if (labels && topTargetMatchIdx >= 0 && topTargetMatchIdx < labels.length) {
+                let label = labels[topTargetMatchIdx];
+                if (label && label !== "") {
+                    displayDetails = label
+                        .replace(/\{class\}/g, topTargetClass)
+                        .replace(/\{title\}/g, topTargetTitle);
+                }
+            }
             root.sendActivity({
-                details: topTargetTitle,
+                details: displayDetails,
                 state: "Using " + topTargetClass,
                 large_image: topTargetClass,
                 small_image: "",

@@ -16,6 +16,10 @@ StyledRect {
     required property PopoutState popouts
     property var model: popouts.dockModel
 
+    // Resolved through the same helper the taskbar tile uses, so the hover popup
+    // can never disagree with the tile it belongs to.
+    readonly property string iconSource: model ? WinIcons.sourceFor(model.entry, model.appClass, model.iconName) : ""
+
     property MprisPlayer player: {
         if (!model) return null;
         return Players.list.find(p => p.identity.toLowerCase().includes(model.appClass.toLowerCase()) || (model.id && p.identity.toLowerCase().includes(model.id.toLowerCase().replace(".desktop", "")))) || null;
@@ -88,7 +92,7 @@ StyledRect {
                     asynchronous: true
                     Layout.alignment: Qt.AlignVCenter
                     implicitSize: fallbackText.implicitHeight
-                    source: root.model ? Icons.getAppIcon(root.model.iconName, "image-missing") : ""
+                    source: root.iconSource
                 }
 
                 StyledText {
@@ -187,7 +191,7 @@ StyledRect {
                                 implicitSize: thumb.height * 0.5
                                 asynchronous: true
                                 visible: screencastRequest.objectSerial === 0
-                                source: root.model ? Icons.getAppIcon(root.model.iconName, "image-missing") : ""
+                                source: root.iconSource
                             }
 
                             Pipewire.PipeWireSourceItem {

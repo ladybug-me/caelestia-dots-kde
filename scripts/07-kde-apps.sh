@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# 08-kde-apps.sh  Install KDE-specific applications:
+# 07-kde-apps.sh  Install KDE-specific applications:
 #   - kvantum + kvantum-qt5 (Qt style engine for Material You look)
 #   - kde-material-you-colors (AUR widget/daemon for wallpaper-adaptive colors)
 #
 # Idempotent: checks before installing.
+
+set -euo pipefail
 
 echo
 echo ""

@@ -47,6 +47,7 @@ class ServiceConfig : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(bool, arpcSteamAutoDetect, false)
     CONFIG_GLOBAL_PROPERTY(QStringList, arpcSteamBlacklist)
     CONFIG_GLOBAL_PROPERTY(QStringList, arpcTargetWindows)
+    CONFIG_GLOBAL_PROPERTY(QStringList, arpcTargetWindowLabels)
     CONFIG_GLOBAL_PROPERTY(bool, arpcCaelestiaInfo, false)
     CONFIG_GLOBAL_PROPERTY(bool, arpcManualOverride, false)
 

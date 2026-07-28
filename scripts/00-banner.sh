@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 00-banner.sh - Display installer greeting and project credits.
 
+set -euo pipefail
+
 print_banner() {
     local CYAN="\033[38;5;87m"
     local MAGENTA="\033[38;5;135m"

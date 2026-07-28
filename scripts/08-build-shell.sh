@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -uo pipefail
+set -euo pipefail
 
 CYAN="\033[0;36m"
 GREEN="\033[0;32m"
@@ -264,6 +264,56 @@ except Exception as e:
     sys.exit(1)
 '; then
     echo "Caelestia CLI Record/Dolphin Patch" >> "$USER_CACHE/caelestia-kde/failed_patches.txt"
+fi
+EOF
+
+info "Patching caelestia-cli shell/emoji/clipboard/search for path-based config resolution (requires root)..."
+sudo bash -s -- "$HOME" << 'EOF'
+USER_HOME="$1"
+SHELL_CONFIG="$USER_HOME/.config/quickshell/caelestia/shell.qml"
+
+if ! python3 -c '
+import sys, os, glob
+
+user_home = "'"$USER_HOME"'"
+shell_cfg  = "'"$SHELL_CONFIG"'"
+search_paths = sys.path + glob.glob(user_home + "/.local/lib/python*/site-packages")
+
+# All subcommand files that use qs -c caelestia for IPC / lifecycle management
+sub_files = ["shell.py", "emoji.py", "clipboard.py", "screenshot.py", "search.py"]
+
+old_pat = "\"qs\", \"-c\", \"caelestia\""
+new_pat = "\"quickshell\", \"-p\", \"" + shell_cfg + "\""
+
+patched = 0
+for fn in sub_files:
+    fp = None
+    for sp in search_paths:
+        cand = os.path.join(sp, "caelestia", "subcommands", fn)
+        if os.path.exists(cand):
+            fp = cand
+            break
+    if not fp:
+        continue
+    with open(fp, "r") as f:
+        code = f.read()
+    if old_pat not in code:
+        continue
+    code = code.replace(old_pat, new_pat)
+    with open(fp, "w") as f:
+        f.write(code)
+    patched += 1
+    print(f"  Patched {fp}  → path-based config resolution")
+
+if patched == 0:
+    print("  No caelestia-cli subcommand files needed patching (already done or not found)")
+else:
+    print(f"  Successfully patched {patched} file(s)")
+'; then
+    echo "Caelestia CLI path-based config resolution patch applied successfully"
+else
+    mkdir -p "$USER_HOME/.cache/caelestia-kde" 2>/dev/null || true
+    echo "Caelestia CLI path-based config resolution patch failed" >> "$USER_HOME/.cache/caelestia-kde/failed_patches.txt" 2>/dev/null || true
 fi
 EOF
 

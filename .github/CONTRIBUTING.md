@@ -1,95 +1,100 @@
-# Contributing to caelestia-dots-kde
+# Contributing to Caelestia KDE
 
-Thanks for your interest in contributing to the KDE Plasma port!
+We're glad you're here! This guide covers everything you need to start contributing.
 
-## Guidelines
+## Quick start
 
-- Please make **multiple PRs** if you have many features/fixes—don't combine unrelated changes
-- Don't include your personal configuration defaults in PRs
-- We can accept features we don't personally use, but they **must be configurable** (off by default for experimental features)
-- For **big changes**, please open an issue first to discuss—it saves effort for everyone
+```bash
+git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde
+cd ~/caelestia-dots-kde
+bash setup.sh          # Full install - do this at least once
+```
 
-### Native C++ KWin & Wayland Backend
-This port uses a native C++ plugin backend (`KWinActiveWindowBridge`, `KWinWorkspaceState`, and `GlobalShortcut`) to interact directly with KWin and the Wayland registry.
+Make your changes in the cloned repo, test them (see below), then open a PR. That's it.
 
-For a full list of exposed QML APIs, signals, and architectural details, refer to:
-* docs/kwin_port_architecture.md
+## What makes a good PR?
 
-### Installer Development
-Caelestia uses a custom C++ TUI installer for interactive installation setups.
-- **Aesthetics & Theme**: Customize colors, ASCII splash screen, layout coordinates, and labels inside `installer/theme.json`
-- **Menu Options**: Configure the installation checklist options, groupings, and triggers inside `installer/menu.json`
-- **Core C++ Logic**: Edit terminal drawing (`Draw.cpp`), UI layouts (`UI.cpp`), and **Script execution order** (`Runner.cpp`) inside `installer/src/`
+- **One thing at a time.** If you have three features, send three PRs - it's much faster to review.
+- **Keep your personal config out.** Don't include your wallpaper path, custom keybinds, or local settings.
+- **Experimental features off by default.** If it's flashy or niche, add a config toggle and default it to `false`.
+- **Big ideas? Open an issue first.** It saves you from writing code we might not be able to accept.
 
-For a complete configuration and styling guide, refer to:
-* `docs/installer_config.md`
+## Where stuff lives
 
-# Code
+| Area | Directory | Tech |
+|------|-----------|------|
+| Shell UI (launcher, bar, notifications, etc.) | `shell/` | QML + Quickshell |
+| KWin plugin (window management, shortcuts) | `shell/plugin/` | C++ |
+| TUI installer | `installer/src/` | C++ |
+| Installer theme & menus | `installer/theme.json`, `installer/menu.json` | JSON |
+| Install step scripts | `scripts/` | Bash |
+| User-facing update scripts | `src/bin/` | Bash |
 
-## Dynamic loading
+## Development workflow
 
-- If something's not always necessary, especially when guarded by a config option to enable/disable, put it in a `Loader`
-  - Note that you will need to declare positioning properties (like `anchors`) in the `Loader`, not the `sourceComponent`
-  - When something that's to be dynamically loaded doesn't affect its parent layout, you can have a fading animation by using FadeLoader and set the `shown` prop instead of `active` and `visible`
+### For QML / shell changes
 
-## Practical concerns
+Edit files in `~/.config/quickshell/caelestia/`. Changes reload automatically - no restart needed.
 
-- Make sure what you add does not require significant resources for a minor purpose or harm usability just for the sake of looking nice. The dotfiles must remain practical for daily driving.
-- If there is something really fancy and impractical anyway, add a config option for it and make sure it's disabled by default (example: constantly rotating background clock)
+```bash
+# View live logs
+caelestia-shell-ipc log
 
-## Style
+# Restart the shell cleanly
+caelestia shell -k && caelestia shell -d
+```
 
-- Spaces
-  - Space properties and children data into meaningful groups. (but of course, don't use 2+ blanks in a row)
-  - Put spaces between text and operators: `if (condition) { ... } else { ... }` instead of `if(condition){ ... }else{ ... }`
-- As you can see, it's pretty easy to use lots of nesting. There's no hard limit, the original author nests a lot too, but avoid/mitigate that:
-  - Prefer early return: Use something like `if (!condition) return; doStuff();` instead of `if (condition) { doStuff() }`
-  - If you feel it's a bother to refractor something into a new file, remember there's `component` to declare reusable components in the same file.
+**Editor setup:**
+- Run `touch ~/.config/quickshell/caelestia/.qmlls.ini` for QML language server support
+- In VS Code, install the "Qt Qml" extension and set the `qmlls` path to `/usr/bin/qmlls6`
 
-## Setting up for Development
+### For C++ plugin changes
 
-These instructions assume **Arch Linux** or an Arch-based distro.
+```bash
+bash scripts/08-build-shell.sh   # Recompiles and installs the plugins
+caelestia shell -k && caelestia shell -d   # Restart to pick up the new .so
+```
 
-### Full Installation (Recommended)
+### For installer changes
 
-- Clone this repo: `git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde`
-- Run the installer: `bash ~/caelestia-dots-kde/setup.sh`
-- Make your changes in the cloned repo
-- Test locally, then push to your fork and create a PR
+```bash
+cd installer
+cmake -B build && cmake --build build   # Compile
+./build/caelestia-install               # Run (use with care!)
+```
 
-### Development-Only Setup
+## Code style (the short version)
 
-_For testing Quickshell widget changes without a full KDE installation:_
+**QML:**
+- Spaces between operators: `if (condition) {` not `if(condition){`
+- Prefer early returns: `if (!ok) return;` over deep nesting
+- Group related properties with blank lines
+- Import order: QtQuick -> Qt -> Quickshell -> Caelestia -> qs.components -> qs.services -> qs.modules
+- Run `python3 shell/scripts/qml-lint-conventions.py` - it catches most issues
 
-- Install KDE Plasma 6+ and Quickshell: `yay -S plasma-desktop quickshell-git`
-- Copy `shell` folder to `~/.config/quickshell/caelestia`
-- Most widgets will work, but KDE integration may be limited
+**Shell scripts:**
+- Use `set -euo pipefail` at the top
+- Prefer `[[ ]]` over `[ ]`
+- Quote variables: `"$VAR"` not `$VAR`
+- Run `shellcheck` on your scripts
 
-### Quickshell Development
+## Security
 
-- **LSP setup**: Run `touch ~/.config/quickshell/caelestia/.qmlls.ini` for QML language server support
-- **VSCode**: Install the official "Qt Qml" extension, then set `qmlls` custom exe path to `/usr/bin/qmlls6` in settings
-- **Live reload**: Changes to `.qml` files reload automatically when saved
+- When calling shell commands from QML, pass arguments as an array - never concatenate strings:
+  ```js
+  // Good
+  Quickshell.execDetached(["bash", "-c", "echo \"$1\"", "--", myVar])
+  // Bad
+  Quickshell.execDetached(["bash", "-c", "echo " + myVar])
+  ```
+- Use `Paths.runtimeTemp("filename")` for temporary files - not hardcoded `/tmp/` paths.
 
+## Architecture docs
 
-## Testing Your Changes
+- [KWin port architecture](docs/kwin_port_architecture.md) - C++ plugin design and QML APIs
+- [Installer configuration](docs/installer_config.md) - theme.json and menu.json reference
+- [Lock screen architecture](docs/lockscreen_architecture.md) - lockscreen.qml design
 
-**For C++ plugin changes:**
-- Recompile the C++ plugins: `bash scripts/08-build-shell.sh`
+## Stuck?
 
-**For Quickshell shell:**
-- Restart the shell cleanly: `caelestia shell -k && caelestia shell -d`
-- Or run raw: `qs -c caelestia` in the terminal to view debugging logs
-- Edit files in `~/.config/quickshell/caelestia`, changes reload live
-
-**For KDE settings:**
-- Re-run the relevant installation step or manually test with `kwriteconfig6`
-
-
-## Security & Conventions
-
-- **Shell Execution Security**: When invoking shell scripts via `Quickshell.execDetached` or `Process {}`, prefer argv arrays or positional `$1`/`$2` args over string-concatenated shell commands to prevent injection footguns.
-  - **Good**: `Quickshell.execDetached(["bash", "-c", "echo \"$1\"", "--", myVar]);`
-  - **Bad**: `Quickshell.execDetached(["bash", "-c", "echo " + myVar]);`
-- **Temporary Files**: Do not hardcode `/tmp/` paths. Instead, use the `Paths.runtimeTemp("filename")` helper from `qs.utils` to safely place temp files in the user's `XDG_RUNTIME_DIR`. This prevents permission clashes on multi-user systems.
-- **IPC Parsing**: When writing custom C++ D-Bus or IPC listeners (e.g. `discordipc.cpp`), always validate frame length prefixes before reading from the buffer to prevent infinite loops from malicious or malformed payloads.
+Open a [Discussion](https://github.com/ladybug-me/caelestia-dots-kde/discussions) or ask in an issue - we're happy to help.

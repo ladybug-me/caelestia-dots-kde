@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 00-backup-themes.sh  Backs up current KDE settings with konsave so uninstall.sh can restore them.
 
-set -uo pipefail
+set -euo pipefail
 
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"

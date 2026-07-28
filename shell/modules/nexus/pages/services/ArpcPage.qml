@@ -173,9 +173,13 @@ PageBase {
             status: qsTr("Select an open window to add to ARPC")
             onSelected: windowClass => {
                 let list = Array.from(GlobalConfig.services.arpcTargetWindows);
+                let labels = Array.from(GlobalConfig.services.arpcTargetWindowLabels);
                 if (!list.includes(windowClass)) {
+                    while (labels.length < list.length) labels.push("");
                     list.push(windowClass);
+                    labels.push("");
                     GlobalConfig.services.arpcTargetWindows = list;
+                    GlobalConfig.services.arpcTargetWindowLabels = labels;
                     GlobalConfig.save();
                 }
             }
@@ -205,51 +209,101 @@ PageBase {
                     required property int index
 
                     width: ListView.view.width
-                    height: 40
+                    height: 68
                     color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
                     radius: Tokens.rounding.medium
 
-                    RowLayout {
-                        id: itemLayout
+                    ColumnLayout {
                         anchors.fill: parent
                         anchors.leftMargin: Tokens.padding.medium
                         anchors.rightMargin: Tokens.padding.medium
-                        spacing: Tokens.spacing.medium
+                        anchors.topMargin: Tokens.padding.small
+                        anchors.bottomMargin: Tokens.padding.small
+                        spacing: 2
 
-                        IconImage {
-                            Layout.alignment: Qt.AlignVCenter
-                            implicitSize: Math.round(Tokens.font.icon.large.pointSize * 1.5)
-                            source: Quickshell.iconPath(delegateRect.modelData, "image-missing")
-                        }
-
-                        StyledText {
+                        RowLayout {
                             Layout.fillWidth: true
-                            Layout.alignment: Qt.AlignVCenter
-                            text: delegateRect.modelData
-                            font: Tokens.font.body.small
-                            elide: Text.ElideRight
+                            spacing: Tokens.spacing.medium
+
+                            IconImage {
+                                Layout.alignment: Qt.AlignVCenter
+                                implicitSize: Math.round(Tokens.font.icon.large.pointSize * 1.5)
+                                source: Quickshell.iconPath(delegateRect.modelData, "image-missing")
+                            }
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                text: delegateRect.modelData
+                                font: Tokens.font.body.small
+                                elide: Text.ElideRight
+                            }
+
+                            Item {
+                                Layout.alignment: Qt.AlignVCenter
+                                implicitWidth: 28
+                                implicitHeight: 28
+
+                                StateLayer {
+                                    anchors.fill: parent
+                                    radius: 14
+                                    onClicked: {
+                                        let list = Array.from(GlobalConfig.services.arpcTargetWindows);
+                                        let labels = Array.from(GlobalConfig.services.arpcTargetWindowLabels);
+                                        list.splice(delegateRect.index, 1);
+                                        if (delegateRect.index < labels.length) {
+                                            labels.splice(delegateRect.index, 1);
+                                        }
+                                        GlobalConfig.services.arpcTargetWindows = list;
+                                        GlobalConfig.services.arpcTargetWindowLabels = labels;
+                                        GlobalConfig.save();
+                                    }
+                                }
+
+                                MaterialIcon {
+                                    anchors.centerIn: parent
+                                    text: "close"
+                                    font: Tokens.font.icon.small
+                                }
+                            }
                         }
 
-                        Item {
-                            Layout.alignment: Qt.AlignVCenter
-                            implicitWidth: 28
-                            implicitHeight: 28
+                        StyledTextField {
+                            id: labelInput
+                            Layout.fillWidth: true
+                            Layout.leftMargin: Math.round(Tokens.font.icon.large.pointSize * 1.5) + Tokens.spacing.medium
+                            Layout.preferredHeight: 24
+                            placeholderText: qsTr("Custom label (optional) — use {class}, {title}")
+                            font: Tokens.font.label.small
+                            verticalAlignment: TextInput.AlignVCenter
 
-                            StateLayer {
-                                anchors.fill: parent
-                                radius: 14
-                                onClicked: {
-                                    let list = Array.from(GlobalConfig.services.arpcTargetWindows);
-                                    list.splice(delegateRect.index, 1);
-                                    GlobalConfig.services.arpcTargetWindows = list;
+                            property bool initializing: true
+
+                            function commitLabel() {
+                                if (initializing) return;
+                                let labels = Array.from(GlobalConfig.services.arpcTargetWindowLabels);
+                                while (labels.length <= delegateRect.index) labels.push("");
+                                labels[delegateRect.index] = text;
+                                GlobalConfig.services.arpcTargetWindowLabels = labels;
+                            }
+
+                            onAccepted: {
+                                commitLabel();
+                                GlobalConfig.save();
+                            }
+                            onActiveFocusChanged: {
+                                if (!activeFocus && !initializing) {
+                                    commitLabel();
                                     GlobalConfig.save();
                                 }
                             }
 
-                            MaterialIcon {
-                                anchors.centerIn: parent
-                                text: "close"
-                                font: Tokens.font.icon.small
+                            Component.onCompleted: {
+                                let labels = GlobalConfig.services.arpcTargetWindowLabels;
+                                if (delegateRect.index < labels.length && labels[delegateRect.index]) {
+                                    text = labels[delegateRect.index];
+                                }
+                                initializing = false;
                             }
                         }
                     }
@@ -489,7 +543,12 @@ PageBase {
 
             sourceComponent: Item {
                 implicitWidth: Tokens.sizes.nexus.popupWidth
-                implicitHeight: CUtils.clamp(row.popupHeight, Tokens.sizes.nexus.minPopupHeight, Tokens.sizes.nexus.maxPopupHeight)
+                implicitHeight: {
+                    let maxH = CUtils.clamp(row.popupHeight, Tokens.sizes.nexus.minPopupHeight, Tokens.sizes.nexus.maxPopupHeight);
+                    let contentH = list.contentHeight;
+                    if (contentH > 0) return Math.min(contentH, maxH);
+                    return maxH;
+                }
 
                 ColumnLayout {
                     anchors.fill: parent

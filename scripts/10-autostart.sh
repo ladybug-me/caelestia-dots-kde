@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# 06-autostart.sh  Set up autostart entries for Quickshell and kde-material-you-colors.
+# 10-autostart.sh  Set up autostart entries for Quickshell and kde-material-you-colors.
 # Idempotent: overwrites .desktop files with correct content each run.
+
+set -euo pipefail
 
 # Resolve the bundle root the same way the build script does, so this works
 # whether the installer exports it or the script is run directly.

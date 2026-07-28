@@ -30,7 +30,7 @@ Item {
     property bool isDragging: false
     property real spacing: Tokens.spacing.medium
     property real padding: Tokens.padding.medium
-    
+
     HoverHandler { id: dockHover }
 
     ListModel { id: dockModel }
@@ -440,13 +440,7 @@ Item {
 
                         anchors.centerIn: parent
                         implicitSize: Math.round(((delegateItem.width || 0) * 0.7) / 2) * 2 || 0
-                        source: {
-                            if (!modelData) return "";
-                            if (modelData.entry && modelData.entry.icon) {
-                                return Quickshell.iconPath(modelData.entry.icon, "image-missing");
-                            }
-                            return Quickshell.iconPath(modelData.iconName, "image-missing");
-                        }
+                        source: modelData ? WinIcons.sourceFor(modelData.entry, modelData.appClass, modelData.iconName) : ""
                         asynchronous: true
                         visible: !(Config.bar.dock.recolourIcons ?? false)
                         
@@ -641,8 +635,15 @@ Item {
                             return e.id.toLowerCase().includes(appClass.toLowerCase()) || appClass.toLowerCase().includes(eBase);
                         }) || null;
                     }
-                    iconName = entry ? entry.id : appClass;
+                    if (entry)
+                        iconName = entry.id;
+                    else
+                        iconName = appClass.toLowerCase().split(/[^a-z0-9]/)[0] || appClass;
                 }
+
+                // No desktop entry — pull the icon straight from the window (_NET_WM_ICON).
+                if (!entry)
+                    WinIcons.request(appClass, ipc.title || "");
 
                 apps.push({
                     id: appClass,

@@ -31,23 +31,38 @@ void ClipboardManager::reload() {
         m_listProc->waitForFinished(200);
     }
 
-    m_listProc = new QProcess(this);
-    m_listProc->setProgram("cliphist");
-    m_listProc->setArguments({"list"});
+    auto* proc = new QProcess(this);
+    m_listProc = proc;
+    proc->setProgram("cliphist");
+    proc->setArguments({"list"});
 
-    connect(m_listProc, &QProcess::finished, this, [this](int exitCode, QProcess::ExitStatus) {
-        if (exitCode != 0) {
-            qCWarning(lcClipboard) << "cliphist list failed with exit code" << exitCode;
-            m_items.clear();
-            emit itemsChanged();
-            m_listProc->deleteLater();
+    // Capture the process itself rather than reading m_listProc from the
+    // handlers: a crashed cliphist emits errorOccurred() *and* finished() for
+    // the same instance, and a superseded reload can deliver signals after
+    // m_listProc has already been reassigned.
+    const auto release = [this, proc] {
+        if (m_listProc == proc) {
             m_listProc = nullptr;
+        }
+        proc->deleteLater();
+    };
+
+    connect(proc, &QProcess::finished, this, [this, proc, release](int exitCode, QProcess::ExitStatus status) {
+        const bool current = m_listProc == proc;
+        const auto output = proc->readAllStandardOutput();
+        release();
+
+        // A newer reload() already replaced this process; its result wins.
+        if (!current) {
             return;
         }
 
-        const auto output = m_listProc->readAllStandardOutput();
-        m_listProc->deleteLater();
-        m_listProc = nullptr;
+        if (status == QProcess::CrashExit || exitCode != 0) {
+            qCWarning(lcClipboard) << "cliphist list failed with exit code" << exitCode;
+            m_items.clear();
+            emit itemsChanged();
+            return;
+        }
 
         // Parse natively: each line is "<id>\t<preview>"
         static const QRegularExpression imageRe(
@@ -104,13 +119,16 @@ void ClipboardManager::reload() {
         }
     });
 
-    connect(m_listProc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError err) {
+    connect(proc, &QProcess::errorOccurred, this, [release](QProcess::ProcessError err) {
         qCWarning(lcClipboard) << "cliphist list process error:" << err;
-        m_listProc->deleteLater();
-        m_listProc = nullptr;
+        // FailedToStart is the only error for which finished() is not also
+        // emitted, so it is the only one this handler has to clean up after.
+        if (err == QProcess::FailedToStart) {
+            release();
+        }
     });
 
-    m_listProc->start();
+    proc->start();
 }
 
 void ClipboardManager::decodeImage(int id, const QString& outPath) {

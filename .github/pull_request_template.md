@@ -1,42 +1,26 @@
-# Pull Request
+Thanks for contributing! A few quick things help reviewers give you faster feedback.
 
-## Description
+## What does this change?
 
-Briefly describe what this PR changes.
+<!-- A sentence or two about what this PR does. -->
 
-<!--- ONE FEATURE PER PULL REQUEST ONLY -->
-<!--- Don't include personal config defaults or unrelated changes -->
+## Screenshots (if UI change)
 
-## Type of change
+<!-- Drag and drop images here. -->
+
+## How did you test it?
+
+<!-- e.g. "Ran setup.sh on a fresh CachyOS install", "Tested the launcher with 50+ apps", etc. -->
+
+## Type
 
 - [ ] Bug fix
 - [ ] New feature
-- [ ] Configuration change
-- [ ] Documentation update
-- [ ] Refactor / cleanup
-- [ ] Other (please describe)
+- [ ] Config / theme
+- [ ] Docs
+- [ ] Refactor
+- [ ] Other
 
-## Impact
+## Notes for reviewers
 
-- [ ] KDE Plasma settings
-- [ ] Quickshell widgets
-- [ ] Installation / deployment scripts
-- [ ] Theme or color system
-- [ ] Other (please describe)
-
-## Testing
-
-Describe how you tested these changes.
-
-## Screenshots
-
-Add screenshots if they are relevant.
-
-## Review status
-
-- [ ] Ready for review
-- [ ] Work in progress
-
-## Additional context
-
-Add any other context here, especially for UI or widget changes.
+<!-- Anything tricky, trade-offs you made, or context that helps review. Delete if empty. -->

@@ -1,32 +1,27 @@
 name: Feature request
-description: Suggest an improvement or new feature
-labels: ["enhancement"]
+description: Got an idea? We'd love to hear it
+labels: ["feature"]
+
 body:
   - type: markdown
     attributes:
       value: |
-        Before suggesting a feature, please search [existing issues](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue) to avoid duplicates.
+        Thanks for the idea!
 
-        This repository is a **KDE Plasma port**. For Hyprland features, use [caelestia-dots/caelestia](https://github.com/caelestia-dots/caelestia).
-
-        Please write in English.
+        A quick search of [existing requests](https://github.com/ladybug-me/caelestia-dots-kde/issues?q=is%3Aissue+label%3Afeature) avoids duplicates - if you find one, give it a thumbs up instead.
 
   - type: textarea
     attributes:
-      label: Proposal
-      description: What would you like to add or change?
-      placeholder: A widget, setting, workflow improvement, or other change.
+      label: What's the idea?
+      description: Describe what you'd like to see. Mockups, screenshots, or examples from other projects all help.
+      placeholder: A widget that shows the current weather in the top bar.
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: Use case
-      description: Explain why this would be useful. Include your workflow if relevant.
-      placeholder: Describe the problem this feature would solve.
-
-  - type: textarea
-    attributes:
-      label: Additional context
-      description: Add links, screenshots, or references if they help explain the request.
-      placeholder: Mockups, examples, or other notes.
+      label: Why would it be useful?
+      description: What problem does it solve, or what workflow does it improve?
+      placeholder: I check the weather frequently and hate pulling out my phone.
+    validations:
+      required: false

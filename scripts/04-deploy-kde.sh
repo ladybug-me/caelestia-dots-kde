@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 04-deploy-kde.sh  Apply KDE Plasma settings: Darkly theme, Kvantum,
 #                    5 virtual desktops, disable KDE OSDs.
-#
+
+set -euo pipefail
+
 # Applies:
 #   - Plasma style:      Darkly
 #   - Application style: Darkly (via kvantum-dark as engine)

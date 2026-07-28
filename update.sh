@@ -176,7 +176,23 @@ elif [[ -x "/usr/bin/caelestia" ]]; then
 else
     CAELESTIA_BIN="caelestia"
 fi
-"$CAELESTIA_BIN" shell -k 2>/dev/null || true
+
+# Resolve a reliable way to talk to the running shell instance.
+# Prefer the (now-patched) CLI; fall back to the path-based IPC wrapper.
+SHELL_IPC=""
+if [[ -x "$HOME/.local/bin/caelestia-shell-ipc" ]]; then
+    SHELL_IPC="$HOME/.local/bin/caelestia-shell-ipc"
+fi
+
+# Kill the running shell – try CLI first, then the IPC wrapper, then pkill.
+if "$CAELESTIA_BIN" shell -k 2>/dev/null; then
+    : # CLI succeeded
+elif [[ -n "$SHELL_IPC" ]] && "$SHELL_IPC" quit 2>/dev/null; then
+    : # IPC wrapper succeeded
+else
+    pkill -f "quickshell.*caelestia/shell.qml" 2>/dev/null || true
+fi
+
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 SCHEME_FILE="$STATE_DIR/scheme.json"
 i=0
@@ -184,7 +200,20 @@ while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
     sleep 1
     i=$((i + 1))
 done
-"$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
+
+# Start the shell – the CLI was patched for path-based resolution during build.
+# Fall back to the IPC wrapper or direct quickshell if the CLI is unavailable.
+if command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
+    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
+elif [[ -n "$SHELL_IPC" ]]; then
+    "$SHELL_IPC" start 2>/dev/null &
+else
+    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+fi
+
 echo "Shell restarted successfully!"
 echo
 echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"

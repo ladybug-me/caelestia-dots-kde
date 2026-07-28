@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # 06-services.sh  Enable systemd user services and reload KWin.
 
+set -euo pipefail
+
 echo
 echo ""
 echo "  Step 6/11  Services & KWin"
