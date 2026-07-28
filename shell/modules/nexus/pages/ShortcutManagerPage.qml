@@ -41,6 +41,11 @@ PageBase {
                 apps.push(item)
             }
         }
+        let sortByName = (a, b) => a.name.localeCompare(b.name, undefined, {numeric: true})
+        shell.sort(sortByName)
+        apps.sort(sortByName)
+        workspaces.sort(sortByName)
+        tiling.sort(sortByName)
         
         shellShortcuts = shell
         appShortcuts = apps
@@ -92,6 +97,9 @@ PageBase {
             text: qsTr("Shell UI")
         }
 
+        SectionHeader {
+            text: qsTr("Hover the indicator to identify the affected app")
+        }
         Repeater {
             model: root.shellShortcuts
             delegate: ShortcutRow {
