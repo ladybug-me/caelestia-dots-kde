@@ -6,8 +6,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QTemporaryFile>
 #include <QProcess>
+#include <QTemporaryFile>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 #include <QtDBus/QDBusReply>
@@ -33,8 +33,8 @@ QString escapeJsString(const QString& value) {
 KWinActiveWindowBridgeAdaptor::KWinActiveWindowBridgeAdaptor(QObject* parent)
     : QDBusAbstractAdaptor(parent) {}
 
-void KWinActiveWindowBridgeAdaptor::notifyActiveWindow(
-    const QString& uuid, const QString& title, const QString& appClass, const QString& activeOutputName, bool isFullscreen, bool isMaximized) {
+void KWinActiveWindowBridgeAdaptor::notifyActiveWindow(const QString& uuid, const QString& title,
+    const QString& appClass, const QString& activeOutputName, bool isFullscreen, bool isMaximized) {
     if (auto* bridge = qobject_cast<KWinActiveWindowBridge*>(parent())) {
         bridge->updateActiveWindow(uuid, title, appClass, activeOutputName, isFullscreen, isMaximized);
     }
@@ -118,21 +118,25 @@ function onActiveWindowChanged() {
 }
 
 function notifyWindowList() {
-    let wins = workspace.windowList();
+    //console.info("Caelestia: notifyWindowList called");
     let arr = [];
+    let wins = workspace.windowList();
+    if (!wins) return;
     for (let i = 0; i < wins.length; ++i) {
         let w = wins[i];
         if (w.normalWindow) {
-            let deskId = 1;
             if (w.resourceClass === "quickshell") continue;
+            let deskId = -1;
             if (w.desktops && w.desktops.length > 0) {
                 let d = w.desktops[0];
-                let allD = workspace.desktops;
-                if (allD) {
-                    for (let j = 0; j < allD.length; ++j) {
-                        if (allD[j] === d) {
-                            deskId = j + 1;
-                            break;
+                if (d) {
+                    let allD = workspace.desktops;
+                    if (allD) {
+                        for (let j = 0; j < allD.length; ++j) {
+                            if (allD[j].id === d.id || allD[j] === d) {
+                                deskId = j + 1;
+                                break;
+                            }
                         }
                     }
                 }
@@ -245,9 +249,10 @@ void KWinActiveWindowBridge::setActiveOutputName(const QString& outputName) {
     }
 }
 
-void KWinActiveWindowBridge::updateActiveWindow(
-    const QString& uuid, const QString& title, const QString& appClass, const QString& activeOutputName, bool isFullscreen, bool isMaximized) {
-    m_activeWindow = QVariantMap{ { "address", uuid }, { "title", title }, { "class", appClass }, { "fullscreen", isFullscreen }, { "maximized", isMaximized } };
+void KWinActiveWindowBridge::updateActiveWindow(const QString& uuid, const QString& title, const QString& appClass,
+    const QString& activeOutputName, bool isFullscreen, bool isMaximized) {
+    m_activeWindow = QVariantMap{ { "address", uuid }, { "title", title }, { "class", appClass },
+        { "fullscreen", isFullscreen }, { "maximized", isMaximized } };
     if (m_activeOutputName != activeOutputName) {
         m_activeOutputName = activeOutputName;
         QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR", "/tmp");
@@ -287,22 +292,25 @@ void KWinActiveWindowBridge::executeKWinScriptAction(const QString& scriptBody) 
     tempFile.close();
 
     QDBusConnection bus = QDBusConnection::sessionBus();
-    QDBusMessage loadMsg = QDBusMessage::createMethodCall("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "loadScript");
+    QDBusMessage loadMsg =
+        QDBusMessage::createMethodCall("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "loadScript");
     loadMsg << fileName << scriptName;
     QDBusReply<int> reply = bus.call(loadMsg);
-    
+
     if (reply.isValid()) {
         int scriptId = reply.value();
-        QDBusMessage runMsg = QDBusMessage::createMethodCall("org.kde.KWin", QString("/Scripting/Script%1").arg(scriptId), "org.kde.kwin.Script", "run");
+        QDBusMessage runMsg = QDBusMessage::createMethodCall(
+            "org.kde.KWin", QString("/Scripting/Script%1").arg(scriptId), "org.kde.kwin.Script", "run");
         bus.call(runMsg);
-        
-        QDBusMessage unloadMsg = QDBusMessage::createMethodCall("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "unloadScript");
+
+        QDBusMessage unloadMsg =
+            QDBusMessage::createMethodCall("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting", "unloadScript");
         unloadMsg << scriptName;
         bus.call(unloadMsg, QDBus::NoBlock);
     } else {
         qWarning() << "Failed to load script:" << reply.error().message();
     }
-    
+
     QFile::remove(fileName);
 }
 
@@ -320,7 +328,8 @@ void KWinActiveWindowBridge::focusWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(escapeJsString(address));
+    )")
+                         .arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -333,7 +342,8 @@ void KWinActiveWindowBridge::closeWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(escapeJsString(address));
+    )")
+                         .arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -346,7 +356,8 @@ void KWinActiveWindowBridge::minimizeWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(escapeJsString(address));
+    )")
+                         .arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -359,9 +370,9 @@ void KWinActiveWindowBridge::maximizeWindow(const QString& address, bool horz, b
                 break;
             }
         }
-    )").arg(escapeJsString(address),
-            vert ? QStringLiteral("true") : QStringLiteral("false"),
-            horz ? QStringLiteral("true") : QStringLiteral("false"));
+    )")
+                         .arg(escapeJsString(address), vert ? QStringLiteral("true") : QStringLiteral("false"),
+                             horz ? QStringLiteral("true") : QStringLiteral("false"));
     executeKWinScriptAction(script);
 }
 
@@ -374,7 +385,8 @@ void KWinActiveWindowBridge::raiseWindow(const QString& address) {
                 break;
             }
         }
-    )").arg(escapeJsString(address));
+    )")
+                         .arg(escapeJsString(address));
     executeKWinScriptAction(script);
 }
 
@@ -390,7 +402,8 @@ void KWinActiveWindowBridge::moveWindow(const QString& address, int x, int y) {
                 break;
             }
         }
-    )").arg(escapeJsString(address), QString::number(x), QString::number(y));
+    )")
+                         .arg(escapeJsString(address), QString::number(x), QString::number(y));
     executeKWinScriptAction(script);
 }
 
@@ -406,24 +419,36 @@ void KWinActiveWindowBridge::resizeWindow(const QString& address, int width, int
                 break;
             }
         }
-    )").arg(escapeJsString(address), QString::number(width), QString::number(height));
+    )")
+                         .arg(escapeJsString(address), QString::number(width), QString::number(height));
     executeKWinScriptAction(script);
 }
 
 void KWinActiveWindowBridge::setWindowProperty(const QString& address, const QString& property, bool enable) {
     QString kwinProp;
-    if (property == "above") kwinProp = "keepAbove";
-    else if (property == "below") kwinProp = "keepBelow";
-    else if (property == "skip_taskbar") kwinProp = "skipTaskbar";
-    else if (property == "skip_pager") kwinProp = "skipPager";
-    else if (property == "fullscreen") kwinProp = "fullScreen";
-    else if (property == "shaded") kwinProp = "shade";
-    else if (property == "demands_attention") kwinProp = "demandsAttention";
-    else if (property == "no_border") kwinProp = "noBorder";
-    else if (property == "minimized") kwinProp = "minimized";
-    else return;
+    if (property == "above")
+        kwinProp = "keepAbove";
+    else if (property == "below")
+        kwinProp = "keepBelow";
+    else if (property == "skip_taskbar")
+        kwinProp = "skipTaskbar";
+    else if (property == "skip_pager")
+        kwinProp = "skipPager";
+    else if (property == "fullscreen")
+        kwinProp = "fullScreen";
+    else if (property == "shaded")
+        kwinProp = "shade";
+    else if (property == "demands_attention")
+        kwinProp = "demandsAttention";
+    else if (property == "no_border")
+        kwinProp = "noBorder";
+    else if (property == "minimized")
+        kwinProp = "minimized";
+    else
+        return;
 
-    QString script = QString(R"(
+    QString script =
+        QString(R"(
         let wins = workspace.windowList();
         for (let i = 0; i < wins.length; ++i) {
             if (wins[i].internalId && String(wins[i].internalId) === "%1") {
@@ -431,7 +456,8 @@ void KWinActiveWindowBridge::setWindowProperty(const QString& address, const QSt
                 break;
             }
         }
-    )").arg(escapeJsString(address), kwinProp, enable ? QStringLiteral("true") : QStringLiteral("false"));
+    )")
+            .arg(escapeJsString(address), kwinProp, enable ? QStringLiteral("true") : QStringLiteral("false"));
     executeKWinScriptAction(script);
 }
 
@@ -452,7 +478,8 @@ void KWinActiveWindowBridge::setWindowDesktop(const QString& address, int deskto
                 break;
             }
         }
-    )").arg(escapeJsString(address), QString::number(desktopId));
+    )")
+                         .arg(escapeJsString(address), QString::number(desktopId));
     executeKWinScriptAction(script);
 }
 
@@ -463,7 +490,8 @@ void KWinActiveWindowBridge::setDesktop(int desktopId) {
         if (d && idx >= 0 && idx < d.length) {
             workspace.currentDesktop = d[idx];
         }
-    )").arg(desktopId);
+    )")
+                         .arg(desktopId);
     executeKWinScriptAction(script);
 }
 
