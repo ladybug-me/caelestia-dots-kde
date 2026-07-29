@@ -45,7 +45,7 @@ private:
     void scheduleRebuild();
 
     QList<KWinDesktop*> m_desktops;
-    int m_activeId = 1; // Fallback
+    int m_activeId = 0;
     uint32_t m_rows = 1;
     class QTimer* m_rebuildTimer = nullptr;
 };

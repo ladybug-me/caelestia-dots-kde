@@ -37,13 +37,13 @@ Item {
         }
 
         property int activeWsId: {
-            if (typeof KWinWorkspaceState !== "undefined") {
-                return KWinWorkspaceState.activeId || 1;
+            if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.activeId > 0) {
+                return KWinWorkspaceState.activeId;
             }
-            if (typeof KWinActiveWindowBridge !== "undefined") {
-                return KWinActiveWindowBridge.currentDesktop || 1;
+            if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.currentDesktop > 0) {
+                return KWinActiveWindowBridge.currentDesktop;
             }
-            return Hyprland.workspace?.id || 1;
+            return typeof Hyprland !== "undefined" ? (Hyprland.workspace?.id || 1) : 1;
         }
 
         readonly property var occupied: {
