@@ -16,9 +16,10 @@ StyledRect {
 
     readonly property int currentWsIdx: {
         let i = activeWsId - 1;
+        const count = workspaces.count > 0 ? workspaces.count : Config.bar.workspaces.shown;
         while (i < 0)
-            i += Config.bar.workspaces.shown;
-        return i % Config.bar.workspaces.shown;
+            i += count;
+        return i % count;
     }
 
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"

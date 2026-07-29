@@ -20,7 +20,8 @@ Item {
             return;
         let count = 0;
         const start = groupOffset;
-        const end = start + Config.bar.workspaces.shown;
+        const wsCount = root.workspaces.count > 0 ? root.workspaces.count : Config.bar.workspaces.shown;
+        const end = start + wsCount;
         for (const [ws, occ] of Object.entries(occupied)) {
             if (ws > start && ws <= end && occ) {
                 const isFirstInGroup = Number(ws) === start + 1;
@@ -59,9 +60,10 @@ Item {
 
             function getWsIdx(ws: int): int {
                 let i = ws - 1;
+                const count = root.workspaces.count > 0 ? root.workspaces.count : Config.bar.workspaces.shown;
                 while (i < 0)
-                    i += Config.bar.workspaces.shown;
-                return i % Config.bar.workspaces.shown;
+                    i += count;
+                return i % count;
             }
 
             anchors.horizontalCenter: isHorizontal ? undefined : root.horizontalCenter

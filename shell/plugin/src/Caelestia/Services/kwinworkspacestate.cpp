@@ -64,6 +64,16 @@ void KWinWorkspaceState::rebuildWorkspaceList() {
     emit workspacesChanged();
 }
 
+void KWinWorkspaceState::scheduleRebuild() {
+    if (!m_rebuildTimer) {
+        m_rebuildTimer = new QTimer(this);
+        m_rebuildTimer->setSingleShot(true);
+        m_rebuildTimer->setInterval(20);
+        connect(m_rebuildTimer, &QTimer::timeout, this, &KWinWorkspaceState::rebuildWorkspaceList);
+    }
+    m_rebuildTimer->start();
+}
+
 void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_created(
     const QString& desktop_id, uint32_t position) {
     if (desktop_id.isEmpty())
@@ -90,11 +100,11 @@ void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_remov
         }
     }
     // Safety fallback timer: rebuild workspace list after all possible position events
-    QTimer::singleShot(350, this, [this]() { rebuildWorkspaceList(); });
+    scheduleRebuild();
 }
 
 void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_done() {
-    rebuildWorkspaceList();
+    scheduleRebuild();
 }
 
 void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_rows(uint32_t rows) {
@@ -136,6 +146,7 @@ void KWinDesktop::org_kde_plasma_virtual_desktop_done() {
     // Management-level done handles rebuilding after all positions are updated.
     // Per-desktop done only fires after this desktop's own state is set,
     // but other desktops may not have received their position updates yet.
+    m_manager->scheduleRebuild();
 }
 
 } // namespace caelestia::services
