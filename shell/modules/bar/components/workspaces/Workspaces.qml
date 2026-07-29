@@ -48,7 +48,8 @@ Item {
 
         readonly property var occupied: {
             let occ = {};
-            for (let i = 1; i <= Config.bar.workspaces.shown; ++i) {
+            const count = container.workspaceCount;
+            for (let i = 1; i <= count; ++i) {
                 occ[i] = false;
             }
             
@@ -84,6 +85,15 @@ Item {
 
         // Force QML dependency tracker to bind to windowList correctly
         property var kwinWindowList: KWinActiveWindowBridge.windowList
+
+        Connections {
+            target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+            function onWorkspacesChanged() {
+                if (typeof KWinActiveWindowBridge !== "undefined") {
+                    KWinActiveWindowBridge.refreshWindows();
+                }
+            }
+        }
 
         Item {
             anchors.fill: parent

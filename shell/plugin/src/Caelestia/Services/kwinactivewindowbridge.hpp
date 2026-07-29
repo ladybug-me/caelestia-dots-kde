@@ -49,7 +49,10 @@ public:
     Q_INVOKABLE void resizeWindow(const QString &address, int width, int height);
     Q_INVOKABLE void setWindowProperty(const QString &address, const QString &property, bool enable);
     Q_INVOKABLE void setWindowDesktop(const QString &address, int desktopId);
+    Q_INVOKABLE void setFullscreen(const QString& address, bool fullscreen);
+    Q_INVOKABLE void setMaximized(const QString& address, bool maximized);
     Q_INVOKABLE void setDesktop(int desktopId);
+    Q_INVOKABLE void refreshWindows();
     Q_INVOKABLE void nextDesktop();
     Q_INVOKABLE void previousDesktop();
     Q_INVOKABLE void runArbitraryScript(const QString &script);

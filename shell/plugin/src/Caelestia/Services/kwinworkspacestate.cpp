@@ -1,5 +1,6 @@
 #include "kwinworkspacestate.hpp"
 #include <QDebug>
+#include <QTimer>
 #include <algorithm>
 
 namespace caelestia::services {
@@ -20,12 +21,13 @@ int KWinWorkspaceState::activeId() const {
 
 QVariantList KWinWorkspaceState::workspaces() const {
     QVariantList list;
-    for (auto* d : m_desktops) {
+    for (int i = 0; i < m_desktops.size(); ++i) {
+        auto* d = m_desktops[i];
         if (d->id().isEmpty())
             continue;
         list.append(QVariantMap{ { "id", d->id() },
-            { "name", d->name().isEmpty() ? QString::number(d->position() + 1) : d->name() },
-            { "index", d->position() + 1 }, { "active", d->isActive() } });
+            { "name", d->name().isEmpty() ? QString::number(i + 1) : d->name() },
+            { "index", i + 1 }, { "active", d->isActive() } });
     }
     return list;
 }
@@ -48,11 +50,13 @@ void KWinWorkspaceState::rebuildWorkspaceList() {
         return a->position() < b->position();
     });
 
-    // Find active
-    for (auto* d : m_desktops) {
-        if (d->isActive()) {
-            m_activeId = d->position() + 1;
-            emit activeIdChanged();
+    // Find active using contiguous index to match KWin's array index
+    for (int i = 0; i < m_desktops.size(); ++i) {
+        if (m_desktops[i]->isActive()) {
+            if (m_activeId != i + 1) {
+                m_activeId = i + 1;
+                emit activeIdChanged();
+            }
             break;
         }
     }
@@ -85,6 +89,8 @@ void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_remov
             break;
         }
     }
+    // Safety fallback timer: rebuild workspace list after all possible position events
+    QTimer::singleShot(350, this, [this]() { rebuildWorkspaceList(); });
 }
 
 void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_done() {
@@ -96,7 +102,8 @@ void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_rows(uint32_t
         m_rows = rows;
 }
 
-KWinDesktop::KWinDesktop(KWinWorkspaceState* manager, struct ::org_kde_plasma_virtual_desktop* desktop, const QString& id, uint32_t position)
+KWinDesktop::KWinDesktop(
+    KWinWorkspaceState* manager, struct ::org_kde_plasma_virtual_desktop* desktop, const QString& id, uint32_t position)
     : QObject(manager)
     , QtWayland::org_kde_plasma_virtual_desktop(desktop)
     , m_manager(manager)
@@ -126,7 +133,9 @@ void KWinDesktop::org_kde_plasma_virtual_desktop_position(uint32_t position) {
 }
 
 void KWinDesktop::org_kde_plasma_virtual_desktop_done() {
-    m_manager->rebuildWorkspaceList();
+    // Management-level done handles rebuilding after all positions are updated.
+    // Per-desktop done only fires after this desktop's own state is set,
+    // but other desktops may not have received their position updates yet.
 }
 
 } // namespace caelestia::services

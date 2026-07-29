@@ -176,7 +176,7 @@ function onCurrentDesktopChanged() {
     let d = workspace.desktops;
     if (d) {
         for (let i = 0; i < d.length; ++i) {
-            if (d[i] === curr) {
+            if (d[i].id === curr.id || d[i] === curr) {
                 idx = i + 1;
                 break;
             }
@@ -492,6 +492,48 @@ void KWinActiveWindowBridge::setDesktop(int desktopId) {
         }
     )")
                          .arg(desktopId);
+    executeKWinScriptAction(script);
+}
+
+void KWinActiveWindowBridge::refreshWindows() {
+    QString script = QString(R"(
+        let wins = workspace.windowList();
+        let arr = [];
+        if (wins) {
+            for (let i = 0; i < wins.length; ++i) {
+                let w = wins[i];
+                if (w.normalWindow && w.resourceClass !== "quickshell") {
+                    let deskId = -1;
+                    if (w.desktops && w.desktops.length > 0) {
+                        let d = w.desktops[0];
+                        if (d) {
+                            let allD = workspace.desktops;
+                            if (allD) {
+                                for (let j = 0; j < allD.length; ++j) {
+                                    if (allD[j].id === d.id || allD[j] === d) {
+                                        deskId = j + 1;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    arr.push({
+                        address: w.internalId ? String(w.internalId) : "",
+                        pid: w.pid || 0,
+                        title: w.caption || "",
+                        class: w.resourceClass || "",
+                        fullscreen: w.fullScreen ? true : false,
+                        maximized: w.maximized ? true : false,
+                        minimized: w.minimized ? true : false,
+                        floating: !w.tile,
+                        workspace: { id: deskId }
+                    });
+                }
+            }
+        }
+        callDBus("dev.caelestia.KWinActiveWindow", "/dev/caelestia/KWinActiveWindow", "dev.caelestia.KWinActiveWindow", "notifyWindowList", JSON.stringify(arr));
+    )");
     executeKWinScriptAction(script);
 }
 
