@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.Services
 import qs.modules.nexus.common
 
 PageBase {
@@ -16,6 +18,25 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
+        Connections {
+            target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+            function onWorkspacesChanged() {
+                let len = KWinWorkspaceState.workspaces.length;
+                if (len > 0 && GlobalConfig.bar.workspaces.shown !== len) {
+                    GlobalConfig.bar.workspaces.shown = len;
+                }
+            }
+        }
+
+        Component.onCompleted: {
+            if (typeof KWinWorkspaceState !== "undefined") {
+                let len = KWinWorkspaceState.workspaces.length;
+                if (len > 0 && GlobalConfig.bar.workspaces.shown !== len) {
+                    GlobalConfig.bar.workspaces.shown = len;
+                }
+            }
+        }
+
         StepperRow {
             first: true
             label: qsTr("Shown")
@@ -24,7 +45,24 @@ PageBase {
             from: 1
             to: 20
             stepSize: 1
-            onMoved: v => GlobalConfig.bar.workspaces.shown = v
+            onMoved: v => {
+                GlobalConfig.bar.workspaces.shown = v;
+                if (typeof KWinActiveWindowBridge !== "undefined") {
+                    KWinActiveWindowBridge.runArbitraryScript(`
+                        let target = ${v};
+                        let d = workspace.desktops;
+                        let count = d.length;
+                        while (count < target) {
+                            workspace.createDesktop(count, "Desktop " + (count + 1));
+                            count++;
+                        }
+                        while (count > target) {
+                            workspace.removeDesktop(d[count - 1]);
+                            count--;
+                        }
+                    `);
+                }
+            }
         }
 
         ToggleRow {

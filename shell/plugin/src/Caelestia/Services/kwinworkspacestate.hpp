@@ -52,7 +52,7 @@ class KWinDesktop : public QObject, public QtWayland::org_kde_plasma_virtual_des
 {
     Q_OBJECT
 public:
-    KWinDesktop(KWinWorkspaceState *manager, struct ::org_kde_plasma_virtual_desktop *desktop);
+    KWinDesktop(KWinWorkspaceState *manager, struct ::org_kde_plasma_virtual_desktop *desktop, const QString &id, uint32_t position);
     ~KWinDesktop() override;
 
     QString id() const { return m_id; }

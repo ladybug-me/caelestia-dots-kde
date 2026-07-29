@@ -4,7 +4,7 @@
 
 namespace caelestia::services {
 
-KWinWorkspaceState::KWinWorkspaceState(QObject *parent)
+KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
     : QWaylandClientExtensionTemplate<KWinWorkspaceState>(1) // extension version
 {
     initialize(); // Connects to the wayland display globally provided by Qt
@@ -21,20 +21,19 @@ int KWinWorkspaceState::activeId() const {
 QVariantList KWinWorkspaceState::workspaces() const {
     QVariantList list;
     for (auto* d : m_desktops) {
-        if (d->id().isEmpty()) continue;
-        list.append(QVariantMap{
-            {"id", d->id()},
-            {"name", d->name().isEmpty() ? QString::number(d->position() + 1) : d->name()},
-            {"index", d->position() + 1},
-            {"active", d->isActive()}
-        });
+        if (d->id().isEmpty())
+            continue;
+        list.append(QVariantMap{ { "id", d->id() },
+            { "name", d->name().isEmpty() ? QString::number(d->position() + 1) : d->name() },
+            { "index", d->position() + 1 }, { "active", d->isActive() } });
     }
     return list;
 }
 
 void KWinWorkspaceState::switchTo(const QString& id) {
-    if (!isInitialized()) return;
-    
+    if (!isInitialized())
+        return;
+
     for (auto* d : m_desktops) {
         if (d->id() == id || QString::number(d->position() + 1) == id || d->name() == id) {
             d->request_activate();
@@ -48,7 +47,7 @@ void KWinWorkspaceState::rebuildWorkspaceList() {
     std::sort(m_desktops.begin(), m_desktops.end(), [](KWinDesktop* a, KWinDesktop* b) {
         return a->position() < b->position();
     });
-    
+
     // Find active
     for (auto* d : m_desktops) {
         if (d->isActive()) {
@@ -57,29 +56,32 @@ void KWinWorkspaceState::rebuildWorkspaceList() {
             break;
         }
     }
-    
+
     emit workspacesChanged();
 }
 
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_created(const QString &desktop_id, uint32_t position) {
-    if (desktop_id.isEmpty()) return;
-    
+void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_created(
+    const QString& desktop_id, uint32_t position) {
+    if (desktop_id.isEmpty())
+        return;
+
     for (auto* d : m_desktops) {
-        if (d->id() == desktop_id) return;
+        if (d->id() == desktop_id)
+            return;
     }
-    
+
     auto* handle = get_virtual_desktop(desktop_id);
-    if (!handle) return;
-    
-    auto* desktop = new KWinDesktop(this, handle);
+    if (!handle)
+        return;
+
+    auto* desktop = new KWinDesktop(this, handle, desktop_id, position);
     m_desktops.append(desktop);
 }
 
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_removed(const QString &desktop_id) {
+void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_removed(const QString& desktop_id) {
     for (int i = 0; i < m_desktops.size(); ++i) {
         if (m_desktops[i]->id() == desktop_id) {
             delete m_desktops.takeAt(i);
-            rebuildWorkspaceList();
             break;
         }
     }
@@ -90,24 +92,24 @@ void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_done() {
 }
 
 void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_rows(uint32_t rows) {
-    if (rows > 0) m_rows = rows;
+    if (rows > 0)
+        m_rows = rows;
 }
 
-
-KWinDesktop::KWinDesktop(KWinWorkspaceState *manager, struct ::org_kde_plasma_virtual_desktop *desktop)
+KWinDesktop::KWinDesktop(KWinWorkspaceState* manager, struct ::org_kde_plasma_virtual_desktop* desktop, const QString& id, uint32_t position)
     : QObject(manager)
     , QtWayland::org_kde_plasma_virtual_desktop(desktop)
     , m_manager(manager)
-{
-}
+    , m_id(id)
+    , m_position(position) {}
 
 KWinDesktop::~KWinDesktop() = default;
 
-void KWinDesktop::org_kde_plasma_virtual_desktop_desktop_id(const QString &desktop_id) {
+void KWinDesktop::org_kde_plasma_virtual_desktop_desktop_id(const QString& desktop_id) {
     m_id = desktop_id;
 }
 
-void KWinDesktop::org_kde_plasma_virtual_desktop_name(const QString &name) {
+void KWinDesktop::org_kde_plasma_virtual_desktop_name(const QString& name) {
     m_name = name;
 }
 

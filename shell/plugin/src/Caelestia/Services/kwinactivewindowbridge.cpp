@@ -161,6 +161,7 @@ workspace.windowActivated.connect(onActiveWindowChanged);
 function onWindowAdded(window) {
     if (window && window.normalWindow) {
         try { window.minimizedChanged.connect(notifyWindowList); } catch(e){}
+        try { window.desktopsChanged.connect(notifyWindowList); } catch(e){}
     }
     notifyWindowList();
 }
@@ -183,12 +184,14 @@ function onCurrentDesktopChanged() {
 workspace.currentDesktopChanged.connect(onCurrentDesktopChanged);
 workspace.windowAdded.connect(onWindowAdded);
 workspace.windowRemoved.connect(notifyWindowList);
+workspace.desktopsChanged.connect(notifyWindowList);
 
 // Initial push
 let initialWins = workspace.windowList();
 for (let i = 0; i < initialWins.length; ++i) {
     if (initialWins[i].normalWindow) {
         try { initialWins[i].minimizedChanged.connect(notifyWindowList); } catch(e){}
+        try { initialWins[i].desktopsChanged.connect(notifyWindowList); } catch(e){}
     }
 }
 onActiveWindowChanged();

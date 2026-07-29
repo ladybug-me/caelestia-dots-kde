@@ -20,7 +20,7 @@ Item {
     required property ShellScreen screen
     required property bool fullscreen
     readonly property int barThickness: bar.thickness
-    
+
     StyledClippingRect {
         id: container
 
@@ -28,7 +28,18 @@ Item {
 
 
         readonly property bool onSpecial: false
+        
+        property int workspaceCount: {
+            if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > 0) {
+                return KWinWorkspaceState.workspaces.length;
+            }
+            return Config.bar.workspaces.shown;
+        }
+
         property int activeWsId: {
+            if (typeof KWinWorkspaceState !== "undefined") {
+                return KWinWorkspaceState.activeId || 1;
+            }
             if (typeof KWinActiveWindowBridge !== "undefined") {
                 return KWinActiveWindowBridge.currentDesktop || 1;
             }
@@ -36,31 +47,30 @@ Item {
         }
 
         readonly property var occupied: {
-            const occ = {};
+            let occ = {};
+            for (let i = 1; i <= Config.bar.workspaces.shown; ++i) {
+                occ[i] = false;
+            }
             
-            if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
-                const wins = KWinActiveWindowBridge.windowList;
+            const kwinList = container.kwinWindowList;
+            if (kwinList) {
+                for (let i = 0; i < kwinList.length; ++i) {
+                    const w = kwinList[i];
+                    if (w.workspace && typeof w.workspace.id === "number") {
+                        occ[w.workspace.id] = true;
+                    }
+                }
+            } else if (typeof Hypr !== "undefined") {
+                const wins = Hypr.toplevels.values;
                 for (let i = 0; i < wins.length; ++i) {
-                    const w = wins[i];
-                    if (w.desktops && w.desktops.length > 0) {
-                        occ[w.desktops[0]] = true;
+                    if (wins[i].workspace && typeof wins[i].workspace.id === "number") {
+                        occ[wins[i].workspace.id] = true;
                     }
-                }
-            } else if (Hyprland.workspaces) {
-                const hyprWins = Hyprland.workspaces.values();
-                for (let i = 0; i < hyprWins.length; ++i) {
-                    if (hyprWins[i].windows > 0) {
-                        occ[hyprWins[i].id] = true;
-                    }
-                }
-            } else {
-                for (let i = 1; i <= Config.bar.workspaces.shown; i++) {
-                    occ[i] = false;
                 }
             }
             return occ;
         }
-        readonly property int groupOffset: Math.floor((activeWsId - 1) / Config.bar.workspaces.shown) * Config.bar.workspaces.shown
+        readonly property int groupOffset: Math.floor((activeWsId - 1) / container.workspaceCount) * container.workspaceCount
 
         property real blur: onSpecial ? 1 : 0
 
@@ -71,6 +81,9 @@ Item {
 
         color: Colours.tPalette.m3surfaceContainer
         radius: Tokens.rounding.full
+
+        // Force QML dependency tracker to bind to windowList correctly
+        property var kwinWindowList: KWinActiveWindowBridge.windowList
 
         Item {
             anchors.fill: parent
@@ -112,7 +125,7 @@ Item {
                 Repeater {
                     id: workspaces
 
-                    model: Config.bar.workspaces.shown
+                    model: container.workspaceCount
 
                     Workspace {
                         activeWsId: container.activeWsId

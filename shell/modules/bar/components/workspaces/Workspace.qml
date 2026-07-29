@@ -8,6 +8,7 @@ import Caelestia.Config
 import qs.components
 import qs.services
 import qs.utils
+import Caelestia.Services
 
 GridLayout {
     id: root
@@ -25,8 +26,10 @@ GridLayout {
     readonly property int size: isHorizontal ? (implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)) : (implicitHeight + (hasWindows ? Tokens.padding.extraSmall : 0))
 
     readonly property int ws: groupOffset + index + 1
+    readonly property int maxIcons: Config.bar.workspaces.maxWindowIcons
     readonly property bool isOccupied: occupied[ws] ?? false
     readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
+    property var kwinWindowList: KWinActiveWindowBridge.windowList
 
     columns: isHorizontal ? -1 : 1
     rows: isHorizontal ? 1 : -1
@@ -228,7 +231,7 @@ GridLayout {
         Layout.leftMargin: isHorizontal ? -barThickness / 10 : 0
 
         visible: active
-        active: false // root.hasWindows disabled in KDE port to prevent Hyprland IPC calls
+        active: root.hasWindows
 
         sourceComponent: isHorizontal ? rowComponent : columnComponent
     }
@@ -263,7 +266,23 @@ GridLayout {
                 model: ScriptModel {
                     values: {
                         const ws = root.ws;
-                        const windows = Hypr.toplevels.values.filter(c => c.workspace?.id === ws);
+                        let windows = [];
+                        if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
+                            const wins = KWinActiveWindowBridge.windowList;
+                            for (let i = 0; i < wins.length; ++i) {
+                                const w = wins[i];
+                                if (w.workspace && w.workspace.id === ws && w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
+                                    windows.push(w);
+                                }
+                            }
+                        } else if (typeof Hypr !== "undefined") {
+                            const wins = Hypr.toplevels.values;
+                            for (let i = 0; i < wins.length; ++i) {
+                                if (wins[i].workspace && wins[i].workspace.id === ws) {
+                                    windows.push(wins[i]);
+                                }
+                            }
+                        }
                         const maxIcons = root.Config.bar.workspaces.maxWindowIcons;
                         return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                     }
@@ -273,7 +292,7 @@ GridLayout {
                     required property var modelData
 
                     grade: 0
-                    text: Icons.getAppCategoryIcon(modelData.lastIpcObject.class, "terminal")
+                    text: Icons.getAppCategoryIcon(modelData.lastIpcObject ? modelData.lastIpcObject["class"] : modelData["class"], "terminal")
                     color: Colours.palette.m3onSurfaceVariant
                 }
             }
@@ -310,7 +329,23 @@ GridLayout {
                 model: ScriptModel {
                     values: {
                         const ws = root.ws;
-                        const windows = Hypr.toplevels.values.filter(c => c.workspace?.id === ws);
+                        let windows = [];
+                        if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
+                            const wins = KWinActiveWindowBridge.windowList;
+                            for (let i = 0; i < wins.length; ++i) {
+                                const w = wins[i];
+                                if (w.workspace && w.workspace.id === ws && w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
+                                    windows.push(w);
+                                }
+                            }
+                        } else if (typeof Hypr !== "undefined") {
+                            const wins = Hypr.toplevels.values;
+                            for (let i = 0; i < wins.length; ++i) {
+                                if (wins[i].workspace && wins[i].workspace.id === ws) {
+                                    windows.push(wins[i]);
+                                }
+                            }
+                        }
                         const maxIcons = root.Config.bar.workspaces.maxWindowIcons;
                         return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                     }
@@ -320,7 +355,7 @@ GridLayout {
                     required property var modelData
 
                     grade: 0
-                    text: Icons.getAppCategoryIcon(modelData.lastIpcObject.class, "terminal")
+                    text: Icons.getAppCategoryIcon(modelData.lastIpcObject ? modelData.lastIpcObject["class"] : modelData["class"], "terminal")
                     color: Colours.palette.m3onSurfaceVariant
                 }
             }
