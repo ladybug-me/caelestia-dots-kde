@@ -17,6 +17,7 @@ PageBase {
     id: root
 
     property bool showLogout: false
+    property string activePreviewLayout: "Tile"
     title: qsTr("Window Tiling")
     isSubPage: true
 
@@ -111,6 +112,16 @@ PageBase {
             }
         }
 
+        KrohnkitePreview {
+            Layout.fillWidth: true
+            layout: root.activePreviewLayout
+            gapBetween: KrohnkiteConfig.screenGapBetween
+            gapTop: KrohnkiteConfig.screenGapTop
+            gapBottom: KrohnkiteConfig.screenGapBottom
+            gapLeft: KrohnkiteConfig.screenGapLeft
+            gapRight: KrohnkiteConfig.screenGapRight
+        }
+
         SectionHeader {
             Layout.topMargin: Tokens.spacing.medium
             text: qsTr("Gaps")
@@ -179,6 +190,7 @@ PageBase {
             fallbackIcon: "dashboard"
             onSelected: item => {
                 let layoutName = root.layoutValues[root.layoutItems.indexOf(item)];
+                root.activePreviewLayout = layoutName;
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Krohnkite" + layoutName + "Layout"]);
             }
         }
