@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Io
 import qs.components
 import qs.components.controls
+import qs.services
 import qs.modules.nexus.common
 
 
@@ -19,6 +20,25 @@ PageBase {
     title: qsTr("Window Tiling")
     isSubPage: true
 
+
+    property list<MenuItem> layoutItems: [
+        MenuItem { text: qsTr("BTree"); visible: KrohnkiteConfig.binaryTreeLayoutEnabled },
+        MenuItem { text: qsTr("Monocle"); visible: KrohnkiteConfig.monocleLayoutEnabled },
+        MenuItem { text: qsTr("Floating"); visible: KrohnkiteConfig.floatingLayoutEnabled },
+        MenuItem { text: qsTr("Quarter"); visible: KrohnkiteConfig.quarterLayoutEnabled },
+        MenuItem { text: qsTr("Spread"); visible: KrohnkiteConfig.spreadLayoutEnabled },
+        MenuItem { text: qsTr("Stacked"); visible: KrohnkiteConfig.stackedLayoutEnabled },
+        MenuItem { text: qsTr("Stair"); visible: KrohnkiteConfig.stairLayoutEnabled },
+        MenuItem { text: qsTr("Columns"); visible: KrohnkiteConfig.columnsLayoutEnabled },
+        MenuItem { text: qsTr("Tree Column"); visible: KrohnkiteConfig.treeColumnLayoutEnabled },
+        MenuItem { text: qsTr("Spiral"); visible: KrohnkiteConfig.spiralLayoutEnabled },
+        MenuItem { text: qsTr("Tile"); visible: KrohnkiteConfig.tileLayoutEnabled }
+    ]
+
+    property list<string> layoutValues: [
+        "BTree", "Monocle", "Floating", "Quarter", "Spread",
+        "Stacked", "Stair", "Columns", "TreeColumn", "Spiral", "Tile"
+    ]
 
     headerActions: [
         IconTextButton {
@@ -145,6 +165,26 @@ PageBase {
 
         SectionHeader {
             Layout.topMargin: Tokens.spacing.medium
+            text: qsTr("Active Layout")
+        }
+
+        SelectRow {
+            first: true
+            last: true
+            label: qsTr("Switch Layout")
+            subtext: qsTr("Triggers the KWin shortcut to switch layout")
+            menuItems: root.layoutItems
+            active: null
+            fallbackText: qsTr("Select Layout...")
+            fallbackIcon: "dashboard"
+            onSelected: item => {
+                let layoutName = root.layoutValues[root.layoutItems.indexOf(item)];
+                Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Krohnkite" + layoutName + "Layout"]);
+            }
+        }
+
+        SectionHeader {
+            Layout.topMargin: Tokens.spacing.medium
             text: qsTr("Ignored Window Classes")
         }
 
@@ -152,15 +192,15 @@ PageBase {
             first: true
             last: true
             Layout.fillWidth: true
-            implicitHeight: Math.max(rowLayout.implicitHeight, 48)
+            implicitHeight: colLayout.implicitHeight + colLayout.anchors.margins * 2
 
-            RowLayout {
-                id: rowLayout
+            ColumnLayout {
+                id: colLayout
                 anchors.fill: parent
                 anchors.margins: Tokens.padding.medium
                 anchors.leftMargin: Tokens.padding.largeIncreased
                 anchors.rightMargin: Tokens.padding.largeIncreased
-                spacing: Tokens.spacing.medium
+                spacing: Tokens.spacing.small
 
                 ColumnLayout {
                     Layout.fillWidth: true
@@ -178,16 +218,27 @@ PageBase {
                         text: qsTr("Comma separated list of classes to not tile (e.g. quickshell,krunner)")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.label.small
-                        elide: Text.ElideRight
+                        wrapMode: Text.Wrap
                     }
                 }
 
-                StyledTextField {
-                    Layout.preferredWidth: parent.width / 2
-                    Layout.alignment: Qt.AlignVCenter
-                    placeholderText: "krunner,yakuake,spectacle..."
-                    text: KrohnkiteConfig.ignoreClass
-                    onAccepted: KrohnkiteConfig.ignoreClass = text
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 32
+                    Layout.topMargin: Tokens.spacing.small
+                    radius: Tokens.rounding.small
+                    color: Colours.layer(Colours.palette.m3surfaceVariant, 2)
+
+                    StyledTextField {
+                        anchors.fill: parent
+                        anchors.leftMargin: Tokens.padding.medium
+                        anchors.rightMargin: Tokens.padding.medium
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Colours.palette.m3onSurface
+                        placeholderText: "krunner,yakuake,spectacle..."
+                        text: KrohnkiteConfig.ignoreClass
+                        onAccepted: KrohnkiteConfig.ignoreClass = text
+                    }
                 }
             }
         }
@@ -200,66 +251,77 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Binary Tree")
+            subtext: qsTr("Splits the screen in half recursively")
             checked: KrohnkiteConfig.binaryTreeLayoutEnabled
             onToggled: KrohnkiteConfig.binaryTreeLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Floating")
+            subtext: qsTr("Windows are placed freely, without tiling")
             checked: KrohnkiteConfig.floatingLayoutEnabled
             onToggled: KrohnkiteConfig.floatingLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Monocle")
+            subtext: qsTr("Displays one window maximized at a time")
             checked: KrohnkiteConfig.monocleLayoutEnabled
             onToggled: KrohnkiteConfig.monocleLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Quarter")
+            subtext: qsTr("Tiles windows into four equal quarters")
             checked: KrohnkiteConfig.quarterLayoutEnabled
             onToggled: KrohnkiteConfig.quarterLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Spiral")
+            subtext: qsTr("Tiles windows in an inward-spiraling pattern")
             checked: KrohnkiteConfig.spiralLayoutEnabled
             onToggled: KrohnkiteConfig.spiralLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Spread")
+            subtext: qsTr("Evenly spreads all windows across the screen")
             checked: KrohnkiteConfig.spreadLayoutEnabled
             onToggled: KrohnkiteConfig.spreadLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Stacked")
+            subtext: qsTr("One main window with the rest stacked below or beside")
             checked: KrohnkiteConfig.stackedLayoutEnabled
             onToggled: KrohnkiteConfig.stackedLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Stair")
+            subtext: qsTr("Tiles windows descending like a staircase")
             checked: KrohnkiteConfig.stairLayoutEnabled
             onToggled: KrohnkiteConfig.stairLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Three Column")
+            subtext: qsTr("Splits the screen into three vertical columns")
             checked: KrohnkiteConfig.threeColumnLayoutEnabled
             onToggled: KrohnkiteConfig.threeColumnLayoutEnabled = checked
         }
 
         ToggleRow {
             text: qsTr("Tile")
+            subtext: qsTr("Standard master and stack tiling layout")
             checked: KrohnkiteConfig.tileLayoutEnabled
             onToggled: KrohnkiteConfig.tileLayoutEnabled = checked
         }
         
         ToggleRow {
             text: qsTr("Cascade")
+            subtext: qsTr("Windows overlap sequentially like a waterfall")
             checked: KrohnkiteConfig.cascadeLayoutEnabled
             onToggled: KrohnkiteConfig.cascadeLayoutEnabled = checked
         }
@@ -267,6 +329,7 @@ PageBase {
         ToggleRow {
             last: true
             text: qsTr("Columns")
+            subtext: qsTr("Splits the screen into equal vertical columns")
             checked: KrohnkiteConfig.columnsLayoutEnabled
             onToggled: KrohnkiteConfig.columnsLayoutEnabled = checked
         }

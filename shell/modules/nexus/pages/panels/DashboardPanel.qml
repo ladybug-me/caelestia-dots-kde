@@ -258,7 +258,7 @@ PageBase {
             Layout.fillWidth: true
             last: true
             text: qsTr("Hyprland splash")
-            visible: Quickshell.env("XDG_CURRENT_DESKTOP").includes("Hyprland")
+            //visible: Quickshell.env("XDG_CURRENT_DESKTOP").includes("Hyprland")
             subtext: qsTr("Show the current Hyprland splash text")
             checked: Config.dashboard.showHyprlandSplash
             onToggled: GlobalConfig.dashboard.showHyprlandSplash = checked

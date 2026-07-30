@@ -176,9 +176,12 @@ MouseArea {
                         required property MenuItem modelData
                         readonly property bool active: modelData === root?.active
 
+                        visible: modelData.visible
+
                         Layout.fillWidth: true
                         implicitWidth: menuOptionRow.implicitWidth + Tokens.padding.medium * 2
-                        implicitHeight: menuOptionRow.implicitHeight + Tokens.padding.medium * 2
+                        implicitHeight: visible ? menuOptionRow.implicitHeight + Tokens.padding.medium * 2 : 0
+
 
                         radius: active ? Tokens.rounding.medium : Tokens.rounding.extraSmall
                         topLeftRadius: index === 0 ? Tokens.rounding.medium : radius
