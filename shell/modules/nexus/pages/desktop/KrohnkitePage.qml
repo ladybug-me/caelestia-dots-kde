@@ -139,9 +139,29 @@ PageBase {
             gapRight: KrohnkiteConfig.screenGapRight
         }
 
-        SectionHeader {
+        RowLayout {
+            Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Gaps")
+
+            SectionHeader {
+                Layout.fillWidth: true
+                Layout.topMargin: 0
+                text: qsTr("Gaps")
+                first: true // avoid double top margin
+            }
+
+            IconButton {
+                icon: "settings_backup_restore"
+                type: IconButton.Text
+                Layout.alignment: Qt.AlignBottom
+                onClicked: {
+                    KrohnkiteConfig.screenGapBetween = 0
+                    KrohnkiteConfig.screenGapTop = 0
+                    KrohnkiteConfig.screenGapBottom = 0
+                    KrohnkiteConfig.screenGapLeft = 0
+                    KrohnkiteConfig.screenGapRight = 0
+                }
+            }
         }
 
         StepperRow {

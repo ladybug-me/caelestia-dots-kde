@@ -320,12 +320,12 @@ Item {
         }
 
         // Screen rectangle
-        StyledRect {
+        StyledClippingRect {
             id: screen
 
             Layout.fillWidth: true
             implicitHeight: Math.round(width * 9 / 16)
-            radius: Tokens.rounding.medium
+            radius: Tokens.rounding.extraLarge
             color: Colours.tPalette.m3surfaceContainerHigh
             clip: true
 
@@ -383,7 +383,7 @@ Item {
                     y: Math.round(geo.y * screen.height)
                     width: Math.max(2, Math.round(geo.w * screen.width))
                     height: Math.max(2, Math.round(geo.h * screen.height))
-                    radius: Tokens.rounding.small
+                    radius: Tokens.rounding.extraLarge
 
                     color: winRect.index === 0
                         ? Qt.alpha(Colours.palette.m3primaryContainer, 0.85)
@@ -420,24 +420,24 @@ Item {
             }
 
             // Active layout badge
-            StyledRect {
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottomMargin: Tokens.spacing.small
-                implicitWidth: badgeLabel.implicitWidth + Tokens.padding.medium * 2
-                implicitHeight: badgeLabel.implicitHeight + Tokens.padding.extraSmall
-                radius: implicitHeight / 2
-                color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 0.90)
-                z: 5
+            // StyledRect {
+            //     anchors.bottom: parent.bottom
+            //     anchors.horizontalCenter: parent.horizontalCenter
+            //     anchors.bottomMargin: Tokens.spacing.small
+            //     implicitWidth: badgeLabel.implicitWidth + Tokens.padding.medium * 2
+            //     implicitHeight: badgeLabel.implicitHeight + Tokens.padding.extraSmall
+            //     radius: implicitHeight / 2
+            //     color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 0.90)
+            //     z: 5
 
-                StyledText {
-                    id: badgeLabel
-                    anchors.centerIn: parent
-                    text: root.layout
-                    font: Tokens.font.label.small
-                    color: Colours.palette.m3onSurface
-                }
-            }
+            //     StyledText {
+            //         id: badgeLabel
+            //         anchors.centerIn: parent
+            //         text: root.layout
+            //         font: Tokens.font.label.small
+            //         color: Colours.palette.m3onSurface
+            //     }
+            // }
         }
     }
 }

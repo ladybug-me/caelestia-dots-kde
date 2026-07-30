@@ -38,6 +38,7 @@ RowLayout {
         id: textField
 
         Layout.preferredWidth: 62
+        horizontalAlignment: TextInput.AlignHCenter
 
         inputMethodHints: Qt.ImhFormattedNumbersOnly
         text: root.isEditing ? text : root.displayText
