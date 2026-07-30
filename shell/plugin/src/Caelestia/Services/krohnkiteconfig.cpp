@@ -1,12 +1,13 @@
 #include "krohnkiteconfig.hpp"
-#include <QProcess>
 #include <QDebug>
+#include <QProcess>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
 namespace caelestia::services {
 
-KrohnkiteConfig::KrohnkiteConfig(QObject* parent) : QObject(parent) {
+KrohnkiteConfig::KrohnkiteConfig(QObject* parent)
+    : QObject(parent) {
     refresh();
 }
 
@@ -14,21 +15,18 @@ KrohnkiteConfig::~KrohnkiteConfig() = default;
 
 void KrohnkiteConfig::setKWinConfig(const QString& key, const QString& value) {
     QStringList args;
-    args << QStringLiteral("--file") << QStringLiteral("kwinrc")
-         << QStringLiteral("--group") << QStringLiteral("Script-krohnkite")
-         << QStringLiteral("--key") << key
-         << value;
-    
+    args << QStringLiteral("--file") << QStringLiteral("kwinrc") << QStringLiteral("--group")
+         << QStringLiteral("Script-krohnkite") << QStringLiteral("--key") << key << value;
+
     QProcess::execute(QStringLiteral("kwriteconfig6"), args);
 }
 
 QString KrohnkiteConfig::getKWinConfig(const QString& key, const QString& defaultValue) {
     QProcess process;
     QStringList args;
-    args << QStringLiteral("--file") << QStringLiteral("kwinrc")
-         << QStringLiteral("--group") << QStringLiteral("Script-krohnkite")
-         << QStringLiteral("--key") << key;
-         
+    args << QStringLiteral("--file") << QStringLiteral("kwinrc") << QStringLiteral("--group")
+         << QStringLiteral("Script-krohnkite") << QStringLiteral("--key") << key;
+
     process.start(QStringLiteral("kreadconfig6"), args);
     if (process.waitForFinished() && process.exitCode() == 0) {
         QString out = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
@@ -39,21 +37,77 @@ QString KrohnkiteConfig::getKWinConfig(const QString& key, const QString& defaul
     return defaultValue;
 }
 
-bool KrohnkiteConfig::isLayoutEnabled(const QString& key, bool defaultEnabled) {
-    QString val = getKWinConfig(key, defaultEnabled ? "0" : "-1");
-    return val != "-1" && val.toInt() >= 0;
+// -1 means disabled by default; >= 1 means enabled at that position.
+bool KrohnkiteConfig::isLayoutEnabled(const QString& key, int defaultOrder) {
+    QString val = getKWinConfig(key, QString::number(defaultOrder));
+    bool ok = false;
+    int v = val.toInt(&ok);
+    return ok && v >= 1;
+}
+
+// Table of all layout keys paired with their default order position.
+// -1 = disabled by default; 1..N = enabled at that position (no duplicates).
+struct LayoutDefault {
+    const char* key;
+    int defaultOrder;
+};
+
+static const std::initializer_list<LayoutDefault>& allLayoutDefaults() {
+    // Default order when kwinrc has never been written.
+    // Only enabled-by-default entries get a positive order; disabled get -1.
+    static const std::initializer_list<LayoutDefault> table = {
+        { "binaryTreeLayoutOrder", 1 },
+        { "floatingLayoutOrder", 2 },
+        { "tileLayoutOrder", 3 },
+        { "monocleLayoutOrder", 4 },
+        { "quarterLayoutOrder", 5 },
+        { "threeColumnLayoutOrder", 6 },
+        { "spreadLayoutOrder", 7 },
+        { "stackedLayoutOrder", 8 },
+        { "stairLayoutOrder", 9 },
+        // Disabled by default:
+        { "spiralLayoutOrder", -1 },
+        { "columnsLayoutOrder", -1 },
+        { "cascadeLayoutOrder", -1 },
+    };
+    return table;
 }
 
 void KrohnkiteConfig::setLayoutEnabled(const QString& key, bool enabled) {
+    // Read current order values for all layouts, seeding from defaults where missing.
+    QMap<QString, int> orders;
+    for (const auto& entry : allLayoutDefaults()) {
+        bool ok = false;
+        int v = getKWinConfig(QLatin1String(entry.key), QString::number(entry.defaultOrder)).toInt(&ok);
+        orders[QLatin1String(entry.key)] = (ok && v >= 1) ? v : -1;
+    }
+
     if (enabled) {
-        // If it was disabled (-1) or missing, we set it to 0 (default order). 
-        // We might want to be more sophisticated with ordering, but 0 enables it.
-        QString val = getKWinConfig(key, "-1");
-        if (val == "-1" || val.toInt() < 0) {
-            setKWinConfig(key, "0");
+        if (orders[key] >= 1)
+            return; // already enabled, nothing to do
+        // Shift every currently-enabled layout's order up by 1 to make room at position 1.
+        for (auto it = orders.begin(); it != orders.end(); ++it) {
+            if (it.value() >= 1) {
+                it.value() += 1;
+            }
         }
+        orders[key] = 1;
     } else {
-        setKWinConfig(key, "-1");
+        int removedOrder = orders[key];
+        if (removedOrder < 1)
+            return; // already disabled, nothing to do
+        orders[key] = -1;
+        // Compact: shift down any layout that was positioned after the removed one.
+        for (auto it = orders.begin(); it != orders.end(); ++it) {
+            if (it.value() > removedOrder) {
+                it.value() -= 1;
+            }
+        }
+    }
+
+    // Write all updated values back.
+    for (auto it = orders.cbegin(); it != orders.cend(); ++it) {
+        setKWinConfig(it.key(), QString::number(it.value()));
     }
 }
 
@@ -65,32 +119,48 @@ void KrohnkiteConfig::refresh() {
     m_screenGapTop = getKWinConfig("screenGapTop", "4").toInt();
     emit gapsChanged();
 
-    m_ignoreClass = getKWinConfig("ignoreClass", "krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,org.kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,quickshell");
+    m_ignoreClass =
+        getKWinConfig("ignoreClass", "krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,org."
+                                     "kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,quickshell");
     emit ignoreClassChanged();
 
-    m_binaryTreeLayoutEnabled = isLayoutEnabled("binaryTreeLayoutOrder", true);
-    m_cascadeLayoutEnabled = isLayoutEnabled("cascadeLayoutOrder", false);
-    m_columnsLayoutEnabled = isLayoutEnabled("columnsLayoutOrder", false);
-    m_floatingLayoutEnabled = isLayoutEnabled("floatingLayoutOrder", true);
-    m_monocleLayoutEnabled = isLayoutEnabled("monocleLayoutOrder", true);
-    m_quarterLayoutEnabled = isLayoutEnabled("quarterLayoutOrder", true);
-    m_spiralLayoutEnabled = isLayoutEnabled("spiralLayoutOrder", false);
-    m_spreadLayoutEnabled = isLayoutEnabled("spreadLayoutOrder", true);
-    m_stackedLayoutEnabled = isLayoutEnabled("stackedLayoutOrder", true);
-    m_stairLayoutEnabled = isLayoutEnabled("stairLayoutOrder", true);
-    m_threeColumnLayoutEnabled = isLayoutEnabled("threeColumnLayoutOrder", true);
-    m_tileLayoutEnabled = isLayoutEnabled("tileLayoutOrder", true);
+    for (const auto& entry : allLayoutDefaults()) {
+        bool ok = false;
+        int v = getKWinConfig(QLatin1String(entry.key), QString::number(entry.defaultOrder)).toInt(&ok);
+        bool isEnabled = (ok && v >= 1);
+        const QLatin1String k(entry.key);
+        if (k == "binaryTreeLayoutOrder")
+            m_binaryTreeLayoutEnabled = isEnabled;
+        else if (k == "cascadeLayoutOrder")
+            m_cascadeLayoutEnabled = isEnabled;
+        else if (k == "columnsLayoutOrder")
+            m_columnsLayoutEnabled = isEnabled;
+        else if (k == "floatingLayoutOrder")
+            m_floatingLayoutEnabled = isEnabled;
+        else if (k == "monocleLayoutOrder")
+            m_monocleLayoutEnabled = isEnabled;
+        else if (k == "quarterLayoutOrder")
+            m_quarterLayoutEnabled = isEnabled;
+        else if (k == "spiralLayoutOrder")
+            m_spiralLayoutEnabled = isEnabled;
+        else if (k == "spreadLayoutOrder")
+            m_spreadLayoutEnabled = isEnabled;
+        else if (k == "stackedLayoutOrder")
+            m_stackedLayoutEnabled = isEnabled;
+        else if (k == "stairLayoutOrder")
+            m_stairLayoutEnabled = isEnabled;
+        else if (k == "threeColumnLayoutOrder")
+            m_threeColumnLayoutEnabled = isEnabled;
+        else if (k == "tileLayoutOrder")
+            m_tileLayoutEnabled = isEnabled;
+    }
     emit layoutsChanged();
 }
 
 void KrohnkiteConfig::apply() {
     // Notify KWin to reconfigure
-    QDBusMessage msg = QDBusMessage::createMethodCall(
-        QStringLiteral("org.kde.KWin"),
-        QStringLiteral("/KWin"),
-        QStringLiteral("org.kde.KWin"),
-        QStringLiteral("reconfigure")
-    );
+    QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"), QStringLiteral("/KWin"),
+        QStringLiteral("org.kde.KWin"), QStringLiteral("reconfigure"));
     QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
 }
 

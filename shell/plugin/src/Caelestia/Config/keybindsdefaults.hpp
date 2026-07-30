@@ -21,7 +21,7 @@ inline QJsonObject defaultKeybinds() {
         { "krohnkiteSetMaster", "" }, { "krohnkiteNextLayout", "" }, { "krohnkitePreviousLayout", "" },
         { "krohnkiteBTreeLayout", "" }, { "krohnkiteMonocleLayout", "" }, { "krohnkiteFloatingLayout", "" },
         { "krohnkiteQuarterLayout", "" }, { "krohnkiteSpreadLayout", "" }, { "krohnkiteStackedLayout", "" },
-        { "krohnkiteStairLayout", "" }, { "krohnkiteColumnsLayout", "" }, { "krohnkiteTreeColumnLayout", "" },
+        { "krohnkiteStairLayout", "" }, { "krohnkiteColumnsLayout", "" }, { "krohnkiteThreeColumnLayout", "" },
         { "krohnkiteSpiralLayout", "" }, { "krohnkiteTileLayout", "" }, { "krohnkiteGrowHeight", "" },
         { "krohnkiteShrinkHeight", "" }, { "krohnkiteGrowWidth", "" }, { "krohnkiteShrinkWidth", "" },
         { "krohnkiteIncreaseMaster", "" }, { "krohnkiteDecreaseMaster", "" }, { "krohnkiteToggleFloat", "" },

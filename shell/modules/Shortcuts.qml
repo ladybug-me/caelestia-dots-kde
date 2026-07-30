@@ -723,7 +723,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "krohnkiteTreeColumnLayout"
         description: "Switch to Three Column layout"
-        onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteTreeColumnLayout"]) }
+        onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteThreeColumnLayout"]) }
     }
 
     // qmllint disable unresolved-type

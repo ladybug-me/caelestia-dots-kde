@@ -30,14 +30,14 @@ PageBase {
         MenuItem { text: qsTr("Stacked"); visible: KrohnkiteConfig.stackedLayoutEnabled },
         MenuItem { text: qsTr("Stair"); visible: KrohnkiteConfig.stairLayoutEnabled },
         MenuItem { text: qsTr("Columns"); visible: KrohnkiteConfig.columnsLayoutEnabled },
-        MenuItem { text: qsTr("Tree Column"); visible: KrohnkiteConfig.treeColumnLayoutEnabled },
+        MenuItem { text: qsTr("Three Column"); visible: KrohnkiteConfig.threeColumnLayoutEnabled },
         MenuItem { text: qsTr("Spiral"); visible: KrohnkiteConfig.spiralLayoutEnabled },
         MenuItem { text: qsTr("Tile"); visible: KrohnkiteConfig.tileLayoutEnabled }
     ]
 
     property list<string> layoutValues: [
         "BTree", "Monocle", "Floating", "Quarter", "Spread",
-        "Stacked", "Stair", "Columns", "TreeColumn", "Spiral", "Tile"
+        "Stacked", "Stair", "Columns", "ThreeColumn", "Spiral", "Tile"
     ]
 
     headerActions: [
@@ -155,11 +155,11 @@ PageBase {
                 type: IconButton.Text
                 Layout.alignment: Qt.AlignBottom
                 onClicked: {
-                    KrohnkiteConfig.screenGapBetween = 0
-                    KrohnkiteConfig.screenGapTop = 0
-                    KrohnkiteConfig.screenGapBottom = 0
-                    KrohnkiteConfig.screenGapLeft = 0
-                    KrohnkiteConfig.screenGapRight = 0
+                    KrohnkiteConfig.screenGapBetween = 4
+                    KrohnkiteConfig.screenGapTop = 4
+                    KrohnkiteConfig.screenGapBottom = 4
+                    KrohnkiteConfig.screenGapLeft = 4
+                    KrohnkiteConfig.screenGapRight = 4
                 }
             }
         }

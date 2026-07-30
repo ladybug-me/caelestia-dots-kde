@@ -134,7 +134,7 @@ Item {
             break;
         }
 
-        case "Three Column": {
+        case "ThreeColumn": {
             if (n === 1) { rects.push({ x: x0, y: y0, w: iw, h: ih }); break; }
             const masterW = iw * 0.4;
             const sideW = (iw - masterW - gx * 2) / 2;
@@ -215,21 +215,6 @@ Item {
                 }
             }
             spiralSplit({ x: x0, y: y0, w: iw, h: ih }, n, 0);
-            break;
-        }
-
-        case "Tree Column": {
-            const wide = 0.55, narrow = 1.0 - wide;
-            const totalGap = gx * (n - 1);
-            const widths = [];
-            let totalRatio = 0;
-            for (let i = 0; i < n; i++) { const r = (i % 2 === 0) ? wide : narrow; widths.push(r); totalRatio += r; }
-            let curX = x0;
-            for (let i = 0; i < n; i++) {
-                const cw2 = (iw - totalGap) * widths[i] / totalRatio;
-                rects.push({ x: curX, y: y0, w: Math.max(0, cw2), h: ih });
-                curX += cw2 + gx;
-            }
             break;
         }
 
