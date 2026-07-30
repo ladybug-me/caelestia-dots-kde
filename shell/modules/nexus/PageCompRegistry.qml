@@ -15,6 +15,8 @@ import qs.modules.nexus.pages.services
 import qs.modules.nexus.pages.wallandstyle
 import qs.modules.nexus.pages.panels.taskbar
 
+import qs.modules.nexus.pages.desktop
+
 QtObject {
     id: root
 
@@ -66,6 +68,9 @@ QtObject {
                 }
                 Component {
                     ContextMenuPage {}
+                }
+                Component {
+                    KrohnkitePage {}
                 }
             }
         },

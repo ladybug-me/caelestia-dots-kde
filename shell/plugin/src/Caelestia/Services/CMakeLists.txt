@@ -48,6 +48,8 @@ qml_module(caelestia-services
         nightcolorbridge.hpp
         globalshortcut.cpp
         globalshortcut.hpp
+        krohnkiteconfig.cpp
+        krohnkiteconfig.hpp
         windowscreencast.cpp
         windowscreencast.hpp
         windowicon.hpp
