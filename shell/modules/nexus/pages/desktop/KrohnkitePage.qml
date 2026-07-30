@@ -6,15 +6,43 @@ import Caelestia
 import Caelestia.Config
 import Caelestia.Services
 import Quickshell
+import Quickshell.Io
 import qs.components
 import qs.components.controls
 import qs.modules.nexus.common
 
+
 PageBase {
     id: root
 
+    property bool showLogout: false
     title: qsTr("Window Tiling")
     isSubPage: true
+
+
+    headerActions: [
+        IconTextButton {
+            text: qsTr("Save Changes")
+            icon: "check"
+            type: TextButton.Filled
+            onClicked: {
+                KrohnkiteConfig.apply()
+                showLogout = true;
+            }
+        },
+        IconTextButton {
+            visible: showLogout
+            text: qsTr("Logout to Apply Changes")
+            icon: "logout"
+            type: TextButton.Filled
+            onClicked: restartProcess.running = true
+            
+            Process {
+                id: restartProcess
+                command: ["bash", "-c", "nohup bash -c 'qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null || true' >/dev/null 2>&1"]
+            }
+        }
+    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -26,6 +54,7 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
+            last: true
             text: qsTr("Window Tiling")
             subtext: qsTr("Automatically tile windows using Krohnkite")
             checked: Config.general.krohnkiteEnabled
@@ -60,23 +89,6 @@ PageBase {
                     fi
                 `]);
             }
-        }
-
-        NavRow {
-            visible: Config.general.krohnkiteEnabled
-            icon: "refresh"
-            label: qsTr("Restart shell to apply tiling state fully")
-            status: qsTr("KWin requires a restart to properly clear window tiling rules when disabled")
-            onClicked: Quickshell.execDetached(["bash", "-c", "nohup bash -c 'caelestia shell -k; sleep 2; caelestia shell -d' >/dev/null 2>&1 & disown || true"])
-        }
-
-        // Apply changes
-        NavRow {
-            visible: Config.general.krohnkiteEnabled
-            icon: "check"
-            label: qsTr("Apply Tiling Changes")
-            status: qsTr("Save and apply gap or layout changes to KWin")
-            onClicked: KrohnkiteConfig.apply()
         }
 
         SectionHeader {
