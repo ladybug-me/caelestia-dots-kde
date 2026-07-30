@@ -12,8 +12,8 @@ import qs.services
 Item {
     id: root
 
-    // ---- public API -------------------------------------------------------
-    property string layout: "Tile"      // active layout name
+    // public API
+    property string layout: "BTree"      // active layout name
     property int windowCount: 4         // number of mock windows (1-8)
     property real gapBetween: 8
     property real gapTop: 8
@@ -21,13 +21,11 @@ Item {
     property real gapLeft: 8
     property real gapRight: 8
 
-    // ---- size -------------------------------------------------------------
+    // size 
     Layout.fillWidth: true
     implicitHeight: Math.round(width * 9 / 16) + headerRow.implicitHeight + 8
 
-    // -----------------------------------------------------------------------
-    //  Layout engine – pure JS, returns [{x,y,w,h}, …] in normalised [0,1] space
-    // -----------------------------------------------------------------------
+    // Layout engine – pure JS, returns [{x,y,w,h}, …] in normalised [0,1] space
     function computeRects(layoutName, n, gapB, gapT, gapBo, gapL, gapR) {
         const sx = screen.width;
         const sy = screen.height;
@@ -251,9 +249,7 @@ Item {
         return rects;
     }
 
-    // -----------------------------------------------------------------------
     //  Recompute rectangles whenever anything changes
-    // -----------------------------------------------------------------------
     property var windowRects: []
     function refresh() {
         windowRects = computeRects(
@@ -271,15 +267,12 @@ Item {
     onGapLeftChanged: Qt.callLater(refresh)
     onGapRightChanged: Qt.callLater(refresh)
 
-    // -----------------------------------------------------------------------
-    //  UI
-    // -----------------------------------------------------------------------
-
+    // UI
     ColumnLayout {
         anchors.fill: parent
         spacing: 8
 
-        // ── Header row: title + window count controls ──────────────────────
+        // Header row: title + window count controls
         RowLayout {
             id: headerRow
             Layout.fillWidth: true
@@ -326,7 +319,7 @@ Item {
             }
         }
 
-        // ── Screen rectangle ───────────────────────────────────────────────
+        // Screen rectangle
         StyledRect {
             id: screen
 
@@ -350,7 +343,7 @@ Item {
             onHeightChanged: Qt.callLater(root.refresh)
             Component.onCompleted: Qt.callLater(root.refresh)
 
-            // ── Gap visualizer tints ─────────────────────────────────────
+            // Gap visualizer tints
             Rectangle {
                 x: 0; y: 0; width: screen.width; height: root.gapTop
                 color: Qt.alpha(Colours.palette.m3primary, 0.10)
@@ -374,7 +367,7 @@ Item {
                 Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
             }
 
-            // ── Mock windows ─────────────────────────────────────────────
+            // Mock windows
             Repeater {
                 id: windowRepeater
                 model: root.windowCount
@@ -426,7 +419,7 @@ Item {
                 }
             }
 
-            // ── Active layout badge ───────────────────────────────────────
+            // Active layout badge
             StyledRect {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter

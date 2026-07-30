@@ -39,8 +39,8 @@ QString KrohnkiteConfig::getKWinConfig(const QString& key, const QString& defaul
     return defaultValue;
 }
 
-bool KrohnkiteConfig::isLayoutEnabled(const QString& key) {
-    QString val = getKWinConfig(key, "-1");
+bool KrohnkiteConfig::isLayoutEnabled(const QString& key, bool defaultEnabled) {
+    QString val = getKWinConfig(key, defaultEnabled ? "0" : "-1");
     return val != "-1" && val.toInt() >= 0;
 }
 
@@ -68,18 +68,18 @@ void KrohnkiteConfig::refresh() {
     m_ignoreClass = getKWinConfig("ignoreClass", "krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,org.kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,quickshell");
     emit ignoreClassChanged();
 
-    m_binaryTreeLayoutEnabled = isLayoutEnabled("binaryTreeLayoutOrder");
-    m_cascadeLayoutEnabled = isLayoutEnabled("cascadeLayoutOrder");
-    m_columnsLayoutEnabled = isLayoutEnabled("columnsLayoutOrder");
-    m_floatingLayoutEnabled = isLayoutEnabled("floatingLayoutOrder");
-    m_monocleLayoutEnabled = isLayoutEnabled("monocleLayoutOrder");
-    m_quarterLayoutEnabled = isLayoutEnabled("quarterLayoutOrder");
-    m_spiralLayoutEnabled = isLayoutEnabled("spiralLayoutOrder");
-    m_spreadLayoutEnabled = isLayoutEnabled("spreadLayoutOrder");
-    m_stackedLayoutEnabled = isLayoutEnabled("stackedLayoutOrder");
-    m_stairLayoutEnabled = isLayoutEnabled("stairLayoutOrder");
-    m_threeColumnLayoutEnabled = isLayoutEnabled("threeColumnLayoutOrder");
-    m_tileLayoutEnabled = isLayoutEnabled("tileLayoutOrder");
+    m_binaryTreeLayoutEnabled = isLayoutEnabled("binaryTreeLayoutOrder", true);
+    m_cascadeLayoutEnabled = isLayoutEnabled("cascadeLayoutOrder", false);
+    m_columnsLayoutEnabled = isLayoutEnabled("columnsLayoutOrder", false);
+    m_floatingLayoutEnabled = isLayoutEnabled("floatingLayoutOrder", true);
+    m_monocleLayoutEnabled = isLayoutEnabled("monocleLayoutOrder", true);
+    m_quarterLayoutEnabled = isLayoutEnabled("quarterLayoutOrder", true);
+    m_spiralLayoutEnabled = isLayoutEnabled("spiralLayoutOrder", false);
+    m_spreadLayoutEnabled = isLayoutEnabled("spreadLayoutOrder", true);
+    m_stackedLayoutEnabled = isLayoutEnabled("stackedLayoutOrder", true);
+    m_stairLayoutEnabled = isLayoutEnabled("stairLayoutOrder", true);
+    m_threeColumnLayoutEnabled = isLayoutEnabled("threeColumnLayoutOrder", true);
+    m_tileLayoutEnabled = isLayoutEnabled("tileLayoutOrder", true);
     emit layoutsChanged();
 }
 

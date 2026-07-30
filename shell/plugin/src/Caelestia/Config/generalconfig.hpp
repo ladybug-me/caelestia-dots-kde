@@ -97,6 +97,7 @@ class GeneralConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, checkUpdates, true)
     CONFIG_PROPERTY(bool, magicLampEnabled, true)
     CONFIG_PROPERTY(bool, krohnkiteEnabled, false)
+    CONFIG_PROPERTY(QString, krohnkiteLastLayout, "BTree")
     CONFIG_SUBOBJECT(GeneralApps, apps)
     CONFIG_SUBOBJECT(GeneralIdle, idle)
     CONFIG_SUBOBJECT(GeneralBattery, battery)

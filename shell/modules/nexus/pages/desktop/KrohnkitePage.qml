@@ -17,7 +17,6 @@ PageBase {
     id: root
 
     property bool showLogout: false
-    property string activePreviewLayout: "Tile"
     title: qsTr("Window Tiling")
     isSubPage: true
 
@@ -75,7 +74,6 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            last: true
             text: qsTr("Window Tiling")
             subtext: qsTr("Automatically tile windows using Krohnkite")
             checked: Config.general.krohnkiteEnabled
@@ -112,9 +110,28 @@ PageBase {
             }
         }
 
+        SelectRow {
+            last: true
+            label: qsTr("Switch Layout")
+            subtext: qsTr("Triggers the KWin shortcut to switch layout")
+            menuItems: root.layoutItems
+            active: {
+                let idx = root.layoutValues.indexOf(Config.general.krohnkiteLastLayout);
+                return idx >= 0 ? root.layoutItems[idx] : null;
+            }
+            fallbackText: qsTr("Select Layout...")
+            fallbackIcon: "dashboard"
+            onSelected: item => {
+                let layoutName = root.layoutValues[root.layoutItems.indexOf(item)];
+                GlobalConfig.general.krohnkiteLastLayout = layoutName;
+                GlobalConfig.save();
+                Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Krohnkite" + layoutName + "Layout"]);
+            }
+        }
+
         KrohnkitePreview {
             Layout.fillWidth: true
-            layout: root.activePreviewLayout
+            layout: Config.general.krohnkiteLastLayout
             gapBetween: KrohnkiteConfig.screenGapBetween
             gapTop: KrohnkiteConfig.screenGapTop
             gapBottom: KrohnkiteConfig.screenGapBottom
@@ -172,27 +189,6 @@ PageBase {
             to: 80
             value: KrohnkiteConfig.screenGapRight
             onMoved: v => KrohnkiteConfig.screenGapRight = v
-        }
-
-        SectionHeader {
-            Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Active Layout")
-        }
-
-        SelectRow {
-            first: true
-            last: true
-            label: qsTr("Switch Layout")
-            subtext: qsTr("Triggers the KWin shortcut to switch layout")
-            menuItems: root.layoutItems
-            active: null
-            fallbackText: qsTr("Select Layout...")
-            fallbackIcon: "dashboard"
-            onSelected: item => {
-                let layoutName = root.layoutValues[root.layoutItems.indexOf(item)];
-                root.activePreviewLayout = layoutName;
-                Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Krohnkite" + layoutName + "Layout"]);
-            }
         }
 
         SectionHeader {
