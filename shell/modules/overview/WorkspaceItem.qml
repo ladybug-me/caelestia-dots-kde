@@ -102,7 +102,8 @@ Item {
                 onClicked: {
                     if (typeof KWinActiveWindowBridge !== "undefined") {
                         KWinActiveWindowBridge.setDesktop(wsId);
-                        Visibilities.overview = false;
+                        const v = Visibilities.getForActive();
+                        if (v) v.overview = false;
                     }
                 }
             }

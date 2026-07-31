@@ -90,7 +90,8 @@ Item {
             onClicked: {
                 if (typeof KWinActiveWindowBridge !== "undefined") {
                     KWinActiveWindowBridge.focusWindow(root.windowData.address);
-                    Visibilities.overview = false;
+                    const v = Visibilities.getForActive();
+                    if (v) v.overview = false;
                 }
             }
         }

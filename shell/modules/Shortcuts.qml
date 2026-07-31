@@ -63,7 +63,8 @@ Scope {
         onPressed: {
             if (root.hasFullscreen)
                 return;
-            Visibilities.overview = !Visibilities.overview;
+            const visibilities = Visibilities.getForActive();
+            visibilities.overview = !visibilities.overview;
         }
     }
 

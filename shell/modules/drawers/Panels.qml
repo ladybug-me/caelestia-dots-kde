@@ -12,6 +12,7 @@ import qs.modules.sidebar as Sidebar
 import qs.modules.utilities as Utilities
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.utilities.toasts as Toasts
+import qs.modules.overview as Overview
 
 Item {
     id: root
@@ -34,6 +35,7 @@ Item {
     readonly property alias utilities: utilities
     readonly property alias toasts: toasts
     readonly property alias sidebar: sidebar
+    readonly property alias overview: overview
 
     readonly property real leftMargin: anchors.leftMargin
     readonly property real rightMargin: anchors.rightMargin
@@ -282,5 +284,16 @@ Item {
 
         anchors.topMargin: (Config.bar.position === "top" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : -notifications.anchors.topMargin
         anchors.bottomMargin: (Config.bar.position === "bottom" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : 0
+    }
+
+    Overview.Wrapper {
+        id: overview
+        
+        property string vAnchor: "center"
+        property string hAnchor: "center"
+
+        screen: root.screen
+        visibilities: root.visibilities
+        panels: root
     }
 }

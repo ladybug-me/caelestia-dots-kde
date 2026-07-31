@@ -10,7 +10,6 @@ Singleton {
     property string launcherInitialSearch: ""
     property string initialSidebarTab: "notifications"
     property bool isCaelestiaMode: false
-    property bool overview: false
 
     function load(screen: ShellScreen, visibilities: DrawerVisibilities): void {
         screens.set(Hypr.monitorFor(screen), visibilities);

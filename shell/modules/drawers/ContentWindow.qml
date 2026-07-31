@@ -190,6 +190,18 @@ StyledWindow {
             deformMatrix: dashBg.deformMatrix
         }
         BlurMask { 
+            target: panels.overview
+            contentItem: root.contentItem
+            blurOffsetTop: root.blurOffsetTop
+            blurOffsetBottom: root.blurOffsetBottom
+            blurOffsetLeft: root.blurOffsetLeft
+            blurOffsetRight: root.blurOffsetRight
+            vAnchor: panels.overview.vAnchor
+            hAnchor: panels.overview.hAnchor
+            offsetScale: panels.overview.offsetScale
+            deformMatrix: overviewBg.deformMatrix
+        }
+        BlurMask { 
             target: panels.popoutsWrapper
             contentItem: root.contentItem
             blurOffsetTop: root.blurOffsetTop
@@ -292,7 +304,7 @@ StyledWindow {
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: (fsTransitionProg > 0 && Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.keyboardFocus: visibilities.launcher || visibilities.session || visibilities.dashboard || visibilities.sidebar || panels.popouts.hasCurrent ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: visibilities.launcher || visibilities.session || visibilities.dashboard || visibilities.sidebar || visibilities.overview || panels.popouts.hasCurrent ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     mask: {
         if (hasFullscreen) return emptyRegion;
@@ -361,6 +373,7 @@ StyledWindow {
             visibilities.sidebar = false;
             visibilities.dashboard = false;
             visibilities.utilities = false;
+            visibilities.overview = false;
             panels.popouts.hasCurrent = false;
             panels.popouts.detachedMode = "";
             bar.closeTray();
@@ -452,6 +465,13 @@ StyledWindow {
             id: dashBg
 
             panel: panels.dashboard
+            deformAmount: 0.1
+        }
+
+        PanelBg {
+            id: overviewBg
+
+            panel: panels.overview
             deformAmount: 0.1
         }
 
@@ -706,6 +726,9 @@ StyledWindow {
 
             dashboard.transform: Matrix4x4 {
                 matrix: dashBg.deformMatrix
+            }
+            overview.transform: Matrix4x4 {
+                matrix: overviewBg.deformMatrix
             }
             launcher.transform: Matrix4x4 {
                 matrix: launcherBg.deformMatrix

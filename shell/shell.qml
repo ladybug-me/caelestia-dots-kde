@@ -60,8 +60,6 @@ ShellRoot {
     // PolkitModule {}
     property var regionSelector: RegionSelector {}
 
-    Overview {}
-
     IpcHandler {
         target: "region"
 

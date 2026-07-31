@@ -8,5 +8,6 @@ PersistentProperties {
     property bool dashboard
     property bool utilities
     property bool sidebar
+    property bool overview
     property bool skipLauncherAnim: false
 }
