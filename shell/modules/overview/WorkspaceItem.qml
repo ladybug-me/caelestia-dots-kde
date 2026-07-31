@@ -8,6 +8,7 @@ import qs.components
 import qs.components.controls
 import qs.services
 import Quickshell
+import org.kde.pipewire as Pipewire
 
 Item {
     id: root
@@ -120,14 +121,29 @@ Item {
                 }
             }
 
-            Repeater {
-                model: root.windows
-                delegate: WindowPreview {
-                    windowData: modelData
-                    workspaceWidth: dropAreaRect.width
-                    workspaceHeight: dropAreaRect.height
-                }
+            OutputScreencastRequest {
+                id: screencastRequest
+                outputName: QsWindow.window ? QsWindow.window.screen.name : ""
             }
+            
+            readonly property int serial: screencastRequest.objectSerial
+            
+            Pipewire.PipeWireSourceItem {
+                anchors.fill: parent
+                anchors.margins: 1
+                visible: dropAreaRect.serial !== 0
+                objectSerial: dropAreaRect.serial
+            }
+
+            // Commented out individual window previews per user request
+            // Repeater {
+            //     model: root.windows
+            //     delegate: WindowPreview {
+            //         windowData: modelData
+            //         workspaceWidth: root.width
+            //         workspaceHeight: root.width / root.screenAspect
+            //     }
+            // }
         }
         
         Item {

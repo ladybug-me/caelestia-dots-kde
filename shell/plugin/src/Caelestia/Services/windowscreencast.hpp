@@ -54,6 +54,7 @@ public:
     ~WindowScreencastGlobal() override;
 
     std::unique_ptr<WindowScreencastStream> createWindowStream(const QString &uuid);
+    std::unique_ptr<WindowScreencastStream> createOutputStream(wl_output *output);
 };
 
 // Per-window request: bind `uuid` to a KWin window's internalId and read back
@@ -93,6 +94,40 @@ private:
     std::unique_ptr<WindowScreencastGlobal> m_global;
     std::unique_ptr<WindowScreencastStream> m_stream;
     QString m_uuid;
+    quint32 m_nodeId = 0;
+    quint64 m_objectSerial = 0;
+};
+
+class OutputScreencastRequest : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString outputName READ outputName WRITE setOutputName NOTIFY outputNameChanged)
+    Q_PROPERTY(quint32 nodeId READ nodeId NOTIFY nodeIdChanged)
+    Q_PROPERTY(quint64 objectSerial READ objectSerial NOTIFY objectSerialChanged)
+    QML_ELEMENT
+
+public:
+    explicit OutputScreencastRequest(QObject *parent = nullptr);
+    ~OutputScreencastRequest() override;
+
+    QString outputName() const;
+    void setOutputName(const QString &outputName);
+
+    quint32 nodeId() const;
+    quint64 objectSerial() const;
+
+signals:
+    void outputNameChanged();
+    void nodeIdChanged();
+    void objectSerialChanged();
+
+private:
+    void setStream(std::unique_ptr<WindowScreencastStream> stream);
+    void setNodeId(quint32 nodeId);
+    void setObjectSerial(quint64 objectSerial);
+
+    std::unique_ptr<WindowScreencastGlobal> m_global;
+    std::unique_ptr<WindowScreencastStream> m_stream;
+    QString m_outputName;
     quint32 m_nodeId = 0;
     quint64 m_objectSerial = 0;
 };
