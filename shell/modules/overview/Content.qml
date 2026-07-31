@@ -62,7 +62,7 @@ Item {
         }
     }
 
-    ActiveWorkspaceWindows {
+    WindowGrid {
         anchors.fill: parent
     }
 }

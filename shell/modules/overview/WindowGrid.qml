@@ -11,7 +11,7 @@ import qs.services
 import Quickshell
 import Quickshell.Widgets
 import org.kde.pipewire as Pipewire
-import ".."
+import qs.utils
 
 Item {
     id: root
@@ -31,8 +31,6 @@ Item {
         }
         return arr;
     }
-    
-    onActiveWindowsChanged: console.log("ActiveWorkspaceWindows: active windows count is", activeWindows.length)
 
     Grid {
         anchors.centerIn: parent
@@ -131,8 +129,8 @@ Item {
                     implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
                     radius: Tokens.rounding.small
                     color: Colours.tPalette.m3surfaceVariant
-                    opacity: hover.hovered ? 1 : 0
-                    visible: opacity > 0.01
+                    opacity: 1
+                    visible: true
                     
                     Behavior on opacity { Anim {} }
                     
