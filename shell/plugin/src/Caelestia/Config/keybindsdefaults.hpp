@@ -7,7 +7,7 @@ namespace caelestia::config {
 
 inline QJsonObject defaultKeybinds() {
     return QJsonObject{ { "nexus", "" }, { "showall", "" }, { "dashboard", "" }, { "screenshot", "Meta+Shift+S" },
-        { "googleLens", "Meta+Shift+A" }, { "screenRecording", "Meta+Ctrl+S" }, { "lock", "Meta+L" },
+        { "overview", "Meta+Tab" }, { "googleLens", "Meta+Shift+A" }, { "screenRecording", "Meta+Ctrl+S" }, { "lock", "Meta+L" },
         { "session", "Ctrl+Alt+Delete" }, { "launcher", "Meta+Space; Meta" }, { "launcherInterrupt", "" },
         { "sidebar", "Meta+B" }, { "aiAssistant", "" }, { "utilities", "" }, { "emoji", "Meta+Shift+V" },
         { "clipboard", "Meta+V" }, { "windowSwitcher", "Alt+Tab" }, { "windowSwitcherReverse", "Alt+Shift+Tab" },

@@ -58,6 +58,18 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "overview"
+        description: "Toggle overview"
+        onPressed: {
+            if (root.hasFullscreen)
+                return;
+            Visibilities.overview = !Visibilities.overview;
+        }
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "screenshot"
 
         description: "Toggle screenshot overlay"
