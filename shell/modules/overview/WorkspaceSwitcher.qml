@@ -50,15 +50,21 @@ Item {
         ListView {
             id: listView
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: 250
             orientation: ListView.Horizontal
             spacing: Tokens.spacing.large
             model: root.workspaceCount
 
             delegate: WorkspaceItem {
+                required property int index
                 wsId: index + 1
                 list: listView
             }
+        }
+
+        ActiveWorkspaceWindows {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
     }
 }

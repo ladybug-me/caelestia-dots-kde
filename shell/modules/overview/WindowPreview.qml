@@ -19,7 +19,7 @@ Item {
     required property real workspaceWidth
     required property real workspaceHeight
 
-    readonly property string windowAddress: windowData.address
+    readonly property string windowAddress: windowData.address || ""
 
     readonly property var screen: QsWindow.window ? QsWindow.window.screen : null
     readonly property real sWidth: screen ? screen.width : 1920
@@ -28,10 +28,10 @@ Item {
     readonly property real scaleX: workspaceWidth / sWidth
     readonly property real scaleY: workspaceHeight / sHeight
 
-    x: (windowData.x || 0) * scaleX
-    y: (windowData.y || 0) * scaleY
-    width: (windowData.width || 0) * scaleX
-    height: (windowData.height || 0) * scaleY
+    x: (windowData.x !== undefined ? windowData.x : 0) * scaleX
+    y: (windowData.y !== undefined ? windowData.y : 0) * scaleY
+    width: (windowData.width !== undefined ? windowData.width : 0) * scaleX
+    height: (windowData.height !== undefined ? windowData.height : 0) * scaleY
 
     z: Drag.active ? 100 : 1
 
@@ -49,15 +49,12 @@ Item {
         border.width: 1
         border.color: Colours.palette.m3outlineVariant
         
-        Loader {
-            id: screencastLoader
-            active: true
-            sourceComponent: WindowScreencastRequest {
-                uuid: root.windowData.address
-            }
+        WindowScreencastRequest {
+            id: screencastRequest
+            uuid: root.windowAddress
         }
         
-        readonly property int serial: screencastLoader.item ? screencastLoader.item.objectSerial : 0
+        readonly property int serial: screencastRequest.objectSerial
         
         Pipewire.PipeWireSourceItem {
             anchors.fill: parent
