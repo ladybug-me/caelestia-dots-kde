@@ -31,10 +31,19 @@ Item {
         }
         return arr;
     }
+    
+    onActiveWindowsChanged: console.log("ActiveWorkspaceWindows: active windows count is", activeWindows.length)
 
-    Flow {
-        anchors.fill: parent
+    Grid {
+        anchors.centerIn: parent
         spacing: Tokens.spacing.large
+        columns: {
+            const count = root.activeWindows.length;
+            if (count <= 3) return Math.max(1, count);
+            if (count === 4) return 2;
+            if (count <= 6) return 3;
+            return 4;
+        }
         
         Repeater {
             model: root.activeWindows
@@ -49,7 +58,7 @@ Item {
                     return (w > 0 && h > 0) ? (w / h) : (16.0 / 9.0);
                 }
                 
-                width: Math.min(400, root.width / 3 - Tokens.spacing.large)
+                width: Math.max(100, Math.min(400, root.width / 3 - Tokens.spacing.large))
                 height: width / windowAspect
                 
                 color: "transparent"
