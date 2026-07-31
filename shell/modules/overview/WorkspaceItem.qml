@@ -135,15 +135,6 @@ Item {
                 objectSerial: dropAreaRect.serial
             }
 
-            // Commented out individual window previews per user request
-            // Repeater {
-            //     model: root.windows
-            //     delegate: WindowPreview {
-            //         windowData: modelData
-            //         workspaceWidth: root.width
-            //         workspaceHeight: root.width / root.screenAspect
-            //     }
-            // }
         }
         
         Item {
