@@ -285,7 +285,7 @@ StyledWindow {
     readonly property real sdfBorderOffset: 2 * fsTransitionProg // SDFs joins are not exact, so offset by 2px to ensure nothing shows
     
     property real dynamicBorderThickness: visibilities.overview ? Math.min(root.width, root.height) * 0.15 : Config.border.thickness
-    Behavior on dynamicBorderThickness { NumberAnimation { duration: animConfig.blobDuration; easing.type: Easing.OutCubic } }
+    Behavior on dynamicBorderThickness { NumberAnimation { duration: animConfig.blobDuration; easing.type: animConfig.easingType } }
 
     readonly property real borderThickness: dynamicBorderThickness * (1 - fsTransitionProg)
     readonly property real borderRounding: Config.border.rounding * (1 - fsTransitionProg)
@@ -440,6 +440,7 @@ StyledWindow {
         id: overviewWallpaperLayer
         anchors.fill: parent
         visible: active || opacity > 0
+        layer.enabled: true
         property bool active: visibilities.overview
         
         // Ensure fade-in starts only after the wallpaper has actually loaded
@@ -448,7 +449,7 @@ StyledWindow {
         property real _maxBorder: Math.max(1, Math.min(root.width, root.height) * 0.15)
         property real bgScale: 1.0 + (dynamicBorderThickness / _maxBorder) * 0.1
         
-        Behavior on opacity { NumberAnimation { duration: animConfig.wallpaperDuration; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: animConfig.wallpaperDuration; easing.type: animConfig.easingType } }
 
         Item {
             id: scaledWallpaperContainer
@@ -492,6 +493,7 @@ StyledWindow {
             sourceItem: scaledWallpaperContainer
             anchors.fill: parent
             hideSource: false
+            visible: false
         }
 
         MultiEffect {

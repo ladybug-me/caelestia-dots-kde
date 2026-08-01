@@ -30,7 +30,7 @@ Item {
     opacity: shouldBeActive ? 1 : 0
 
     Behavior on opacity {
-        NumberAnimation { duration: root.animConfig ? root.animConfig.gridDuration : 1500; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: root.animConfig ? root.animConfig.gridDuration : 1500; easing.type: root.animConfig ? root.animConfig.easingType : Easing.OutCubic }
     }
 
     Loader {

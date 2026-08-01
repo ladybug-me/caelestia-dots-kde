@@ -13,7 +13,11 @@ QtObject {
     property real wallpaperFadeSpeed: 1.0
     property real gridFadeSpeed: 1.0
 
+    // animation type
+    property int easingType: Easing.OutQuad
+
     readonly property int blobDuration: Math.round(baseDuration / blobScaleSpeed)
     readonly property int wallpaperDuration: Math.round(baseDuration / wallpaperFadeSpeed)
     readonly property int gridDuration: Math.round(baseDuration / gridFadeSpeed)
+
 }
