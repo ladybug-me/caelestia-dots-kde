@@ -28,7 +28,7 @@ Item {
     }
 
     readonly property real nonAnimHeight: (content.item as Content)?.nonAnimHeight ?? 0
-    readonly property bool shouldBeActive: visibilities.dashboard && Config.dashboard.enabled
+    readonly property bool shouldBeActive: visibilities.dashboard && Config.dashboard.enabled && !visibilities.overview
     property real offsetScale: shouldBeActive ? 0 : 1
 
     clip: Config.bar.position === "top"

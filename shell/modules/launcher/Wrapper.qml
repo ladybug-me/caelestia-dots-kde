@@ -13,7 +13,7 @@ Item {
     required property DrawerVisibilities visibilities
     required property var panels
 
-    readonly property bool shouldBeActive: visibilities.launcher && Config.launcher.enabled
+    readonly property bool shouldBeActive: visibilities.launcher && Config.launcher.enabled && !visibilities.overview
 
 
     readonly property real maxHeight: {

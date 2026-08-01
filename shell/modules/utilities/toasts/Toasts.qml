@@ -12,6 +12,9 @@ Item {
 
     readonly property int spacing: Tokens.spacing.small
     property bool flag
+    
+    required property DrawerVisibilities visibilities
+    visible: !visibilities.overview
 
     function shouldShowToast(toast: Toast): bool {
         if (!Notifs.hasFullscreen())

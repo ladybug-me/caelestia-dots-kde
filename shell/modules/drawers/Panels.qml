@@ -262,6 +262,8 @@ Item {
         property string vAnchor: "bottom"
         property string hAnchor: Config.bar.position === "bottom" ? "left" : (Config.bar.position === "right" ? "left" : "right")
 
+        visibilities: root.visibilities
+
         anchors.bottom: sidebar.visible ? parent.bottom : utilities.top
         anchors.right: sidebar.left
         anchors.margins: Tokens.padding.medium

@@ -23,6 +23,9 @@ Variants {
         screen: modelData
         name: "background"
         isDesktopWidget: true
+        
+        readonly property var drawerVisibilities: Visibilities.screens.get(Hypr.monitorFor(modelData)) ?? Visibilities.screens.get(modelData.name)
+        readonly property bool isOverviewOpen: drawerVisibilities ? drawerVisibilities.overview : false
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Bottom
         color: Config.background.wallpaperEnabled ? "black" : "transparent"
@@ -80,6 +83,7 @@ Variants {
                 screen: win.modelData
                 wallpaper: wallpaper
                 z: 2
+                visible: !win.isOverviewOpen
             }
 
         }
@@ -87,6 +91,7 @@ Variants {
         DesktopIcons {
             screenData: win.modelData
             z: 3
+            visible: !win.isOverviewOpen
         }
 
         Loader {
@@ -96,7 +101,7 @@ Variants {
             readonly property int clockBaseMargin: Tokens.padding.extraLargeIncreased
 
             asynchronous: true
-            active: Config.background.desktopClock.enabled
+            active: Config.background.desktopClock.enabled && !win.isOverviewOpen
 
             anchors.margins: clockBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? clockBaseMargin + clockBarZone : clockBaseMargin
@@ -218,7 +223,7 @@ Variants {
             readonly property int lyricsBaseMargin: Tokens.padding.large * 2
 
             asynchronous: true
-            active: Config.background.desktopLyrics.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics)
+            active: Config.background.desktopLyrics.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics) && !win.isOverviewOpen
 
             anchors.margins: lyricsBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin

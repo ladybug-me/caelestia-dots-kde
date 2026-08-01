@@ -27,7 +27,7 @@ Item {
     readonly property int padding: Math.max(Tokens.padding.small, Config.border.thickness)
     readonly property int contentWidth: Math.round(Tokens.sizes.bar.innerWidth * barScale) + padding * 2
     readonly property int exclusiveZone: !disabled && (Config.bar.persistent || visibilities.bar) ? contentWidth : Config.border.thickness
-    readonly property bool shouldBeVisible: !fullscreen && !disabled && (Config.bar.persistent || visibilities.bar || isHovered)
+    readonly property bool shouldBeVisible: !fullscreen && !disabled && !visibilities.overview && (Config.bar.persistent || visibilities.bar || isHovered)
     property bool isHovered
 
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"

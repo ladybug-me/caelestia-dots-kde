@@ -40,53 +40,53 @@ StyledWindow {
         // Border Blur Masks
         Region {
             x: 0; y: 0
-            width: !GlobalConfig.appearance.islands && Config.bar.position !== "left" ? root.borderThickness : 0
+            width: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - root.borderThickness; y: 0
-            width: !GlobalConfig.appearance.islands && Config.bar.position !== "right" ? root.borderThickness : 0
+            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness); y: 0
+            width: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
             x: 0; y: 0
             width: root.width
-            height: !GlobalConfig.appearance.islands && Config.bar.position !== "top" ? root.borderThickness : 0
+            height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: 0; y: root.height - root.borderThickness
+            x: 0; y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
             width: root.width
-            height: !GlobalConfig.appearance.islands && Config.bar.position !== "bottom" ? root.borderThickness : 0
+            height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         // Corner squares for inverted corners
         Region {
-            x: Config.bar.position === "left" ? bar.implicitWidth : root.borderThickness
-            y: Config.bar.position === "top" ? bar.implicitHeight : root.borderThickness
+            x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
+            y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
             width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - (Config.bar.position === "right" ? bar.implicitWidth : root.borderThickness) - root.borderRounding
-            y: Config.bar.position === "top" ? bar.implicitHeight : root.borderThickness
+            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
             width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: Config.bar.position === "left" ? bar.implicitWidth : root.borderThickness
-            y: root.height - (Config.bar.position === "bottom" ? bar.implicitHeight : root.borderThickness) - root.borderRounding
+            x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
+            y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - (Config.bar.position === "right" ? bar.implicitWidth : root.borderThickness) - root.borderRounding
-            y: root.height - (Config.bar.position === "bottom" ? bar.implicitHeight : root.borderThickness) - root.borderRounding
+            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             intersection: Intersection.Combine
@@ -97,10 +97,10 @@ StyledWindow {
             vAnchor: "none"
             hAnchor: "none"
             blurQuality: borderBlurSettings.blurQuality
-            inLeft: (Config.bar.position === "left" ? bar.implicitWidth : root.borderThickness) + root.borderRounding
-            inRight: root.width - (Config.bar.position === "right" ? bar.implicitWidth : root.borderThickness) - root.borderRounding
-            inTop: (Config.bar.position === "top" ? bar.implicitHeight : root.borderThickness) + root.borderRounding
-            inBottom: root.height - (Config.bar.position === "bottom" ? bar.implicitHeight : root.borderThickness) - root.borderRounding
+            inLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) + root.borderRounding
+            inRight: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            inTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) + root.borderRounding
+            inBottom: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             rTop: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             rBottom: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             rLeft: !GlobalConfig.appearance.islands ? root.borderRounding : 0
@@ -116,6 +116,7 @@ StyledWindow {
             blurOffsetRight: root.blurOffsetRight
             vAnchor: bar.vAnchor
             hAnchor: bar.hAnchor
+            deformMatrix: barBg.deformMatrix
         }
         BlurMask { 
             target: panels.sidebar
@@ -190,18 +191,6 @@ StyledWindow {
             deformMatrix: dashBg.deformMatrix
         }
         BlurMask { 
-            target: panels.overview
-            contentItem: root.contentItem
-            blurOffsetTop: root.blurOffsetTop
-            blurOffsetBottom: root.blurOffsetBottom
-            blurOffsetLeft: root.blurOffsetLeft
-            blurOffsetRight: root.blurOffsetRight
-            vAnchor: panels.overview.vAnchor
-            hAnchor: panels.overview.hAnchor
-            offsetScale: panels.overview.offsetScale
-            deformMatrix: overviewBg.deformMatrix
-        }
-        BlurMask { 
             target: panels.popoutsWrapper
             contentItem: root.contentItem
             blurOffsetTop: root.blurOffsetTop
@@ -273,10 +262,14 @@ StyledWindow {
 
     property real fsTransitionProg: hasFullscreen ? 1 : 0
     readonly property real sdfBorderOffset: 2 * fsTransitionProg // SDFs joins are not exact, so offset by 2px to ensure nothing shows
-    readonly property real borderThickness: Config.border.thickness * (1 - fsTransitionProg)
+    
+    property real dynamicBorderThickness: visibilities.overview ? Math.min(root.width, root.height) * 0.15 : Config.border.thickness
+    Behavior on dynamicBorderThickness { NumberAnimation { duration: 1500; easing.type: Easing.OutCubic } }
+
+    readonly property real borderThickness: dynamicBorderThickness * (1 - fsTransitionProg)
     readonly property real borderRounding: Config.border.rounding * (1 - fsTransitionProg)
     readonly property real shadowOpacity: 0.7 * (1 - fsTransitionProg)
-    readonly property real borderLayoutThickness: hasFullscreen ? 0 : Config.border.thickness
+    readonly property real borderLayoutThickness: hasFullscreen ? 0 : dynamicBorderThickness
 
     property color surfaceColour: Colours.tPalette.m3surface
 
@@ -444,10 +437,10 @@ StyledWindow {
             group: GlobalConfig.appearance.islands ? null : blobGroup
             visible: !GlobalConfig.appearance.islands
             radius: root.borderRounding
-            borderLeft: (Config.bar.position === "left" ? bar.implicitWidth : root.borderThickness) - anchors.margins - root.sdfBorderOffset
-            borderRight: (Config.bar.position === "right" ? bar.implicitWidth : root.borderThickness) - anchors.margins - root.sdfBorderOffset
-            borderTop: (Config.bar.position === "top" ? bar.implicitHeight : root.borderThickness) - anchors.margins - root.sdfBorderOffset
-            borderBottom: (Config.bar.position === "bottom" ? bar.implicitHeight : root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderRight: Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderBottom: Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
         }
 
         BlobRect {
@@ -465,13 +458,6 @@ StyledWindow {
             id: dashBg
 
             panel: panels.dashboard
-            deformAmount: 0.1
-        }
-
-        PanelBg {
-            id: overviewBg
-
-            panel: panels.overview
             deformAmount: 0.1
         }
 
@@ -726,9 +712,6 @@ StyledWindow {
 
             dashboard.transform: Matrix4x4 {
                 matrix: dashBg.deformMatrix
-            }
-            overview.transform: Matrix4x4 {
-                matrix: overviewBg.deformMatrix
             }
             launcher.transform: Matrix4x4 {
                 matrix: launcherBg.deformMatrix

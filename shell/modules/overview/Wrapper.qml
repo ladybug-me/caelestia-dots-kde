@@ -7,6 +7,8 @@ import qs.components
 
 Item {
     id: root
+    
+    enabled: false
 
     required property ShellScreen screen
     required property DrawerVisibilities visibilities
@@ -14,38 +16,34 @@ Item {
 
     readonly property bool shouldBeActive: visibilities.overview
 
-    property real offsetScale: shouldBeActive ? 0 : 1
+    onShouldBeActiveChanged: {
+        Quickshell.execDetached(["bash", "-c", `
+            STATE=$(qdbus6 org.kde.KWin /KWin org.kde.KWin.showingDesktop)
+            TARGET=${shouldBeActive ? "true" : "false"}
+            if [ "$STATE" != "$TARGET" ]; then
+                qdbus6 org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut "Show Desktop"
+            fi
+        `]);
+    }
 
-    anchors.left: (Config.bar.position === "right") ? undefined : parent.left
-    anchors.right: (Config.bar.position === "left") ? undefined : parent.right
-    anchors.top: (Config.bar.position === "bottom") ? undefined : parent.top
-    anchors.bottom: (Config.bar.position === "top") ? undefined : parent.bottom
+    width: (shouldBeActive || opacity > 0) ? parent.width : 0
+    height: (shouldBeActive || opacity > 0) ? parent.height : 0
+    
+    // Position it at 0,0 when it has size
+    x: 0
+    y: 0
 
-    width: (Config.bar.position === "left" || Config.bar.position === "right") ? parent.width * (1 - offsetScale) : parent.width
-    height: (Config.bar.position === "top" || Config.bar.position === "bottom") ? parent.height * (1 - offsetScale) : parent.height
+    visible: shouldBeActive || opacity > 0
+    opacity: shouldBeActive ? 1 : 0
 
-    clip: false
-    visible: offsetScale < 1
-    opacity: 1 - offsetScale
-
-    Behavior on offsetScale {
-        Anim {}
+    Behavior on opacity {
+        Anim { type: Anim.DefaultEffects }
     }
 
     Loader {
         id: content
-
-        width: panels.width
-        height: panels.height
-        
-        // Keep content visually static on screen during scale down
-        anchors.left: (Config.bar.position === "right") ? undefined : parent.left
-        anchors.right: (Config.bar.position === "left") ? undefined : parent.right
-        anchors.top: (Config.bar.position === "bottom") ? undefined : parent.top
-        anchors.bottom: (Config.bar.position === "top") ? undefined : parent.bottom
-
+        anchors.fill: parent
         active: root.shouldBeActive || root.visible
-
         sourceComponent: Component {
             Content {
                 visibilities: root.visibilities

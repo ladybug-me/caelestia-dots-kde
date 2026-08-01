@@ -13,6 +13,7 @@ Singleton {
 
     function load(screen: ShellScreen, visibilities: DrawerVisibilities): void {
         screens.set(Hypr.monitorFor(screen), visibilities);
+        screens = new Map(screens); // Force QML property change notification
     }
 
     function registerBar(screen: ShellScreen, barWrapper: var): void {

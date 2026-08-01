@@ -13,7 +13,7 @@ Item {
     property var utilities
     readonly property Props props: Props {}
 
-    readonly property bool shouldBeActive: visibilities.sidebar && Config.sidebar.enabled
+    readonly property bool shouldBeActive: visibilities.sidebar && Config.sidebar.enabled && !visibilities.overview
 
     property bool aiBusy: false
 

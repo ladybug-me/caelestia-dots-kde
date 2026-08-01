@@ -33,7 +33,11 @@ StyledWindow {
         }
         return isHidden;
     }
-    readonly property bool shouldBeVisible: !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableShimeji) && (!GlobalConfig.forScreen(modelData.name).shimeji.autoHide || !windowHidesShimeji)
+    
+    readonly property var drawerVisibilities: Visibilities.screens.get(Hypr.monitorFor(modelData)) ?? Visibilities.screens.get(modelData.name)
+    readonly property bool isOverviewOpen: drawerVisibilities ? drawerVisibilities.overview : false
+
+    readonly property bool shouldBeVisible: !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableShimeji) && (!GlobalConfig.forScreen(modelData.name).shimeji.autoHide || !windowHidesShimeji) && !isOverviewOpen
 
     property var extractedPaths: []
 
