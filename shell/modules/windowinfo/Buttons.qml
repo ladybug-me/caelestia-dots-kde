@@ -11,7 +11,6 @@ ColumnLayout {
     id: root
 
     required property var client
-    property bool moveToWsExpanded
 
     spacing: Tokens.spacing.small
 
@@ -27,64 +26,18 @@ ColumnLayout {
             text: qsTr("Move to workspace")
             elide: Text.ElideRight
         }
-
-        StyledRect {
-            color: Colours.palette.m3primary
-            radius: Tokens.rounding.medium
-
-            implicitWidth: moveToWsIcon.implicitWidth + Tokens.padding.small
-            implicitHeight: moveToWsIcon.implicitHeight + Tokens.padding.extraSmall
-
-            StateLayer {
-                color: Colours.palette.m3onPrimary
-                onClicked: root.moveToWsExpanded = !root.moveToWsExpanded
-            }
-
-            MaterialIcon {
-                id: moveToWsIcon
-
-                anchors.centerIn: parent
-
-                animate: true
-                text: root.moveToWsExpanded ? "expand_more" : "keyboard_arrow_right"
-                color: Colours.palette.m3onPrimary
-                fontStyle: Tokens.font.icon.large
-            }
-        }
     }
 
-    GridLayout {
+    Flow {
         id: wsGrid
 
         Layout.fillWidth: true
         Layout.leftMargin: Tokens.padding.large
         Layout.rightMargin: Tokens.padding.large
-        Layout.bottomMargin: root.moveToWsExpanded ? Tokens.spacing.medium : 0
-        Layout.preferredHeight: root.moveToWsExpanded ? implicitHeight : 0
-        opacity: root.moveToWsExpanded ? 1 : 0
+        Layout.bottomMargin: Tokens.spacing.medium
         clip: true
 
-        rowSpacing: Tokens.spacing.small
-        columnSpacing: Tokens.spacing.small
-        columns: 5
-
-        Behavior on Layout.bottomMargin {
-            Anim {
-                type: Anim.DefaultEffects
-            }
-        }
-
-        Behavior on Layout.preferredHeight {
-            Anim {
-                type: Anim.DefaultEffects
-            }
-        }
-
-        Behavior on opacity {
-            Anim {
-                type: Anim.DefaultEffects
-            }
-        }
+        spacing: Tokens.spacing.small
 
         Repeater {
             model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 10
@@ -179,6 +132,7 @@ ColumnLayout {
         radius: Tokens.rounding.medium
 
         Layout.fillWidth: true
+        implicitWidth: label.implicitWidth + Tokens.padding.medium * 2
         implicitHeight: label.implicitHeight + Tokens.padding.small
 
         StateLayer {

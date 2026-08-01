@@ -34,8 +34,8 @@ StyledRect {
         return null;
     }
 
-    implicitWidth: child.implicitWidth
-    implicitHeight: typeof Quickshell !== "undefined" && Quickshell.ShellRoot.activeScreen ? Quickshell.ShellRoot.activeScreen.height * Tokens.sizes.winfo.heightMult : 600
+    implicitWidth: 1100
+    implicitHeight: 650
 
     RowLayout {
         id: child
@@ -46,13 +46,7 @@ StyledRect {
         spacing: Tokens.spacing.medium
 
         Preview {
-            Layout.preferredWidth: {
-                const w = root.client ? (root.client.width > 0 ? root.client.width : 16) : 16;
-                const h = root.client ? (root.client.height > 0 ? root.client.height : 10) : 10;
-                const aspect = w / h;
-                const availableHeight = 600 - Tokens.padding.large * 2;
-                return Math.min(availableHeight * aspect, 600); // Max preview width is 600px
-            }
+            Layout.fillWidth: true
             Layout.fillHeight: true
             client: root.client
         }
@@ -60,7 +54,7 @@ StyledRect {
         ColumnLayout {
             spacing: Tokens.spacing.medium
 
-            Layout.fillWidth: true
+            Layout.preferredWidth: 420
             Layout.fillHeight: true
 
             Details {

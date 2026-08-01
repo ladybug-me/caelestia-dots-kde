@@ -2274,7 +2274,7 @@ Item {
                      MultiEffect {
                          anchors.fill: parent
                          source: switcherBlurSource
-                         blurEnabled: true
+                         blurEnabled: GlobalConfig.appearance.blur
                          blurMax: 32
                      }
                  }
@@ -3073,7 +3073,7 @@ Item {
                          MultiEffect {
                              anchors.fill: parent
                              source: inputBlurSource
-                             blurEnabled: true
+                             blurEnabled: GlobalConfig.appearance.blur
                              blurMax: 32
                          }
                      }

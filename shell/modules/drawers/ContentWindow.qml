@@ -49,55 +49,55 @@ StyledWindow {
         // Border Blur Masks
         Region {
             x: 0; y: 0
-            width: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
             x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness); y: 0
-            width: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
             x: 0; y: 0
             width: root.width
-            height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         Region {
             x: 0; y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
             width: root.width
-            height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         // Corner squares for inverted corners
         Region {
             x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
             y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
-            width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
-            height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
             x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
             y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
-            width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
-            height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
             x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
             y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
-            width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
-            height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
             x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
             y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
-            width: !GlobalConfig.appearance.islands ? root.borderRounding : 0
-            height: !GlobalConfig.appearance.islands ? root.borderRounding : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
 
@@ -505,7 +505,7 @@ StyledWindow {
                 sourceItem: maskContainer
                 hideSource: true
             }
-            blurEnabled: true
+            blurEnabled: GlobalConfig.appearance.blur
             blurMax: 64
             blur: 1.0
         }
