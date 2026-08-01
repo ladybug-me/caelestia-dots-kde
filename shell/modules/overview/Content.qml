@@ -71,6 +71,10 @@ Item {
                 id: winInfoItem
                 anchors.fill: parent
                 clientAddress: windowInfoOverlay.clientAddress
+                onCloseRequested: {
+                    windowInfoOverlay.clientAddress = ""
+                    windowGrid.activeInfoClient = null
+                }
             }
         }
     }

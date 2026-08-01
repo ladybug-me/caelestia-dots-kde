@@ -44,10 +44,32 @@ Item {
         spacing: Tokens.spacing.large
         columns: {
             const count = root.activeWindows.length;
-            if (count <= 3) return Math.max(1, count);
+            if (count === 0) return 1;
+            
+            let bestCols = 1;
+            let bestDiff = 9999;
+            const targetRatio = root.width / Math.max(1, root.height);
+            
+            for (let c = 1; c <= count; c++) {
+                const r = Math.ceil(count / c);
+                const ratio = c / r;
+                const diff = Math.abs(ratio - targetRatio);
+                // Also give a slight penalty to having too many columns compared to rows
+                // to prevent overly wide grids when count is small (e.g. 4 items -> 2x2 is better than 4x1)
+                const adjustedDiff = diff + (c > r ? (c - r) * 0.1 : 0);
+                
+                if (adjustedDiff < bestDiff) {
+                    bestDiff = adjustedDiff;
+                    bestCols = c;
+                }
+            }
+            
+            // Fallbacks for very small numbers to keep them looking normal
+            if (count === 2) return 2;
+            if (count === 3) return 3;
             if (count === 4) return 2;
-            if (count <= 6) return 3;
-            return 4;
+            
+            return bestCols;
         }
         
         Repeater {
@@ -57,7 +79,18 @@ Item {
                 id: activeWin
                 required property var modelData
                 
-                readonly property int cardWidth: Math.max(100, Math.min(400, root.width / 3 - Tokens.spacing.large))
+                readonly property int cardWidth: {
+                    const cols = gridItem.columns;
+                    const rows = Math.ceil(root.activeWindows.length / cols) || 1;
+                    
+                    const maxW = (root.width * 0.9 - Tokens.spacing.large * (cols - 1)) / cols;
+                    
+                    const extra = Tokens.padding.medium * 2 + Tokens.spacing.small + 30; // padding, spacing, and title text height
+                    const maxH = (root.height * 0.9 - Tokens.spacing.large * (rows - 1)) / rows;
+                    const maxWFromH = (maxH - extra) * windowAspect;
+                    
+                    return Math.max(100, Math.min(1000, Math.min(maxW, maxWFromH)));
+                }
 
                 readonly property real windowAspect: {
                     const w = modelData.width;
@@ -191,7 +224,7 @@ Item {
                                 implicitWidth: infoIcon.implicitHeight + Tokens.padding.small * 2
                                 implicitHeight: infoIcon.implicitHeight + Tokens.padding.small * 2
                                 radius: Tokens.rounding.small
-                                color: Colours.tPalette.m3surfaceVariant
+                                color: Colours.palette.m3secondaryContainer
                                 
                                 StateLayer {
                                     anchors.fill: parent
@@ -203,6 +236,7 @@ Item {
                                     id: infoIcon
                                     anchors.centerIn: parent
                                     text: "chevron_right"
+                                    color: Colours.palette.m3onSecondaryContainer
                                     fontStyle.pointSize: Tokens.font.body.medium.pointSize
                                 }
                             }
@@ -212,7 +246,7 @@ Item {
                                 implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
                                 implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
                                 radius: Tokens.rounding.small
-                                color: Colours.tPalette.m3surfaceVariant
+                                color: Colours.palette.m3errorContainer
                                 
                                 StateLayer {
                                     anchors.fill: parent
@@ -232,6 +266,7 @@ Item {
                                     id: closeIcon
                                     anchors.centerIn: parent
                                     text: "close"
+                                    color: Colours.palette.m3onErrorContainer
                                     fontStyle.pointSize: Tokens.font.body.medium.pointSize
                                 }
                             }

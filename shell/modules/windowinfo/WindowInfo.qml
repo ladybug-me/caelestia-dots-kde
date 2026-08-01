@@ -14,6 +14,7 @@ StyledRect {
     clip: true
 
     property string clientAddress: ""
+    signal closeRequested()
 
     property var client: {
         if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
@@ -68,6 +69,7 @@ StyledRect {
 
                 Layout.fillWidth: true
                 client: root.client
+                onCloseRequested: root.closeRequested()
             }
         }
     }

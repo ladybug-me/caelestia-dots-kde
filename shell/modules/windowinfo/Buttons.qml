@@ -12,6 +12,8 @@ ColumnLayout {
 
     required property var client
 
+    signal closeRequested()
+
     spacing: Tokens.spacing.small
 
     RowLayout {
@@ -51,6 +53,9 @@ ColumnLayout {
                 onClicked: {
                     if (typeof KWinActiveWindowBridge !== "undefined") {
                         KWinActiveWindowBridge.setWindowDesktop(root.client?.address, wsId);
+                        if (typeof KWinWorkspaceState !== "undefined") {
+                            KWinWorkspaceState.switchTo(wsId);
+                        }
                     }
                 }
 
@@ -139,7 +144,12 @@ ColumnLayout {
             id: stateLayer
 
             color: parent.onColor
-            onClicked: parent.clicked()
+            onClicked: {
+                parent.clicked()
+                root.closeRequested()
+                const v = typeof Visibilities !== "undefined" ? Visibilities.getForActive() : null;
+                if (v) v.overview = false;
+            }
         }
 
         StyledText {

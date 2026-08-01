@@ -163,7 +163,7 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 text: qsTr("Background Blur")
-                subtext: qsTr("Enable a frosted glass effect by blurring the background")
+                subtext: parent.isBbdxEnabled ? qsTr("Disabling has no effect if Better Blur dx is enabled") : qsTr("Enable a frosted glass effect by blurring the background")
                 checked: parent.isBbdxEnabled ? true : GlobalConfig.appearance.blur
                 enabled: GlobalConfig.appearance.transparency.enabled && !parent.isBbdxEnabled
                 onToggled: {
