@@ -11,6 +11,22 @@ Item {
     // If true, keeps streams alive after refCount reaches 0.
     property bool continuousMode: true
     
+    // Global toggle for all screencasts
+    property bool enableStreams: true
+
+    onEnableStreamsChanged: {
+        if (!enableStreams) {
+            let streams = root._streams;
+            let keys = Object.keys(streams);
+            for (let i = 0; i < keys.length; i++) {
+                let uuid = keys[i];
+                streams[uuid].requestItem.destroy();
+                delete streams[uuid];
+            }
+            root._streams = streams;
+        }
+    }
+    
     // Internal dictionary: uuid -> { refCount: number, requestItem: WindowScreencastRequest }
     property var _streams: ({})
     
@@ -23,6 +39,7 @@ Item {
     }
     
     function requestStream(uuid: string): var {
+        if (!enableStreams) return null;
         if (!uuid) return null;
         
         let streams = root._streams;

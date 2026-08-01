@@ -40,6 +40,11 @@ Item {
     Component.onCompleted: {
         scale = Qt.binding(() => ListView.isCurrentItem ? 1 : 0.8);
         opacity = 1;
+        
+        if (root.modelData) {
+            WinIcons.request(root.modelData.class, root.modelData.title);
+        }
+
         Qt.callLater(() => {
             if (root.list && root.list.visibilities) {
                 root.list.visibilities.skipLauncherAnim = false;
@@ -122,7 +127,7 @@ Item {
             implicitSize: previewBox.height * 0.5
             asynchronous: true
             visible: previewBox.serial === 0
-            source: root.modelData?.iconName ? Icons.getAppIcon(root.modelData.iconName, "image-missing") : ""
+            source: root.modelData ? WinIcons.sourceFor(null, root.modelData.class, root.modelData.iconName) : ""
         }
 
         Pipewire.PipeWireSourceItem {
