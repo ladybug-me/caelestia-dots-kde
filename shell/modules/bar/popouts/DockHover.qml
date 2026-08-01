@@ -229,7 +229,17 @@ StyledRect {
                             }
 
                             Pipewire.PipeWireSourceItem {
-                                anchors.fill: parent
+                                width: {
+                                    const wAspect = card.windowAspect;
+                                    const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                    return (wAspect > containerAspect) ? thumb.width : thumb.height * wAspect;
+                                }
+                                height: {
+                                    const wAspect = card.windowAspect;
+                                    const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                    return (wAspect > containerAspect) ? thumb.width / wAspect : thumb.height;
+                                }
+                                anchors.centerIn: parent
                                 visible: thumb.screencastSerial !== 0
                                 objectSerial: thumb.screencastSerial
                             }

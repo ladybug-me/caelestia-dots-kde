@@ -11,6 +11,7 @@
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 #include <QtDBus/QDBusReply>
+#include <QTimer>
 
 namespace caelestia::services {
 
@@ -166,6 +167,7 @@ function onWindowAdded(window) {
     if (window && window.normalWindow) {
         try { window.minimizedChanged.connect(notifyWindowList); } catch(e){}
         try { window.desktopsChanged.connect(notifyWindowList); } catch(e){}
+        try { window.frameGeometryChanged.connect(notifyWindowList); } catch(e){}
     }
     notifyWindowList();
 }
@@ -196,6 +198,7 @@ for (let i = 0; i < initialWins.length; ++i) {
     if (initialWins[i].normalWindow) {
         try { initialWins[i].minimizedChanged.connect(notifyWindowList); } catch(e){}
         try { initialWins[i].desktopsChanged.connect(notifyWindowList); } catch(e){}
+        try { initialWins[i].frameGeometryChanged.connect(notifyWindowList); } catch(e){}
     }
 }
 onActiveWindowChanged();
@@ -208,6 +211,27 @@ if (workspace.currentDesktop) {
 KWinActiveWindowBridge::KWinActiveWindowBridge(QObject* parent)
     : QObject(parent) {
     new KWinActiveWindowBridgeAdaptor(this);
+
+    m_windowListDebounce = new QTimer(this);
+    m_windowListDebounce->setInterval(150); // Throttle geometry updates to ~6 fps to save QML CPU
+    m_windowListDebounce->setSingleShot(true);
+    connect(m_windowListDebounce, &QTimer::timeout, this, [this]() {
+        if (!m_pendingWindowListJson.isEmpty()) {
+            QJsonDocument doc = QJsonDocument::fromJson(m_pendingWindowListJson.toUtf8());
+            if (doc.isArray()) {
+                m_windowList = doc.array().toVariantList();
+                emit windowListChanged();
+            }
+
+            QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR", "/tmp");
+            QFile f(runtimeDir + "/qs_kwin_windows.json");
+            if (f.open(QIODevice::WriteOnly)) {
+                f.write(m_pendingWindowListJson.toUtf8());
+                f.close();
+            }
+            m_pendingWindowListJson.clear();
+        }
+    });
 
     QDBusConnection bus = QDBusConnection::sessionBus();
     bus.registerObject("/dev/caelestia/KWinActiveWindow", this,
@@ -542,6 +566,10 @@ void KWinActiveWindowBridge::refreshWindows() {
                         pid: w.pid || 0,
                         title: w.caption || "",
                         class: w.resourceClass || "",
+                        x: w.frameGeometry ? w.frameGeometry.x : w.x,
+                        y: w.frameGeometry ? w.frameGeometry.y : w.y,
+                        width: w.frameGeometry ? w.frameGeometry.width : w.width,
+                        height: w.frameGeometry ? w.frameGeometry.height : w.height,
                         fullscreen: w.fullScreen ? true : false,
                         maximized: w.maximized ? true : false,
                         minimized: w.minimized ? true : false,
@@ -587,18 +615,9 @@ void KWinActiveWindowBridge::previousDesktop() {
 }
 
 void KWinActiveWindowBridge::updateWindowList(const QString& windowsJson) {
-    QJsonDocument doc = QJsonDocument::fromJson(windowsJson.toUtf8());
-    if (doc.isArray()) {
-        m_windowList = doc.array().toVariantList();
-        emit windowListChanged();
-    }
-
-    // Optionally update a file for backwards compatibility with hyprlandstate.cpp
-    QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR", "/tmp");
-    QFile f(runtimeDir + "/qs_kwin_windows.json");
-    if (f.open(QIODevice::WriteOnly)) {
-        f.write(windowsJson.toUtf8());
-        f.close();
+    m_pendingWindowListJson = windowsJson;
+    if (!m_windowListDebounce->isActive()) {
+        m_windowListDebounce->start();
     }
 }
 

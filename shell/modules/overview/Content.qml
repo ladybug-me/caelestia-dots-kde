@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.components
+import qs.modules.windowinfo as WInfo
 
 Item {
     id: root
@@ -17,5 +18,57 @@ Item {
         anchors.fill: parent
         opacity: root.visibilities.overview ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: root.animConfig ? root.animConfig.gridDuration : 1500; easing.type: root.animConfig ? root.animConfig.easingType : Easing.OutCubic } }
+
+        // activeInfoClient is managed manually to ensure synchronous release before WindowInfo requests it
+        
+        onRequestWindowInfo: client => {
+            windowGrid.activeInfoClient = client
+            windowInfoOverlay.clientAddress = client.address
+            windowInfoOverlay.visible = true
+        }
+    }
+
+    Item {
+        id: windowInfoOverlay
+        z: 100
+        anchors.fill: parent
+        visible: false
+        opacity: clientAddress ? 1 : 0
+
+        property string clientAddress: ""
+
+        Behavior on opacity {
+            NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
+        }
+
+        Rectangle {
+            x: -root.panels.leftMargin
+            y: -root.panels.topMargin
+            width: root.panels.screen.width
+            height: root.panels.screen.height
+            color: Qt.rgba(0, 0, 0, 0.5)
+            
+            HoverHandler { } // block hover
+            WheelHandler { } // block scroll
+            TapHandler {
+                onTapped: {
+                    windowInfoOverlay.clientAddress = ""
+                    windowGrid.activeInfoClient = null
+                }
+            }
+        }
+        
+        Item {
+            anchors.centerIn: parent
+            width: Math.min(parent.width * 0.8, 800)
+            height: Math.min(parent.height * 0.8, 600)
+
+            TapHandler { }
+
+            WInfo.WindowInfo {
+                anchors.fill: parent
+                clientAddress: windowInfoOverlay.clientAddress
+            }
+        }
     }
 }

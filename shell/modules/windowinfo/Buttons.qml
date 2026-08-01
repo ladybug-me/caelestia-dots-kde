@@ -12,7 +12,6 @@ ColumnLayout {
     required property var client
     property bool moveToWsExpanded
 
-    anchors.fill: parent
     spacing: Tokens.spacing.small
 
     RowLayout {
@@ -87,20 +86,23 @@ ColumnLayout {
         }
 
         Repeater {
-            model: 10
+            model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 10
 
             Button {
                 required property int index
-                readonly property int wsId: Math.floor((Hypr.activeWsId - 1) / 10) * 10 + index + 1
-                readonly property bool isCurrent: root.client?.workspace.id === wsId
+                readonly property int wsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].id : index + 1
+                readonly property string wsName: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].name : wsId
+                readonly property bool isCurrent: root.client?.workspace?.id === wsId
 
                 onClicked: {
-                    Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.move({ window = "address:0x${root.client?.address}", workspace = "${wsId}", follow = true })` : `movetoworkspace ${wsId},address:0x${root.client?.address}`);
+                    if (typeof KWinActiveWindowBridge !== "undefined") {
+                        KWinActiveWindowBridge.setWindowDesktop(root.client?.address, wsId);
+                    }
                 }
 
                 color: isCurrent ? Colours.tPalette.m3surfaceContainerHighest : Colours.palette.m3tertiaryContainer
                 onColor: isCurrent ? Colours.palette.m3onSurface : Colours.palette.m3onTertiaryContainer
-                text: wsId
+                text: wsName
                 disabled: isCurrent
             }
         }
@@ -112,18 +114,22 @@ ColumnLayout {
         Layout.rightMargin: Tokens.padding.large
         Layout.bottomMargin: Tokens.padding.large
 
-        spacing: root.client?.lastIpcObject.floating ? Tokens.spacing.medium : Tokens.spacing.small
+        spacing: Tokens.spacing.small
 
         Button {
             color: Colours.palette.m3secondaryContainer
             onColor: Colours.palette.m3onSecondaryContainer
-            text: root.client?.lastIpcObject.floating ? qsTr("Tile") : qsTr("Float")
-            onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.float({ window = "address:0x${root.client?.address}" })` : `togglefloating address:0x${root.client?.address}`)
+            text: root.client?.maximized ? qsTr("Restore") : qsTr("Maximize")
+            onClicked: {
+                if (typeof KWinActiveWindowBridge !== "undefined") {
+                    KWinActiveWindowBridge.maximizeWindow(root.client?.address, !root.client?.maximized, !root.client?.maximized);
+                }
+            }
         }
 
         Loader {
             asynchronous: true
-            active: root.client?.lastIpcObject.floating ?? false
+            active: true
             Layout.fillWidth: active
             Layout.leftMargin: active ? 0 : -parent.spacing
             Layout.rightMargin: active ? 0 : -parent.spacing
@@ -131,8 +137,16 @@ ColumnLayout {
             sourceComponent: Button {
                 color: Colours.palette.m3secondaryContainer
                 onColor: Colours.palette.m3onSecondaryContainer
-                text: root.client?.lastIpcObject.pinned ? qsTr("Unpin") : qsTr("Pin")
-                onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.pin({ window = "address:0x${root.client?.address}" })` : `pin address:0x${root.client?.address}`)
+                text: root.client?.minimized ? qsTr("Unminimize") : qsTr("Minimize")
+                onClicked: {
+                    if (typeof KWinActiveWindowBridge !== "undefined") {
+                        if (root.client?.minimized) {
+                            KWinActiveWindowBridge.focusWindow(root.client?.address);
+                        } else {
+                            KWinActiveWindowBridge.minimizeWindow(root.client?.address);
+                        }
+                    }
+                }
             }
         }
 
@@ -140,7 +154,11 @@ ColumnLayout {
             color: Colours.palette.m3errorContainer
             onColor: Colours.palette.m3onErrorContainer
             text: qsTr("Kill")
-            onClicked: Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.kill({ window = "address:0x${root.client?.address}" })` : `killwindow address:0x${root.client?.address}`)
+            onClicked: {
+                if (typeof KWinActiveWindowBridge !== "undefined") {
+                    KWinActiveWindowBridge.closeWindow(root.client?.address);
+                }
+            }
         }
     }
 

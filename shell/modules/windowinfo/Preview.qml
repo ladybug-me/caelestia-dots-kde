@@ -3,39 +3,100 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
-import Quickshell.Wayland
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.services
+import org.kde.pipewire as Pipewire
+import Quickshell.Widgets
 
 Item {
     id: root
 
-    required property ShellScreen screen
-    required property HyprlandToplevel client
+    required property var client
 
-    Layout.preferredWidth: preview.implicitWidth + Tokens.padding.extraLargeIncreased
+    Layout.fillWidth: true
     Layout.fillHeight: true
+    implicitWidth: 400
+    implicitHeight: 300
 
-    StyledClippingRect {
-        id: preview
-
-        anchors.horizontalCenter: parent.horizontalCenter
+    Item {
+        id: previewContainer
         anchors.top: parent.top
-        anchors.bottom: label.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.topMargin: Tokens.padding.large
         anchors.bottomMargin: Tokens.spacing.medium
 
-        implicitWidth: view.implicitWidth
+        StyledClippingRect {
+            id: preview
 
-        color: Colours.tPalette.m3surfaceContainer
-        radius: Tokens.rounding.medium
+            readonly property real windowAspect: {
+                const w = root.client ? (root.client.width > 0 ? root.client.width : 16) : 16;
+                const h = root.client ? (root.client.height > 0 ? root.client.height : 10) : 10;
+                return w / h;
+            }
+
+            width: {
+                const containerAspect = previewContainer.width / previewContainer.height;
+                if (windowAspect > containerAspect) {
+                    return previewContainer.width;
+                } else {
+                    return previewContainer.height * windowAspect;
+                }
+            }
+
+            height: {
+                const containerAspect = previewContainer.width / previewContainer.height;
+                if (windowAspect > containerAspect) {
+                    return previewContainer.width / windowAspect;
+                } else {
+                    return previewContainer.height;
+                }
+            }
+
+            anchors.centerIn: parent
+            radius: Tokens.rounding.medium
+
+        property var streamRequest: null
+        property string lastRequestedAddress: ""
+
+        function updateStream() {
+            const addr = (root.client && root.client.address) ? root.client.address : "";
+            if (addr !== lastRequestedAddress) {
+                if (lastRequestedAddress !== "") {
+                    ScreencastManager.releaseStream(lastRequestedAddress);
+                }
+                if (addr !== "") {
+                    streamRequest = ScreencastManager.requestStream(addr);
+                } else {
+                    streamRequest = null;
+                }
+                lastRequestedAddress = addr;
+            }
+        }
+
+        Component.onCompleted: updateStream()
+        Component.onDestruction: {
+            if (lastRequestedAddress !== "") {
+                ScreencastManager.releaseStream(lastRequestedAddress);
+            }
+        }
+
+        Connections {
+            target: root
+            function onClientChanged() {
+                preview.updateStream();
+            }
+        }
+
+        readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
 
         Loader {
             asynchronous: true
             anchors.centerIn: parent
-            active: !root.client
+            active: !root.client || parent.screencastSerial === 0
 
             sourceComponent: ColumnLayout {
                 spacing: 0
@@ -63,34 +124,12 @@ Item {
             }
         }
 
-        ScreencopyView {
+        Pipewire.PipeWireSourceItem {
             id: view
-
-            anchors.centerIn: parent
-
-            captureSource: root.client?.wayland ?? null // qmllint disable unresolved-type
-            live: true
-
-            constraintSize.width: root.client ? parent.height * Math.min(root.screen.width / root.screen.height, root.client?.lastIpcObject.size[0] / root.client?.lastIpcObject.size[1]) : parent.height
-            constraintSize.height: parent.height
+            anchors.fill: parent
+            visible: preview.screencastSerial !== 0
+            objectSerial: preview.screencastSerial
         }
     }
-
-    StyledText {
-        id: label
-
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: Tokens.padding.large
-
-        animate: true
-        text: {
-            const client = root.client;
-            if (!client)
-                return qsTr("No active client");
-
-            const mon = client.monitor;
-            return qsTr("%1 on monitor %2 at %3, %4").arg(client.title).arg(mon.name).arg(client.lastIpcObject.at[0]).arg(client.lastIpcObject.at[1]);
-        }
-    }
+}
 }

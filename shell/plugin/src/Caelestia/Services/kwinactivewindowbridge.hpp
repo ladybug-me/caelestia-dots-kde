@@ -76,6 +76,9 @@ private:
     QString m_activeOutputName;
     QString m_scriptName;
     int m_currentDesktop = 1;
+
+    class QTimer* m_windowListDebounce;
+    QString m_pendingWindowListJson;
 };
 
 } // namespace caelestia::services

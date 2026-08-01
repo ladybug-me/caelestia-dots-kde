@@ -34,6 +34,9 @@ Item {
 
     property var cardItems: []
     property alias grid: gridItem
+    property var activeInfoClient: null
+    
+    signal requestWindowInfo(var client)
 
     Grid {
         id: gridItem
@@ -113,13 +116,35 @@ Item {
                         radius: Tokens.rounding.medium
                         
                         property var streamRequest: null
-                        Component.onCompleted: {
-                            if (activeWin.modelData.address) {
-                                streamRequest = ScreencastManager.requestStream(activeWin.modelData.address);
+                        
+                        function updateStream() {
+                            const isStolen = root.activeInfoClient && root.activeInfoClient.address === activeWin.modelData.address;
+                            if (root.opacity > 0 && activeWin.modelData.address && !isStolen) {
+                                if (!streamRequest) {
+                                    streamRequest = ScreencastManager.requestStream(activeWin.modelData.address);
+                                }
+                            } else {
+                                if (streamRequest) {
+                                    ScreencastManager.releaseStream(activeWin.modelData.address);
+                                    streamRequest = null;
+                                }
                             }
                         }
+                        
+                        Connections {
+                            target: root
+                            function onOpacityChanged() {
+                                thumb.updateStream();
+                            }
+                            function onActiveInfoClientChanged() {
+                                thumb.updateStream();
+                            }
+                        }
+                        
+                        Component.onCompleted: updateStream()
+                        
                         Component.onDestruction: {
-                            if (activeWin.modelData.address) {
+                            if (streamRequest && activeWin.modelData.address) {
                                 ScreencastManager.releaseStream(activeWin.modelData.address);
                             }
                         }
@@ -135,44 +160,80 @@ Item {
                         }
                         
                         Pipewire.PipeWireSourceItem {
-                            anchors.fill: parent
+                            width: {
+                                const wAspect = activeWin.windowAspect;
+                                const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                return (wAspect > containerAspect) ? thumb.width : thumb.height * wAspect;
+                            }
+                            height: {
+                                const wAspect = activeWin.windowAspect;
+                                const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                return (wAspect > containerAspect) ? thumb.width / wAspect : thumb.height;
+                            }
+                            anchors.centerIn: parent
                             visible: thumb.screencastSerial !== 0
                             objectSerial: thumb.screencastSerial
                         }
                         
-                        // Add close button
-                        StyledRect {
+                        // Action buttons row (Info + Close)
+                        RowLayout {
                             anchors.top: parent.top
                             anchors.right: parent.right
                             anchors.margins: Tokens.padding.small
-                            implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
-                            implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
-                            radius: Tokens.rounding.small
-                            color: Colours.tPalette.m3surfaceVariant
+                            spacing: Tokens.spacing.small
                             opacity: hover.hovered ? 1 : 0
                             visible: opacity > 0.01
                             
                             Behavior on opacity { Anim {} }
                             
-                            StateLayer {
-                                anchors.fill: parent
+                            // Info button
+                            StyledRect {
+                                implicitWidth: infoIcon.implicitHeight + Tokens.padding.small * 2
+                                implicitHeight: infoIcon.implicitHeight + Tokens.padding.small * 2
                                 radius: Tokens.rounding.small
-                                onClicked: {
-                                    if (activeWin.modelData.address) {
-                                        if (typeof KWinActiveWindowBridge !== "undefined") {
-                                            KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
-                                        } else {
-                                            Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.close({ window = "address:0x${activeWin.modelData.address}" })` : `closewindow address:0x${activeWin.modelData.address}`);
+                                color: Colours.tPalette.m3surfaceVariant
+                                
+                                StateLayer {
+                                    anchors.fill: parent
+                                    radius: Tokens.rounding.small
+                                    onClicked: root.requestWindowInfo(activeWin.modelData)
+                                }
+                                
+                                MaterialIcon {
+                                    id: infoIcon
+                                    anchors.centerIn: parent
+                                    text: "chevron_right"
+                                    fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                                }
+                            }
+                        
+                            // Close button
+                            StyledRect {
+                                implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
+                                implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
+                                radius: Tokens.rounding.small
+                                color: Colours.tPalette.m3surfaceVariant
+                                
+                                StateLayer {
+                                    anchors.fill: parent
+                                    radius: Tokens.rounding.small
+                                    onClicked: {
+                                        if (activeWin.modelData.address) {
+                                            if (typeof KWinActiveWindowBridge !== "undefined") {
+                                                KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
+                                            } else {
+                                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.close({ window = "address:0x${activeWin.modelData.address}" })` : `closewindow address:0x${activeWin.modelData.address}`);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            
-                            MaterialIcon {
-                                id: closeIcon
-                                anchors.centerIn: parent
-                                text: "close"
-                                fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                                
+                                MaterialIcon {
+                                    id: closeIcon
+                                    anchors.centerIn: parent
+                                    text: "close"
+                                    fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                                }
                             }
                         }
                     }

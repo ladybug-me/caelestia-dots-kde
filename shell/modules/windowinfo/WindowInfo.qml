@@ -1,30 +1,41 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.services
 
-Item {
+StyledRect {
     id: root
 
-    required property ShellScreen screen
+    color: Colours.tPalette.m3surfaceContainer
+    radius: Tokens.rounding.large
+    clip: true
+
     property string clientAddress: ""
 
-    property HyprlandToplevel client: {
-        if (clientAddress !== "") {
-            for (const t of Hypr.toplevels.values) {
-                if (t.address === clientAddress) {
-                    return t;
+    property var client: {
+        if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
+            if (clientAddress !== "") {
+                for (let i = 0; i < KWinActiveWindowBridge.windowList.length; ++i) {
+                    if (KWinActiveWindowBridge.windowList[i].address === clientAddress) {
+                        return KWinActiveWindowBridge.windowList[i];
+                    }
+                }
+            } else {
+                for (let i = 0; i < KWinActiveWindowBridge.windowList.length; ++i) {
+                    if (KWinActiveWindowBridge.activeWindow && KWinActiveWindowBridge.windowList[i].address === KWinActiveWindowBridge.activeWindow.address) {
+                        return KWinActiveWindowBridge.windowList[i];
+                    }
                 }
             }
         }
-        return Hypr.activeToplevel;
+        return null;
     }
 
     implicitWidth: child.implicitWidth
-    implicitHeight: screen.height * Tokens.sizes.winfo.heightMult
+    implicitHeight: typeof Quickshell !== "undefined" && Quickshell.ShellRoot.activeScreen ? Quickshell.ShellRoot.activeScreen.height * Tokens.sizes.winfo.heightMult : 600
 
     RowLayout {
         id: child
@@ -35,7 +46,9 @@ Item {
         spacing: Tokens.spacing.medium
 
         Preview {
-            screen: root.screen
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            implicitWidth: 400
             client: root.client
         }
 
@@ -45,31 +58,17 @@ Item {
             Layout.preferredWidth: Tokens.sizes.winfo.detailsWidth
             Layout.fillHeight: true
 
-            StyledRect {
+            Details {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
-                color: Colours.tPalette.m3surfaceContainer
-                radius: Tokens.rounding.large
-                clip: true
-
-                Details {
-                    client: root.client
-                }
+                client: root.client
             }
 
-            StyledRect {
+            Buttons {
+                id: buttons
+
                 Layout.fillWidth: true
-                Layout.preferredHeight: buttons.implicitHeight
-
-                color: Colours.tPalette.m3surfaceContainer
-                radius: Tokens.rounding.large
-
-                Buttons {
-                    id: buttons
-
-                    client: root.client
-                }
+                client: root.client
             }
         }
     }

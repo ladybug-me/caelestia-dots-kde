@@ -136,7 +136,6 @@ Item {
         anchors.centerIn: parent
 
         sourceComponent: WindowInfo {
-            screen: root.screen
             clientAddress: popoutState.selectedClientAddress
         }
 

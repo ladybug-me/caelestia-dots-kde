@@ -6,7 +6,7 @@ QtObject {
     id: root
     
     // Base duration for the entire overview opening/closing sequence (in ms)
-    property int baseDuration: 700
+    property int baseDuration: 300
     
     // speeds relative to the base duration
     property real blobScaleSpeed: 1.0
