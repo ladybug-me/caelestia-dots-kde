@@ -112,23 +112,32 @@ Item {
                         color: Colours.tPalette.m3surfaceContainerHighest
                         radius: Tokens.rounding.medium
                         
-                        WindowScreencastRequest {
-                            id: screencast
-                            uuid: activeWin.modelData.address || ""
+                        property var streamRequest: null
+                        Component.onCompleted: {
+                            if (activeWin.modelData.address) {
+                                streamRequest = ScreencastManager.requestStream(activeWin.modelData.address);
+                            }
                         }
+                        Component.onDestruction: {
+                            if (activeWin.modelData.address) {
+                                ScreencastManager.releaseStream(activeWin.modelData.address);
+                            }
+                        }
+                        
+                        readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
                         
                         IconImage {
                             anchors.centerIn: parent
                             implicitSize: thumb.height * 0.5
                             asynchronous: true
-                            visible: screencast.objectSerial === 0
+                            visible: thumb.screencastSerial === 0
                             source: activeWin.modelData.iconName ? Icons.getAppIcon(activeWin.modelData.iconName, "image-missing") : (activeWin.modelData.class ? Icons.getAppIcon(activeWin.modelData.class, "image-missing") : "")
                         }
                         
                         Pipewire.PipeWireSourceItem {
                             anchors.fill: parent
-                            visible: screencast.objectSerial !== 0
-                            objectSerial: screencast.objectSerial
+                            visible: thumb.screencastSerial !== 0
+                            objectSerial: thumb.screencastSerial
                         }
                         
                         // Add close button

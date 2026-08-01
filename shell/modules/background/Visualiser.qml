@@ -29,7 +29,7 @@ Item {
                 isHidden = !(Hypr.monitorFor(screen)?.activeWorkspace?.toplevels?.values.every(t => t.lastIpcObject?.floating) ?? true);
             }
         }
-        return isHidden;
+        return !!isHidden;
     }
     readonly property bool shouldBeActive: Config.background.visualiser.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableVisualizer) && (!Config.background.visualiser.autoHide || !windowHidesVisualiser)
     property real offset: shouldBeActive ? 0 : screen.height * 0.2

@@ -63,7 +63,7 @@ StyledWindow {
             x: 0; y: 0
             width: root.width
             height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
-            intersection: Intersection.CombineCombine
+            intersection: Intersection.Combine
         }
         Region {
             x: 0; y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
@@ -125,7 +125,6 @@ StyledWindow {
             blurOffsetRight: root.blurOffsetRight
             vAnchor: bar.vAnchor
             hAnchor: bar.hAnchor
-            deformMatrix: barBg.deformMatrix
         }
         BlurMask { 
             target: panels.sidebar
@@ -148,7 +147,6 @@ StyledWindow {
             blurOffsetRight: root.blurOffsetRight
             vAnchor: panels.notifications.vAnchor
             hAnchor: panels.notifications.hAnchor
-            offsetScale: panels.notifications.offsetScale
             deformMatrix: notifsBg.deformMatrix
         }
         BlurMask { 
@@ -262,6 +260,7 @@ StyledWindow {
 
     readonly property alias bar: bar
     readonly property alias interactionWrapper: interactions
+    readonly property alias visibilities: visibilities
 
     // NOTE: strictly typed as HyprlandMonitor upstream, but under the KDE
     // fallback bridge Hypr.monitorFor() returns a plain mock QtObject (not
@@ -299,7 +298,7 @@ StyledWindow {
         if (focusGrabState.active || panels.popouts.isDetached)
             return 0;
 
-        if (!monitor || monitor.lastIpcObject.specialWorkspace?.name || monitor.activeWorkspace.lastIpcObject.windows > 0)
+        if (!monitor || monitor.lastIpcObject?.specialWorkspace?.name || monitor.activeWorkspace?.lastIpcObject === undefined || monitor.activeWorkspace.lastIpcObject.windows > 0)
             return 0;
 
         const thresholds = [];

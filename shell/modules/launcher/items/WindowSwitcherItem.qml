@@ -100,18 +100,22 @@ Item {
             interval: 20
             running: true
             repeat: false
-            onTriggered: screencastLoader.active = true
+            onTriggered: {
+                if (root.modelData && root.modelData.address) {
+                    previewBox.streamRequest = ScreencastManager.requestStream(root.modelData.address);
+                }
+            }
         }
-
-        Loader {
-            id: screencastLoader
-            active: false
-            sourceComponent: WindowScreencastRequest {
-                uuid: root.modelData?.address ?? ""
+        
+        property var streamRequest: null
+        
+        Component.onDestruction: {
+            if (previewBox.streamRequest && root.modelData && root.modelData.address) {
+                ScreencastManager.releaseStream(root.modelData.address);
             }
         }
 
-        readonly property int serial: screencastLoader.item ? screencastLoader.item.objectSerial : 0
+        readonly property int serial: streamRequest ? streamRequest.objectSerial : 0
 
         IconImage {
             anchors.centerIn: parent

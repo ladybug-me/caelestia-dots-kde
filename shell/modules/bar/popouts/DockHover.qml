@@ -206,27 +206,32 @@ StyledRect {
                             color: Colours.tPalette.m3surfaceContainerHighest
                             radius: Tokens.rounding.small
 
-                            // Requests a live PipeWire feed for this specific window from KWin
-                            // via the zkde-screencast-unstable-v1 protocol (the same mechanism
-                            // Plasma's own Task Manager uses for taskbar thumbnails), keyed by
-                            // the window's KWin uuid (KWinActiveWindowBridge's "address" field).
-                            WindowScreencastRequest {
-                                id: screencastRequest
-                                uuid: card.modelData.address || ""
+                            property var streamRequest: null
+                            Component.onCompleted: {
+                                if (card.modelData.address) {
+                                    streamRequest = ScreencastManager.requestStream(card.modelData.address);
+                                }
                             }
+                            Component.onDestruction: {
+                                if (card.modelData.address) {
+                                    ScreencastManager.releaseStream(card.modelData.address);
+                                }
+                            }
+
+                            readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
 
                             IconImage {
                                 anchors.centerIn: parent
                                 implicitSize: thumb.height * 0.5
                                 asynchronous: true
-                                visible: screencastRequest.objectSerial === 0
+                                visible: thumb.screencastSerial === 0
                                 source: root.iconSource
                             }
 
                             Pipewire.PipeWireSourceItem {
                                 anchors.fill: parent
-                                visible: screencastRequest.objectSerial !== 0
-                                objectSerial: screencastRequest.objectSerial
+                                visible: thumb.screencastSerial !== 0
+                                objectSerial: thumb.screencastSerial
                             }
 
                             // Close button - only revealed while hovering this thumbnail

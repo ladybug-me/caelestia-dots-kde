@@ -2,7 +2,7 @@ import QtQuick
 import QtCore
 import Caelestia.Config
 
-QtObject {
+Item {
     id: root
 
     required property Item target
