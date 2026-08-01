@@ -14,6 +14,7 @@ import qs.components.containers
 import qs.services
 import qs.modules.bar
 import qs.modules.background
+import qs.modules.overview as Overview
 import "blur"
 
 StyledWindow {
@@ -25,6 +26,14 @@ StyledWindow {
     property real blurOffsetBottom: 0
     property real blurOffsetLeft: 0
     property real blurOffsetRight: 0
+
+    property bool disableOverviewWallpaperBlur: true // FIXME: integrate in nexus
+    
+    Overview.Anim {
+        id: animConfig
+    }
+    
+    property alias overviewAnimConfig: animConfig
 
     Config.screen: screen.name
 
@@ -54,7 +63,7 @@ StyledWindow {
             x: 0; y: 0
             width: root.width
             height: !GlobalConfig.appearance.islands ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
-            intersection: Intersection.Combine
+            intersection: Intersection.CombineCombine
         }
         Region {
             x: 0; y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
@@ -226,6 +235,19 @@ StyledWindow {
             offsetScale: desktopContextMenu.backgroundItem.offsetScale
             deformMatrix: contextMenuBg.deformMatrix
         }
+        BlurMask {
+            target: (visibilities.overview && !root.disableOverviewWallpaperBlur) ? panels.overview : null
+            contentItem: root.contentItem
+            blurOffsetTop: root.blurOffsetTop
+            blurOffsetBottom: root.blurOffsetBottom
+            blurOffsetLeft: root.blurOffsetLeft
+            blurOffsetRight: root.blurOffsetRight
+            vAnchor: "both"
+            hAnchor: "both"
+        }
+        
+
+
         // BlurMask { 
         //     target: panels.toasts
         //     contentItem: root.contentItem
@@ -264,7 +286,7 @@ StyledWindow {
     readonly property real sdfBorderOffset: 2 * fsTransitionProg // SDFs joins are not exact, so offset by 2px to ensure nothing shows
     
     property real dynamicBorderThickness: visibilities.overview ? Math.min(root.width, root.height) * 0.15 : Config.border.thickness
-    Behavior on dynamicBorderThickness { NumberAnimation { duration: 1500; easing.type: Easing.OutCubic } }
+    Behavior on dynamicBorderThickness { NumberAnimation { duration: animConfig.blobDuration; easing.type: Easing.OutCubic } }
 
     readonly property real borderThickness: dynamicBorderThickness * (1 - fsTransitionProg)
     readonly property real borderRounding: Config.border.rounding * (1 - fsTransitionProg)
@@ -333,6 +355,7 @@ StyledWindow {
             height: panels.osd.height
         }
     }
+
 
     Regions {
         id: regions
@@ -407,6 +430,83 @@ StyledWindow {
             Anim {
                 type: Anim.SlowEffects
             }
+        }
+    }
+
+
+
+
+
+    Item {
+        id: overviewWallpaperLayer
+        anchors.fill: parent
+        visible: active || opacity > 0
+        property bool active: visibilities.overview
+        
+        // Ensure fade-in starts only after the wallpaper has actually loaded
+        opacity: (visibilities.overview && wallpaperLoader.status === Loader.Ready) ? 1 : 0
+        
+        property real _maxBorder: Math.max(1, Math.min(root.width, root.height) * 0.15)
+        property real bgScale: 1.0 + (dynamicBorderThickness / _maxBorder) * 0.1
+        
+        Behavior on opacity { NumberAnimation { duration: animConfig.wallpaperDuration; easing.type: Easing.OutCubic } }
+
+        Item {
+            id: scaledWallpaperContainer
+            anchors.fill: parent
+            
+            Loader {
+                id: wallpaperLoader
+                anchors.centerIn: parent
+                width: parent.width
+                height: parent.height
+                scale: overviewWallpaperLayer.bgScale
+                active: overviewWallpaperLayer.active || overviewWallpaperLayer.opacity > 0
+                sourceComponent: Component { Wallpaper { screen: root.screen; skipTransition: true } }
+            }
+        }
+
+        Item {
+            id: maskContainer
+            anchors.fill: parent
+            
+            BlobGroup {
+                id: overviewBlurMask
+                color: "white"
+            }
+                
+            BlobInvertedRect {
+                Config.screen: root.screen.name
+                anchors.fill: parent
+                anchors.margins: -50
+                group: overviewBlurMask
+                radius: root.borderRounding
+                borderLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+                borderRight: Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+                borderTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+                borderBottom: Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            }
+        }
+
+        ShaderEffectSource {
+            id: overviewWallpaperSource
+            sourceItem: scaledWallpaperContainer
+            anchors.fill: parent
+            hideSource: false
+        }
+
+        MultiEffect {
+            anchors.fill: parent
+            source: overviewWallpaperSource
+            autoPaddingEnabled: false
+            maskEnabled: true
+            maskSource: ShaderEffectSource {
+                sourceItem: maskContainer
+                hideSource: true
+            }
+            blurEnabled: true
+            blurMax: 64
+            blur: 1.0
         }
     }
 
@@ -706,6 +806,7 @@ StyledWindow {
             visibilities: visibilities
             bar: bar
             borderThickness: root.borderThickness
+            overviewAnimConfig: root.overviewAnimConfig
 
             utilities.horizontalStretch: (sidebarBg.rawDeformMatrix.m11 - 1) / 2 + 1
             utilities.deformMatrix: utilsBg.rawDeformMatrix

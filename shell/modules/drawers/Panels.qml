@@ -22,7 +22,7 @@ Item {
     required property DrawerVisibilities visibilities
     required property Bar.BarWrapper bar
     required property real borderThickness
-
+    property var overviewAnimConfig
     readonly property alias osd: osd
     readonly property alias osdWrapper: osdWrapper
     readonly property alias notifications: notifications
@@ -293,6 +293,7 @@ Item {
         
         property string vAnchor: "center"
         property string hAnchor: "center"
+        property var animConfig: root.overviewAnimConfig
 
         screen: root.screen
         visibilities: root.visibilities

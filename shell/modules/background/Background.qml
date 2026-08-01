@@ -83,7 +83,7 @@ Variants {
                 screen: win.modelData
                 wallpaper: wallpaper
                 z: 2
-                visible: !win.isOverviewOpen
+                visible: true
             }
 
         }
@@ -91,7 +91,7 @@ Variants {
         DesktopIcons {
             screenData: win.modelData
             z: 3
-            visible: !win.isOverviewOpen
+            visible: true
         }
 
         Loader {
@@ -101,7 +101,7 @@ Variants {
             readonly property int clockBaseMargin: Tokens.padding.extraLargeIncreased
 
             asynchronous: true
-            active: Config.background.desktopClock.enabled && !win.isOverviewOpen
+            active: Config.background.desktopClock.enabled
 
             anchors.margins: clockBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? clockBaseMargin + clockBarZone : clockBaseMargin
@@ -223,7 +223,7 @@ Variants {
             readonly property int lyricsBaseMargin: Tokens.padding.large * 2
 
             asynchronous: true
-            active: Config.background.desktopLyrics.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics) && !win.isOverviewOpen
+            active: Config.background.desktopLyrics.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics)
 
             anchors.margins: lyricsBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin

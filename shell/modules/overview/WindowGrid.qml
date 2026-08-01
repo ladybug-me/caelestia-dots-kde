@@ -32,7 +32,11 @@ Item {
         return arr;
     }
 
+    property var cardItems: []
+    property alias grid: gridItem
+
     Grid {
+        id: gridItem
         anchors.centerIn: parent
         spacing: Tokens.spacing.large
         columns: {
@@ -50,61 +54,35 @@ Item {
                 id: activeWin
                 required property var modelData
                 
+                readonly property int cardWidth: Math.max(100, Math.min(400, root.width / 3 - Tokens.spacing.large))
+
                 readonly property real windowAspect: {
                     const w = modelData.width;
                     const h = modelData.height;
-                    return (w > 0 && h > 0) ? (w / h) : (16.0 / 9.0);
+                    return (w > 0 && h > 0) ? (w / h) : (16.0 / 10.0);
                 }
                 
-                width: Math.max(100, Math.min(400, root.width / 3 - Tokens.spacing.large))
-                height: width / windowAspect
+                readonly property int thumbHeight: {
+                    const raw = Math.round(activeWin.cardWidth / windowAspect);
+                    const max = Math.round(activeWin.cardWidth * 1.6); // never taller than 1.6x width
+                    const min = Math.round(activeWin.cardWidth * 0.4);
+                    return Math.max(min, Math.min(max, raw));
+                }
                 
-                color: "transparent"
+                implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2
+                implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
+                
+                color: Colours.tPalette.m3surfaceContainer
                 radius: Tokens.rounding.medium
                 
+                Component.onCompleted: {
+                    root.cardItems = [...root.cardItems, activeWin];
+                }
+                Component.onDestruction: {
+                    root.cardItems = root.cardItems.filter(x => x !== activeWin);
+                }
+
                 HoverHandler { id: hover }
-                
-                border.width: hover.hovered ? 2 : 0
-                border.color: Colours.palette.m3primary
-                
-                WindowScreencastRequest {
-                    id: screencast
-                    uuid: activeWin.modelData.address || ""
-                }
-                
-                Pipewire.PipeWireSourceItem {
-                    anchors.fill: parent
-                    visible: screencast.objectSerial !== 0
-                    objectSerial: screencast.objectSerial
-                }
-                
-                IconImage {
-                    anchors.centerIn: parent
-                    implicitSize: 64
-                    asynchronous: true
-                    visible: screencast.objectSerial === 0
-                    source: activeWin.modelData.iconName ? Icons.getAppIcon(activeWin.modelData.iconName, "image-missing") : (activeWin.modelData.class ? Icons.getAppIcon(activeWin.modelData.class, "image-missing") : "")
-                }
-                
-                StyledRect {
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.margins: Tokens.padding.small
-                    color: Colours.tPalette.m3surfaceVariant
-                    radius: Tokens.rounding.small
-                    implicitWidth: titleText.implicitWidth + Tokens.padding.medium * 2
-                    implicitHeight: titleText.implicitHeight + Tokens.padding.small * 2
-                    
-                    StyledText {
-                        id: titleText
-                        anchors.centerIn: parent
-                        text: activeWin.modelData.title
-                        color: Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.body.small
-                        elide: Text.ElideRight
-                        width: Math.min(implicitWidth, activeWin.width - Tokens.padding.large * 2)
-                    }
-                }
                 
                 StateLayer {
                     anchors.fill: parent
@@ -113,41 +91,87 @@ Item {
                         if (activeWin.modelData.address) {
                             if (typeof KWinActiveWindowBridge !== "undefined") {
                                 KWinActiveWindowBridge.focusWindow(activeWin.modelData.address);
+                            } else {
+                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${activeWin.modelData.address}" })` : `focuswindow address:0x${activeWin.modelData.address}`);
                             }
                         }
                         const v = Visibilities.getForActive();
                         if (v) v.overview = false;
                     }
                 }
-                
-                // Add close button
-                StyledRect {
-                    anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.margins: Tokens.padding.small
-                    implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
-                    implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
-                    radius: Tokens.rounding.small
-                    color: Colours.tPalette.m3surfaceVariant
-                    opacity: 1
-                    visible: true
+
+                ColumnLayout {
+                    id: cardLayout
+                    anchors.centerIn: parent
+                    spacing: Tokens.spacing.small
                     
-                    Behavior on opacity { Anim {} }
-                    
-                    StateLayer {
-                        anchors.fill: parent
-                        radius: Tokens.rounding.small
-                        onClicked: {
-                            if (activeWin.modelData.address && typeof KWinActiveWindowBridge !== "undefined") {
-                                KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
+                    StyledClippingRect {
+                        id: thumb
+                        Layout.preferredWidth: activeWin.cardWidth
+                        Layout.preferredHeight: activeWin.thumbHeight
+                        color: Colours.tPalette.m3surfaceContainerHighest
+                        radius: Tokens.rounding.medium
+                        
+                        WindowScreencastRequest {
+                            id: screencast
+                            uuid: activeWin.modelData.address || ""
+                        }
+                        
+                        IconImage {
+                            anchors.centerIn: parent
+                            implicitSize: thumb.height * 0.5
+                            asynchronous: true
+                            visible: screencast.objectSerial === 0
+                            source: activeWin.modelData.iconName ? Icons.getAppIcon(activeWin.modelData.iconName, "image-missing") : (activeWin.modelData.class ? Icons.getAppIcon(activeWin.modelData.class, "image-missing") : "")
+                        }
+                        
+                        Pipewire.PipeWireSourceItem {
+                            anchors.fill: parent
+                            visible: screencast.objectSerial !== 0
+                            objectSerial: screencast.objectSerial
+                        }
+                        
+                        // Add close button
+                        StyledRect {
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.margins: Tokens.padding.small
+                            implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
+                            implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
+                            radius: Tokens.rounding.small
+                            color: Colours.tPalette.m3surfaceVariant
+                            opacity: hover.hovered ? 1 : 0
+                            visible: opacity > 0.01
+                            
+                            Behavior on opacity { Anim {} }
+                            
+                            StateLayer {
+                                anchors.fill: parent
+                                radius: Tokens.rounding.small
+                                onClicked: {
+                                    if (activeWin.modelData.address && typeof KWinActiveWindowBridge !== "undefined") {
+                                        KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
+                                    }
+                                }
+                            }
+                            
+                            MaterialIcon {
+                                id: closeIcon
+                                anchors.centerIn: parent
+                                text: "close"
+                                fontStyle.pointSize: Tokens.font.body.medium.pointSize
                             }
                         }
                     }
                     
-                    MaterialIcon {
-                        id: closeIcon
-                        anchors.centerIn: parent
-                        text: "close"
+                    StyledText {
+                        id: titleText
+                        Layout.preferredWidth: activeWin.cardWidth
+                        text: activeWin.modelData.title || ""
+                        color: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.body.small
+                        elide: Text.ElideRight
+                        horizontalAlignment: Text.AlignHCenter
                     }
                 }
             }

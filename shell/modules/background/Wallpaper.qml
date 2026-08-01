@@ -18,6 +18,7 @@ Item {
     property string source: Wallpapers.current
     property Item current: one
     property bool completed
+    property bool skipTransition: false
     property var screen: null
 
     function isVideo(path: string): bool {
@@ -205,8 +206,8 @@ Item {
         scale: 1
 
         readonly property real maxRadius: Math.sqrt(width * width + height * height)
-        property real maskRadius: 0
-        Component.onCompleted: maskRadius = maxRadius
+        property real maskRadius: root.skipTransition ? maxRadius : 0
+        Component.onCompleted: maskRadius = root.skipTransition ? maxRadius : maxRadius // Wait, original was maxRadius, but wait, onZChanged resets it
         z: root.current === img ? 1 : 0
 
         readonly property var shapes: [
@@ -218,8 +219,12 @@ Item {
 
         onZChanged: {
             if (z === 1) {
-                maskRadius = 0;
-                maskAnim.restart();
+                if (root.skipTransition) {
+                    maskRadius = maxRadius;
+                } else {
+                    maskRadius = 0;
+                    maskAnim.restart();
+                }
             } else {
                 maskRadius = 0;
                 currentShape = shapes[Math.floor(Math.random() * shapes.length)];

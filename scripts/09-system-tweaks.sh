@@ -88,42 +88,6 @@ tweak_five_desktops() {
 }
 
 # 
-# TWEAK: Register workspace switching shortcuts (Meta+1..5)
-# 
-tweak_workspace_shortcuts() {
-    info "Registering Meta+1..5 workspace switching shortcuts..."
-
-    # The keyboard-shortcut step runs before this script in the C++ installer.
-    # Do not recreate KWin bindings that it has just removed when active keyd
-    # mappings already own Meta+1..5.
-    if systemctl is-active --quiet keyd 2>/dev/null \
-        && grep -q "org.kde.KWin.setCurrentDesktop" /etc/keyd/quickshell.conf 2>/dev/null; then
-        info "Meta+1..5 are managed by keyd; skipping duplicate KWin bindings."
-        return
-    fi
-
-    # Meta+1..5  Switch to Desktop N
-    for i in $(seq 1 5); do
-        kwriteconfig6 \
-            --file kglobalshortcutsrc \
-            --group "kwin" \
-            --key "Switch to Desktop $i" \
-            "Meta+$i,none,Switch to Desktop $i"
-    done
-
-    # Meta+Shift+1..5  Move window to desktop N
-    for i in $(seq 1 5); do
-        kwriteconfig6 \
-            --file kglobalshortcutsrc \
-            --group "kwin" \
-            --key "Window to Desktop $i" \
-            "Meta+Shift+$i,none,Move Window to Desktop $i"
-    done
-
-    ok "Workspace shortcuts registered."
-}
-
-# 
 # TWEAK: Reload KWin and KGlobalAccel to pick up config changes
 # 
 tweak_reload_kde() {
@@ -249,7 +213,6 @@ if [[ "${1:-}" == "--list" ]]; then
 fi
 
 tweak_disable_kde_osd
-tweak_workspace_shortcuts
 tweak_default_shell
 tweak_patch_caelestia_cli
 tweak_reload_kde
