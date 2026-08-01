@@ -57,6 +57,7 @@ ColumnLayout {
                             KWinWorkspaceState.switchTo(wsId);
                         }
                     }
+                    Visibilities.getForActive().overview = false;
                 }
 
                 color: isCurrent ? Colours.tPalette.m3surfaceContainerHighest : Colours.palette.m3tertiaryContainer
@@ -87,6 +88,7 @@ ColumnLayout {
                 } else {
                     console.log("KWinActiveWindowBridge is undefined");
                 }
+                Visibilities.getForActive().overview = false;
             }
         }
 
@@ -109,6 +111,7 @@ ColumnLayout {
                             KWinActiveWindowBridge.minimizeWindow(root.client?.address);
                         }
                     }
+                    Visibilities.getForActive().overview = false;
                 }
             }
         }
@@ -123,6 +126,7 @@ ColumnLayout {
                     console.log("Calling KWinActiveWindowBridge.closeWindow");
                     KWinActiveWindowBridge.closeWindow(root.client?.address);
                 }
+                Visibilities.getForActive().overview = false;
             }
         }
     }

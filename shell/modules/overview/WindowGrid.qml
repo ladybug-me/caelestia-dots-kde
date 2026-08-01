@@ -13,277 +13,426 @@ import Quickshell.Widgets
 import org.kde.pipewire as Pipewire
 import qs.utils
 
+import Caelestia.Layouts
+
 Item {
     id: root
 
-    readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
-
-    readonly property var activeWindows: {
-        const kwinList = typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList : null;
-        let arr = [];
-        if (kwinList) {
-            for (let i = 0; i < kwinList.length; ++i) {
-                const w = kwinList[i];
-                if (w.workspace && w.workspace.id === activeWsId) {
-                    arr.push(w);
-                }
-            }
-        }
-        return arr;
-    }
-
     property var cardItems: []
-    property alias grid: gridItem
     property var activeInfoClient: null
     
     signal requestWindowInfo(var client)
 
-    Grid {
-        id: gridItem
-        anchors.centerIn: parent
-        spacing: Tokens.spacing.large
-        columns: {
-            const count = root.activeWindows.length;
-            if (count === 0) return 1;
+    readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
+
+    function syncPage() {
+        if (typeof KWinWorkspaceState === "undefined") return;
+        for (let i = 0; i < KWinWorkspaceState.workspaces.length; ++i) {
+            const wId = KWinWorkspaceState.workspaces[i].index;
+            if (wId === activeWsId) {
+                listView.currentIndex = i;
+                break;
+            }
+        }
+    }
+
+    onActiveWsIdChanged: syncPage()
+    Component.onCompleted: syncPage()
+
+    ListView {
+        id: listView
+        anchors.fill: parent
+        orientation: ListView.Horizontal
+        snapMode: ListView.SnapOneItem
+        highlightRangeMode: ListView.StrictlyEnforceRange
+        preferredHighlightBegin: 0
+        preferredHighlightEnd: 0
+        highlightMoveDuration: 250
+        boundsBehavior: Flickable.StopAtBounds
+        
+        onCountChanged: root.syncPage()
+        
+        model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 1
+
+        delegate: Item {
+            id: page
+            width: listView.width
+            height: listView.height
+
+            required property int index
+            readonly property int wsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].index : index + 1
+            readonly property string wsName: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].name : wsId.toString()
+
+            readonly property var wsWindows: {
+                const kwinList = typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList : null;
+                let arr = [];
+                if (kwinList) {
+                    for (let i = 0; i < kwinList.length; ++i) {
+                        const w = kwinList[i];
+                        if (w.workspace && (w.workspace.id === wsId || w.workspace.index === wsId)) {
+                            arr.push(w);
+                        }
+                    }
+                }
+                return arr;
+            }
             
-            let bestCols = 1;
-            let bestDiff = 9999;
-            const targetRatio = root.width / Math.max(1, root.height);
-            
-            for (let c = 1; c <= count; c++) {
-                const r = Math.ceil(count / c);
-                const ratio = c / r;
-                const diff = Math.abs(ratio - targetRatio);
-                // Also give a slight penalty to having too many columns compared to rows
-                // to prevent overly wide grids when count is small (e.g. 4 items -> 2x2 is better than 4x1)
-                const adjustedDiff = diff + (c > r ? (c - r) * 0.1 : 0);
-                
-                if (adjustedDiff < bestDiff) {
-                    bestDiff = adjustedDiff;
-                    bestCols = c;
+            Component.onCompleted: {
+                console.log("WindowGrid Page initialized. wsId:", wsId, "windows found:", wsWindows.length, "Total windows globally:", typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList.length : -1);
+            }
+            onWsWindowsChanged: {
+                console.log("WindowGrid Page updated. wsId:", wsId, "windows found:", wsWindows.length);
+            }
+
+            DropArea {
+                anchors.fill: parent
+                onDropped: (drop) => {
+                    const clientAddress = drop.source.clientAddress;
+                    if (clientAddress && typeof KWinActiveWindowBridge !== "undefined") {
+                        KWinActiveWindowBridge.setWindowDesktop(clientAddress, wsId);
+                        KWinWorkspaceState.switchTo(wsId);
+                    }
                 }
             }
             
-            // Fallbacks for very small numbers to keep them looking normal
-            if (count === 2) return 2;
-            if (count === 3) return 3;
-            if (count === 4) return 2;
-            
-            return bestCols;
-        }
-        
-        Repeater {
-            model: root.activeWindows
-            
-            delegate: StyledRect {
-                id: activeWin
-                required property var modelData
+            Item {
+                id: gridItem
+                anchors.fill: parent
                 
-                readonly property int cardWidth: {
-                    const cols = gridItem.columns;
-                    const rows = Math.ceil(root.activeWindows.length / cols) || 1;
+                property var windowLayout: LayoutKde.calculateLayout(page.wsWindows, width, height, Tokens.spacing.large, Tokens.spacing.large)
+                
+                // Behaviors for smooth resizing of the whole container if needed (though it fills parent)
+                
+                Repeater {
+                    model: page.wsWindows
                     
-                    const maxW = (root.width * 0.9 - Tokens.spacing.large * (cols - 1)) / cols;
-                    
-                    const extra = Tokens.padding.medium * 2 + Tokens.spacing.small + 30; // padding, spacing, and title text height
-                    const maxH = (root.height * 0.9 - Tokens.spacing.large * (rows - 1)) / rows;
-                    const maxWFromH = (maxH - extra) * windowAspect;
-                    
-                    return Math.max(100, Math.min(1000, Math.min(maxW, maxWFromH)));
-                }
-
-                readonly property real windowAspect: {
-                    const w = modelData.width;
-                    const h = modelData.height;
-                    return (w > 0 && h > 0) ? (w / h) : (16.0 / 10.0);
-                }
-                
-                readonly property int thumbHeight: {
-                    const raw = Math.round(activeWin.cardWidth / windowAspect);
-                    const max = Math.round(activeWin.cardWidth * 1.6); // never taller than 1.6x width
-                    const min = Math.round(activeWin.cardWidth * 0.4);
-                    return Math.max(min, Math.min(max, raw));
-                }
-                
-                implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2
-                implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
-                
-                color: Colours.tPalette.m3surfaceContainer
-                radius: Tokens.rounding.medium
-                
-                Component.onCompleted: {
-                    root.cardItems = [...root.cardItems, activeWin];
-                }
-                Component.onDestruction: {
-                    root.cardItems = root.cardItems.filter(x => x !== activeWin);
-                }
-
-                HoverHandler { id: hover }
-                
-                StateLayer {
-                    anchors.fill: parent
-                    radius: Tokens.rounding.medium
-                    onClicked: {
-                        if (activeWin.modelData.address) {
-                            if (typeof KWinActiveWindowBridge !== "undefined") {
-                                KWinActiveWindowBridge.focusWindow(activeWin.modelData.address);
-                            } else {
-                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${activeWin.modelData.address}" })` : `focuswindow address:0x${activeWin.modelData.address}`);
-                            }
-                        }
-                        const v = Visibilities.getForActive();
-                        if (v) v.overview = false;
-                    }
-                }
-
-                ColumnLayout {
-                    id: cardLayout
-                    anchors.centerIn: parent
-                    spacing: Tokens.spacing.small
-                    
-                    StyledClippingRect {
-                        id: thumb
-                        Layout.preferredWidth: activeWin.cardWidth
-                        Layout.preferredHeight: activeWin.thumbHeight
-                        color: Colours.tPalette.m3surfaceContainerHighest
-                        radius: Tokens.rounding.medium
+                    delegate: StyledRect {
+                        id: activeWin
+                        required property var modelData
                         
-                        property var streamRequest: null
-                        
-                        function updateStream() {
-                            const isStolen = root.activeInfoClient && root.activeInfoClient.address === activeWin.modelData.address;
-                            if (root.opacity > 0 && activeWin.modelData.address && !isStolen) {
-                                if (!streamRequest) {
-                                    streamRequest = ScreencastManager.requestStream(activeWin.modelData.address);
-                                }
-                            } else {
-                                if (streamRequest) {
-                                    ScreencastManager.releaseStream(activeWin.modelData.address);
-                                    streamRequest = null;
-                                }
-                            }
-                        }
-                        
-                        Connections {
-                            target: root
-                            function onOpacityChanged() {
-                                thumb.updateStream();
-                            }
-                            function onActiveInfoClientChanged() {
-                                thumb.updateStream();
-                            }
-                        }
-                        
-                        Component.onCompleted: updateStream()
-                        
-                        Component.onDestruction: {
-                            if (streamRequest && activeWin.modelData.address) {
-                                ScreencastManager.releaseStream(activeWin.modelData.address);
-                            }
-                        }
-                        
-                        readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
-                        
-                        IconImage {
-                            anchors.centerIn: parent
-                            implicitSize: thumb.height * 0.5
-                            asynchronous: true
-                            visible: thumb.screencastSerial === 0
-                            source: activeWin.modelData.iconName ? Icons.getAppIcon(activeWin.modelData.iconName, "image-missing") : (activeWin.modelData.class ? Icons.getAppIcon(activeWin.modelData.class, "image-missing") : "")
-                        }
-                        
-                        Pipewire.PipeWireSourceItem {
-                            width: {
-                                const wAspect = activeWin.windowAspect;
-                                const containerAspect = thumb.width / Math.max(1, thumb.height);
-                                return (wAspect > containerAspect) ? thumb.width : thumb.height * wAspect;
-                            }
-                            height: {
-                                const wAspect = activeWin.windowAspect;
-                                const containerAspect = thumb.width / Math.max(1, thumb.height);
-                                return (wAspect > containerAspect) ? thumb.width / wAspect : thumb.height;
-                            }
-                            anchors.centerIn: parent
-                            visible: thumb.screencastSerial !== 0
-                            objectSerial: thumb.screencastSerial
-                        }
-                        
-                        // Action buttons row (Info + Close)
-                        RowLayout {
-                            anchors.top: parent.top
-                            anchors.right: parent.right
-                            anchors.margins: Tokens.padding.small
-                            spacing: Tokens.spacing.small
-                            opacity: hover.hovered ? 1 : 0
-                            visible: opacity > 0.01
+                        readonly property string clientAddress: modelData.address
                             
-                            Behavior on opacity { Anim {} }
+                            Drag.active: dragHandler.active
+                            Drag.source: activeWin
+                            Drag.hotSpot.x: width / 2
+                            Drag.hotSpot.y: height / 2
                             
-                            // Info button
-                            StyledRect {
-                                implicitWidth: infoIcon.implicitHeight + Tokens.padding.small * 2
-                                implicitHeight: infoIcon.implicitHeight + Tokens.padding.small * 2
-                                radius: Tokens.rounding.small
-                                color: Colours.palette.m3secondaryContainer
-                                
-                                StateLayer {
-                                    anchors.fill: parent
-                                    radius: Tokens.rounding.small
-                                    onClicked: root.requestWindowInfo(activeWin.modelData)
+                            states: [
+                                State {
+                                    when: dragHandler.active
+                                    ParentChange {
+                                        target: activeWin
+                                        parent: root
+                                    }
+                                    PropertyChanges {
+                                        target: activeWin
+                                        opacity: 0.8
+                                    }
                                 }
-                                
-                                MaterialIcon {
-                                    id: infoIcon
-                                    anchors.centerIn: parent
-                                    text: "chevron_right"
-                                    color: Colours.palette.m3onSecondaryContainer
-                                    fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                            ]
+                            
+                            DragHandler {
+                                id: dragHandler
+                            }
+                            
+                            readonly property var layoutProps: gridItem.windowLayout && gridItem.windowLayout[modelData.address] ? gridItem.windowLayout[modelData.address] : { x: 0, y: 0, width: 200, height: 150 }
+                            
+                            x: dragHandler.active ? x : layoutProps.x
+                            y: dragHandler.active ? y : layoutProps.y
+                            
+                            Behavior on x { enabled: !dragHandler.active && root.opacity > 0.5; NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                            Behavior on y { enabled: !dragHandler.active && root.opacity > 0.5; NumberAnimation { duration: 250; easing.type: Easing.OutQuad } }
+                            
+                            readonly property int cardWidth: layoutProps.width
+                            readonly property int thumbHeight: layoutProps.height
+                            
+                            readonly property real windowAspect: {
+                                const w = modelData.width;
+                                const h = modelData.height;
+                                return (w > 0 && h > 0) ? (w / h) : (16.0 / 10.0);
+                            }
+                            
+                            implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2
+                            implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
+                            
+                            color: "transparent"
+                            radius: Tokens.rounding.medium
+                            
+                            Component.onCompleted: {
+                                root.cardItems = [...root.cardItems, activeWin];
+                            }
+                            Component.onDestruction: {
+                                root.cardItems = root.cardItems.filter(x => x !== activeWin);
+                            }
+
+                            HoverHandler { id: hover }
+                            
+                            StateLayer {
+                                anchors.fill: parent
+                                radius: Tokens.rounding.medium
+                                onClicked: {
+                                    if (modelData.address) {
+                                        if (typeof KWinActiveWindowBridge !== "undefined") {
+                                            KWinActiveWindowBridge.focusWindow(modelData.address);
+                                        } else {
+                                            Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${modelData.address}" })` : `focuswindow address:0x${modelData.address}`);
+                                        }
+                                        if (typeof KWinWorkspaceState !== "undefined") {
+                                            KWinWorkspaceState.switchTo(page.wsId);
+                                        }
+                                    }
+                                    const v = typeof Visibilities !== "undefined" ? Visibilities.getForActive() : null;
+                                    if (v) v.overview = false;
                                 }
                             }
-                        
-                            // Close button
-                            StyledRect {
-                                implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
-                                implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
-                                radius: Tokens.rounding.small
-                                color: Colours.palette.m3errorContainer
+
+                            ColumnLayout {
+                                id: cardLayout
+                                anchors.centerIn: parent
+                                spacing: Tokens.spacing.small
                                 
-                                StateLayer {
-                                    anchors.fill: parent
-                                    radius: Tokens.rounding.small
-                                    onClicked: {
-                                        if (activeWin.modelData.address) {
-                                            if (typeof KWinActiveWindowBridge !== "undefined") {
-                                                KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
-                                            } else {
-                                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.close({ window = "address:0x${activeWin.modelData.address}" })` : `closewindow address:0x${activeWin.modelData.address}`);
+                                StyledClippingRect {
+                                    id: thumb
+                                    Layout.preferredWidth: activeWin.cardWidth
+                                    Layout.preferredHeight: activeWin.thumbHeight
+                                    color: Colours.tPalette.m3surfaceContainerHighest
+                                    radius: Tokens.rounding.medium
+                                    
+                                    property var streamRequest: null
+                                    
+                                    function updateStream() {
+                                        const isStolen = root.activeInfoClient && root.activeInfoClient.address === modelData.address;
+                                        if (root.opacity > 0 && modelData.address && !isStolen) {
+                                            if (!streamRequest) {
+                                                streamRequest = ScreencastManager.requestStream(modelData.address);
+                                            }
+                                        } else {
+                                            if (streamRequest) {
+                                                ScreencastManager.releaseStream(modelData.address);
+                                                streamRequest = null;
+                                            }
+                                        }
+                                    }
+                                    
+                                    Connections {
+                                        target: root
+                                        function onOpacityChanged() {
+                                            thumb.updateStream();
+                                        }
+                                        function onActiveInfoClientChanged() {
+                                            thumb.updateStream();
+                                        }
+                                    }
+                                    
+                                    Component.onCompleted: updateStream()
+                                    
+                                    Component.onDestruction: {
+                                        if (streamRequest && modelData.address) {
+                                            ScreencastManager.releaseStream(modelData.address);
+                                        }
+                                    }
+                                    
+                                    readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
+                                    
+                                    IconImage {
+                                        anchors.centerIn: parent
+                                        implicitSize: thumb.height * 0.5
+                                        asynchronous: true
+                                        visible: thumb.screencastSerial === 0
+                                        source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
+                                    }
+                                    
+                                    Pipewire.PipeWireSourceItem {
+                                        width: {
+                                            const wAspect = activeWin.windowAspect;
+                                            const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                            return (wAspect > containerAspect) ? thumb.width : thumb.height * wAspect;
+                                        }
+                                        height: {
+                                            const wAspect = activeWin.windowAspect;
+                                            const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                            return (wAspect > containerAspect) ? thumb.width / wAspect : thumb.height;
+                                        }
+                                        anchors.centerIn: parent
+                                        visible: thumb.screencastSerial !== 0
+                                        objectSerial: thumb.screencastSerial
+                                    }
+                                    
+                                    RowLayout {
+                                        anchors.top: parent.top
+                                        anchors.right: parent.right
+                                        anchors.margins: Tokens.padding.small
+                                        spacing: Tokens.spacing.small
+                                        opacity: hover.hovered ? 1 : 0
+                                        visible: opacity > 0.01
+                                        
+                                        Behavior on opacity { Anim {} }
+                                        
+                                        StyledRect {
+                                            implicitWidth: infoIcon.implicitHeight + Tokens.padding.small * 2
+                                            implicitHeight: infoIcon.implicitHeight + Tokens.padding.small * 2
+                                            radius: Tokens.rounding.small
+                                            color: Colours.palette.m3secondaryContainer
+                                            
+                                            StateLayer {
+                                                anchors.fill: parent
+                                                radius: Tokens.rounding.small
+                                                onClicked: root.requestWindowInfo(modelData)
+                                            }
+                                            
+                                            MaterialIcon {
+                                                id: infoIcon
+                                                anchors.centerIn: parent
+                                                text: "chevron_right"
+                                                color: Colours.palette.m3onSecondaryContainer
+                                                fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                                            }
+                                        }
+                                    
+                                        StyledRect {
+                                            implicitWidth: closeIcon.implicitHeight + Tokens.padding.small * 2
+                                            implicitHeight: closeIcon.implicitHeight + Tokens.padding.small * 2
+                                            radius: Tokens.rounding.small
+                                            color: Colours.palette.m3errorContainer
+                                            
+                                            StateLayer {
+                                                anchors.fill: parent
+                                                radius: Tokens.rounding.small
+                                                onClicked: {
+                                                    if (modelData.address) {
+                                                        if (typeof KWinActiveWindowBridge !== "undefined") {
+                                                            KWinActiveWindowBridge.closeWindow(modelData.address);
+                                                        } else {
+                                                            Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.close({ window = "address:0x${modelData.address}" })` : `closewindow address:0x${modelData.address}`);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            MaterialIcon {
+                                                id: closeIcon
+                                                anchors.centerIn: parent
+                                                text: "close"
+                                                color: Colours.palette.m3onErrorContainer
+                                                fontStyle.pointSize: Tokens.font.body.medium.pointSize
                                             }
                                         }
                                     }
                                 }
                                 
-                                MaterialIcon {
-                                    id: closeIcon
-                                    anchors.centerIn: parent
-                                    text: "close"
-                                    color: Colours.palette.m3onErrorContainer
-                                    fontStyle.pointSize: Tokens.font.body.medium.pointSize
+                                StyledText {
+                                    id: titleText
+                                    Layout.preferredWidth: activeWin.cardWidth
+                                    text: modelData.title || ""
+                                    color: Colours.palette.m3onSurfaceVariant
+                                    font: Tokens.font.body.small
+                                    elide: Text.ElideRight
+                                    horizontalAlignment: Text.AlignHCenter
                                 }
                             }
                         }
                     }
-                    
-                    StyledText {
-                        id: titleText
-                        Layout.preferredWidth: activeWin.cardWidth
-                        text: activeWin.modelData.title || ""
-                        color: Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.body.small
-                        elide: Text.ElideRight
-                        horizontalAlignment: Text.AlignHCenter
-                    }
                 }
             }
+        }
+
+    Row {
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: Tokens.padding.large
+        spacing: Tokens.spacing.medium
+
+        Repeater {
+            model: listView.count
+            Rectangle {
+                required property int index
+                width: 8
+                height: 8
+                radius: 4
+                color: listView.currentIndex === index ? Colours.palette.m3onSurface : Colours.palette.m3surfaceVariant
+                
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -10
+                    onClicked: listView.currentIndex = index
+                }
+            }
+        }
+    }
+
+    DropArea {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 100
+        onEntered: {
+            if (listView.currentIndex > 0) {
+                listView.currentIndex -= 1;
+            }
+        }
+    }
+
+    DropArea {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 100
+        onEntered: {
+            if (listView.currentIndex < listView.count - 1) {
+                listView.currentIndex += 1;
+            }
+        }
+    }
+
+    StyledRect {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: Tokens.padding.large
+        implicitWidth: prevIcon.implicitWidth + Tokens.padding.large * 2
+        implicitHeight: prevIcon.implicitHeight + Tokens.padding.large * 2
+        radius: height / 2
+        color: Colours.tPalette.m3surfaceContainerHigh
+        opacity: hoverPrev.hovered ? 1 : 0.6
+        visible: listView.currentIndex > 0
+        
+        HoverHandler { id: hoverPrev }
+        StateLayer {
+            anchors.fill: parent
+            radius: parent.radius
+            onClicked: listView.currentIndex -= 1
+        }
+        MaterialIcon {
+            id: prevIcon
+            anchors.centerIn: parent
+            text: "chevron_left"
+            color: Colours.palette.m3onSurface
+            fontStyle.pointSize: Tokens.font.body.large.pointSize
+        }
+    }
+
+    StyledRect {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin: Tokens.padding.large
+        implicitWidth: nextIcon.implicitWidth + Tokens.padding.large * 2
+        implicitHeight: nextIcon.implicitHeight + Tokens.padding.large * 2
+        radius: height / 2
+        color: Colours.tPalette.m3surfaceContainerHigh
+        opacity: hoverNext.hovered ? 1 : 0.6
+        visible: listView.currentIndex < listView.count - 1
+        
+        HoverHandler { id: hoverNext }
+        StateLayer {
+            anchors.fill: parent
+            radius: parent.radius
+            onClicked: listView.currentIndex += 1
+        }
+        MaterialIcon {
+            id: nextIcon
+            anchors.centerIn: parent
+            text: "chevron_right"
+            color: Colours.palette.m3onSurface
+            fontStyle.pointSize: Tokens.font.body.large.pointSize
         }
     }
 }
