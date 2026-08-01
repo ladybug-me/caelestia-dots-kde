@@ -40,12 +40,16 @@ Item {
     onActiveWsIdChanged: syncPage()
     Component.onCompleted: syncPage()
 
+    property bool isDragging: false
+    
     ListView {
         id: listView
         anchors.fill: parent
         orientation: ListView.Horizontal
         snapMode: ListView.SnapOneItem
         highlightRangeMode: ListView.StrictlyEnforceRange
+        cacheBuffer: 100000 // Keep all pages instantiated to prevent drag-and-drop interruption
+        interactive: !root.isDragging // Prevent ListView from stealing grab during drag
         preferredHighlightBegin: 0
         preferredHighlightEnd: 0
         highlightMoveDuration: 250
@@ -98,17 +102,6 @@ Item {
                 console.log("WindowGrid Page updated. wsId:", wsId, "windows found:", wsWindows.length);
             }
 
-            DropArea {
-                anchors.fill: parent
-                onDropped: (drop) => {
-                    const clientAddress = drop.source.clientAddress;
-                    if (clientAddress && typeof KWinActiveWindowBridge !== "undefined") {
-                        KWinActiveWindowBridge.setWindowDesktop(clientAddress, wsId);
-                        KWinWorkspaceState.switchTo(wsId);
-                    }
-                }
-            }
-            
             Item {
                 id: gridItem
                 anchors.fill: parent
@@ -125,11 +118,11 @@ Item {
                         required property var modelData
                         
                         readonly property string clientAddress: modelData.address
+                        readonly property string wsId: page.wsId
                             
                             Drag.active: dragHandler.active
                             Drag.source: activeWin
-                            Drag.hotSpot.x: width / 2
-                            Drag.hotSpot.y: height / 2
+                            Drag.hotSpot: dragHandler.centroid.position
                             
                             states: [
                                 State {
@@ -147,6 +140,17 @@ Item {
                             
                             DragHandler {
                                 id: dragHandler
+                                onActiveChanged: {
+                                    root.isDragging = active;
+                                    if (!active) {
+                                        if (typeof KWinWorkspaceState === "undefined" || typeof KWinActiveWindowBridge === "undefined") return;
+                                        const targetWsId = KWinWorkspaceState.workspaces[listView.currentIndex].index;
+                                        if (targetWsId !== page.wsId) {
+                                            activeWin.visible = false;
+                                            KWinActiveWindowBridge.setWindowDesktop(clientAddress, targetWsId);
+                                        }
+                                    }
+                                }
                             }
                             
                             readonly property var layoutProps: gridItem.windowLayout && gridItem.windowLayout[modelData.address] ? gridItem.windowLayout[modelData.address] : { x: 0, y: 0, width: 200, height: 150 }
@@ -370,14 +374,20 @@ Item {
         }
     }
 
+    Timer {
+        id: edgeScrollCooldown
+        interval: 1000
+    }
+
     DropArea {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         width: 100
         onEntered: {
-            if (listView.currentIndex > 0) {
+            if (!edgeScrollCooldown.running && listView.currentIndex > 0) {
                 listView.currentIndex -= 1;
+                edgeScrollCooldown.start();
             }
         }
     }
@@ -388,8 +398,9 @@ Item {
         anchors.bottom: parent.bottom
         width: 100
         onEntered: {
-            if (listView.currentIndex < listView.count - 1) {
+            if (!edgeScrollCooldown.running && listView.currentIndex < listView.count - 1) {
                 listView.currentIndex += 1;
+                edgeScrollCooldown.start();
             }
         }
     }
