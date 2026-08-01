@@ -24,7 +24,6 @@ Item {
         onRequestWindowInfo: client => {
             windowGrid.activeInfoClient = client
             windowInfoOverlay.clientAddress = client.address
-            windowInfoOverlay.visible = true
         }
     }
 
@@ -32,7 +31,7 @@ Item {
         id: windowInfoOverlay
         z: 100
         anchors.fill: parent
-        visible: false
+        visible: opacity > 0
         opacity: clientAddress ? 1 : 0
 
         property string clientAddress: ""
@@ -60,12 +59,16 @@ Item {
         
         Item {
             anchors.centerIn: parent
-            width: Math.min(parent.width * 0.8, 800)
+            width: Math.min(parent.width * 0.8, 900)
             height: Math.min(parent.height * 0.8, 600)
+
+            Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+            Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
             TapHandler { }
 
             WInfo.WindowInfo {
+                id: winInfoItem
                 anchors.fill: parent
                 clientAddress: windowInfoOverlay.clientAddress
             }

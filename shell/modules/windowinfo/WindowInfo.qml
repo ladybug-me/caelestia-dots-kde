@@ -46,16 +46,21 @@ StyledRect {
         spacing: Tokens.spacing.medium
 
         Preview {
-            Layout.fillWidth: true
+            Layout.preferredWidth: {
+                const w = root.client ? (root.client.width > 0 ? root.client.width : 16) : 16;
+                const h = root.client ? (root.client.height > 0 ? root.client.height : 10) : 10;
+                const aspect = w / h;
+                const availableHeight = 600 - Tokens.padding.large * 2;
+                return Math.min(availableHeight * aspect, 600); // Max preview width is 600px
+            }
             Layout.fillHeight: true
-            implicitWidth: 400
             client: root.client
         }
 
         ColumnLayout {
             spacing: Tokens.spacing.medium
 
-            Layout.preferredWidth: Tokens.sizes.winfo.detailsWidth
+            Layout.fillWidth: true
             Layout.fillHeight: true
 
             Details {
