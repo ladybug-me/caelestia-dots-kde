@@ -7,8 +7,6 @@ import qs.components
 
 Item {
     id: root
-    
-    enabled: false
 
     required property ShellScreen screen
     required property DrawerVisibilities visibilities

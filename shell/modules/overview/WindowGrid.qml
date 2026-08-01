@@ -158,8 +158,12 @@ Item {
                                 anchors.fill: parent
                                 radius: Tokens.rounding.small
                                 onClicked: {
-                                    if (activeWin.modelData.address && typeof KWinActiveWindowBridge !== "undefined") {
-                                        KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
+                                    if (activeWin.modelData.address) {
+                                        if (typeof KWinActiveWindowBridge !== "undefined") {
+                                            KWinActiveWindowBridge.closeWindow(activeWin.modelData.address);
+                                        } else {
+                                            Hypr.dispatch(Hypr.usingLua ? `hl.dsp.window.close({ window = "address:0x${activeWin.modelData.address}" })` : `closewindow address:0x${activeWin.modelData.address}`);
+                                        }
                                     }
                                 }
                             }

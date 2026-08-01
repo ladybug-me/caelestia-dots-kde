@@ -322,7 +322,7 @@ StyledWindow {
 
     mask: {
         if (hasFullscreen) return emptyRegion;
-        if (focusGrabState.active || panels.popouts.isDetached || desktopContextMenu.expanded) return fullRegion;
+        if (focusGrabState.active || panels.popouts.isDetached || desktopContextMenu.expanded || visibilities.overview) return fullRegion;
         return regions;
     }
 

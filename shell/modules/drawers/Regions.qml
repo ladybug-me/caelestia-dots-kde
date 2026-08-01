@@ -87,39 +87,7 @@ Region {
         width: panel.width * (1 - root.panels.popoutsWrapper.offsetScale)
     }
 
-    R {
-        panel: root.panels.overview
-    }
 
-    component OverviewCardRegion: Region {
-        property int cardIndex: 0
-        property var grid: root.panels.overview.windowGrid
-        property var target: (root.win.visibilities.overview && grid && grid.cardItems && grid.cardItems.length > cardIndex) ? grid.cardItems[cardIndex] : null
-        property var gridItem: grid ? grid.grid : null
-        
-        x: (target && gridItem) ? (gridItem.x + target.x) : 0
-        y: (target && gridItem) ? (gridItem.y + target.y) : 0
-        width: target ? target.width : 0
-        height: target ? target.height : 0
-        intersection: Intersection.Combine
-    }
-
-    OverviewCardRegion { cardIndex: 0 }
-    OverviewCardRegion { cardIndex: 1 }
-    OverviewCardRegion { cardIndex: 2 }
-    OverviewCardRegion { cardIndex: 3 }
-    OverviewCardRegion { cardIndex: 4 }
-    OverviewCardRegion { cardIndex: 5 }
-    OverviewCardRegion { cardIndex: 6 }
-    OverviewCardRegion { cardIndex: 7 }
-    OverviewCardRegion { cardIndex: 8 }
-    OverviewCardRegion { cardIndex: 9 }
-    OverviewCardRegion { cardIndex: 10 }
-    OverviewCardRegion { cardIndex: 11 }
-    OverviewCardRegion { cardIndex: 12 }
-    OverviewCardRegion { cardIndex: 13 }
-    OverviewCardRegion { cardIndex: 14 }
-    OverviewCardRegion { cardIndex: 15 }
 
     component R: Region {
         required property Item panel
