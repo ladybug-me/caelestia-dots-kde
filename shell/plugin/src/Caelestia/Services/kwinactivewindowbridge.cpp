@@ -152,6 +152,7 @@ function notifyWindowList() {
                 width: w.frameGeometry ? w.frameGeometry.width : w.width,
                 height: w.frameGeometry ? w.frameGeometry.height : w.height,
                 fullscreen: w.fullScreen ? true : false,
+                maximized: (w.maximizeMode === 3) ? true : false,
                 minimized: w.minimized ? true : false,
                 floating: !w.tile,
                 workspace: { id: deskId }
