@@ -800,6 +800,12 @@ StyledWindow {
             }
         ]
 
+        MouseArea {
+            anchors.fill: parent
+            visible: visibilities.overview
+            onClicked: visibilities.overview = false
+        }
+
         Panels {
             id: panels
 

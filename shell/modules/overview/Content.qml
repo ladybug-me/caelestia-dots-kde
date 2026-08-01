@@ -25,6 +25,10 @@ Item {
             windowGrid.activeInfoClient = client
             windowInfoOverlay.clientAddress = client.address
         }
+        
+        onRequestClose: {
+            root.visibilities.overview = false
+        }
     }
 
     Item {

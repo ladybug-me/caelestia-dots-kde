@@ -22,6 +22,7 @@ Item {
     property var activeInfoClient: null
     
     signal requestWindowInfo(var client)
+    signal requestClose()
 
     readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
 
@@ -52,12 +53,25 @@ Item {
         
         onCountChanged: root.syncPage()
         
+        onCurrentIndexChanged: {
+            if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > currentIndex) {
+                const wId = KWinWorkspaceState.workspaces[currentIndex].index;
+                if (KWinWorkspaceState.activeId !== wId) {
+                    KWinWorkspaceState.switchTo(wId);
+                }
+            }
+        }
+        
         model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 1
 
         delegate: Item {
             id: page
             width: listView.width
             height: listView.height
+
+            TapHandler {
+                onTapped: root.requestClose()
+            }
 
             required property int index
             readonly property int wsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].index : index + 1
@@ -336,27 +350,23 @@ Item {
             }
         }
 
-    Row {
+    StyledRect {
+        id: indicatorContainer
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: Tokens.padding.large
-        spacing: Tokens.spacing.medium
+        
+        implicitWidth: workspaceIndicator.implicitWidth + Tokens.padding.large * 2
+        implicitHeight: workspaceIndicator.implicitHeight + Tokens.padding.medium * 2
+        radius: implicitHeight / 2
+        color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
 
-        Repeater {
-            model: listView.count
-            Rectangle {
-                required property int index
-                width: 8
-                height: 8
-                radius: 4
-                color: listView.currentIndex === index ? Colours.palette.m3onSurface : Colours.palette.m3surfaceVariant
-                
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.margins: -10
-                    onClicked: listView.currentIndex = index
-                }
-            }
+        WorkspaceIndicator {
+            id: workspaceIndicator
+            anchors.centerIn: parent
+            count: listView.count
+            currentIndex: listView.currentIndex
+            onWorkspaceSelected: index => listView.currentIndex = index
         }
     }
 
