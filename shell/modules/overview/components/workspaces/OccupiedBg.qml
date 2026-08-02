@@ -12,7 +12,6 @@ Item {
     required property Repeater workspaces
     required property var occupied
     required property int groupOffset
-
     property list<var> pills: []
 
     onOccupiedChanged: {
@@ -52,7 +51,6 @@ Item {
             id: rect
 
             required property var modelData
-
             readonly property Workspace start: root.workspaces.count > 0 ? root.workspaces.itemAt(getWsIdx(modelData.start)) ?? null : null // qmllint disable incompatible-type
             readonly property Workspace end: root.workspaces.count > 0 ? root.workspaces.itemAt(getWsIdx(modelData.end)) ?? null : null // qmllint disable incompatible-type
             readonly property int indicatorSize: start ? start.indicatorSize : 40
@@ -66,15 +64,12 @@ Item {
             }
 
             anchors.verticalCenter: root.verticalCenter
-
             x: (start?.x ?? 0) - 1
             y: 0
             implicitWidth: (start && end ? end.x + end.size - start.x : 0)
             implicitHeight: indicatorSize
-
             color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
             radius: Tokens.rounding.large
-
             scale: 0
             Component.onCompleted: scale = 1
 
@@ -83,17 +78,14 @@ Item {
                     easing: Tokens.anim.standardDecel
                 }
             }
-
             Behavior on x {
                 Anim {}
             }
-
             Behavior on implicitWidth {
                 Anim {}
             }
         }
     }
-
     Component {
         id: pillComp
 

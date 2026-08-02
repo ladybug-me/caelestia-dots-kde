@@ -1,38 +1,28 @@
 pragma ComponentBehavior: Bound
 
+import "components/workspaces" as WsComponents
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.services
-import Quickshell
-import "components/workspaces" as WsComponents
-import Caelestia.Services
 
 Item {
     id: root
-    
+
     property int count: 0
     property int currentIndex: 0
-    signal workspaceSelected(int index)
-    signal workspaceReselected(int index)
-    signal createWorkspaceRequest()
-
-    implicitWidth: layout.implicitWidth + Tokens.padding.small
-    implicitHeight: layout.implicitHeight + Tokens.padding.small
-
     readonly property int activeWsId: currentIndex + 1
-
     property int maxWidth: 1000
     readonly property real requiredWidth: (count + 1) * 200 + count * Tokens.spacing.small
     readonly property real scaleFactor: requiredWidth > maxWidth ? maxWidth / requiredWidth : 1.0
-
     readonly property var occupied: {
         let occ = {};
         for (let i = 1; i <= root.count; ++i) {
             occ[i] = false;
         }
-        
         const kwinList = root.kwinWindowList;
         if (kwinList) {
             for (let i = 0; i < kwinList.length; ++i) {
@@ -52,48 +42,49 @@ Item {
         }
         return occ;
     }
-
     // Force QML dependency tracker to bind to windowList correctly
     property var kwinWindowList: KWinActiveWindowBridge.windowList
 
+    signal workspaceSelected(int index)
+    signal workspaceReselected(int index)
+    signal createWorkspaceRequest()
+
+    implicitWidth: layout.implicitWidth + Tokens.padding.small
+    implicitHeight: layout.implicitHeight + Tokens.padding.small
+
     Connections {
-        target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
         function onWorkspacesChanged() {
             if (typeof KWinActiveWindowBridge !== "undefined") {
                 KWinActiveWindowBridge.refreshWindows();
             }
         }
-    }
 
+        target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+    }
     Item {
         anchors.fill: parent
 
         Loader {
             asynchronous: true
             active: Config.bar.workspaces.occupiedBg
-
             anchors.fill: parent
             anchors.margins: Tokens.padding.extraSmall
-
             sourceComponent: WsComponents.OccupiedBg {
                 workspaces: workspaces
                 occupied: root.occupied
                 groupOffset: 0
             }
         }
-
         Loader {
             asynchronous: true
             anchors.verticalCenter: parent.verticalCenter
             active: true
-
             sourceComponent: WsComponents.ActiveIndicator {
                 activeWsId: root.activeWsId
                 workspaces: workspaces
                 mask: layout
             }
         }
-
         GridLayout {
             id: layout
 
@@ -118,17 +109,12 @@ Item {
                     onReselected: root.workspaceReselected(ws - 1)
                 }
             }
-            
             StyledRect {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredWidth: Math.floor(200 * root.scaleFactor)
-                Layout.preferredHeight: Math.floor(120 * root.scaleFactor)
-                
                 radius: Tokens.rounding.large
                 color: "transparent"
                 border.color: Colours.tPalette.m3outlineVariant
                 border.width: 2
-                
+
                 StyledText {
                     anchors.centerIn: parent
                     text: "+"
@@ -137,7 +123,6 @@ Item {
                     color: Colours.tPalette.m3onSurfaceVariant
                     opacity: 0.5
                 }
-                
                 StateLayer {
                     anchors.fill: parent
                     radius: parent.radius
@@ -149,9 +134,11 @@ Item {
                         }
                     }
                 }
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: Math.floor(200 * root.scaleFactor)
+                Layout.preferredHeight: Math.floor(120 * root.scaleFactor)
             }
         }
-
         MouseArea {
             anchors.fill: layout
             acceptedButtons: Qt.NoButton
@@ -169,18 +156,16 @@ Item {
                 }
             }
         }
-
         DropArea {
             id: workspaceDropArea
+
             anchors.fill: layout
             anchors.margins: -2000
-            
             onEntered: drag => {
                 if (!(drag.source && drag.source.isWorkspace)) {
                     drag.accepted = false;
                 }
             }
-            
             onDropped: drop => {
                 const sourceItem = drop.source;
                 if (sourceItem && sourceItem.isWorkspace) {

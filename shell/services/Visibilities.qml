@@ -15,12 +15,10 @@ Singleton {
         screens.set(Hypr.monitorFor(screen), visibilities);
         screens = new Map(screens); // Force QML property change notification
     }
-
     function registerBar(screen: ShellScreen, barWrapper: var): void {
         bars.set(screen.name, barWrapper);
         bars = new Map(bars); // Force QML property change notification by changing the Map reference
     }
-
     function getForActive(): DrawerVisibilities {
         return screens.get(Hypr.focusedMonitor) || screens.values().next().value;
     }

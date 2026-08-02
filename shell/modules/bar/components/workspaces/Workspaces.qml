@@ -12,30 +12,26 @@ import qs.services
 
 Item {
     id: root
-    
-    implicitWidth: container.implicitWidth
-    implicitHeight: container.implicitHeight
-    
+
     required property var bar
     required property ShellScreen screen
     required property bool fullscreen
     readonly property int barThickness: bar.thickness
 
+    implicitWidth: container.implicitWidth
+    implicitHeight: container.implicitHeight
+
     StyledClippingRect {
         id: container
-
         // Removed manual monitorCenter logic as it's handled natively by Bar.qml layout zones
 
-
         readonly property bool onSpecial: false
-        
         property int workspaceCount: {
             if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > 0) {
                 return KWinWorkspaceState.workspaces.length;
             }
             return Config.bar.workspaces.shown;
         }
-
         property int activeWsId: {
             if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.activeId > 0) {
                 return KWinWorkspaceState.activeId;
@@ -45,14 +41,12 @@ Item {
             }
             return typeof Hyprland !== "undefined" ? (Hyprland.workspace?.id || 1) : 1;
         }
-
         readonly property var occupied: {
             let occ = {};
             const count = container.workspaceCount;
             for (let i = 1; i <= count; ++i) {
                 occ[i] = false;
             }
-            
             const kwinList = container.kwinWindowList;
             if (kwinList) {
                 for (let i = 0; i < kwinList.length; ++i) {
@@ -72,35 +66,30 @@ Item {
             return occ;
         }
         readonly property int groupOffset: Math.floor((activeWsId - 1) / container.workspaceCount) * container.workspaceCount
-
         property real blur: onSpecial ? 1 : 0
-
         readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
-
-        implicitWidth: isHorizontal ? (layout.implicitWidth + Tokens.padding.small) : barThickness
-        implicitHeight: isHorizontal ? barThickness : (layout.implicitHeight + Tokens.padding.small)
-
-        color: Colours.tPalette.m3surfaceContainer
-        radius: Tokens.rounding.full
-
         // Force QML dependency tracker to bind to windowList correctly
         property var kwinWindowList: KWinActiveWindowBridge.windowList
 
+        implicitWidth: isHorizontal ? (layout.implicitWidth + Tokens.padding.small) : barThickness
+        implicitHeight: isHorizontal ? barThickness : (layout.implicitHeight + Tokens.padding.small)
+        color: Colours.tPalette.m3surfaceContainer
+        radius: Tokens.rounding.full
+
         Connections {
-            target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
             function onWorkspacesChanged() {
                 if (typeof KWinActiveWindowBridge !== "undefined") {
                     KWinActiveWindowBridge.refreshWindows();
                 }
             }
-        }
 
+            target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+        }
         Item {
             anchors.fill: parent
             scale: container.onSpecial ? 0.8 : 1
             opacity: container.onSpecial ? 0.5 : 1
             visible: !root.fullscreen
-
             layer.enabled: container.blur > 0
             layer.effect: MultiEffect {
                 blurEnabled: true
@@ -111,17 +100,14 @@ Item {
             Loader {
                 asynchronous: true
                 active: Config.bar.workspaces.occupiedBg
-
                 anchors.fill: parent
                 anchors.margins: Tokens.padding.extraSmall
-
                 sourceComponent: OccupiedBg {
                     workspaces: workspaces
                     occupied: container.occupied
                     groupOffset: container.groupOffset
                 }
             }
-
             GridLayout {
                 id: layout
 
@@ -144,13 +130,11 @@ Item {
                     }
                 }
             }
-
             Loader {
                 asynchronous: true
                 anchors.horizontalCenter: isHorizontal ? undefined : parent.horizontalCenter
                 anchors.verticalCenter: isHorizontal ? parent.verticalCenter : undefined
                 active: Config.bar.workspaces.activeIndicator
-
                 sourceComponent: ActiveIndicator {
                     activeWsId: container.activeWsId
                     workspaces: workspaces
@@ -158,7 +142,6 @@ Item {
                     fullscreen: root.fullscreen
                 }
             }
-
             MouseArea {
                 anchors.fill: layout
                 onClicked: event => {
@@ -199,31 +182,24 @@ Item {
                     }
                 }
             }
-
             Behavior on scale {
                 Anim {}
             }
-
             Behavior on opacity {
                 Anim {
                     type: Anim.DefaultEffects
                 }
             }
         }
-
         Loader {
             id: specialWs
 
             asynchronous: true
-
             anchors.fill: parent
             anchors.margins: Tokens.padding.extraSmall
-
             active: opacity > 0
-
             scale: container.onSpecial ? 1 : 0.5
             opacity: container.onSpecial ? 1 : 0
-
             sourceComponent: SpecialWorkspaces {
                 screen: root.screen
             }
@@ -231,19 +207,16 @@ Item {
             Behavior on scale {
                 Anim {}
             }
-
             Behavior on opacity {
                 Anim {
                     type: Anim.DefaultEffects
                 }
             }
         }
-
         Behavior on blur {
             Anim {
                 type: Anim.StandardSmall
             }
         }
     }
-
 }

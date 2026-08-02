@@ -26,7 +26,6 @@ Item {
                 Quickshell.execDetached(["notify-send", "-a", "caelestia-shell", "-u", "critical", "Unable to change profile picture", `Failed to change profile picture to ${Paths.shortenHome(path)}`]);
         }
     }
-
     readonly property real nonAnimHeight: (content.item as Content)?.nonAnimHeight ?? 0
     readonly property bool shouldBeActive: visibilities.dashboard && Config.dashboard.enabled && !visibilities.overview
     property real offsetScale: shouldBeActive ? 0 : 1
@@ -42,15 +41,12 @@ Item {
     Behavior on offsetScale {
         Anim {}
     }
-
     Loader {
         id: content
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-
         active: root.shouldBeActive || root.visible
-
         sourceComponent: Content {
             visibilities: root.visibilities
             dashState: root.dashState

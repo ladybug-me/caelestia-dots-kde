@@ -11,74 +11,86 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    readonly property list<MenuItem> layoutTypeItems: [
+    readonly property list<MenuItem> easingTypeItems: [
+
     title: qsTr("Overview")
     isSubPage: true
-
-    readonly property list<MenuItem> layoutTypeItems: [
         MenuItem {
             property int value: 0
+
             text: qsTr("KDE Grid")
         },
         MenuItem {
             property int value: 1
+
             text: qsTr("GNOME Grid")
         }
-    ]
-
-    readonly property list<MenuItem> easingTypeItems: [
         MenuItem {
             property int value: 0
+
             text: qsTr("Linear")
         },
         MenuItem {
             property int value: 2
+
             text: qsTr("Quadratic Out")
         },
         MenuItem {
             property int value: 3
+
             text: qsTr("Quadratic In-Out")
         },
         MenuItem {
             property int value: 6
+
             text: qsTr("Cubic Out")
         },
         MenuItem {
             property int value: 10
+
             text: qsTr("Quartic Out")
         },
         MenuItem {
             property int value: 14
+
             text: qsTr("Quintic Out")
         },
         MenuItem {
             property int value: 18
+
             text: qsTr("Sine Out")
         },
         MenuItem {
             property int value: 22
+
             text: qsTr("Exponential Out")
         },
         MenuItem {
             property int value: 26
+
             text: qsTr("Circular Out")
         },
         MenuItem {
             property int value: 30
+
             text: qsTr("Elastic Out")
         },
         MenuItem {
             property int value: 33
+
             text: qsTr("Back In")
         },
         MenuItem {
             property int value: 34
+
             text: qsTr("Back Out")
         },
         MenuItem {
             property int value: 38
+
             text: qsTr("Bounce Out")
         }
-    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -90,32 +102,31 @@ PageBase {
             first: true
             text: qsTr("Activation")
         }
-
         ToggleRow {
             first: true
             text: qsTr("Enable overview")
             checked: GlobalConfig.overview.enabled
             onToggled: GlobalConfig.overview.enabled = checked
         }
-
         ToggleRow {
             text: qsTr("Show on hover")
             subtext: qsTr("Open overview by hovering a corner instead of dragging")
             checked: GlobalConfig.overview.showOnHover
             onToggled: GlobalConfig.overview.showOnHover = checked
         }
-
         StepperRow {
             label: qsTr("Trigger area size")
+            last: GlobalConfig.overview.showOnHover
             subtext: qsTr("Size of the corner activation areas in pixels")
             value: GlobalConfig.overview.hoverThickness
             from: 1
             to: 100
             stepSize: 1
             onMoved: v => GlobalConfig.overview.hoverThickness = v
+            visible: GlobalConfig.overview.showOnHover
         }
-
         StepperRow {
+            last: !GlobalConfig.overview.showOnHover
             label: qsTr("Drag threshold")
             subtext: qsTr("Distance to drag from corner to open overview")
             value: GlobalConfig.overview.dragThreshold
@@ -125,8 +136,11 @@ PageBase {
             onMoved: v => GlobalConfig.overview.dragThreshold = v
             visible: !GlobalConfig.overview.showOnHover
         }
-
+        SectionHeader {
+            text: qsTr("Please disable KDE's adjacent Screen corner settings to avoid conflicts")
+        }
         ToggleRow {
+            first: true
             text: qsTr("Top-Left corner")
             checked: GlobalConfig.overview.hoverTopLeft
             onToggled: {
@@ -134,7 +148,6 @@ PageBase {
                 Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "TopLeft", checked ? "None" : "Overview"])
             }
         }
-
         ToggleRow {
             text: qsTr("Top-Right corner")
             checked: GlobalConfig.overview.hoverTopRight
@@ -143,7 +156,6 @@ PageBase {
                 Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "TopRight", checked ? "None" : "Overview"])
             }
         }
-
         ToggleRow {
             text: qsTr("Bottom-Left corner")
             checked: GlobalConfig.overview.hoverBottomLeft
@@ -152,7 +164,6 @@ PageBase {
                 Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "BottomLeft", checked ? "None" : "Overview"])
             }
         }
-
         ToggleRow {
             last: true
             text: qsTr("Bottom-Right corner")
@@ -162,11 +173,9 @@ PageBase {
                 Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "BottomRight", checked ? "None" : "Overview"])
             }
         }
-
         SectionHeader {
             text: qsTr("Behaviour")
         }
-
         SelectRow {
             first: true
             label: qsTr("Window layout style")
@@ -185,14 +194,12 @@ PageBase {
                 GlobalConfig.overview.layoutType = item.value
             }
         }
-
         ToggleRow {
             text: qsTr("Disable wallpaper blur")
             subtext: qsTr("Do not blur the background wallpaper when opening overview")
             checked: GlobalConfig.overview.disableWallpaperBlur
             onToggled: GlobalConfig.overview.disableWallpaperBlur = checked
         }
-
         ToggleRow {
             last: true
             text: qsTr("Enable overview blur")
@@ -200,11 +207,9 @@ PageBase {
             checked: GlobalConfig.overview.enableOverviewBlur
             onToggled: GlobalConfig.overview.enableOverviewBlur = checked
         }
-
         SectionHeader {
             text: qsTr("Animations")
         }
-
         SelectRow {
             first: true
             label: qsTr("Animation easing type")
@@ -223,7 +228,6 @@ PageBase {
                 GlobalConfig.overview.easingType = item.value
             }
         }
-
         StepperRow {
             label: qsTr("Base duration")
             subtext: qsTr("Base duration for overview opening/closing in milliseconds")
@@ -233,7 +237,6 @@ PageBase {
             stepSize: 50
             onMoved: v => GlobalConfig.overview.baseDuration = v
         }
-
         StepperRow {
             label: qsTr("Blob scale speed")
             subtext: qsTr("Scaling speed modifier for background blobs")
@@ -243,7 +246,6 @@ PageBase {
             stepSize: 0.1
             onMoved: v => GlobalConfig.overview.blobScaleSpeed = v
         }
-
         StepperRow {
             label: qsTr("Wallpaper fade speed")
             subtext: qsTr("Fade speed modifier for the wallpaper")
@@ -253,7 +255,6 @@ PageBase {
             stepSize: 0.1
             onMoved: v => GlobalConfig.overview.wallpaperFadeSpeed = v
         }
-
         StepperRow {
             last: true
             label: qsTr("Grid fade speed")
@@ -265,4 +266,6 @@ PageBase {
             onMoved: v => GlobalConfig.overview.gridFadeSpeed = v
         }
     }
+    ]
+    ]
 }

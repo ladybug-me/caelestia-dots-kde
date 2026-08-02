@@ -5,11 +5,11 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.images
 import qs.services
 import qs.utils
-import Caelestia.Services
 
 StyledRect {
     id: root
@@ -18,65 +18,48 @@ StyledRect {
     required property int activeWsId
     required property var occupied
     required property int groupOffset
-
     readonly property bool isWorkspace: true
     property real scaleFactor: 1.0
     readonly property int baseIndicatorSize: 120
     readonly property int baseWidth: 200
-    
     readonly property int indicatorSize: Math.floor(baseIndicatorSize * scaleFactor)
     readonly property int size: implicitWidth
-
     readonly property int ws: groupOffset + index + 1
     readonly property int maxIcons: 8
     readonly property bool isOccupied: occupied[ws] ?? false
     readonly property bool hasWindows: isOccupied
     property var kwinWindowList: KWinActiveWindowBridge.windowList
-    
     readonly property bool active: activeWsId === ws
-
-    Layout.alignment: Qt.AlignVCenter
-    Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
-    Layout.preferredHeight: indicatorSize
-
-    implicitWidth: Math.floor(baseWidth * scaleFactor)
-    implicitHeight: indicatorSize
-
-    radius: Tokens.rounding.large
-    color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
-    
-    border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
-    border.width: active ? 2 : (isOccupied ? 0 : 2)
-
-    Behavior on color { CAnim {} }
-    Behavior on border.color { CAnim {} }
 
     signal selected()
     signal reselected()
 
-    Drag.active: workspaceDragHandler.active
-    Drag.source: root
-    Drag.hotSpot.x: width / 2
-    Drag.hotSpot.y: height / 2
-
+    implicitWidth: Math.floor(baseWidth * scaleFactor)
+    implicitHeight: indicatorSize
+    radius: Tokens.rounding.large
+    color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
+    border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
+    border.width: active ? 2 : (isOccupied ? 0 : 2)
     transform: Translate {
         x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
         y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
     }
-
     states: [
+
+    Behavior on color { CAnim {} }
+    Behavior on border.color { CAnim {} }
         State {
             when: workspaceDragHandler.active
+
             PropertyChanges {
                 target: root
                 opacity: 0.8
                 z: 999
             }
         }
-    ]
-
     DragHandler {
         id: workspaceDragHandler
+
         target: null
         onActiveChanged: {
             if (!active) {
@@ -84,9 +67,9 @@ StyledRect {
             }
         }
     }
-
     StateLayer {
         id: workspaceMouseArea
+
         anchors.fill: parent
         radius: parent.radius
         onClicked: {
@@ -117,7 +100,6 @@ StyledRect {
             }
         }
     }
-
     Item {
         anchors.top: parent.top
         anchors.right: parent.right
@@ -125,16 +107,15 @@ StyledRect {
         width: Math.floor(28 * root.scaleFactor)
         height: Math.floor(28 * root.scaleFactor)
         z: 99
-        
         opacity: 1.0
         enabled: true
-        Behavior on opacity { CAnim { duration: 150 } }
 
+        Behavior on opacity { CAnim { duration: 150 } }
         StateLayer {
             id: closeBtn
+
             anchors.fill: parent
             radius: parent.width / 2
-            
             onClicked: {
                 if (typeof KWinWorkspaceState !== "undefined") {
                     const wId = KWinWorkspaceState.workspaces[root.ws - 1].id;
@@ -142,7 +123,6 @@ StyledRect {
                 }
             }
         }
-
         MaterialIcon {
             anchors.centerIn: parent
             text: "close"
@@ -150,7 +130,6 @@ StyledRect {
             color: Colours.palette.m3onSurfaceVariant
         }
     }
-
     StyledText {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
@@ -161,7 +140,6 @@ StyledRect {
         color: Colours.tPalette.m3onSurfaceVariant
         opacity: 0.3
     }
-    
     DropArea {
         anchors.fill: parent
         onDropped: drop => {
@@ -179,18 +157,18 @@ StyledRect {
             }
         }
     }
-
     GridLayout {
+        readonly property int count: repeater.count
+
         anchors.fill: parent
         anchors.margins: Tokens.padding.medium
         rowSpacing: Tokens.padding.small
         columnSpacing: Tokens.padding.small
-        
-        readonly property int count: repeater.count
         columns: count <= 2 ? Math.max(1, count) : Math.ceil(count / 2)
-        
+
         Repeater {
             id: repeater
+
             model: ScriptModel {
                 values: {
                     const wsId = root.ws;
@@ -216,34 +194,24 @@ StyledRect {
                     return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                 }
             }
-            
             delegate: StyledRect {
                 id: iconDelegate
+
                 required property var modelData
-                
                 readonly property string clientAddress: modelData.address || ""
                 readonly property int wsId: root.ws
-                
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: Tokens.rounding.small
-                color: Colours.tPalette.m3surfaceContainerHigh
-                
                 property real dragStartX: 0
                 property real dragStartY: 0
                 property real dragStartWidth: 0
                 property real dragStartHeight: 0
-                
                 property Item topLevel: null
-                
-                Drag.active: dragHandler.active
-                Drag.source: iconDelegate
-                Drag.hotSpot.x: width / 2
-                Drag.hotSpot.y: height / 2
 
+                radius: Tokens.rounding.small
+                color: Colours.tPalette.m3surfaceContainerHigh
                 states: [
                     State {
                         when: dragHandler.active
+
                         ParentChange {
                             target: iconDelegate
                             parent: topLevel
@@ -258,10 +226,10 @@ StyledRect {
                             z: 999
                         }
                     }
-                ]
-                
+
                 DragHandler {
                     id: dragHandler
+
                     onActiveChanged: {
                         if (active) {
                             let tl = iconDelegate;
@@ -280,14 +248,12 @@ StyledRect {
                         }
                     }
                 }
-                
                 IconImage {
                     anchors.centerIn: parent
                     implicitSize: Math.min(parent.width, parent.height) * 0.6
                     asynchronous: true
                     source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
                 }
-                
                 StateLayer {
                     anchors.fill: parent
                     radius: parent.radius
@@ -315,7 +281,22 @@ StyledRect {
                         }
                     }
                 }
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Drag.active: dragHandler.active
+                Drag.source: iconDelegate
+                Drag.hotSpot.x: width / 2
+                Drag.hotSpot.y: height / 2
+                ]
             }
         }
     }
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
+    Layout.preferredHeight: indicatorSize
+    Drag.active: workspaceDragHandler.active
+    Drag.source: root
+    Drag.hotSpot.x: width / 2
+    Drag.hotSpot.y: height / 2
+    ]
 }

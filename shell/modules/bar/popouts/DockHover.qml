@@ -1,9 +1,9 @@
-import Quickshell
+import org.kde.pipewire as Pipewire
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
-import org.kde.pipewire as Pipewire
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
@@ -15,11 +15,9 @@ StyledRect {
 
     required property PopoutState popouts
     property var model: popouts.dockModel
-
     // Resolved through the same helper the taskbar tile uses, so the hover popup
     // can never disagree with the tile it belongs to.
     readonly property string iconSource: model ? WinIcons.sourceFor(model.entry, model.appClass, model.iconName) : ""
-
     property MprisPlayer player: {
         if (!model) return null;
         return Players.list.find(p => p.identity.toLowerCase().includes(model.appClass.toLowerCase()) || (model.id && p.identity.toLowerCase().includes(model.id.toLowerCase().replace(".desktop", "")))) || null;
@@ -31,11 +29,7 @@ StyledRect {
     readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.dock) ? GlobalConfig.bar.previewFontScales.dock : 0.0) : 0.0
     readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
     readonly property int previewWidth: Math.round(Tokens.sizes.bar.windowPreviewSize * scaleOffset)
-
     readonly property int cardWidth: (root.model && root.model.toplevels && root.model.toplevels.length > 1)
-        ? Math.round(previewWidth * 0.55)
-        : previewWidth
-
     // root.model is a snapshot taken when the popout opened, not a live binding, so
     // it never learns a window closed on its own — that card's screencast dies
     // (KWin has nothing left to stream) and falls back to the app icon instead of
@@ -43,6 +37,7 @@ StyledRect {
     // snapshot by hand: drop the closed toplevel, and if none are left, close the
     // popout outright unless the app is pinned, in which case the empty-state
     // fallback below is the correct thing to show.
+
     function closeToplevel(address: string): void {
         if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
             KWinActiveWindowBridge.closeWindow(address);
@@ -64,27 +59,25 @@ StyledRect {
 
         root.popouts.dockModel = Object.assign({}, root.model, { toplevels: remaining });
     }
-
     radius: Tokens.rounding.medium
     color: Colours.tPalette.m3surfaceContainer
     clip: true
-
     implicitWidth: mainLayout.implicitWidth + Tokens.padding.medium * scaleOffset * 2
     implicitHeight: mainLayout.implicitHeight + Tokens.padding.medium * scaleOffset * 2
-    
     // Explicit sizing for popout positioning calculations
     width: implicitWidth
     height: implicitHeight
 
     ColumnLayout {
         id: mainLayout
+
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: Tokens.padding.medium * scaleOffset
         spacing: Tokens.spacing.small
-
         // Fallback for pinned apps with no active windows
+
         StyledRect {
             implicitWidth: fallbackLayout.implicitWidth + Tokens.padding.small * scaleOffset * 2
             implicitHeight: fallbackLayout.implicitHeight + Tokens.padding.small * scaleOffset * 2
@@ -111,50 +104,41 @@ StyledRect {
                     root.popouts.hasCurrent = false;
                 }
             }
-
             RowLayout {
                 id: fallbackLayout
+
                 anchors.centerIn: parent
                 spacing: Tokens.spacing.medium
 
                 IconImage {
                     asynchronous: true
-                    Layout.alignment: Qt.AlignVCenter
                     implicitSize: fallbackText.implicitHeight
                     source: root.iconSource
+                    Layout.alignment: Qt.AlignVCenter
                 }
-
                 StyledText {
                     id: fallbackText
+
                     text: root.model ? (root.model.entry ? root.model.entry.name : root.model.appClass) : ""
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                     elide: Text.ElideRight
                 }
             }
         }
-
         // Active windows row - live thumbnail previews, native Plasma taskbar style
         RowLayout {
             id: windowsRow
 
-            Layout.alignment: Qt.AlignLeft
             visible: root.model && root.model.toplevels && root.model.toplevels.length > 0
             spacing: Tokens.spacing.medium
 
             Repeater {
                 model: root.model && root.model.toplevels ? root.model.toplevels : []
-
                 delegate: StyledRect {
                     id: card
 
                     required property var modelData
                     required property int index
-
-                    implicitWidth: root.cardWidth
-                    implicitHeight: cardLayout.implicitHeight
-                    radius: Tokens.rounding.small
-                    color: "transparent"
-
                     // Match thumbnail height to the window's actual aspect ratio
                     // (modelData.width/height come from KWin's frameGeometry via DBus),
                     // clamped to a reasonable max height so tall windows don't explode
@@ -171,10 +155,14 @@ StyledRect {
                         return Math.max(min, Math.min(max, raw));
                     }
 
+                    implicitWidth: root.cardWidth
+                    implicitHeight: cardLayout.implicitHeight
+                    radius: Tokens.rounding.small
+                    color: "transparent"
+
                     HoverHandler {
                         id: cardHover
                     }
-
                     StateLayer {
                         anchors.fill: parent
                         radius: parent.radius
@@ -189,7 +177,6 @@ StyledRect {
                             root.popouts.hasCurrent = false;
                         }
                     }
-
                     ColumnLayout {
                         id: cardLayout
 
@@ -201,12 +188,11 @@ StyledRect {
                         StyledClippingRect {
                             id: thumb
 
-                            Layout.preferredWidth: root.cardWidth
-                            Layout.preferredHeight: card.thumbHeight
+                            property var streamRequest: null
+                            readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
+
                             color: Colours.tPalette.m3surfaceContainerHighest
                             radius: Tokens.rounding.small
-
-                            property var streamRequest: null
                             Component.onCompleted: {
                                 if (card.modelData.address) {
                                     streamRequest = ScreencastManager.requestStream(card.modelData.address);
@@ -218,8 +204,6 @@ StyledRect {
                                 }
                             }
 
-                            readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
-
                             IconImage {
                                 anchors.centerIn: parent
                                 implicitSize: thumb.height * 0.5
@@ -227,7 +211,6 @@ StyledRect {
                                 visible: thumb.screencastSerial === 0
                                 source: root.iconSource
                             }
-
                             Pipewire.PipeWireSourceItem {
                                 width: {
                                     const wAspect = card.windowAspect;
@@ -243,7 +226,6 @@ StyledRect {
                                 visible: thumb.screencastSerial !== 0
                                 objectSerial: thumb.screencastSerial
                             }
-
                             // Close button - only revealed while hovering this thumbnail
                             StyledRect {
                                 anchors.top: parent.top
@@ -259,7 +241,6 @@ StyledRect {
                                 Behavior on opacity {
                                     Anim {}
                                 }
-
                                 StateLayer {
                                     anchors.fill: parent
                                     radius: Tokens.rounding.small
@@ -268,41 +249,41 @@ StyledRect {
                                             root.closeToplevel(card.modelData.address);
                                     }
                                 }
-
                                 MaterialIcon {
                                     id: closeIcon
+
                                     anchors.centerIn: parent
                                     text: "close"
                                     fontStyle.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                                 }
                             }
+                            Layout.preferredWidth: root.cardWidth
+                            Layout.preferredHeight: card.thumbHeight
                         }
-
                         StyledText {
                             id: titleText
-                            Layout.preferredWidth: root.cardWidth
+
                             text: card.modelData.title || ""
                             font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
                             color: Colours.palette.m3onSurfaceVariant
                             elide: Text.ElideRight
                             horizontalAlignment: Text.AlignHCenter
+                            Layout.preferredWidth: root.cardWidth
                         }
                     }
                 }
             }
+            Layout.alignment: Qt.AlignLeft
         }
-
         // Media controls separator
         StyledRect {
-            Layout.fillWidth: true
             implicitHeight: 1
             color: Colours.tPalette.m3surfaceVariant
             visible: !!root.player
+            Layout.fillWidth: true
         }
-
         // Media controls
         RowLayout {
-            Layout.alignment: Qt.AlignHCenter
             spacing: Tokens.spacing.medium
             visible: !!root.player
 
@@ -316,15 +297,14 @@ StyledRect {
                     radius: Tokens.rounding.small
                     onClicked: root.player.previous()
                 }
-
                 MaterialIcon {
                     id: prevIcon
+
                     anchors.centerIn: parent
                     text: "skip_previous"
                     fontStyle.pointSize: Tokens.font.body.large.pointSize * root.fontScale
                 }
             }
-
             Item {
                 implicitWidth: playIcon.implicitHeight + Tokens.padding.small * scaleOffset * 2
                 implicitHeight: playIcon.implicitHeight + Tokens.padding.small * scaleOffset * 2
@@ -335,15 +315,14 @@ StyledRect {
                     radius: Tokens.rounding.small
                     onClicked: root.player.togglePlaying()
                 }
-
                 MaterialIcon {
                     id: playIcon
+
                     anchors.centerIn: parent
                     text: (root.player && root.player.isPlaying) ? "pause" : "play_arrow"
                     fontStyle.pointSize: Tokens.font.body.large.pointSize * root.fontScale
                 }
             }
-
             Item {
                 implicitWidth: nextIcon.implicitHeight + Tokens.padding.small * scaleOffset * 2
                 implicitHeight: nextIcon.implicitHeight + Tokens.padding.small * scaleOffset * 2
@@ -354,14 +333,17 @@ StyledRect {
                     radius: Tokens.rounding.small
                     onClicked: root.player.next()
                 }
-
                 MaterialIcon {
                     id: nextIcon
+
                     anchors.centerIn: parent
                     text: "skip_next"
                     fontStyle.pointSize: Tokens.font.body.large.pointSize * root.fontScale
                 }
             }
+            Layout.alignment: Qt.AlignHCenter
         }
     }
+        ? Math.round(previewWidth * 0.55)
+        : previewWidth
 }

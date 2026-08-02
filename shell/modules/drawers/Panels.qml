@@ -7,18 +7,17 @@ import qs.modules.dashboard as Dashboard
 import qs.modules.launcher as Launcher
 import qs.modules.notifications as Notifications
 import qs.modules.osd as Osd
+import qs.modules.overview as Overview
 import qs.modules.session as Session
 import qs.modules.sidebar as Sidebar
 import qs.modules.utilities as Utilities
 import qs.modules.bar.popouts as BarPopouts
 import qs.modules.utilities.toasts as Toasts
-import qs.modules.overview as Overview
 
 Item {
     id: root
 
     required property ShellScreen screen
-    Config.screen: screen.name
     required property DrawerVisibilities visibilities
     required property Bar.BarWrapper bar
     required property real borderThickness
@@ -36,7 +35,6 @@ Item {
     readonly property alias toasts: toasts
     readonly property alias sidebar: sidebar
     readonly property alias overview: overview
-
     readonly property real leftMargin: anchors.leftMargin
     readonly property real rightMargin: anchors.rightMargin
     readonly property real topMargin: anchors.topMargin
@@ -47,11 +45,9 @@ Item {
     anchors.rightMargin: (Config.bar.position === "right" ? bar.implicitWidth + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge * 2 : 0) : borderThickness + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0))
     anchors.topMargin: (Config.bar.position === "top" ? bar.implicitHeight + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge * 2 : 0) : borderThickness + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0))
     anchors.bottomMargin: (Config.bar.position === "bottom" ? bar.implicitHeight + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge * 2 : 0) : borderThickness + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0))
-
     states: [
         State {
             name: "right"
-            Config.screen: root.screen.name
             when: Config.bar.position === "right"
 
             AnchorChanges {
@@ -94,11 +90,10 @@ Item {
                 anchors.left: parent.left
                 anchors.right: undefined
             }
+            Config.screen: root.screen.name
         },
-
         State {
             name: "bottom"
-            Config.screen: root.screen.name
             when: Config.bar.position === "bottom"
 
             AnchorChanges {
@@ -126,12 +121,12 @@ Item {
                 target: sidebar
                 anchors.topMargin: -4
             }
+            Config.screen: root.screen.name
         }
-    ]
 
     Item {
         id: osdWrapper
-        
+
         property string vAnchor: "center"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
 
@@ -140,7 +135,6 @@ Item {
         anchors.leftMargin: Config.bar.position === "right" ? sidebar.width * (1 - sidebar.offsetScale) + session.width * (1 - session.offsetScale) : 0
         anchors.rightMargin: Config.bar.position !== "right" ? sidebar.width * (1 - sidebar.offsetScale) + session.width * (1 - session.offsetScale) : 0
         clip: sidebar.visible || session.visible
-
         implicitWidth: osd.implicitWidth * (1 - osd.offsetScale)
         implicitHeight: osd.implicitHeight
         visible: osd.offsetScale < 1
@@ -151,18 +145,15 @@ Item {
             screen: root.screen
             visibilities: root.visibilities
             sidebarOrSessionVisible: sidebar.visible || session.visible
-
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
         }
     }
-
     Notifications.Wrapper {
         id: notifications
-        
+
         property string vAnchor: Config.bar.position === "bottom" ? "bottom" : "top"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
-
         property bool shouldPush: popoutsWrapper.offsetScale < 1 && !popoutsWrapper.content.isDockPopout && !sidebar.visible
 
         visibilities: root.visibilities
@@ -170,16 +161,14 @@ Item {
         osdPanel: osdWrapper
         sessionPanel: sessionWrapper
         utilitiesPanel: utilities
-
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.topMargin: (Config.bar.position === "top" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : 0
         anchors.bottomMargin: (Config.bar.position === "bottom" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : 0
     }
-
     Item {
         id: sessionWrapper
-        
+
         property string vAnchor: "center"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
 
@@ -188,7 +177,6 @@ Item {
         anchors.leftMargin: Config.bar.position === "right" ? sidebar.width * (1 - sidebar.offsetScale) : 0
         anchors.rightMargin: Config.bar.position !== "right" ? sidebar.width * (1 - sidebar.offsetScale) : 0
         clip: sidebar.visible
-
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
         visible: session.offsetScale < 1
@@ -198,41 +186,35 @@ Item {
 
             visibilities: root.visibilities
             sidebarVisible: sidebar.visible
-
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
         }
     }
-
     Launcher.Wrapper {
         id: launcher
-        
+
         property string vAnchor: "bottom"
         property string hAnchor: "center"
 
         screen: root.screen
         visibilities: root.visibilities
         panels: root
-
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
     }
-
     Dashboard.Wrapper {
         id: dashboard
-        
+
         property string vAnchor: "top"
         property string hAnchor: "center"
 
         visibilities: root.visibilities
-
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
     }
-
     BarPopouts.ClipWrapper {
         id: popoutsWrapper
-        
+
         property string vAnchor: (Config.bar.position === "top" || Config.bar.position === "bottom") ? Config.bar.position : "none"
         property string hAnchor: (Config.bar.position === "left" || Config.bar.position === "right") ? Config.bar.position : "none"
 
@@ -241,56 +223,48 @@ Item {
         borderThickness: root.borderThickness
         visibilities: root.visibilities
     }
-
     Utilities.Wrapper {
         id: utilities
-        
+
         property string vAnchor: Config.bar.position === "bottom" ? "top" : "bottom"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
 
         visibilities: root.visibilities
         sidebar: sidebar
         popouts: popoutsWrapper.content
-
         anchors.bottom: parent.bottom
         anchors.right: parent.right
     }
-
     Toasts.Toasts {
         id: toasts
-        
+
         property string vAnchor: "bottom"
         property string hAnchor: Config.bar.position === "bottom" ? "left" : (Config.bar.position === "right" ? "left" : "right")
 
         visibilities: root.visibilities
-
         anchors.bottom: sidebar.visible ? parent.bottom : utilities.top
         anchors.right: sidebar.left
         anchors.margins: Tokens.padding.medium
     }
-
     Sidebar.Wrapper {
         id: sidebar
-        
+
         property string vAnchor: "bottom"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
+        property bool shouldPush: popoutsWrapper.offsetScale < 1 && !popoutsWrapper.content.isDockPopout
 
         visibilities: root.visibilities
         popouts: popoutsWrapper.content
         utilities: utilities
-
         anchors.top: notifications.bottom
         anchors.bottom: utilities.top
         anchors.right: parent.right
-        property bool shouldPush: popoutsWrapper.offsetScale < 1 && !popoutsWrapper.content.isDockPopout
-
         anchors.topMargin: (Config.bar.position === "top" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : -notifications.anchors.topMargin
         anchors.bottomMargin: (Config.bar.position === "bottom" && shouldPush) ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : 0
     }
-
     Overview.Wrapper {
         id: overview
-        
+
         property string vAnchor: "center"
         property string hAnchor: "center"
         property var animConfig: root.overviewAnimConfig
@@ -299,4 +273,6 @@ Item {
         visibilities: root.visibilities
         panels: root
     }
+    Config.screen: screen.name
+    ]
 }

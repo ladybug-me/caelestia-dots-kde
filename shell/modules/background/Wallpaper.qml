@@ -39,7 +39,6 @@ Item {
             one.update();
         }
     }
-
     Component.onCompleted: {
         if (source)
             Qt.callLater(() => {
@@ -55,7 +54,6 @@ Item {
         interval: Math.max(1, Math.round(Config.background.slideshowInterval * 60)) * 60 * 1000
         running: Config.background.slideshowEnabled && Config.background.wallpaperEnabled && root.screen && root.screen.name === Quickshell.screens[0].name
         repeat: true
-
         onTriggered: {
             if (Config.background.slideshowRandom) {
                 Wallpapers.setRandom();
@@ -76,13 +74,10 @@ Item {
             }
         }
     }
-
     Loader {
         asynchronous: true
         anchors.fill: parent
-
         active: root.completed && !root.source
-
         sourceComponent: StyledRect {
             color: Colours.palette.m3surfaceContainer
 
@@ -95,7 +90,6 @@ Item {
                     color: Colours.palette.m3onSurfaceVariant
                     fontStyle: Tokens.font.icon.builders.extraLarge.scale(5).build()
                 }
-
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Tokens.spacing.small
@@ -105,11 +99,9 @@ Item {
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.builders.large.size(28 * 2).weight(Font.Bold).build()
                     }
-
                     StyledRect {
                         implicitWidth: selectWallText.implicitWidth + Tokens.padding.extraLargeIncreased
                         implicitHeight: selectWallText.implicitHeight + Tokens.padding.small
-
                         radius: Tokens.rounding.full
                         color: Colours.palette.m3primary
 
@@ -121,18 +113,15 @@ Item {
                             filters: Images.validImageExtensions.concat(Images.validVideoExtensions)
                             onAccepted: path => Wallpapers.setWallpaper(path)
                         }
-
                         StateLayer {
                             radius: parent.radius
                             color: Colours.palette.m3onPrimary
                             onClicked: dialog.open()
                         }
-
                         StyledText {
                             id: selectWallText
 
                             anchors.centerIn: parent
-
                             text: qsTr("Set it now!")
                             color: Colours.palette.m3onPrimary
                             font: Tokens.font.body.large
@@ -142,13 +131,11 @@ Item {
             }
         }
     }
-
     Img {
         id: one
 
         property var screen: null
     }
-
     Img {
         id: two
 
@@ -162,6 +149,16 @@ Item {
         property string videoPath: ""
         property bool isVideoImage: root.isVideo(root.source)
         property var screen: null
+        readonly property real maxRadius: Math.sqrt(width * width + height * height)
+        property real maskRadius: root.skipTransition ? maxRadius : 0
+        readonly property var shapes: [
+        property int currentShape: MaterialShape.Circle
+        readonly property string currentSchemeName: Colours.showPreview ? Colours.previewScheme : Colours.scheme
+        readonly property string currentVariantName: Colours.showPreview ? Colours.previewVariant : Colours.variant
+        readonly property bool isDynamicScheme: currentSchemeName.startsWith("dynamic")
+        readonly property bool isDynamicMonochrome: isDynamicScheme && currentVariantName === "monochrome"
+        readonly property bool needsMask: img.z === 1 && maskAnim.running
+        readonly property bool shouldRecolor: Config.background.wallpaperRecolor
 
         function update(): void {
             this.screen = root.screen;
@@ -186,7 +183,6 @@ Item {
                 }
             }
         }
-
         function updateContent(): void {
             const isVideoImage = root.isVideo(root.source);
             if (isVideoImage) {
@@ -199,24 +195,11 @@ Item {
         }
 
         onIsVideoImageChanged: updateContent()
-
         anchors.fill: parent
-
         opacity: 1
         scale: 1
-
-        readonly property real maxRadius: Math.sqrt(width * width + height * height)
-        property real maskRadius: root.skipTransition ? maxRadius : 0
         Component.onCompleted: maskRadius = root.skipTransition ? maxRadius : maxRadius // Wait, original was maxRadius, but wait, onZChanged resets it
         z: root.current === img ? 1 : 0
-
-        readonly property var shapes: [
-            MaterialShape.Circle, MaterialShape.Square, MaterialShape.Diamond,
-            MaterialShape.ClamShell, MaterialShape.Pentagon, MaterialShape.Gem,
-            MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Cookie6Sided
-        ]
-        property int currentShape: MaterialShape.Circle
-
         onZChanged: {
             if (z === 1) {
                 if (root.skipTransition) {
@@ -233,6 +216,7 @@ Item {
 
         Item {
             id: maskWrapper
+
             anchors.fill: parent
 
             MaterialShape {
@@ -244,54 +228,41 @@ Item {
                 scale: img.maxRadius > 0 ? (img.maskRadius * 2) / 2000 : 0
             }
         }
-
         ShaderEffectSource {
             id: maskSourceItem
+
             sourceItem: maskWrapper
             anchors.fill: parent
             hideSource: true
             live: img.needsMask
         }
-
-        readonly property string currentSchemeName: Colours.showPreview ? Colours.previewScheme : Colours.scheme
-        readonly property string currentVariantName: Colours.showPreview ? Colours.previewVariant : Colours.variant
-        readonly property bool isDynamicScheme: currentSchemeName.startsWith("dynamic")
-        readonly property bool isDynamicMonochrome: isDynamicScheme && currentVariantName === "monochrome"
-        readonly property bool needsMask: img.z === 1 && maskAnim.running
-        readonly property bool shouldRecolor: Config.background.wallpaperRecolor
-        
-
         Item {
             id: contentItem
-            anchors.fill: parent
 
+            anchors.fill: parent
             layer.enabled: needsMask || Config.background.wallpaperRecolor
             layer.effect: MultiEffect {
+                readonly property string currentFlavourName: Colours.showPreview ? Colours.previewFlavour : Colours.flavour
+
                 maskEnabled: img.needsMask
                 maskSource: maskSourceItem
-
                 shadowEnabled: img.needsMask
                 shadowColor: "black"
                 shadowBlur: 1.0
                 shadowVerticalOffset: 15
                 shadowHorizontalOffset: 5
-
                 saturation: (img.shouldRecolor && img.isDynamicMonochrome) ? -1 : 0
                 colorization: img.shouldRecolor ? Config.background.wallpaperRecolorStrength : 0
                 colorizationColor: Colours.palette.m3primary
-                readonly property string currentFlavourName: Colours.showPreview ? Colours.previewFlavour : Colours.flavour
                 contrast: (img.shouldRecolor && currentFlavourName === "hard") ? 0.45 : 0.0
 
                 Behavior on saturation { Anim { type: Anim.DefaultEffects } }
                 Behavior on colorization { Anim { type: Anim.DefaultEffects } }
                 Behavior on contrast { Anim { type: Anim.DefaultEffects } }
-
                 Behavior on colorizationColor {
                     CAnim {}
                 }
             }
-
-
 
             CachingAnimatedImage {
                 id: wallpaperImage
@@ -303,7 +274,6 @@ Item {
                 fillMode: Config.background.wallpaperFillMode
                 source: img.imagePath || ""
                 playing: true
-
                 // Decode at the size actually being drawn. Without this the full
                 // image is decoded whatever its resolution: an 8K wallpaper costs
                 // ~132MB of pixels and a slow decode, twice over while the old and
@@ -316,31 +286,26 @@ Item {
                 //     const dpr = (QsWindow.window as QsWindow)?.devicePixelRatio ?? 1;
                 //     return Qt.size(wallpaperImage.width * dpr, wallpaperImage.height * dpr);
                 // }
-
                 onStatusChanged: {
                     if (status === Image.Ready && !img.isVideoImage)
                         root.current = img;
                 }
             }
-
             CachingVideo {
                 anchors.fill: parent
                 path: img.videoPath
                 screen: root.screen
                 visible: img.isVideoImage && img.videoPath !== ""
                 fillMode: Config.background.wallpaperFillMode
-
                 onPlayingChanged: {
                     if (playing && img.isVideoImage)
                         root.current = img;
                 }
             }
         }
-
-
-
             Anim {
                 id: maskAnim
+
                 target: img
                 property: "maskRadius"
                 from: 0
@@ -348,5 +313,9 @@ Item {
                 type: Anim.Emphasized
                 duration: 2500
             }
+            MaterialShape.Circle, MaterialShape.Square, MaterialShape.Diamond,
+            MaterialShape.ClamShell, MaterialShape.Pentagon, MaterialShape.Gem,
+            MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Cookie6Sided
+        ]
     }
 }

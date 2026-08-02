@@ -16,7 +16,6 @@ Item {
     required property BarPopouts.Wrapper popouts
     property real horizontalStretch
     property matrix4x4 deformMatrix
-
     readonly property PersistentProperties props: PersistentProperties {
         property bool recordingListExpanded: false
         property string recordingConfirmDelete
@@ -36,7 +35,6 @@ Item {
     implicitHeight: content.implicitHeight + totalPadding
     implicitWidth: sidebar.width * (1 - sidebar.offsetScale) * horizontalStretch * sidebarLerp + Tokens.sizes.utilities.width * (1 - sidebarLerp)
     opacity: 1 - offsetScale
-
     states: State {
         name: "attachedToSidebar"
         when: root.visibilities.sidebar
@@ -45,7 +43,6 @@ Item {
             root.sidebarLerp: 1
         }
     }
-
     transitions: [
         Transition {
             from: ""
@@ -65,22 +62,18 @@ Item {
                 easing: Tokens.anim.standardDecel
             }
         }
-    ]
 
     Behavior on offsetScale {
         Anim {}
     }
-
     Loader {
         id: content
 
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: Tokens.padding.large
-
         asynchronous: true
         active: true
-
         onStatusChanged: {
             if (status === Loader.Error) {
                 if (asynchronous) {
@@ -95,7 +88,6 @@ Item {
                 console.log("[Preload] Utilities loaded successfully.");
             }
         }
-
         sourceComponent: Content {
             implicitWidth: root.implicitWidth - root.totalPadding
             props: root.props
@@ -104,4 +96,5 @@ Item {
             deformMatrix: root.deformMatrix
         }
     }
+    ]
 }

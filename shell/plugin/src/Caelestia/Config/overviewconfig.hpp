@@ -14,8 +14,8 @@ class OverviewConfig : public ConfigObject {
     CONFIG_PROPERTY(bool, showOnHover, true)
     CONFIG_PROPERTY(int, dragThreshold, 30)
     CONFIG_PROPERTY(int, hoverThickness, 20)
-    CONFIG_PROPERTY(bool, hoverTopLeft, true)
-    CONFIG_PROPERTY(bool, hoverTopRight, false)
+    CONFIG_PROPERTY(bool, hoverTopLeft, false)
+    CONFIG_PROPERTY(bool, hoverTopRight, true)
     CONFIG_PROPERTY(bool, hoverBottomLeft, false)
     CONFIG_PROPERTY(bool, hoverBottomRight, false)
 

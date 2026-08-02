@@ -17,28 +17,21 @@ ColumnLayout {
     spacing: Tokens.spacing.small
 
     RowLayout {
-        Layout.topMargin: Tokens.padding.large
-        Layout.leftMargin: Tokens.padding.large
-        Layout.rightMargin: Tokens.padding.large
-
         spacing: Tokens.spacing.medium
 
         StyledText {
-            Layout.fillWidth: true
             text: qsTr("Move to workspace")
             elide: Text.ElideRight
+            Layout.fillWidth: true
         }
+        Layout.topMargin: Tokens.padding.large
+        Layout.leftMargin: Tokens.padding.large
+        Layout.rightMargin: Tokens.padding.large
     }
-
     Flow {
         id: wsGrid
 
-        Layout.fillWidth: true
-        Layout.leftMargin: Tokens.padding.large
-        Layout.rightMargin: Tokens.padding.large
-        Layout.bottomMargin: Tokens.spacing.medium
         clip: true
-
         spacing: Tokens.spacing.small
 
         Repeater {
@@ -59,21 +52,18 @@ ColumnLayout {
                     }
                     Visibilities.getForActive().overview = false;
                 }
-
                 color: isCurrent ? Colours.tPalette.m3surfaceContainerHighest : Colours.palette.m3tertiaryContainer
                 onColor: isCurrent ? Colours.palette.m3onSurface : Colours.palette.m3onTertiaryContainer
                 text: wsName
                 disabled: isCurrent
             }
         }
-    }
-
-    RowLayout {
         Layout.fillWidth: true
         Layout.leftMargin: Tokens.padding.large
         Layout.rightMargin: Tokens.padding.large
-        Layout.bottomMargin: Tokens.padding.large
-
+        Layout.bottomMargin: Tokens.spacing.medium
+    }
+    RowLayout {
         spacing: Tokens.spacing.small
 
         Button {
@@ -91,14 +81,9 @@ ColumnLayout {
                 Visibilities.getForActive().overview = false;
             }
         }
-
         Loader {
             asynchronous: true
             active: true
-            Layout.fillWidth: active
-            Layout.leftMargin: active ? 0 : -parent.spacing
-            Layout.rightMargin: active ? 0 : -parent.spacing
-
             sourceComponent: Button {
                 color: Colours.palette.m3secondaryContainer
                 onColor: Colours.palette.m3onSecondaryContainer
@@ -114,8 +99,10 @@ ColumnLayout {
                     Visibilities.getForActive().overview = false;
                 }
             }
+            Layout.fillWidth: active
+            Layout.leftMargin: active ? 0 : -parent.spacing
+            Layout.rightMargin: active ? 0 : -parent.spacing
         }
-
         Button {
             color: Colours.palette.m3errorContainer
             onColor: Colours.palette.m3onErrorContainer
@@ -129,6 +116,10 @@ ColumnLayout {
                 Visibilities.getForActive().overview = false;
             }
         }
+        Layout.fillWidth: true
+        Layout.leftMargin: Tokens.padding.large
+        Layout.rightMargin: Tokens.padding.large
+        Layout.bottomMargin: Tokens.padding.large
     }
 
     component Button: StyledRect {
@@ -139,8 +130,6 @@ ColumnLayout {
         signal clicked
 
         radius: Tokens.rounding.medium
-
-        Layout.fillWidth: true
         implicitWidth: label.implicitWidth + Tokens.padding.medium * 2
         implicitHeight: label.implicitHeight + Tokens.padding.small
 
@@ -155,15 +144,14 @@ ColumnLayout {
                 if (v) v.overview = false;
             }
         }
-
         StyledText {
             id: label
 
             anchors.centerIn: parent
-
             animate: true
             color: parent.onColor
             font: Tokens.font.body.medium
         }
+        Layout.fillWidth: true
     }
 }

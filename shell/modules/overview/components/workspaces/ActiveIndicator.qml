@@ -12,7 +12,6 @@ StyledRect {
     required property int activeWsId
     required property Repeater workspaces
     required property Item mask
-
     readonly property int currentWsIdx: {
         let i = activeWsId - 1;
         const count = workspaces.count > 0 ? workspaces.count : Config.bar.workspaces.shown;
@@ -20,10 +19,8 @@ StyledRect {
             i += count;
         return i % count;
     }
-
     property var currentItem: workspaces.count > 0 ? workspaces.itemAt(currentWsIdx) : null
     readonly property int indicatorSize: currentItem ? (currentItem as Workspace).indicatorSize : 40
-
     property real leading: currentItem ? currentItem.x : 0
     property real trailing: currentItem ? currentItem.x : 0
     property real currentSize: currentItem ? (currentItem as Workspace).size : 0
@@ -36,7 +33,6 @@ StyledRect {
         }
         return s;
     }
-
     property int cWs
     property int lastWs
 
@@ -44,10 +40,8 @@ StyledRect {
         lastWs = cWs;
         cWs = currentWsIdx;
     }
-
     clip: true
     anchors.verticalCenter: parent.verticalCenter
-
     x: offset + mask.x
     y: 0
     implicitWidth: size
@@ -57,28 +51,29 @@ StyledRect {
 
     Behavior on leading {
         enabled: root.Config.bar.workspaces.activeTrail
+
         EAnim {}
     }
-
     Behavior on trailing {
         enabled: root.Config.bar.workspaces.activeTrail
+
         EAnim {
             duration: Tokens.anim.durations.normal * 2
         }
     }
-
     Behavior on currentSize {
         enabled: root.Config.bar.workspaces.activeTrail
+
         EAnim {}
     }
-
     Behavior on offset {
         enabled: !root.Config.bar.workspaces.activeTrail
+
         EAnim {}
     }
-
     Behavior on size {
         enabled: !root.Config.bar.workspaces.activeTrail
+
         EAnim {}
     }
 

@@ -20,15 +20,14 @@ Scope {
         // Force KeybindsModel to instantiate and load shortcuts from disk
         let _ = KeybindsModel;
     }
-
     // qmllint disable unresolved-type
+
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "nexus"
         description: "Open nexus"
         onPressed: WindowFactory.create()
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -41,7 +40,6 @@ Scope {
             v.launcher = v.dashboard = v.osd = v.utilities = !(v.launcher || v.dashboard || v.osd || v.utilities);
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -54,7 +52,6 @@ Scope {
             visibilities.dashboard = !visibilities.dashboard;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -67,12 +64,10 @@ Scope {
             visibilities.overview = !visibilities.overview;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshot"
-
         description: "Toggle screenshot overlay"
         onPressed: {
             if (root.hasFullscreen)
@@ -80,12 +75,10 @@ Scope {
             regionSelector.screenshot();
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "googleLens"
-
         description: "Toggle Google Lens search"
         onPressed: {
             if (root.hasFullscreen)
@@ -93,12 +86,10 @@ Scope {
             regionSelector.search();
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenRecording"
-
         description: "Toggle screen recording"
         onPressed: {
             if (root.hasFullscreen)
@@ -114,7 +105,6 @@ Scope {
             }
         }
     }
-
     // qmllint disable unresolved-type
     // USING plasma-wallpaper-application plugin for now
     // CustomShortcut {
@@ -128,7 +118,6 @@ Scope {
     //         Quickshell.execDetached(["caelestia", "shell", "lock", "lock"]);
     //     }
     // }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -142,12 +131,10 @@ Scope {
             visibilities.session = !visibilities.session;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "launcher"
-
         description: "Toggle launcher"
         onPressed: root.launcherInterrupted = false
         onReleased: {
@@ -159,7 +146,6 @@ Scope {
             root.launcherInterrupted = false;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -167,12 +153,10 @@ Scope {
         description: "Interrupt launcher keybind"
         onPressed: root.launcherInterrupted = true
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "sidebar"
-
         description: "Toggle sidebar"
         onPressed: {
             if (root.hasFullscreen)
@@ -182,7 +166,6 @@ Scope {
             visibilities.sidebar = !visibilities.sidebar;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -196,7 +179,6 @@ Scope {
             visibilities.sidebar = true;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -209,12 +191,10 @@ Scope {
             visibilities.utilities = !visibilities.utilities;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "emoji"
-
         description: "Open emoji picker"
         onPressed: {
             if (root.hasFullscreen)
@@ -224,12 +204,10 @@ Scope {
             visibilities.launcher = true;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "clipboard"
-
         description: "Open clipboard history"
         onPressed: {
             if (root.hasFullscreen)
@@ -239,12 +217,10 @@ Scope {
             visibilities.launcher = true;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "windowSwitcher"
-
         description: "Open window switcher"
         onPressed: {
             if (root.hasFullscreen)
@@ -263,12 +239,10 @@ Scope {
             }
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "windowSwitcherReverse"
-
         description: "Open window switcher (reverse)"
         onPressed: {
             if (root.hasFullscreen)
@@ -286,12 +260,10 @@ Scope {
             }
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "wallpaper"
-
         description: "Open wallpaper picker"
         onPressed: {
             if (root.hasFullscreen)
@@ -301,12 +273,10 @@ Scope {
             visibilities.launcher = true;
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "keybinds"
-
         description: "Open keybinds list"
         onPressed: {
             if (root.hasFullscreen)
@@ -316,50 +286,36 @@ Scope {
             visibilities.launcher = true;
         }
     }
-
-
     CustomShortcut {
         name: "foot"
         description: "Launch Terminal"
-
         onPressed: Quickshell.execDetached(["kstart", "--", "foot"])
     }
-
     CustomShortcut {
         name: "firefox"
         description: "Launch Browser"
-
         onPressed: Quickshell.execDetached(["kstart", "--", "firefox"])
     }
-
     CustomShortcut {
         name: "code"
         description: "Launch Editor"
-
         onPressed: Quickshell.execDetached(["kstart", "--", "code"])
     }
-
     CustomShortcut {
         name: "github-desktop"
         description: "Launch GitHub Desktop"
-
         onPressed: Quickshell.execDetached(["kstart", "--", "github-desktop"])
     }
-
     CustomShortcut {
         name: "nemo"
         description: "Launch File Manager"
-
         onPressed: Quickshell.execDetached(["kstart", "--", "nemo"])
     }
-    
     CustomShortcut {
         name: "kcolorpicker"
         description: "Color Picker"
-
         onPressed: ColorPicker.pickColor()
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -367,7 +323,6 @@ Scope {
         description: "Switch to workspace 1"
         onPressed: KWinActiveWindowBridge.setDesktop(1)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -375,7 +330,6 @@ Scope {
         description: "Switch to workspace 2"
         onPressed: KWinActiveWindowBridge.setDesktop(2)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -383,7 +337,6 @@ Scope {
         description: "Switch to workspace 3"
         onPressed: KWinActiveWindowBridge.setDesktop(3)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -391,7 +344,6 @@ Scope {
         description: "Switch to workspace 4"
         onPressed: KWinActiveWindowBridge.setDesktop(4)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -399,7 +351,6 @@ Scope {
         description: "Switch to workspace 5"
         onPressed: KWinActiveWindowBridge.setDesktop(5)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -407,7 +358,6 @@ Scope {
         description: "Switch to workspace 6"
         onPressed: KWinActiveWindowBridge.setDesktop(6)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -415,7 +365,6 @@ Scope {
         description: "Switch to workspace 7"
         onPressed: KWinActiveWindowBridge.setDesktop(7)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -423,7 +372,6 @@ Scope {
         description: "Switch to workspace 8"
         onPressed: KWinActiveWindowBridge.setDesktop(8)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -431,7 +379,6 @@ Scope {
         description: "Switch to workspace 9"
         onPressed: KWinActiveWindowBridge.setDesktop(9)
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -439,8 +386,6 @@ Scope {
         description: "Switch to workspace 10"
         onPressed: KWinActiveWindowBridge.setDesktop(10)
     }
-
-
     IpcHandler {
         function toggle(drawer: string): void {
             if (list().split("\n").includes(drawer)) {
@@ -452,7 +397,6 @@ Scope {
                 console.warn(lc, `Drawer "${drawer}" does not exist`);
             }
         }
-
         function toggleTab(drawer: string, tab: string): void {
             if (list().split("\n").includes(drawer)) {
                 if (root.hasFullscreen && ["launcher", "session", "dashboard"].includes(drawer))
@@ -469,7 +413,6 @@ Scope {
                 console.warn(lc, `Drawer "${drawer}" does not exist`);
             }
         }
-
         function list(): string {
             const visibilities = Visibilities.getForActive();
             return Object.keys(visibilities).filter(k => typeof visibilities[k] === "boolean").join("\n");
@@ -477,12 +420,10 @@ Scope {
 
         target: "drawers"
     }
-
     IpcHandler {
         function open(): void {
             WindowFactory.create();
         }
-
         function openPage(pageIdx: string, subPageIdx: string): void {
             const hasSubPage = subPageIdx !== "-1" && subPageIdx !== "";
             WindowFactory.create(null, {
@@ -493,27 +434,22 @@ Scope {
 
         target: "nexus"
     }
-
     IpcHandler {
         function info(title: string, message: string, icon: string): void {
             Toaster.toast(title, message, icon, Toast.Info);
         }
-
         function success(title: string, message: string, icon: string): void {
             Toaster.toast(title, message, icon, Toast.Success);
         }
-
         function warn(title: string, message: string, icon: string): void {
             Toaster.toast(title, message, icon, Toast.Warning);
         }
-
         function error(title: string, message: string, icon: string): void {
             Toaster.toast(title, message, icon, Toast.Error);
         }
 
         target: "toaster"
     }
-
     IpcHandler {
         function action(name: string): void {
             root.lastAction = name;
@@ -523,12 +459,9 @@ Scope {
             const visibilities = Visibilities.getForActive();
             visibilities.launcher = true;
         }
-
         target: "launcher"
     }
-
     // --- Window Tiling Shortcuts ---
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -540,7 +473,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusUp"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -552,7 +484,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusDown"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -564,7 +495,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusLeft"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -576,7 +506,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusRight"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -588,7 +517,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShiftUp"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -600,7 +528,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShiftDown"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -612,7 +539,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShiftLeft"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -624,7 +550,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShiftRight"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -636,7 +561,6 @@ Scope {
                 Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Window Close"])
         }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -644,7 +568,6 @@ Scope {
         description: "Focus next window"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusNext"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -652,7 +575,6 @@ Scope {
         description: "Focus previous window"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFocusPrev"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -660,7 +582,6 @@ Scope {
         description: "Set active window as Master"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteSetMaster"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -668,7 +589,6 @@ Scope {
         description: "Switch to next layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteNextLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -676,7 +596,6 @@ Scope {
         description: "Switch to previous layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkitePreviousLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -684,7 +603,6 @@ Scope {
         description: "Switch to BTree layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteBTreeLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -692,7 +610,6 @@ Scope {
         description: "Switch to Monocle layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteMonocleLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -700,7 +617,6 @@ Scope {
         description: "Switch to Floating layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFloatingLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -708,7 +624,6 @@ Scope {
         description: "Switch to Quarter layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteQuarterLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -716,7 +631,6 @@ Scope {
         description: "Switch to Spread layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteSpreadLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -724,7 +638,6 @@ Scope {
         description: "Switch to Stacked layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteStackedLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -732,7 +645,6 @@ Scope {
         description: "Switch to Stair layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteStairLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -740,7 +652,6 @@ Scope {
         description: "Switch to Columns layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteColumnsLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -748,7 +659,6 @@ Scope {
         description: "Switch to Three Column layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteThreeColumnLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -756,7 +666,6 @@ Scope {
         description: "Switch to Spiral layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteSpiralLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -764,7 +673,6 @@ Scope {
         description: "Switch to Tile layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteTileLayout"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -772,7 +680,6 @@ Scope {
         description: "Increase window height"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteGrowHeight"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -780,7 +687,6 @@ Scope {
         description: "Decrease window height"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShrinkHeight"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -788,7 +694,6 @@ Scope {
         description: "Increase window width"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkitegrowWidth"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -796,7 +701,6 @@ Scope {
         description: "Decrease window width"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteShrinkWidth"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -804,7 +708,6 @@ Scope {
         description: "Increase master area size"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteIncrease"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -812,7 +715,6 @@ Scope {
         description: "Decrease master area size"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteDecrease"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -820,7 +722,6 @@ Scope {
         description: "Toggle floating state"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteToggleFloat"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -828,7 +729,6 @@ Scope {
         description: "Toggle floating state for all"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteFloatAll"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -836,7 +736,6 @@ Scope {
         description: "Rotate the window layout"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteRotate"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -844,7 +743,6 @@ Scope {
         description: "Rotate windows within a part"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkiteRotatePart"]) }
     }
-
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
@@ -852,7 +750,6 @@ Scope {
         description: "Toggle dock support"
         onPressed: { if (Config.general.krohnkiteEnabled) Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "KrohnkitetoggleDock"]) }
     }
-
     LoggingCategory {
         id: lc
 

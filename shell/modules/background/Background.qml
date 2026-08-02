@@ -1,16 +1,16 @@
 pragma ComponentBehavior: Bound
 
+import "../drawers/blur" as Blur
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
+import Caelestia.Blobs
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
 import qs.components.containers
 import qs.services
-import "../drawers/blur" as Blur
-import Quickshell.Hyprland
-import Caelestia.Blobs
 
 Variants {
     model: Screens.screens.filter(s => GlobalConfig.forScreen(s.name).background.enabled)
@@ -19,33 +19,28 @@ Variants {
         id: win
 
         required property ShellScreen modelData
+        readonly property var drawerVisibilities: Visibilities.screens.get(Hypr.monitorFor(modelData)) ?? Visibilities.screens.get(modelData.name)
+        readonly property bool isOverviewOpen: drawerVisibilities ? drawerVisibilities.overview : false
 
         screen: modelData
         name: "background"
         isDesktopWidget: true
-        
-        readonly property var drawerVisibilities: Visibilities.screens.get(Hypr.monitorFor(modelData)) ?? Visibilities.screens.get(modelData.name)
-        readonly property bool isOverviewOpen: drawerVisibilities ? drawerVisibilities.overview : false
-        WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Bottom
         color: Config.background.wallpaperEnabled ? "black" : "transparent"
         surfaceFormat.opaque: false
-
         // If Quickshell wallpaper is disabled, use empty mask so KDE desktop gets clicks
         // If enabled, use null mask so Quickshell captures clicks
         mask: Config.background.wallpaperEnabled ? null : emptyRegion
-
-        Region {
-            id: emptyRegion
-            width: 0
-            height: 0
-        }
-
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
         anchors.right: true
 
+        Region {
+            id: emptyRegion
+
+            width: 0
+            height: 0
+        }
         TapHandler {
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             onTapped: (eventPoint, button) => {
@@ -58,7 +53,6 @@ Variants {
                 }
             }
         }
-
         Item {
             id: behindClock
 
@@ -68,16 +62,12 @@ Variants {
                 id: wallpaper
 
                 asynchronous: true
-
                 anchors.fill: parent
                 active: Config.background.wallpaperEnabled
-
                 sourceComponent: Wallpaper {
                     screen: win.modelData
                 }
             }
-
-
             Visualiser {
                 anchors.fill: parent
                 screen: win.modelData
@@ -85,15 +75,12 @@ Variants {
                 z: 2
                 visible: true
             }
-
         }
-
         DesktopIcons {
             screenData: win.modelData
             z: 3
             visible: true
         }
-
         Loader {
             id: clockLoader
 
@@ -102,13 +89,11 @@ Variants {
 
             asynchronous: true
             active: Config.background.desktopClock.enabled
-
             anchors.margins: clockBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? clockBaseMargin + clockBarZone : clockBaseMargin
             anchors.rightMargin: Config.bar.position === "right" ? clockBaseMargin + clockBarZone : clockBaseMargin
             anchors.topMargin: Config.bar.position === "top" ? clockBaseMargin + clockBarZone : clockBaseMargin
             anchors.bottomMargin: Config.bar.position === "bottom" ? clockBaseMargin + clockBarZone : clockBaseMargin
-
             anchors.horizontalCenterOffset: {
                 if (Config.bar.position === "left") return clockBarZone / 2;
                 if (Config.bar.position === "right") return -clockBarZone / 2;
@@ -119,9 +104,16 @@ Variants {
                 if (Config.bar.position === "bottom") return -clockBarZone / 2;
                 return 0;
             }
-
             state: Config.background.desktopClock.position
             states: [
+            transitions: Transition {
+                AnchorAnim {}
+            }
+            sourceComponent: DesktopClock {
+                wallpaper: behindClock
+                absX: clockLoader.x
+                absY: clockLoader.y
+            }
                 State {
                     name: "top-left"
 
@@ -204,18 +196,7 @@ Variants {
                     }
                 }
             ]
-
-            transitions: Transition {
-                AnchorAnim {}
-            }
-
-            sourceComponent: DesktopClock {
-                wallpaper: behindClock
-                absX: clockLoader.x
-                absY: clockLoader.y
-            }
         }
-
         Loader {
             id: lyricsLoader
 
@@ -224,13 +205,11 @@ Variants {
 
             asynchronous: true
             active: Config.background.desktopLyrics.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics)
-
             anchors.margins: lyricsBaseMargin
             anchors.leftMargin: Config.bar.position === "left" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin
             anchors.rightMargin: Config.bar.position === "right" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin
             anchors.topMargin: Config.bar.position === "top" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin
             anchors.bottomMargin: Config.bar.position === "bottom" ? lyricsBaseMargin + lyricsBarZone : lyricsBaseMargin
-
             anchors.horizontalCenterOffset: {
                 if (Config.bar.position === "left") return lyricsBarZone / 2;
                 if (Config.bar.position === "right") return -lyricsBarZone / 2;
@@ -241,9 +220,17 @@ Variants {
                 if (Config.bar.position === "bottom") return -lyricsBarZone / 2;
                 return 0;
             }
-
             state: Config.background.desktopLyrics.position
             states: [
+            transitions: Transition {
+                AnchorAnim {}
+            }
+            sourceComponent: DesktopLyrics {
+                screen: modelData
+                wallpaper: behindClock
+                absX: lyricsLoader.x
+                absY: lyricsLoader.y
+            }
                 State {
                     name: "top-left"
 
@@ -326,17 +313,8 @@ Variants {
                     }
                 }
             ]
-
-            transitions: Transition {
-                AnchorAnim {}
-            }
-
-            sourceComponent: DesktopLyrics {
-                screen: modelData
-                wallpaper: behindClock
-                absX: lyricsLoader.x
-                absY: lyricsLoader.y
-            }
         }
+        WlrLayershell.exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.layer: WlrLayer.Bottom
     }
 }

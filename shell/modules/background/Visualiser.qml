@@ -14,7 +14,6 @@ Item {
 
     required property ShellScreen screen
     required property Item wallpaper
-
     readonly property bool windowHidesVisualiser: {
         let isHidden = false;
         if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.activeWindow) {
@@ -33,7 +32,6 @@ Item {
     }
     readonly property bool shouldBeActive: Config.background.visualiser.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableVisualizer) && (!Config.background.visualiser.autoHide || !windowHidesVisualiser)
     property real offset: shouldBeActive ? 0 : screen.height * 0.2
-
     readonly property var barWrapper: {
         let name = root.screen ? root.screen.name : undefined;
         let bar = name ? Visibilities.bars.get(name) : undefined;
@@ -49,7 +47,6 @@ Item {
         asynchronous: true
         anchors.fill: parent
         active: root.opacity > 0 && Config.background.visualiser.blur
-
         sourceComponent: MultiEffect {
             source: root.wallpaper
             maskSource: wrapper
@@ -60,7 +57,6 @@ Item {
             autoPaddingEnabled: false
         }
     }
-
     Item {
         id: wrapper
 
@@ -72,14 +68,11 @@ Item {
             anchors.fill: parent
             anchors.topMargin: root.offset
             anchors.bottomMargin: -root.offset
-
             active: root.opacity > 0
-
             sourceComponent: Item {
                 ServiceRef {
                     service: Audio.cava
                 }
-
                 VisualiserBars {
                     id: bars
 
@@ -91,7 +84,6 @@ Item {
                     anchors.rightMargin: Config.bar.position === "right" ? (root.barExclusiveZone + root.fallbackMargin) : root.fallbackMargin
                     anchors.topMargin: Config.bar.position === "top" ? root.barExclusiveZone : Config.border.thickness
                     anchors.bottomMargin: Config.bar.position === "bottom" ? root.barExclusiveZone : Config.border.thickness
-
                     values: Audio.cava.values
                     primaryColor: Qt.alpha(Colours.palette.m3primary, 0.7)
                     secondaryColor: Qt.alpha(Colours.palette.m3inversePrimary, 0.7)
@@ -112,7 +104,6 @@ Item {
                         Anim {}
                     }
                 }
-
                 FrameAnimation {
                     running: root.opacity > 0 && !bars.settled
                     onTriggered: bars.advance(frameTime)
@@ -120,11 +111,9 @@ Item {
             }
         }
     }
-
     Behavior on offset {
         Anim {}
     }
-
     Behavior on opacity {
         Anim {
             type: Anim.DefaultEffects

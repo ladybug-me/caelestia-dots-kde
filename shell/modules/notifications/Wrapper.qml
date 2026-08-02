@@ -9,9 +9,9 @@ Item {
     property alias osdPanel: content.osdPanel
     property alias sessionPanel: content.sessionPanel
     property alias utilitiesPanel: content.utilitiesPanel
+    readonly property real baseTopMargin: -5
 
     visible: height > 0 && !visibilities.overview
-    readonly property real baseTopMargin: -5
     anchors.topMargin: baseTopMargin
     implicitWidth: Math.max(sidebarPanel.width, content.implicitWidth)
     implicitHeight: content.implicitHeight

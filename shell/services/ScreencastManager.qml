@@ -7,37 +7,14 @@ import Caelestia.Services
 
 Item {
     id: root
-
     // If true, keeps streams alive after refCount reaches 0.
+
     property bool continuousMode: true
-    
     // Global toggle for all screencasts
     property bool enableStreams: true
-
-    onEnableStreamsChanged: {
-        if (!enableStreams) {
-            let streams = root._streams;
-            let keys = Object.keys(streams);
-            for (let i = 0; i < keys.length; i++) {
-                let uuid = keys[i];
-                streams[uuid].requestItem.destroy();
-                delete streams[uuid];
-            }
-            root._streams = streams;
-        }
-    }
-    
     // Internal dictionary: uuid -> { refCount: number, requestItem: WindowScreencastRequest }
     property var _streams: ({})
-    
-    Component {
-        id: screencastComponent
-        WindowScreencastRequest {
-            property string targetUuid
-            uuid: targetUuid
-        }
-    }
-    
+
     function requestStream(uuid: string): var {
         if (!enableStreams) return null;
         if (!uuid) return null;
@@ -60,7 +37,6 @@ Item {
         
         return entry.requestItem;
     }
-    
     function releaseStream(uuid: string): void {
         if (!uuid) return;
         
@@ -79,11 +55,31 @@ Item {
             }
         }
     }
+    onEnableStreamsChanged: {
+        if (!enableStreams) {
+            let streams = root._streams;
+            let keys = Object.keys(streams);
+            for (let i = 0; i < keys.length; i++) {
+                let uuid = keys[i];
+                streams[uuid].requestItem.destroy();
+                delete streams[uuid];
+            }
+            root._streams = streams;
+        }
+    }
 
+    Component {
+        id: screencastComponent
+
+        WindowScreencastRequest {
+            property string targetUuid
+
+            uuid: targetUuid
+        }
+    }
     // Garbage collect streams for windows that have actually closed
     // This is needed for continuousMode where streams stay alive forever.
     Connections {
-        target: typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge : null
         function onWindowListChanged() {
             let activeUuids = {};
             let wList = KWinActiveWindowBridge.windowList;
@@ -112,5 +108,6 @@ Item {
                 root._streams = streams;
             }
         }
+        target: typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge : null
     }
 }

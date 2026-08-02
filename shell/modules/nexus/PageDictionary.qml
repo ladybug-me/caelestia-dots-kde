@@ -47,7 +47,6 @@ QtObject {
                 { label: qsTr("Overview"), pagePath: "panels/OverviewPanel.qml", keywords: ["overview", "animations", "blur"], subPageIdx: 16 }
             ]
         },
-
         // Connectivity
         {
             label: qsTr("Network"),
@@ -82,7 +81,6 @@ QtObject {
                 { label: qsTr("App Volumes"), pagePath: "audio/AppVolumes.qml", subPageIdx: 1 }
             ]
         },
-
         // Controls
         {
             label: qsTr("Notifications"),
@@ -128,7 +126,6 @@ QtObject {
                 { label: qsTr("Custom Keybinds"), pagePath: "wallandstyle/AddShortcutDialog.qml", keywords: ["scripts", "commands", "actions"] }
             ]
         },
-
         // Shell
         {
             label: qsTr("Apps"),
@@ -163,7 +160,6 @@ QtObject {
                 { label: qsTr("Weather Location"), keywords: ["city", "forecast", "units", "celsius", "fahrenheit"] }
             ]
         },
-
         // System
         {
             label: qsTr("Updates"),
@@ -195,7 +191,6 @@ QtObject {
                 { label: qsTr("OS Version"), keywords: ["caelestia", "quickshell", "release"] }
             ]
         },
-
         // AI
         // Last, to stay aligned with PageCompRegistry.pageComps — this list is
         // indexed by position, so entries cannot be reordered independently.

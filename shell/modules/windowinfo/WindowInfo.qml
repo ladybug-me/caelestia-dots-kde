@@ -9,13 +9,7 @@ import qs.services
 StyledRect {
     id: root
 
-    color: Colours.tPalette.m3surfaceContainer
-    radius: Tokens.rounding.large
-    clip: true
-
     property string clientAddress: ""
-    signal closeRequested()
-
     property var client: {
         if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList) {
             if (clientAddress !== "") {
@@ -35,6 +29,11 @@ StyledRect {
         return null;
     }
 
+    signal closeRequested()
+
+    color: Colours.tPalette.m3surfaceContainer
+    radius: Tokens.rounding.large
+    clip: true
     implicitWidth: 1100
     implicitHeight: 650
 
@@ -43,34 +42,30 @@ StyledRect {
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.large
-
         spacing: Tokens.spacing.medium
 
         Preview {
+            client: root.client
             Layout.fillWidth: true
             Layout.fillHeight: true
-            client: root.client
         }
-
         ColumnLayout {
             spacing: Tokens.spacing.medium
 
-            Layout.preferredWidth: 420
-            Layout.fillHeight: true
-
             Details {
+                client: root.client
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                client: root.client
             }
-
             Buttons {
                 id: buttons
 
-                Layout.fillWidth: true
                 client: root.client
                 onCloseRequested: root.closeRequested()
+                Layout.fillWidth: true
             }
+            Layout.preferredWidth: 420
+            Layout.fillHeight: true
         }
     }
 }
