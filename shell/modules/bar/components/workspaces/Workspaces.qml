@@ -166,11 +166,16 @@ Item {
                     if (!ws)
                         return;
                     if (container.activeWsId !== ws) {
-                        const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
-                        if (isKWin) {
-                            KWinActiveWindowBridge.setDesktop(ws);
+                        if (typeof KWinWorkspaceState !== "undefined") {
+                            const wId = KWinWorkspaceState.workspaces[ws - 1]?.id || ws.toString();
+                            KWinWorkspaceState.switchTo(wId);
                         } else {
-                            Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "setCurrentDesktop", ws.toString()]);
+                            const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
+                            if (isKWin) {
+                                KWinActiveWindowBridge.setDesktop(ws);
+                            } else {
+                                Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "setCurrentDesktop", ws.toString()]);
+                            }
                         }
                     }
                 }

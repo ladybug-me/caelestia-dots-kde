@@ -71,6 +71,17 @@ StyledRect {
                     p = p.parent;
                 }
             } else {
+                if (typeof KWinWorkspaceState !== "undefined") {
+                    const wId = KWinWorkspaceState.workspaces[root.ws - 1]?.id || root.ws.toString();
+                    KWinWorkspaceState.switchTo(wId);
+                } else {
+                    const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
+                    if (isKWin) {
+                        KWinActiveWindowBridge.setDesktop(root.ws);
+                    } else {
+                        Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "setCurrentDesktop", root.ws.toString()]);
+                    }
+                }
                 selected();
             }
         }

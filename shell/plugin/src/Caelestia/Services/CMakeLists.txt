@@ -68,13 +68,7 @@ qml_module(caelestia-services
         caelestia-internal
 )
 
-qt6_generate_wayland_protocol_client_sources(caelestia-services FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../protocols/org-kde-plasma-virtual-desktop.xml
-)
-set_source_files_properties(
-    ${CMAKE_CURRENT_BINARY_DIR}/wayland-org-kde-plasma-virtual-desktop-protocol.c
-    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
-)
+
 
 qt6_generate_wayland_protocol_client_sources(caelestia-services FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/../protocols/zkde-screencast-unstable-v1.xml

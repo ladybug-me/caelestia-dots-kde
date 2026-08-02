@@ -1,18 +1,96 @@
 #include "kwinworkspacestate.hpp"
 #include <QDebug>
-#include <QTimer>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusReply>
+#include <QDBusInterface>
+#include <QDBusMetaType>
 #include <algorithm>
 
 namespace caelestia::services {
 
-KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
-    : QWaylandClientExtensionTemplate<KWinWorkspaceState>(1) // extension version
-{
-    initialize(); // Connects to the wayland display globally provided by Qt
+QDBusArgument &operator<<(QDBusArgument &argument, const KWinDesktopData &data) {
+    argument.beginStructure();
+    argument << data.position << data.id << data.name;
+    argument.endStructure();
+    return argument;
 }
 
-KWinWorkspaceState::~KWinWorkspaceState() {
-    qDeleteAll(m_desktops);
+const QDBusArgument &operator>>(const QDBusArgument &argument, KWinDesktopData &data) {
+    argument.beginStructure();
+    argument >> data.position >> data.id >> data.name;
+    argument.endStructure();
+    return argument;
+}
+
+KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
+    : QObject(parent)
+{
+    qDBusRegisterMetaType<KWinDesktopData>();
+    qDBusRegisterMetaType<QList<KWinDesktopData>>();
+
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "desktopCreated",
+                this, SLOT(onDesktopCreated(QString, caelestia::services::KWinDesktopData)));
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "desktopRemoved",
+                this, SLOT(onDesktopRemoved(QString)));
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "desktopDataChanged",
+                this, SLOT(onDesktopDataChanged(QString, caelestia::services::KWinDesktopData)));
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "currentChanged",
+                this, SLOT(onCurrentChanged(QString)));
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "countChanged",
+                this, SLOT(onCountChanged(uint)));
+    bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "rowsChanged",
+                this, SLOT(onRowsChanged(uint)));
+
+    fetchInitialState();
+}
+
+KWinWorkspaceState::~KWinWorkspaceState() = default;
+
+void KWinWorkspaceState::fetchInitialState() {
+    QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties", "Get");
+    msg << "org.kde.KWin.VirtualDesktopManager" << "desktops";
+    QDBusReply<QDBusVariant> reply = QDBusConnection::sessionBus().call(msg);
+    
+    if (reply.isValid()) {
+        QVariant var = reply.value().variant();
+        if (var.canConvert<QDBusArgument>()) {
+            QDBusArgument arg = var.value<QDBusArgument>();
+            arg >> m_desktops;
+        }
+    }
+
+    QDBusMessage currentMsg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties", "Get");
+    currentMsg << "org.kde.KWin.VirtualDesktopManager" << "current";
+    QDBusReply<QDBusVariant> currentReply = QDBusConnection::sessionBus().call(currentMsg);
+    
+    if (currentReply.isValid()) {
+        m_currentUuid = currentReply.value().variant().toString();
+    }
+
+    updateActiveId();
+}
+
+void KWinWorkspaceState::updateActiveId() {
+    std::sort(m_desktops.begin(), m_desktops.end(), [](const KWinDesktopData& a, const KWinDesktopData& b) {
+        return a.position < b.position;
+    });
+
+    int newActiveId = 1;
+    for (int i = 0; i < m_desktops.size(); ++i) {
+        if (m_desktops[i].id == m_currentUuid) {
+            newActiveId = i + 1;
+            break;
+        }
+    }
+
+    if (m_activeId != newActiveId) {
+        m_activeId = newActiveId;
+        emit activeIdChanged();
+    }
+
+    emit workspacesChanged();
 }
 
 int KWinWorkspaceState::activeId() const {
@@ -22,154 +100,104 @@ int KWinWorkspaceState::activeId() const {
 QVariantList KWinWorkspaceState::workspaces() const {
     QVariantList list;
     for (int i = 0; i < m_desktops.size(); ++i) {
-        auto* d = m_desktops[i];
-        if (d->id().isEmpty())
+        const auto& d = m_desktops[i];
+        if (d.id.isEmpty())
             continue;
-        list.append(QVariantMap{ { "id", d->id() },
-            { "name", d->name().isEmpty() ? QString::number(i + 1) : d->name() },
-            { "index", i + 1 }, { "active", d->isActive() } });
+        list.append(QVariantMap{
+            { "id", d.id },
+            { "name", d.name.isEmpty() ? QString::number(i + 1) : d.name },
+            { "index", i + 1 },
+            { "active", (d.id == m_currentUuid) }
+        });
     }
     return list;
 }
 
 void KWinWorkspaceState::switchTo(const QString& id) {
-    if (!isInitialized())
-        return;
-
-    for (auto* d : m_desktops) {
-        if (d->id() == id || QString::number(d->position() + 1) == id || d->name() == id) {
-            d->request_activate();
+    QString targetUuid;
+    for (const auto& d : m_desktops) {
+        if (d.id == id || QString::number(d.position + 1) == id || d.name == id) {
+            targetUuid = d.id;
             break;
         }
+    }
+    
+    if (!targetUuid.isEmpty()) {
+        QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties", "Set");
+        msg << "org.kde.KWin.VirtualDesktopManager" << "current" << QVariant::fromValue(QDBusVariant(targetUuid));
+        QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
     }
 }
 
 void KWinWorkspaceState::createWorkspace(const QString& name) {
-    if (!isInitialized())
-        return;
-    // position std::numeric_limits<uint32_t>::max() means at the end
-    request_create_virtual_desktop(name, std::numeric_limits<uint32_t>::max());
+    QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "createDesktop");
+    msg << std::numeric_limits<uint32_t>::max() << name;
+    QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
 }
 
 void KWinWorkspaceState::removeWorkspace(const QString& id) {
-    if (!isInitialized())
-        return;
-    
-    // Find desktop id from the argument which could be position, name, or id
-    QString realId = id;
-    for (auto* d : m_desktops) {
-        if (d->id() == id || QString::number(d->position() + 1) == id || d->name() == id) {
-            realId = d->id();
+    QString targetUuid = id;
+    for (const auto& d : m_desktops) {
+        if (d.id == id || QString::number(d.position + 1) == id || d.name == id) {
+            targetUuid = d.id;
             break;
         }
     }
     
-    request_remove_virtual_desktop(realId);
+    if (!targetUuid.isEmpty()) {
+        QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "removeDesktop");
+        msg << targetUuid;
+        QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
+    }
 }
 
-void KWinWorkspaceState::rebuildWorkspaceList() {
-    // Sort by position
-    std::sort(m_desktops.begin(), m_desktops.end(), [](KWinDesktop* a, KWinDesktop* b) {
-        return a->position() < b->position();
-    });
-
-    // Find active using contiguous index to match KWin's array index
-    for (int i = 0; i < m_desktops.size(); ++i) {
-        if (m_desktops[i]->isActive()) {
-            if (m_activeId != i + 1) {
-                m_activeId = i + 1;
-                emit activeIdChanged();
-            }
+void KWinWorkspaceState::onDesktopCreated(const QString& id, const caelestia::services::KWinDesktopData& desktopData) {
+    bool exists = false;
+    for (auto& d : m_desktops) {
+        if (d.id == id) {
+            d = desktopData;
+            exists = true;
             break;
         }
     }
-
-    emit workspacesChanged();
-}
-
-void KWinWorkspaceState::scheduleRebuild() {
-    if (!m_rebuildTimer) {
-        m_rebuildTimer = new QTimer(this);
-        m_rebuildTimer->setSingleShot(true);
-        m_rebuildTimer->setInterval(20);
-        connect(m_rebuildTimer, &QTimer::timeout, this, &KWinWorkspaceState::rebuildWorkspaceList);
+    if (!exists) {
+        m_desktops.append(desktopData);
     }
-    m_rebuildTimer->start();
+    updateActiveId();
 }
 
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_created(
-    const QString& desktop_id, uint32_t position) {
-    if (desktop_id.isEmpty())
-        return;
-
-    for (auto* d : m_desktops) {
-        if (d->id() == desktop_id)
-            return;
-    }
-
-    auto* handle = get_virtual_desktop(desktop_id);
-    if (!handle)
-        return;
-
-    auto* desktop = new KWinDesktop(this, handle, desktop_id, position);
-    m_desktops.append(desktop);
-}
-
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_desktop_removed(const QString& desktop_id) {
+void KWinWorkspaceState::onDesktopRemoved(const QString& id) {
     for (int i = 0; i < m_desktops.size(); ++i) {
-        if (m_desktops[i]->id() == desktop_id) {
-            delete m_desktops.takeAt(i);
+        if (m_desktops[i].id == id) {
+            m_desktops.removeAt(i);
             break;
         }
     }
-    // Safety fallback timer: rebuild workspace list after all possible position events
-    scheduleRebuild();
+    updateActiveId();
 }
 
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_done() {
-    scheduleRebuild();
+void KWinWorkspaceState::onDesktopDataChanged(const QString& id, const caelestia::services::KWinDesktopData& desktopData) {
+    for (auto& d : m_desktops) {
+        if (d.id == id) {
+            d = desktopData;
+            break;
+        }
+    }
+    updateActiveId();
 }
 
-void KWinWorkspaceState::org_kde_plasma_virtual_desktop_management_rows(uint32_t rows) {
+void KWinWorkspaceState::onCurrentChanged(const QString& id) {
+    m_currentUuid = id;
+    updateActiveId();
+}
+
+void KWinWorkspaceState::onCountChanged(uint count) {
+    // Rely on desktopCreated / desktopRemoved for actual data
+}
+
+void KWinWorkspaceState::onRowsChanged(uint rows) {
     if (rows > 0)
         m_rows = rows;
-}
-
-KWinDesktop::KWinDesktop(
-    KWinWorkspaceState* manager, struct ::org_kde_plasma_virtual_desktop* desktop, const QString& id, uint32_t position)
-    : QObject(manager)
-    , QtWayland::org_kde_plasma_virtual_desktop(desktop)
-    , m_manager(manager)
-    , m_id(id)
-    , m_position(position) {}
-
-KWinDesktop::~KWinDesktop() = default;
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_desktop_id(const QString& desktop_id) {
-    m_id = desktop_id;
-}
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_name(const QString& name) {
-    m_name = name;
-}
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_activated() {
-    m_active = true;
-}
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_deactivated() {
-    m_active = false;
-}
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_position(uint32_t position) {
-    m_position = position;
-}
-
-void KWinDesktop::org_kde_plasma_virtual_desktop_done() {
-    // Management-level done handles rebuilding after all positions are updated.
-    // Per-desktop done only fires after this desktop's own state is set,
-    // but other desktops may not have received their position updates yet.
-    m_manager->scheduleRebuild();
 }
 
 } // namespace caelestia::services
