@@ -28,18 +28,23 @@ Item {
     readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
     
     property bool ignoreNextSwitch: false
+    property bool _initialized: false
 
     function syncPage() {
         if (typeof KWinWorkspaceState === "undefined") return;
         for (let i = 0; i < KWinWorkspaceState.workspaces.length; ++i) {
             const wId = KWinWorkspaceState.workspaces[i].index;
             if (wId === activeWsId) {
-                listView.currentIndex = i;
+                if (listView.currentIndex !== i) {
+                    listView.currentIndex = i;
+                    if (!root._initialized) listView.positionViewAtIndex(i, ListView.SnapPosition);
+                }
                 break;
             }
         }
         root.ignoreNextSwitch = false;
         ignoreTimer.stop();
+        root._initialized = true;
     }
 
     onActiveWsIdChanged: Qt.callLater(syncPage)
@@ -85,7 +90,7 @@ Item {
         interactive: !root.isDragging // Prevent ListView from stealing grab during drag
         preferredHighlightBegin: 0
         preferredHighlightEnd: 0
-        highlightMoveDuration: 250
+        highlightMoveDuration: root._initialized ? 250 : 0
         boundsBehavior: Flickable.StopAtBounds
         
         onCountChanged: Qt.callLater(root.syncPage)
