@@ -1,47 +1,141 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import Caelestia.Config
 import qs.components
-import qs.components.controls
 import qs.services
+import Quickshell
+import "components/workspaces" as WsComponents
+import Caelestia.Services
 
-Row {
-    id: indicatorRow
+Item {
+    id: root
     
     property int count: 0
     property int currentIndex: 0
     signal workspaceSelected(int index)
 
-    spacing: Tokens.spacing.small
+    implicitWidth: layout.implicitWidth + Tokens.padding.small
+    implicitHeight: layout.implicitHeight + Tokens.padding.small
 
-    Repeater {
-        model: indicatorRow.count
-        Item {
-            required property int index
-            width: 48
-            height: 48
+    readonly property int activeWsId: currentIndex + 1
 
-            HoverHandler { id: hoverIndicator }
-            
-            Rectangle {
-                anchors.fill: parent
-                radius: width / 2
-                color: indicatorRow.currentIndex === index ? Colours.palette.m3primary : 
-                       (hoverIndicator.hovered ? Colours.layer(Colours.palette.m3onSurface, 0.12) : "transparent")
+    readonly property var occupied: {
+        let occ = {};
+        for (let i = 1; i <= root.count; ++i) {
+            occ[i] = false;
+        }
+        
+        const kwinList = root.kwinWindowList;
+        if (kwinList) {
+            for (let i = 0; i < kwinList.length; ++i) {
+                const w = kwinList[i];
+                if (w.workspace) {
+                    const wid = typeof w.workspace.id === "number" ? w.workspace.id : (typeof w.workspace.index === "number" ? w.workspace.index : null);
+                    if (wid !== null) occ[wid] = true;
+                }
             }
-            
-            StyledText {
-                anchors.centerIn: parent
-                text: (index + 1).toString()
-                font: Tokens.font.title.medium
-                color: indicatorRow.currentIndex === index ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
+        } else if (typeof Hypr !== "undefined") {
+            const wins = Hypr.toplevels.values;
+            for (let i = 0; i < wins.length; ++i) {
+                if (wins[i].workspace && typeof wins[i].workspace.id === "number") {
+                    occ[wins[i].workspace.id] = true;
+                }
             }
+        }
+        return occ;
+    }
 
-            StateLayer {
-                anchors.fill: parent
-                radius: parent.width / 2
-                onClicked: indicatorRow.workspaceSelected(index)
+    // Force QML dependency tracker to bind to windowList correctly
+    property var kwinWindowList: KWinActiveWindowBridge.windowList
+
+    Connections {
+        target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+        function onWorkspacesChanged() {
+            if (typeof KWinActiveWindowBridge !== "undefined") {
+                KWinActiveWindowBridge.refreshWindows();
+            }
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+
+        Loader {
+            asynchronous: true
+            active: Config.bar.workspaces.occupiedBg
+
+            anchors.fill: parent
+            anchors.margins: Tokens.padding.extraSmall
+
+            sourceComponent: WsComponents.OccupiedBg {
+                workspaces: workspaces
+                occupied: root.occupied
+                groupOffset: 0
+            }
+        }
+
+        GridLayout {
+            id: layout
+
+            anchors.centerIn: parent
+            columns: -1
+            rows: 1
+            flow: GridLayout.LeftToRight
+            columnSpacing: Math.floor(Tokens.spacing.small)
+            rowSpacing: Math.floor(Tokens.spacing.small)
+
+            Repeater {
+                id: workspaces
+
+                model: root.count
+
+                WsComponents.Workspace {
+                    activeWsId: root.activeWsId
+                    occupied: root.occupied
+                    groupOffset: 0
+                }
+            }
+        }
+
+        Loader {
+            asynchronous: true
+            anchors.verticalCenter: parent.verticalCenter
+            active: Config.bar.workspaces.activeIndicator
+
+            sourceComponent: WsComponents.ActiveIndicator {
+                activeWsId: root.activeWsId
+                workspaces: workspaces
+                mask: layout
+            }
+        }
+
+        MouseArea {
+            anchors.fill: layout
+            onClicked: event => {
+                const wsChild = layout.childAt(event.x, event.y);
+                if (!wsChild) return;
+                
+                const ws = wsChild.ws;
+                if (!ws) return;
+
+                if (root.activeWsId !== ws) {
+                    root.workspaceSelected(ws - 1);
+                }
+            }
+            onWheel: event => {
+                if (!Config.bar.scrollActions.workspaces) return;
+                
+                if (event.angleDelta.y > 0 || event.angleDelta.x > 0) {
+                    if (root.currentIndex > 0) {
+                        root.workspaceSelected(root.currentIndex - 1);
+                    }
+                } else if (event.angleDelta.y < 0 || event.angleDelta.x < 0) {
+                    if (root.currentIndex < root.count - 1) {
+                        root.workspaceSelected(root.currentIndex + 1);
+                    }
+                }
             }
         }
     }

@@ -103,7 +103,7 @@ Scope {
         onPressed: {
             if (root.hasFullscreen)
                 return;
-            regionSelector.record();
+            Recorder.start();
         }
     }
 
