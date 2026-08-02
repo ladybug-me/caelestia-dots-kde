@@ -16,11 +16,16 @@ Item {
     property int currentIndex: 0
     signal workspaceSelected(int index)
     signal workspaceReselected(int index)
+    signal createWorkspaceRequest()
 
     implicitWidth: layout.implicitWidth + Tokens.padding.small
     implicitHeight: layout.implicitHeight + Tokens.padding.small
 
     readonly property int activeWsId: currentIndex + 1
+
+    property int maxWidth: 1000
+    readonly property real requiredWidth: (count + 1) * 200 + count * Tokens.spacing.small
+    readonly property real scaleFactor: requiredWidth > maxWidth ? maxWidth / requiredWidth : 1.0
 
     readonly property var occupied: {
         let occ = {};
@@ -105,11 +110,44 @@ Item {
                 model: root.count
 
                 WsComponents.Workspace {
+                    scaleFactor: root.scaleFactor
                     activeWsId: root.activeWsId
                     occupied: root.occupied
                     groupOffset: 0
                     onSelected: root.workspaceSelected(ws - 1)
                     onReselected: root.workspaceReselected(ws - 1)
+                }
+            }
+            
+            StyledRect {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: Math.floor(200 * root.scaleFactor)
+                Layout.preferredHeight: Math.floor(120 * root.scaleFactor)
+                
+                radius: Tokens.rounding.large
+                color: "transparent"
+                border.color: Colours.tPalette.m3outlineVariant
+                border.width: 2
+                
+                StyledText {
+                    anchors.centerIn: parent
+                    text: "+"
+                    font.pixelSize: Math.max(12, Math.floor(24 * root.scaleFactor))
+                    font.weight: Font.Bold
+                    color: Colours.tPalette.m3onSurfaceVariant
+                    opacity: 0.5
+                }
+                
+                StateLayer {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    onClicked: {
+                        if (typeof KWinWorkspaceState !== "undefined") {
+                            KWinWorkspaceState.createWorkspace();
+                        } else if (typeof Hypr !== "undefined") {
+                            Hypr.dispatch("workspace empty");
+                        }
+                    }
                 }
             }
         }

@@ -26,6 +26,8 @@ Item {
     signal requestClose()
 
     readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
+    
+    property bool ignoreNextSwitch: false
 
     function syncPage() {
         if (typeof KWinWorkspaceState === "undefined") return;
@@ -36,10 +38,40 @@ Item {
                 break;
             }
         }
+        root.ignoreNextSwitch = false;
+        ignoreTimer.stop();
     }
 
-    onActiveWsIdChanged: syncPage()
-    Component.onCompleted: syncPage()
+    onActiveWsIdChanged: Qt.callLater(syncPage)
+    
+    ListModel {
+        id: workspaceModel
+    }
+
+    Connections {
+        target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+        function onWorkspacesChanged() {
+            const newCount = KWinWorkspaceState.workspaces.length;
+            while (workspaceModel.count < newCount) {
+                workspaceModel.append({});
+            }
+            while (workspaceModel.count > newCount) {
+                workspaceModel.remove(workspaceModel.count - 1);
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        if (typeof KWinWorkspaceState !== "undefined") {
+            const count = KWinWorkspaceState.workspaces.length;
+            for (let i = 0; i < count; ++i) {
+                workspaceModel.append({});
+            }
+        } else {
+            workspaceModel.append({});
+        }
+        Qt.callLater(syncPage);
+    }
 
     property bool isDragging: false
     
@@ -56,18 +88,27 @@ Item {
         highlightMoveDuration: 250
         boundsBehavior: Flickable.StopAtBounds
         
-        onCountChanged: root.syncPage()
+        onCountChanged: Qt.callLater(root.syncPage)
         
         onCurrentIndexChanged: {
-            if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > currentIndex) {
-                const wId = KWinWorkspaceState.workspaces[currentIndex].index;
-                if (KWinWorkspaceState.activeId !== wId) {
-                    KWinWorkspaceState.switchTo(wId);
+            if (root.ignoreNextSwitch) return;
+            switchTimer.restart();
+        }
+        
+        Timer {
+            id: switchTimer
+            interval: 50
+            onTriggered: {
+                if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > listView.currentIndex) {
+                    const wId = KWinWorkspaceState.workspaces[listView.currentIndex].index;
+                    if (KWinWorkspaceState.activeId !== wId) {
+                        KWinWorkspaceState.switchTo(wId);
+                    }
                 }
             }
         }
         
-        model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 1
+        model: workspaceModel
         
         MouseArea {
             anchors.fill: parent
@@ -410,11 +451,30 @@ Item {
         WorkspaceIndicator {
             id: workspaceIndicator
             anchors.centerIn: parent
+            maxWidth: Math.max(200, root.width - 100)
             count: listView.count
             currentIndex: listView.currentIndex
-            onWorkspaceSelected: index => listView.currentIndex = index
+            onWorkspaceSelected: index => {
+                root.ignoreNextSwitch = false;
+                listView.currentIndex = index;
+            }
             onWorkspaceReselected: root.requestClose()
+            onCreateWorkspaceRequest: {
+                root.ignoreNextSwitch = true;
+                if (typeof KWinWorkspaceState !== "undefined") {
+                    KWinWorkspaceState.createWorkspace();
+                } else if (typeof Hypr !== "undefined") {
+                    Hypr.dispatch("workspace empty");
+                }
+                ignoreTimer.restart();
+            }
         }
+    }
+
+    Timer {
+        id: ignoreTimer
+        interval: 500
+        onTriggered: root.ignoreNextSwitch = false
     }
 
     Timer {

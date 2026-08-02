@@ -28,6 +28,8 @@ public:
     QVariantList workspaces() const;
 
     Q_INVOKABLE void switchTo(const QString& id);
+    Q_INVOKABLE void createWorkspace(const QString& name = QString());
+    Q_INVOKABLE void removeWorkspace(const QString& id);
 
 signals:
     void activeIdChanged();

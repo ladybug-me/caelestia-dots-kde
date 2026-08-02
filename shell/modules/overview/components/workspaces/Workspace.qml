@@ -19,8 +19,12 @@ StyledRect {
     required property var occupied
     required property int groupOffset
 
-    readonly property bool isWorkspace: true // Flag for finding workspace children
-    readonly property int indicatorSize: 120 // Increased height for rectangular box
+    readonly property bool isWorkspace: true
+    property real scaleFactor: 1.0
+    readonly property int baseIndicatorSize: 120
+    readonly property int baseWidth: 200
+    
+    readonly property int indicatorSize: Math.floor(baseIndicatorSize * scaleFactor)
     readonly property int size: implicitWidth
 
     readonly property int ws: groupOffset + index + 1
@@ -32,10 +36,10 @@ StyledRect {
     readonly property bool active: activeWsId === ws
 
     Layout.alignment: Qt.AlignVCenter
-    Layout.preferredWidth: 200
+    Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
     Layout.preferredHeight: indicatorSize
 
-    implicitWidth: 200
+    implicitWidth: Math.floor(baseWidth * scaleFactor)
     implicitHeight: indicatorSize
 
     radius: Tokens.rounding.large
@@ -50,8 +54,10 @@ StyledRect {
     signal selected()
     signal reselected()
 
-    MouseArea {
+    StateLayer {
+        id: workspaceMouseArea
         anchors.fill: parent
+        radius: parent.radius
         onClicked: {
             if (active) {
                 reselected();
@@ -67,6 +73,39 @@ StyledRect {
             } else {
                 selected();
             }
+        }
+    }
+
+    Item {
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: Tokens.padding.small
+        width: Math.floor(28 * root.scaleFactor)
+        height: Math.floor(28 * root.scaleFactor)
+        z: 99
+        
+        opacity: 1.0
+        enabled: true
+        Behavior on opacity { CAnim { duration: 150 } }
+
+        StateLayer {
+            id: closeBtn
+            anchors.fill: parent
+            radius: parent.width / 2
+            
+            onClicked: {
+                if (typeof KWinWorkspaceState !== "undefined") {
+                    const wId = KWinWorkspaceState.workspaces[root.ws - 1].id;
+                    if (wId) KWinWorkspaceState.removeWorkspace(wId);
+                }
+            }
+        }
+
+        MaterialIcon {
+            anchors.centerIn: parent
+            text: "close"
+            fontStyle.pixelSize: Math.max(10, Math.floor(18 * root.scaleFactor))
+            color: Colours.palette.m3onSurfaceVariant
         }
     }
 

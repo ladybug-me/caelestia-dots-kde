@@ -44,6 +44,29 @@ void KWinWorkspaceState::switchTo(const QString& id) {
     }
 }
 
+void KWinWorkspaceState::createWorkspace(const QString& name) {
+    if (!isInitialized())
+        return;
+    // position std::numeric_limits<uint32_t>::max() means at the end
+    request_create_virtual_desktop(name, std::numeric_limits<uint32_t>::max());
+}
+
+void KWinWorkspaceState::removeWorkspace(const QString& id) {
+    if (!isInitialized())
+        return;
+    
+    // Find desktop id from the argument which could be position, name, or id
+    QString realId = id;
+    for (auto* d : m_desktops) {
+        if (d->id() == id || QString::number(d->position() + 1) == id || d->name() == id) {
+            realId = d->id();
+            break;
+        }
+    }
+    
+    request_remove_virtual_desktop(realId);
+}
+
 void KWinWorkspaceState::rebuildWorkspaceList() {
     // Sort by position
     std::sort(m_desktops.begin(), m_desktops.end(), [](KWinDesktop* a, KWinDesktop* b) {
