@@ -504,7 +504,7 @@ StyledWindow {
                 sourceItem: maskContainer
                 hideSource: true
             }
-            blurEnabled: GlobalConfig.appearance.blur
+            blurEnabled: GlobalConfig.appearance.blur && GlobalConfig.overview.enableOverviewBlur
             blurMax: 64
             blur: 1.0
         }

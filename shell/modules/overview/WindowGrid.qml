@@ -189,7 +189,7 @@ Item {
                 id: gridItem
                 anchors.fill: parent
                 
-                property var windowLayout: LayoutGnome.calculateLayout(page.wsWindows, width, height, Tokens.spacing.large, Tokens.spacing.large)
+                property var windowLayout: Config.overview.layoutType === 0 ? LayoutKde.calculateLayout(page.wsWindows, width, height, Tokens.spacing.large, Tokens.spacing.large) : LayoutGnome.calculateLayout(page.wsWindows, width, height, Tokens.spacing.large, Tokens.spacing.large)
                 
                 // Behaviors for smooth resizing of the whole container if needed (though it fills parent)
                 

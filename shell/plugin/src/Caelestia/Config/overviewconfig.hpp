@@ -10,6 +10,7 @@ class OverviewConfig : public ConfigObject {
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(bool, disableWallpaperBlur, true)
+    CONFIG_PROPERTY(bool, enableOverviewBlur, true)
     CONFIG_PROPERTY(bool, showOnHover, true)
     CONFIG_PROPERTY(int, dragThreshold, 30)
     CONFIG_PROPERTY(int, hoverThickness, 20)
@@ -22,7 +23,8 @@ class OverviewConfig : public ConfigObject {
     CONFIG_PROPERTY(qreal, blobScaleSpeed, 1.0)
     CONFIG_PROPERTY(qreal, wallpaperFadeSpeed, 1.0)
     CONFIG_PROPERTY(qreal, gridFadeSpeed, 1.0)
-    CONFIG_PROPERTY(int, easingType, 33) // Easing.OutQuad
+    CONFIG_PROPERTY(int, easingType, 2) // Easing.OutQuad
+    CONFIG_PROPERTY(int, layoutType, 1) // 0: KDE, 1: GNOME
 
 public:
     explicit OverviewConfig(QObject* parent = nullptr)

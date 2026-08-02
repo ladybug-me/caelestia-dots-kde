@@ -14,6 +14,72 @@ PageBase {
     title: qsTr("Overview")
     isSubPage: true
 
+    readonly property list<MenuItem> layoutTypeItems: [
+        MenuItem {
+            property int value: 0
+            text: qsTr("KDE Grid")
+        },
+        MenuItem {
+            property int value: 1
+            text: qsTr("GNOME Grid")
+        }
+    ]
+
+    readonly property list<MenuItem> easingTypeItems: [
+        MenuItem {
+            property int value: 0
+            text: qsTr("Linear")
+        },
+        MenuItem {
+            property int value: 2
+            text: qsTr("Quadratic Out")
+        },
+        MenuItem {
+            property int value: 3
+            text: qsTr("Quadratic In-Out")
+        },
+        MenuItem {
+            property int value: 6
+            text: qsTr("Cubic Out")
+        },
+        MenuItem {
+            property int value: 10
+            text: qsTr("Quartic Out")
+        },
+        MenuItem {
+            property int value: 14
+            text: qsTr("Quintic Out")
+        },
+        MenuItem {
+            property int value: 18
+            text: qsTr("Sine Out")
+        },
+        MenuItem {
+            property int value: 22
+            text: qsTr("Exponential Out")
+        },
+        MenuItem {
+            property int value: 26
+            text: qsTr("Circular Out")
+        },
+        MenuItem {
+            property int value: 30
+            text: qsTr("Elastic Out")
+        },
+        MenuItem {
+            property int value: 33
+            text: qsTr("Back In")
+        },
+        MenuItem {
+            property int value: 34
+            text: qsTr("Back Out")
+        },
+        MenuItem {
+            property int value: 38
+            text: qsTr("Bounce Out")
+        }
+    ]
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -63,47 +129,102 @@ PageBase {
         ToggleRow {
             text: qsTr("Top-Left corner")
             checked: GlobalConfig.overview.hoverTopLeft
-            onToggled: GlobalConfig.overview.hoverTopLeft = checked
+            onToggled: {
+                GlobalConfig.overview.hoverTopLeft = checked
+                Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "TopLeft", checked ? "None" : "Overview"])
+            }
         }
 
         ToggleRow {
             text: qsTr("Top-Right corner")
             checked: GlobalConfig.overview.hoverTopRight
-            onToggled: GlobalConfig.overview.hoverTopRight = checked
+            onToggled: {
+                GlobalConfig.overview.hoverTopRight = checked
+                Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "TopRight", checked ? "None" : "Overview"])
+            }
         }
 
         ToggleRow {
             text: qsTr("Bottom-Left corner")
             checked: GlobalConfig.overview.hoverBottomLeft
-            onToggled: GlobalConfig.overview.hoverBottomLeft = checked
+            onToggled: {
+                GlobalConfig.overview.hoverBottomLeft = checked
+                Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "BottomLeft", checked ? "None" : "Overview"])
+            }
         }
 
         ToggleRow {
             last: true
             text: qsTr("Bottom-Right corner")
             checked: GlobalConfig.overview.hoverBottomRight
-            onToggled: GlobalConfig.overview.hoverBottomRight = checked
+            onToggled: {
+                GlobalConfig.overview.hoverBottomRight = checked
+                Quickshell.execDetached(["kwriteconfig6", "--notify", "--file", "kwinrc", "--group", "ElectricBorders", "--key", "BottomRight", checked ? "None" : "Overview"])
+            }
         }
 
         SectionHeader {
             text: qsTr("Behaviour")
         }
 
-        ToggleRow {
+        SelectRow {
             first: true
-            last: true
+            label: qsTr("Window layout style")
+            subtext: qsTr("Choose the layout algorithm used in the overview")
+            fallbackIcon: "grid_view"
+            fallbackText: qsTr("GNOME Grid")
+            active: {
+                for (let i = 0; i < layoutTypeItems.length; i++) {
+                    if (layoutTypeItems[i].value === GlobalConfig.overview.layoutType)
+                        return layoutTypeItems[i];
+                }
+                return layoutTypeItems[1];
+            }
+            menuItems: layoutTypeItems
+            onSelected: item => {
+                GlobalConfig.overview.layoutType = item.value
+            }
+        }
+
+        ToggleRow {
             text: qsTr("Disable wallpaper blur")
             subtext: qsTr("Do not blur the background wallpaper when opening overview")
             checked: GlobalConfig.overview.disableWallpaperBlur
             onToggled: GlobalConfig.overview.disableWallpaperBlur = checked
         }
 
+        ToggleRow {
+            last: true
+            text: qsTr("Enable overview blur")
+            subtext: qsTr("Enable QuickShell-based blur effect on overview wallpaper")
+            checked: GlobalConfig.overview.enableOverviewBlur
+            onToggled: GlobalConfig.overview.enableOverviewBlur = checked
+        }
+
         SectionHeader {
             text: qsTr("Animations")
         }
 
-        StepperRow {
+        SelectRow {
             first: true
+            label: qsTr("Animation easing type")
+            subtext: qsTr("Choose the easing curve for overview animations")
+            fallbackIcon: "animation"
+            fallbackText: qsTr("Back In")
+            active: {
+                for (let i = 0; i < easingTypeItems.length; i++) {
+                    if (easingTypeItems[i].value === GlobalConfig.overview.easingType)
+                        return easingTypeItems[i];
+                }
+                return easingTypeItems[10];
+            }
+            menuItems: easingTypeItems
+            onSelected: item => {
+                GlobalConfig.overview.easingType = item.value
+            }
+        }
+
+        StepperRow {
             label: qsTr("Base duration")
             subtext: qsTr("Base duration for overview opening/closing in milliseconds")
             value: GlobalConfig.overview.baseDuration

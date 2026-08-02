@@ -13,6 +13,15 @@ Item {
 
     property alias windowGrid: windowGrid
 
+    Connections {
+        target: root.visibilities
+        function onOverviewChanged() {
+            if (root.visibilities.overview) {
+                windowGrid.forceActiveFocus()
+            }
+        }
+    }
+
     WindowGrid {
         id: windowGrid
         panels: root.panels
@@ -30,6 +39,12 @@ Item {
         onRequestClose: {
             root.visibilities.overview = false
         }
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        onActivated: root.visibilities.overview = false
+        enabled: root.visibilities.overview
     }
 
     Item {
