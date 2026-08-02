@@ -124,6 +124,15 @@ CustomMouseArea {
         return y > screen.height - Math.max(Config.border.minThickness, edge + panelHeight) - (isCorner ? Config.border.rounding : 0) && withinPanelWidth(panel, x, y, panelHeight > 0 ? 100 : span);
     }
 
+    function inOverviewCorner(x: real, y: real): string {
+        const thickness = Config.overview.hoverThickness;
+        if (Config.overview.hoverTopLeft && x <= thickness && y <= thickness) return "TopLeft";
+        if (Config.overview.hoverTopRight && x >= screen.width - thickness && y <= thickness) return "TopRight";
+        if (Config.overview.hoverBottomLeft && x <= thickness && y >= screen.height - thickness) return "BottomLeft";
+        if (Config.overview.hoverBottomRight && x >= screen.width - thickness && y >= screen.height - thickness) return "BottomRight";
+        return "";
+    }
+
     function onWheel(event: WheelEvent): void {
         if (fullscreen)
             return;
@@ -381,6 +390,21 @@ CustomMouseArea {
             const stillInUtilitiesArea = Config.bar.position === "bottom" ? inTopPanel(panels.utilities, x, y, Config.utilities.hoverThickness, Config.utilities.hoverWidth) && inUtilitiesAreaOpen : inBottomPanel(panels.utilities, x, y, true, Config.utilities.hoverThickness, Config.utilities.hoverWidth) && inUtilitiesAreaOpen;
             if (!stillInUtilitiesArea) {
                 utilitiesShortcutActive = false;
+            }
+        }
+
+        // Show overview on hover or drag
+        if (Config.overview.enabled && !visibilities.overview) {
+            if (Config.overview.showOnHover) {
+                if (inOverviewCorner(x, y) !== "") {
+                    visibilities.overview = true;
+                }
+            } else if (pressed) {
+                if (inOverviewCorner(dragStart.x, dragStart.y) !== "") {
+                    if (Math.hypot(dragX, dragY) > Config.overview.dragThreshold) {
+                        visibilities.overview = true;
+                    }
+                }
             }
         }
     }

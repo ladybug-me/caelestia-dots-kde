@@ -127,6 +127,9 @@ QtObject {
                 Component {
                     TaskbarElements {}
                 }
+                Component {
+                    OverviewPanel {}
+                }
             }
         },
 

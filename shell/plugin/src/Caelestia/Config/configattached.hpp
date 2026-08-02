@@ -23,6 +23,7 @@ class Config : public QQuickAttachedPropertyPropagator, public QQmlParserStatus 
     Q_MOC_INCLUDE("nexusconfig.hpp")
     Q_MOC_INCLUDE("notifsconfig.hpp")
     Q_MOC_INCLUDE("osdconfig.hpp")
+    Q_MOC_INCLUDE("overviewconfig.hpp")
     Q_MOC_INCLUDE("serviceconfig.hpp")
     Q_MOC_INCLUDE("sessionconfig.hpp")
     Q_MOC_INCLUDE("shimejiconfig.hpp")
@@ -43,6 +44,7 @@ class Config : public QQuickAttachedPropertyPropagator, public QQmlParserStatus 
     Q_PROPERTY(const caelestia::config::NexusConfig* nexus READ nexus NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::NotifsConfig* notifs READ notifs NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::OsdConfig* osd READ osd NOTIFY sourceChanged)
+    Q_PROPERTY(const caelestia::config::OverviewConfig* overview READ overview NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::ServiceConfig* services READ services NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::ShimejiConfig* shimeji READ shimeji NOTIFY sourceChanged)
     Q_PROPERTY(const caelestia::config::SessionConfig* session READ session NOTIFY sourceChanged)
@@ -68,6 +70,7 @@ public:
     [[nodiscard]] const NexusConfig* nexus() const;
     [[nodiscard]] const NotifsConfig* notifs() const;
     [[nodiscard]] const OsdConfig* osd() const;
+    [[nodiscard]] const OverviewConfig* overview() const;
     [[nodiscard]] const ServiceConfig* services() const;
     [[nodiscard]] const ShimejiConfig* shimeji() const;
     [[nodiscard]] const SessionConfig* session() const;

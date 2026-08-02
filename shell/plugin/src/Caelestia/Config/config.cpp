@@ -13,6 +13,7 @@
 #include "nexusconfig.hpp"
 #include "notifsconfig.hpp"
 #include "osdconfig.hpp"
+#include "overviewconfig.hpp"
 #include "serviceconfig.hpp"
 #include "sessionconfig.hpp"
 #include "shimejiconfig.hpp"
@@ -48,6 +49,7 @@ GlobalConfig::GlobalConfig(QObject* parent)
     , m_nexus(new NexusConfig(this))
     , m_notifs(new NotifsConfig(this))
     , m_osd(new OsdConfig(this))
+    , m_overview(new OverviewConfig(this))
     , m_services(new ServiceConfig(this))
     , m_shimeji(new ShimejiConfig(this))
     , m_session(new SessionConfig(this))
@@ -73,6 +75,7 @@ GlobalConfig::GlobalConfig(GlobalConfig* fallback, const QString& filePath, cons
     , m_nexus(new NexusConfig(this))
     , m_notifs(new NotifsConfig(this))
     , m_osd(new OsdConfig(this))
+    , m_overview(new OverviewConfig(this))
     , m_services(new ServiceConfig(this))
     , m_shimeji(new ShimejiConfig(this))
     , m_session(new SessionConfig(this))

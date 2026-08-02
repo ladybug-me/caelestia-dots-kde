@@ -19,6 +19,7 @@ class LockConfig;
 class NexusConfig;
 class NotifsConfig;
 class OsdConfig;
+class OverviewConfig;
 class ServiceConfig;
 class SessionConfig;
 class ShimejiConfig;
@@ -44,6 +45,7 @@ class GlobalConfig : public RootConfig {
     Q_MOC_INCLUDE("nexusconfig.hpp")
     Q_MOC_INCLUDE("notifsconfig.hpp")
     Q_MOC_INCLUDE("osdconfig.hpp")
+    Q_MOC_INCLUDE("overviewconfig.hpp")
     Q_MOC_INCLUDE("serviceconfig.hpp")
     Q_MOC_INCLUDE("sessionconfig.hpp")
     Q_MOC_INCLUDE("shimejiconfig.hpp")
@@ -64,6 +66,7 @@ class GlobalConfig : public RootConfig {
     CONFIG_SUBOBJECT(NexusConfig, nexus)
     CONFIG_SUBOBJECT(NotifsConfig, notifs)
     CONFIG_SUBOBJECT(OsdConfig, osd)
+    CONFIG_SUBOBJECT(OverviewConfig, overview)
     CONFIG_SUBOBJECT(ServiceConfig, services)
     CONFIG_SUBOBJECT(ShimejiConfig, shimeji)
     CONFIG_SUBOBJECT(SessionConfig, session)

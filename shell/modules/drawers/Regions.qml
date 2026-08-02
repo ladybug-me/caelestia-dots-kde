@@ -87,6 +87,32 @@ Region {
         width: panel.width * (1 - root.panels.popoutsWrapper.offsetScale)
     }
 
+    // Overview Corners
+    Region {
+        x: 0; y: 0
+        width: (root.Config.overview.enabled && root.Config.overview.hoverTopLeft) ? root.Config.overview.hoverThickness : 0
+        height: root.Config.overview.hoverThickness
+        intersection: Intersection.Subtract
+    }
+    Region {
+        x: root.win.width - root.Config.overview.hoverThickness; y: 0
+        width: (root.Config.overview.enabled && root.Config.overview.hoverTopRight) ? root.Config.overview.hoverThickness : 0
+        height: root.Config.overview.hoverThickness
+        intersection: Intersection.Subtract
+    }
+    Region {
+        x: 0; y: root.win.height - root.Config.overview.hoverThickness
+        width: (root.Config.overview.enabled && root.Config.overview.hoverBottomLeft) ? root.Config.overview.hoverThickness : 0
+        height: root.Config.overview.hoverThickness
+        intersection: Intersection.Subtract
+    }
+    Region {
+        x: root.win.width - root.Config.overview.hoverThickness; y: root.win.height - root.Config.overview.hoverThickness
+        width: (root.Config.overview.enabled && root.Config.overview.hoverBottomRight) ? root.Config.overview.hoverThickness : 0
+        height: root.Config.overview.hoverThickness
+        intersection: Intersection.Subtract
+    }
+
 
 
     component R: Region {

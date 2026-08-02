@@ -27,8 +27,7 @@ StyledWindow {
     property real blurOffsetLeft: 0
     property real blurOffsetRight: 0
 
-    property bool disableOverviewWallpaperBlur: true // FIXME: integrate in nexus
-    
+
     Overview.Anim {
         id: animConfig
     }
@@ -234,7 +233,7 @@ StyledWindow {
             deformMatrix: contextMenuBg.deformMatrix
         }
         BlurMask {
-            target: (visibilities.overview && !root.disableOverviewWallpaperBlur) ? panels.overview : null
+            target: (visibilities.overview && !GlobalConfig.overview.disableWallpaperBlur) ? panels.overview : null
             contentItem: root.contentItem
             blurOffsetTop: root.blurOffsetTop
             blurOffsetBottom: root.blurOffsetBottom
@@ -690,6 +689,12 @@ StyledWindow {
 
     DrawerVisibilities {
         id: visibilities
+
+        onOverviewChanged: {
+            if (overview && !GlobalConfig.overview.enabled) {
+                overview = false;
+            }
+        }
 
         Component.onCompleted: Visibilities.load(root.screen, this)
     }
