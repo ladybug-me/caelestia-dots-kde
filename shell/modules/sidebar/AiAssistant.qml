@@ -20,8 +20,52 @@ Item {
     id: root
 
     property bool isHistoryTab: false
+
     property string currentChatId: ""
+
     property var currentRequest: null
+    
+
+    Timer {
+        id: typingTimer
+
+        interval: 16
+        repeat: true
+
+        property string fullText: ""
+
+        property string currentText: ""
+
+        property int charIndex: 0
+
+        property int targetIdx: -1
+        
+        onTriggered: {
+            if (targetIdx < 0 || targetIdx >= chatHistory.count) {
+                stop();
+                isTyping = false;
+                isThinking = false;
+                inAgentLoop = false;
+                return;
+            }
+            if (charIndex >= fullText.length) {
+                stop();
+                chatHistory.setProperty(targetIdx, "text", fullText);
+                chatHistory.setProperty(targetIdx, "isFinished", true);
+                saveHistory();
+                isTyping = false;
+                isThinking = false;
+                inAgentLoop = false;
+                return;
+            }
+            var chunkSize = Math.max(1, Math.ceil(fullText.length / 30));
+            currentText += fullText.substr(charIndex, chunkSize);
+            charIndex += chunkSize;
+            chatHistory.setProperty(targetIdx, "text", currentText);
+            listView.positionViewAtEnd();
+        }
+    }
+    
     property real savedContentY: -1
     property var ollamaModelsList: []
     // Every provider's model list is discovered from that provider, so none of
@@ -340,6 +384,25 @@ Item {
 
         claudeCodeModelsList = ["default"].concat(ids);
     }
+
+    // Currently selected provider ("ollama" | "claude-code" | "claude"), persisted in config.
+    readonly property string provider: GlobalConfig.ai.defaultProvider || "ollama"
+
+    readonly property bool isClaude: provider === "claude"       // Anthropic HTTP API (API key)
+
+    readonly property bool isClaudeCode: provider === "claude-code" // `claude` CLI (subscription)
+
+    // Runtime cache of Claude Code CLI session ids, keyed by chat id (also persisted
+    // into allChatSessions so --resume works across shell restarts).
+    property var claudeCodeSessions: ({})
+
+    property var currentClaudeCodeProc: null
+
+    // Prompt suggestions (Claude Code): starter prompts generated on demand.
+    property var promptSuggestions: []
+
+    property bool loadingSuggestions: false
+
     function fetchPromptSuggestions() {
         if (!isClaudeCode || loadingSuggestions)
             return;
@@ -645,6 +708,33 @@ Item {
             return "opencode Go";
         return "Ollama";
     }
+
+    property bool isTyping: false
+
+    property bool isThinking: false
+
+    property string currentThoughtText: ""
+
+    property bool isThoughtExpanded: false
+
+    onIsTypingChanged: {
+        if (isTyping) listView.positionViewAtEnd();
+    }
+
+    property bool inAgentLoop: false
+
+    // Rate limiting. Providers answer a 429 with how long to wait, so honour that
+    // instead of surfacing an error the user can only respond to by waiting anyway.
+    property int rateLimitRetries: 0
+
+    readonly property int maxRateLimitRetries: 3
+
+    property bool onFreeTier: false   // learned from the quota metric name in a 429
+
+    // Ticks once a second so the status line counts down rather than showing a
+    // number frozen at whatever the wait started as.
+    property int rateLimitSecondsLeft: 0
+
     // A pending retry belongs to the conversation and model it was scheduled for.
     // Without this a wait left over from a cancelled chat fires later and answers
     // a prompt the user has already moved on from — on whatever model is selected
@@ -655,6 +745,37 @@ Item {
         rateLimitSecondsLeft = 0;
         rateLimitRetries = 0;
     }
+
+    Timer {
+        id: rateLimitRetryTimer
+
+        interval: 1000
+        repeat: true
+
+        property var retryFn: null
+
+        property string forChat: ""
+
+        property string forModel: ""
+        onTriggered: {
+            root.rateLimitSecondsLeft--;
+            if (root.rateLimitSecondsLeft > 0) {
+                root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                return;
+            }
+            stop();
+            if (forChat !== root.currentChatId || forModel !== root.activeModel()) {
+                retryFn = null;          // the user moved on; the answer is no longer wanted
+                root.currentActionText = "";
+                root.isTyping = false;
+                root.isThinking = false;
+                root.inAgentLoop = false;
+                return;
+            }
+            if (retryFn) { const f = retryFn; retryFn = null; f(); }
+        }
+    }
+
     // Seconds to wait, from the provider's own answer: the Retry-After header if
     // present, else the "retry in 12.3s" the message spells out. Falls back to a
     // short pause when neither is given.
@@ -741,6 +862,13 @@ Item {
             console.error("FAILED QML: \n" + processQml);
         }
     }
+
+    property int runningToolsCount: 0
+
+    property string accumulatedToolResults: ""
+
+    property string accumulatedToolImage: ""
+
     function handleAgentProcessResult(type, stdout, stderr, cmd) {
         if (type === "screenshot_take") {
             var convertCmd = `magick ${Paths.runtimeTemp("orion_screenshot.png")} -resize '1024x1024>' -quality 85 ${Paths.runtimeTemp("orion_screenshot.jpg")} && base64 ${Paths.runtimeTemp("orion_screenshot.jpg")}`;
@@ -840,6 +968,39 @@ Item {
                 return list[i].name;
         return "Default";
     }
+
+    // One FileView per account resolves its login name from .claude.json.
+    Instantiator {
+        model: root.claudeAccountIds
+        delegate: FileView {
+            required property string modelData
+
+            path: root.accountJsonPath(modelData)
+            printErrors: false
+            watchChanges: false
+            onLoaded: {
+                try {
+                    var d = JSON.parse(text());
+                    var oa = d.oauthAccount || {};
+                    var nm = oa.displayName || oa.emailAddress || "";
+                    if (nm) {
+                        var map = root.resolvedAccountNames;
+                        map[modelData] = nm;
+                        root.resolvedAccountNames = Object.assign({}, map);
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    readonly property var claudeAccountIds: {
+        var l = [];
+        var a = claudeAccounts();
+        for (var i = 0; i < a.length; i++)
+            l.push(a[i].id);
+        return l;
+    }
+
     // Env-var line injected into the dynamically-built Process (empty for Default).
     function claudeCodeEnvSnippet() {
         var dir = activeClaudeConfigDir();
@@ -875,7 +1036,7 @@ Item {
             || t.indexOf("credentials") !== -1;
     }
     function claudeCodeAuthHint() {
-        return "⚠️ Claude hesabınıza giriş yapılmamış görünüyor.\n\nBir terminal açıp `claude` komutunu çalıştırın ve aboneliğinizle giriş yapın (login), ardından burada tekrar deneyin.";
+        return "It appears that Claude is not logged into your account.\n\nOpen a terminal, run the command `claude`, and log in with your subscription, then try again here.";
     }
     // Generate a short chat title via a one-shot `claude -p ... --output-format json`.
     function generateClaudeCodeTitleAsync(chatId, firstMessage) {
@@ -2294,6 +2455,8 @@ Item {
                      id: providerVariants
 
                      model: root.providerList
+
+                     model: root.providerList
                      delegate: MenuItem {
                          required property string modelData
 
@@ -2366,6 +2529,8 @@ Item {
                      id: effortVariants
 
                      model: root.claudeCodeEffortOptions
+
+                     model: root.claudeCodeEffortOptions
                      delegate: MenuItem {
                          required property string modelData
 
@@ -2393,6 +2558,8 @@ Item {
                      id: accountVariants
 
                      model: root.claudeAccountIds
+
+                     model: root.claudeAccountIds
                      delegate: MenuItem {
                          required property string modelData
 
@@ -2417,6 +2584,8 @@ Item {
                  visible: opacity > 0
 
                  Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
                  VerticalFadeListView {
                      id: listView
 
@@ -2428,6 +2597,69 @@ Item {
                      spacing: Tokens.spacing.medium
                      model: chatHistory
                      boundsBehavior: Flickable.StopAtBounds
+                     
+                     ColumnLayout {
+                         anchors.centerIn: parent
+                         opacity: chatHistory.count === 0 && !isTyping && !isThinking ? 1.0 : 0.0
+                         visible: opacity > 0
+
+                         Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+                         spacing: Tokens.spacing.large
+
+                         Item {
+                             Layout.alignment: Qt.AlignHCenter
+                             implicitWidth: 72
+                             implicitHeight: 72
+
+                             Logo {
+                                 id: emptyStateLogo
+
+                                 anchors.fill: parent
+                                 visible: false // hide original for MultiEffect to take over
+                             }
+
+                             MultiEffect {
+                                 anchors.fill: parent
+                                 source: emptyStateLogo
+                                 colorization: 1.0
+                                 colorizationColor: Colours.palette.m3primary
+                             }
+                         }
+
+                         StyledText {
+                             id: greetingText
+                             Layout.alignment: Qt.AlignHCenter
+                             Layout.maximumWidth: listView.width - (Tokens.padding.large * 2)
+
+                             horizontalAlignment: Text.AlignHCenter
+                             wrapMode: Text.Wrap
+                             font: Tokens.font.title.medium
+                             color: Colours.palette.m3onSurfaceVariant
+
+                             property var phrases: [
+                                 "Ask away, %1!",
+                                 "How can I help you today, %1?",
+                                 "What's on your mind, %1?",
+                                 "Ready when you are, %1!",
+                                 "Let's get started, %1.",
+                                 "What shall we explore today, %1?",
+                                 "I'm all ears, %1!"
+                             ]
+
+                             Component.onCompleted: {
+                                 var user = Quickshell.env("USER") || "user";
+                                 var userCapitalized = user.charAt(0).toUpperCase() + user.slice(1);
+                                 var phrase = phrases[Math.floor(Math.random() * phrases.length)];
+                                 text = phrase.replace("%1", userCapitalized);
+                             }
+                         }
+                     }
+
+                     ScrollBar.vertical: StyledScrollBar {
+                         flickable: listView
+                     }
+
                      footer: Item {
                          width: listView.width
                          height: isThinking ? bubbleBg.height + Tokens.spacing.medium : 0
@@ -2475,7 +2707,12 @@ Item {
                                          StyledText {
                                              id: mainText
 
+                                             text: displayedText
+                                             color: Colours.palette.m3onSurfaceVariant
+                                             font: Tokens.font.body.small
+                                             
                                              property string displayedText: root.currentActionText
+
                                              property string nextText: ""
 
                                              text: displayedText
@@ -2485,6 +2722,8 @@ Item {
                                              opacity: 1.0
 
                                              Connections {
+                                                 target: root
+
                                                  function onCurrentActionTextChanged() {
                                                      if (root.currentActionText !== mainText.displayedText) {
                                                          mainText.nextText = root.currentActionText;
@@ -2636,13 +2875,14 @@ Item {
                              Column {
                                  id: bubbleLayout
 
-                                 property string delegateThought: delegateItem.thoughtText
-                                 property bool isExpanded: false
-
                                  anchors.top: parent.top
                                  anchors.left: parent.left
                                  anchors.margins: Tokens.padding.medium
                                  spacing: Tokens.spacing.small
+
+                                 property string delegateThought: delegateItem.thoughtText
+
+                                 property bool isExpanded: false
 
                                  Item {
                                      visible: bubbleLayout.delegateThought !== ""
@@ -2688,19 +2928,34 @@ Item {
                                      TextEdit {
                                          id: thoughtContent
 
+                                         width: Math.min(implicitWidth, bubbleRect.maxBubbleWidth - Tokens.padding.medium * 2)
+                                         textFormat: Text.MarkdownText
+                                         
                                          property string fullThought: bubbleLayout.delegateThought
                                          property bool cursorVisible: true
 
-                                         width: Math.min(implicitWidth, bubbleRect.maxBubbleWidth - Tokens.padding.medium * 2)
-                                         textFormat: Text.MarkdownText
+                                         Timer {
+                                             running: !delegateItem.isFinished
+                                             repeat: true
+                                             interval: 400
+                                             onTriggered: thoughtContent.cursorVisible = !thoughtContent.cursorVisible
+                                         }
+                                         
                                          text: delegateItem.isFinished ? fullThought : fullThought + (cursorVisible ? "▌" : "")
                                          color: Colours.palette.m3onSurfaceVariant
+
                                          font: Tokens.font.body.small
+
                                          wrapMode: Text.Wrap
+
                                          readOnly: true
+
                                          selectByMouse: true
+
                                          selectionColor: Colours.palette.m3primary
+
                                          selectedTextColor: Colours.palette.m3onPrimary
+
                                          opacity: bubbleLayout.isExpanded ? 1.0 : 0.0
 
                                          Timer {
@@ -2720,18 +2975,32 @@ Item {
                                  TextEdit {
                                      id: messageText
 
+                                     textFormat: Text.MarkdownText
+                                     width: Math.min(implicitWidth, bubbleRect.maxBubbleWidth - Tokens.padding.medium * 2)
+                                     
                                      property string fullText: delegateItem.text !== undefined ? delegateItem.text : ""
                                      property bool cursorVisible: true
 
-                                     textFormat: Text.MarkdownText
-                                     width: Math.min(implicitWidth, bubbleRect.maxBubbleWidth - Tokens.padding.medium * 2)
+                                     Timer {
+                                         running: !delegateItem.isFinished
+                                         repeat: true
+                                         interval: 400
+                                         onTriggered: messageText.cursorVisible = !messageText.cursorVisible
+                                     }
+                                     
                                      text: delegateItem.isFinished ? fullText : fullText + (cursorVisible ? "▌" : "")
                                      color: delegateItem.isUser ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
+
                                      font: Tokens.font.body.small
+
                                      wrapMode: Text.Wrap
+
                                      readOnly: true
+
                                      selectByMouse: true
+
                                      selectionColor: Colours.palette.m3primary
+
                                      selectedTextColor: Colours.palette.m3onPrimary
 
                                      Timer {
@@ -2823,6 +3092,8 @@ Item {
                      visible: opacity > 0
 
                      Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+
+                     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                      StyledRect {
                          id: scrollBtnBg
 
@@ -2897,6 +3168,7 @@ Item {
 
                          StyledRect {
                              required property string modelData
+                             Layout.fillWidth: true
 
                              implicitHeight: sugChipText.implicitHeight + Tokens.padding.medium * 2
                              radius: Tokens.rounding.large
@@ -3090,6 +3362,8 @@ Item {
                  anchors.fill: parent
                  opacity: isHistoryTab ? 1 : 0
                  visible: opacity > 0
+
+                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
                  Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
                  GridView {

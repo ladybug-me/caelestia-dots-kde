@@ -113,10 +113,11 @@ jobs:
         run: |
           echo "::group::flake8"
           # Only check our own Python scripts, not vendored/pre-existing ones
-          flake8 .github/scripts/ \
+          # (shell/scripts holds the QML linter and other repo tooling).
+          flake8 .github/scripts/ shell/scripts/ \
             --exclude 'orion_search.py,menu_perf_stats.py' \
             --max-line-length=120 \
-            --extend-ignore=E402,W503,E501 \
+            --extend-ignore=E402,W503,E501,E203 \
             --count \
             --show-source \
             --statistics
@@ -174,7 +175,11 @@ jobs:
           python-version: '3.x'
 
       - name: Run file hygiene checks
-        run: python3 .github/scripts/check_file_hygiene.py
+        # PRs: only files changed in this PR (hard). Pushes to main/dev: full
+        # repo scan (report-only — there is pre-existing debt that would fail
+        # a hard gate, but the log surfaces it for cleanup).
+        run: python3 .github/scripts/check_file_hygiene.py ${{ github.event_name == 'push' && '--all' || '' }}
+        continue-on-error: ${{ github.event_name == 'push' }}
 
   # ═══════════════════════════════════════════════════════════
   # Job 8: Markdown lint
@@ -195,6 +200,86 @@ jobs:
             .github/CONTRIBUTING.md
 
   # ═══════════════════════════════════════════════════════════
+  # Job 9: QML conventions - project linter regression gate
+  # ═══════════════════════════════════════════════════════════
+  # shell/scripts/qml-lint-conventions.py has thousands of pre-existing
+  # violations, so this job diffs against a stored baseline and fails only when
+  # NEW violations appear. Regenerate with --update when intentional.
+  qml-conventions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run QML convention regression check
+        run: python3 .github/scripts/check_qml_conventions.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 10: Embedded bash - syntax-check bash/sh inside QML Process commands
+  # ═══════════════════════════════════════════════════════════
+  # Quickshell runs `command: ["bash", "-c", `<script>`]` strings that qmllint
+  # and shellcheck never see; a typo there only surfaces at runtime.
+  embedded-bash:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check bash/sh scripts embedded in QML
+        run: python3 .github/scripts/check_embedded_bash.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 11: Config cross-reference - QML config keys vs C++ declarations
+  # ═══════════════════════════════════════════════════════════
+  # Catches Config./GlobalConfig. references that don't exist in the plugin's
+  # CONFIG_PROPERTY declarations (renamed keys, typos) - the shell logs
+  # "Cannot assign to non-existent property" and the widget silently breaks.
+  config-cross-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Cross-check QML config references against C++ declarations
+        run: python3 .github/scripts/check_config_references.py
+
+  # ═══════════════════════════════════════════════════════════
+  # Job 12: actionlint - validate workflow files themselves
+  # ═══════════════════════════════════════════════════════════
+  # Catches malformed ${{ }} expressions, bad `on:` keys, wrong permission
+  # scopes, etc. that a plain YAML parse cannot.
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download actionlint
+        run: |
+          curl -sSL -o /tmp/actionlint.tar.gz \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
+          sudo mv /tmp/actionlint /usr/local/bin/actionlint
+
+      - name: Lint workflow files
+        run: actionlint -shellcheck= -color
+
+  # ═══════════════════════════════════════════════════════════
   # Final gate: require all non-skippable jobs to pass
   # ═══════════════════════════════════════════════════════════
   validate-gate:
@@ -207,6 +292,10 @@ jobs:
       - json-validation
       - file-hygiene
       - markdown-lint
+      - qml-conventions
+      - embedded-bash
+      - config-cross-ref
+      - actionlint
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -224,10 +313,15 @@ jobs:
           job_results[json-validation]="${{ needs.json-validation.result }}"
           job_results[file-hygiene]="${{ needs.file-hygiene.result }}"
           job_results[markdown-lint]="${{ needs.markdown-lint.result }}"
+          job_results[qml-conventions]="${{ needs.qml-conventions.result }}"
+          job_results[embedded-bash]="${{ needs.embedded-bash.result }}"
+          job_results[config-cross-ref]="${{ needs.config-cross-ref.result }}"
+          job_results[actionlint]="${{ needs.actionlint.result }}"
 
           all_passed=true
           # Jobs with pre-existing violations that don't block the gate
-          soft_fail_jobs="shell-quality qml-conventions"
+          # (they run with continue-on-error: true).
+          soft_fail_jobs="shell-quality qml-lint"
           for job in "${!job_results[@]}"; do
             result="${job_results[$job]}"
             if [[ "$result" == "success" ]]; then

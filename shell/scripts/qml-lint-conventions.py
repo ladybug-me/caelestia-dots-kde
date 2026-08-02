@@ -389,7 +389,10 @@ def fix_section_separators(lines: list[str]) -> list[str]:
 def fix_file(filepath: Path) -> bool:
     """Fix auto-fixable violations. Returns True if file was modified."""
     try:
-        text = filepath.read_text()
+        # Explicit UTF-8: locale-encoding reads (cp1252 on Windows) raise on
+        # emoji/non-Latin1 files and silently skip them, which makes --fix and
+        # baseline generation platform-dependent.
+        text = filepath.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return False
 
@@ -401,7 +404,7 @@ def fix_file(filepath: Path) -> bool:
     if text.endswith("\n"):
         new_text += "\n"
     if new_text != text:
-        filepath.write_text(new_text)
+        filepath.write_text(new_text, encoding="utf-8")
         return True
     return False
 
@@ -473,7 +476,7 @@ def check_file(filepath: Path) -> list[Violation]:
     rel = str(filepath.relative_to(REPO_ROOT))
 
     try:
-        lines = filepath.read_text().splitlines()
+        lines = filepath.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeDecodeError):
         return violations
 

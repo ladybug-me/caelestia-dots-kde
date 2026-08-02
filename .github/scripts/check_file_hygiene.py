@@ -258,7 +258,18 @@ def check_shell_extensions(changed_files: list[str]) -> None:
 
 
 def main() -> int:
-    changed_files = get_changed_files()
+    # --all scans every git-tracked file (used for push events where there is
+    # no PR diff to diff against). Without it, only changed files are checked.
+    all_files = "--all" in sys.argv
+    if all_files:
+        result = subprocess.run(
+            ["git", "ls-files"],
+            capture_output=True, text=True, cwd=ROOT,
+        )
+        changed_files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        print(f"Checking {len(changed_files)} tracked file(s) (full-repo mode)")
+    else:
+        changed_files = get_changed_files()
 
     if not changed_files:
         print(f"{YELLOW}No files to check.{RESET}")

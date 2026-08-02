@@ -10,7 +10,7 @@ class OsdConfig : public ConfigObject {
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(int, hideDelay, 2000)
-    CONFIG_PROPERTY(int, hoverThickness, 5)
+    CONFIG_PROPERTY(int, hoverThickness, 10)
     CONFIG_PROPERTY(int, hoverWidth, 50)
     CONFIG_PROPERTY(bool, enableBrightness, true)
     CONFIG_PROPERTY(bool, enableMicrophone, false)

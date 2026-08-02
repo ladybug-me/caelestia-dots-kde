@@ -38,9 +38,26 @@ is_executable_script() {
     head -c 30 "$file" 2>/dev/null | grep -qE '^#!.*/(ba)?sh'
 }
 
-# ─── 1. Syntax check: bash -n on every .sh file ───
+# Every tracked shell script: *.sh files plus extensionless files with a shell
+# shebang (e.g. src/bin/caelestia-update, src/bin/caelestia-shell-ipc). The
+# extensionless ones are easy to forget, so we enumerate them by shebang.
+get_shell_files() {
+    git ls-files '*.sh'
+    git ls-files | while IFS= read -r f; do
+        case "$f" in
+            *.sh) ;;
+            *)
+                if is_executable_script "$f"; then
+                    echo "$f"
+                fi
+                ;;
+        esac
+    done
+}
+
+# ─── 1. Syntax check: bash -n on every shell script ───
 echo -e "${BOLD}=== Shell Syntax Check (bash -n) ===${RESET}"
-for f in $(git ls-files '*.sh'); do
+for f in $(get_shell_files); do
     if ! bash -n "$f" 2>/dev/null; then
         err_output="$(bash -n "$f" 2>&1 || true)"
         log_err "Syntax error in $f: $err_output"
@@ -54,7 +71,7 @@ fi
 echo ""
 echo -e "${BOLD}=== ShellCheck Lint ===${RESET}"
 if command -v shellcheck &>/dev/null; then
-    for f in $(git ls-files '*.sh'); do
+    for f in $(get_shell_files); do
         if is_executable_script "$f" || [[ "$f" == scripts/* ]]; then
             if ! shellcheck -S error "$f" 2>/dev/null; then
                 log_err "shellcheck violations in $f"
@@ -71,16 +88,17 @@ fi
 # ─── 3. Strict mode check (set -euo pipefail) ───
 echo ""
 echo -e "${BOLD}=== Strict Mode Check ===${RESET}"
-STRICT_REQUIRED_DIRS=("scripts/" "src/bin/")
-for dir in "${STRICT_REQUIRED_DIRS[@]}"; do
-    for f in $(git ls-files "$dir*.sh" 2>/dev/null || true); do
-        if ! grep -qE 'set\s+-euo\s+pipefail|set\s+-eu\s+-o\s+pipefail' "$f" 2>/dev/null; then
-            log_err "$f is missing 'set -euo pipefail' (required for scripts in $dir)"
-        fi
-    done
+# Enforced for scripts/ where every script follows the convention. src/bin/*
+# are covered by syntax + shellcheck above but deliberately vary their `set`
+# flags (e.g. caelestia-check-updates relies on explicit exits), so they are
+# not forced to -euo here.
+for f in $(git ls-files 'scripts/*.sh' 2>/dev/null || true); do
+    if ! grep -qE 'set\s+-euo\s+pipefail|set\s+-eu\s+-o\s+pipefail' "$f" 2>/dev/null; then
+        log_err "$f is missing 'set -euo pipefail' (required for scripts in scripts/)"
+    fi
 done
 if [[ "$EXIT_CODE" -eq 0 ]]; then
-    log_ok "All scripts in scripts/ and src/bin/ use strict mode"
+    log_ok "All scripts in scripts/ use strict mode"
 fi
 
 # ─── 4. No curl-pipe-bash patterns ───

@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
@@ -206,6 +206,7 @@ Item {
     }
 
     implicitWidth: 840
+
     implicitHeight: 500
 
     Component.onCompleted: {
