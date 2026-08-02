@@ -95,6 +95,24 @@ Item {
             TapHandler {
                 onTapped: root.requestClose()
             }
+            
+            DropArea {
+                anchors.fill: parent
+                onDropped: drop => {
+                    const sourceItem = drop.source;
+                    if (sourceItem && sourceItem.clientAddress) {
+                        if (sourceItem.wsId !== undefined && sourceItem.wsId !== page.wsId) {
+                            sourceItem.visible = false;
+                            if (typeof KWinActiveWindowBridge !== "undefined") {
+                                KWinActiveWindowBridge.setWindowDesktop(sourceItem.clientAddress, page.wsId);
+                            } else {
+                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.movetoworkspace({ workspace = "${page.wsId}", window = "address:0x${sourceItem.clientAddress}" })` : `movetoworkspace ${page.wsId},address:0x${sourceItem.clientAddress}`);
+                            }
+                        }
+                        drop.accept();
+                    }
+                }
+            }
 
             required property int index
             readonly property int wsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].index : index + 1
@@ -137,7 +155,7 @@ Item {
                         required property var modelData
                         
                         readonly property string clientAddress: modelData.address
-                        readonly property string wsId: page.wsId
+                        readonly property int wsId: page.wsId
                             
                             Drag.active: dragHandler.active
                             Drag.source: activeWin
@@ -162,6 +180,11 @@ Item {
                                 onActiveChanged: {
                                     root.isDragging = active;
                                     if (!active) {
+                                        let dropAction = activeWin.Drag.drop();
+                                        if (dropAction !== Qt.IgnoreAction) {
+                                            return; // Handled by DropArea
+                                        }
+                                        
                                         if (typeof KWinWorkspaceState === "undefined" || typeof KWinActiveWindowBridge === "undefined") return;
                                         const targetWsId = KWinWorkspaceState.workspaces[listView.currentIndex].index;
                                         if (targetWsId !== page.wsId) {

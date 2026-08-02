@@ -80,6 +80,24 @@ StyledRect {
         color: Colours.tPalette.m3onSurfaceVariant
         opacity: 0.3
     }
+    
+    DropArea {
+        anchors.fill: parent
+        onDropped: drop => {
+            const sourceItem = drop.source;
+            if (sourceItem && sourceItem.clientAddress) {
+                if (sourceItem.wsId !== root.ws) {
+                    sourceItem.visible = false;
+                    if (typeof KWinActiveWindowBridge !== "undefined") {
+                        KWinActiveWindowBridge.setWindowDesktop(sourceItem.clientAddress, root.ws);
+                    } else {
+                        Hypr.dispatch(Hypr.usingLua ? `hl.dsp.movetoworkspace({ workspace = "${root.ws}", window = "address:0x${sourceItem.clientAddress}" })` : `movetoworkspace ${root.ws},address:0x${sourceItem.clientAddress}`);
+                    }
+                }
+                drop.accept();
+            }
+        }
+    }
 
     GridLayout {
         anchors.fill: parent
@@ -119,12 +137,68 @@ StyledRect {
             }
             
             delegate: StyledRect {
+                id: iconDelegate
                 required property var modelData
+                
+                readonly property string clientAddress: modelData.address || ""
+                readonly property int wsId: root.ws
                 
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: Tokens.rounding.small
                 color: Colours.tPalette.m3surfaceContainerHigh
+                
+                property real dragStartX: 0
+                property real dragStartY: 0
+                property real dragStartWidth: 0
+                property real dragStartHeight: 0
+                
+                property Item topLevel: null
+                
+                Drag.active: dragHandler.active
+                Drag.source: iconDelegate
+                Drag.hotSpot.x: width / 2
+                Drag.hotSpot.y: height / 2
+
+                states: [
+                    State {
+                        when: dragHandler.active
+                        ParentChange {
+                            target: iconDelegate
+                            parent: topLevel
+                            x: iconDelegate.dragStartX
+                            y: iconDelegate.dragStartY
+                            width: iconDelegate.dragStartWidth
+                            height: iconDelegate.dragStartHeight
+                        }
+                        PropertyChanges {
+                            target: iconDelegate
+                            opacity: 0.8
+                            z: 999
+                        }
+                    }
+                ]
+                
+                DragHandler {
+                    id: dragHandler
+                    onActiveChanged: {
+                        if (active) {
+                            let tl = iconDelegate;
+                            while (tl.parent) tl = tl.parent;
+                            iconDelegate.topLevel = tl;
+                            
+                            if (tl) {
+                                const p = iconDelegate.mapToItem(tl, 0, 0);
+                                iconDelegate.dragStartX = p.x;
+                                iconDelegate.dragStartY = p.y;
+                            }
+                            iconDelegate.dragStartWidth = iconDelegate.width;
+                            iconDelegate.dragStartHeight = iconDelegate.height;
+                        } else {
+                            iconDelegate.Drag.drop();
+                        }
+                    }
+                }
                 
                 IconImage {
                     anchors.centerIn: parent
@@ -136,24 +210,27 @@ StyledRect {
                 StateLayer {
                     anchors.fill: parent
                     radius: parent.radius
-                    enabled: root.active
                     onClicked: {
-                        if (modelData.address) {
-                            if (typeof KWinActiveWindowBridge !== "undefined") {
-                                KWinActiveWindowBridge.focusWindow(modelData.address);
-                            } else {
-                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${modelData.address}" })` : `focuswindow address:0x${modelData.address}`);
-                            }
-                            
-                            // Try to close overview by finding WindowGrid root
-                            let p = parent;
-                            while (p) {
-                                if (p.requestClose) {
-                                    p.requestClose();
-                                    break;
+                        if (root.active) {
+                            if (modelData.address) {
+                                if (typeof KWinActiveWindowBridge !== "undefined") {
+                                    KWinActiveWindowBridge.focusWindow(modelData.address);
+                                } else {
+                                    Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${modelData.address}" })` : `focuswindow address:0x${modelData.address}`);
                                 }
-                                p = p.parent;
+                                
+                                // Try to close overview by finding WindowGrid root
+                                let p = parent;
+                                while (p) {
+                                    if (p.requestClose) {
+                                        p.requestClose();
+                                        break;
+                                    }
+                                    p = p.parent;
+                                }
                             }
+                        } else {
+                            root.selected();
                         }
                     }
                 }
