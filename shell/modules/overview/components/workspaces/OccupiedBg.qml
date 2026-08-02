@@ -73,7 +73,7 @@ Item {
             implicitHeight: indicatorSize
 
             color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
-            radius: Tokens.rounding.medium
+            radius: Tokens.rounding.large
 
             scale: 0
             Component.onCompleted: scale = 1

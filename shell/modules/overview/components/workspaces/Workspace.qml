@@ -38,7 +38,7 @@ StyledRect {
     implicitWidth: 200
     implicitHeight: indicatorSize
 
-    radius: Tokens.rounding.medium
+    radius: Tokens.rounding.large
     color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
     
     border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
@@ -46,6 +46,29 @@ StyledRect {
 
     Behavior on color { CAnim {} }
     Behavior on border.color { CAnim {} }
+
+    signal selected()
+    signal reselected()
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            if (active) {
+                reselected();
+                // Close overview if reselected
+                let p = parent;
+                while (p) {
+                    if (p.requestClose) {
+                        p.requestClose();
+                        break;
+                    }
+                    p = p.parent;
+                }
+            } else {
+                selected();
+            }
+        }
+    }
 
     StyledText {
         anchors.bottom: parent.bottom
@@ -108,6 +131,31 @@ StyledRect {
                     implicitSize: Math.min(parent.width, parent.height) * 0.6
                     asynchronous: true
                     source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
+                }
+                
+                StateLayer {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    enabled: root.active
+                    onClicked: {
+                        if (modelData.address) {
+                            if (typeof KWinActiveWindowBridge !== "undefined") {
+                                KWinActiveWindowBridge.focusWindow(modelData.address);
+                            } else {
+                                Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${modelData.address}" })` : `focuswindow address:0x${modelData.address}`);
+                            }
+                            
+                            // Try to close overview by finding WindowGrid root
+                            let p = parent;
+                            while (p) {
+                                if (p.requestClose) {
+                                    p.requestClose();
+                                    break;
+                                }
+                                p = p.parent;
+                            }
+                        }
+                    }
                 }
             }
         }

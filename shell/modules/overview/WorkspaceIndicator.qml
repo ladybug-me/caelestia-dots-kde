@@ -108,25 +108,15 @@ Item {
                     activeWsId: root.activeWsId
                     occupied: root.occupied
                     groupOffset: 0
+                    onSelected: root.workspaceSelected(ws - 1)
+                    onReselected: root.workspaceReselected(ws - 1)
                 }
             }
         }
 
         MouseArea {
             anchors.fill: layout
-            onClicked: event => {
-                const wsChild = layout.childAt(event.x, event.y);
-                if (!wsChild) return;
-                
-                const ws = wsChild.ws;
-                if (!ws) return;
-
-                if (root.activeWsId !== ws) {
-                    root.workspaceSelected(ws - 1);
-                } else {
-                    root.workspaceReselected(ws - 1);
-                }
-            }
+            acceptedButtons: Qt.NoButton
             onWheel: event => {
                 if (!Config.bar.scrollActions.workspaces) return;
                 

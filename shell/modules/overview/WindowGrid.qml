@@ -68,6 +68,24 @@ Item {
         }
         
         model: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces.length : 1
+        
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            onWheel: event => {
+                if (!Config.bar.scrollActions.workspaces) return;
+                
+                if (event.angleDelta.y > 0 || event.angleDelta.x > 0) {
+                    if (listView.currentIndex > 0) {
+                        listView.currentIndex -= 1;
+                    }
+                } else if (event.angleDelta.y < 0 || event.angleDelta.x < 0) {
+                    if (listView.currentIndex < listView.count - 1) {
+                        listView.currentIndex += 1;
+                    }
+                }
+            }
+        }
 
         delegate: Item {
             id: page
@@ -175,7 +193,7 @@ Item {
                             implicitHeight: cardLayout.implicitHeight + Tokens.padding.medium * 2
                             
                             color: "transparent"
-                            radius: Tokens.rounding.medium
+                            radius: Tokens.rounding.large
                             
                             Component.onCompleted: {
                                 root.cardItems = [...root.cardItems, activeWin];
@@ -188,7 +206,7 @@ Item {
                             
                             StateLayer {
                                 anchors.fill: parent
-                                radius: Tokens.rounding.medium
+                                radius: Tokens.rounding.large
                                 onClicked: {
                                     if (modelData.address) {
                                         if (typeof KWinActiveWindowBridge !== "undefined") {
@@ -215,7 +233,7 @@ Item {
                                     Layout.preferredWidth: activeWin.cardWidth
                                     Layout.preferredHeight: activeWin.thumbHeight
                                     color: Colours.tPalette.m3surfaceContainerHighest
-                                    radius: Tokens.rounding.medium
+                                    radius: Tokens.rounding.large
                                     
                                     property var streamRequest: null
                                     
@@ -363,7 +381,7 @@ Item {
         
         implicitWidth: workspaceIndicator.implicitWidth + Tokens.padding.large * 2
         implicitHeight: workspaceIndicator.implicitHeight + Tokens.padding.medium * 2
-        radius: implicitHeight / 2
+        radius: Tokens.rounding.large
         color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
 
         WorkspaceIndicator {

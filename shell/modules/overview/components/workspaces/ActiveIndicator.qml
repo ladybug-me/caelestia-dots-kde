@@ -52,7 +52,7 @@ StyledRect {
     y: 0
     implicitWidth: size
     implicitHeight: indicatorSize
-    radius: Tokens.rounding.medium
+    radius: Tokens.rounding.large
     color: Colours.palette.m3primary
 
     Behavior on leading {
