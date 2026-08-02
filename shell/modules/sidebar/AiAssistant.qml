@@ -19,6 +19,9 @@ import qs.utils
 Item {
     id: root
 
+    ListModel { id: chatHistory }
+    ListModel { id: historySessionsModel }
+
     property bool isHistoryTab: false
 
     property string currentChatId: ""
@@ -67,140 +70,27 @@ Item {
     }
     
     property real savedContentY: -1
-    property var ollamaModelsList: []
-    // Every provider's model list is discovered from that provider, so none of
-    // them need editing here when a vendor ships a new model. Anthropic's list
-    // comes from GET /v1/models (needs the API key the provider requires anyway).
-    property var claudeModelsList: []
-    // Model choices for the Claude Code (subscription CLI) provider. "default"
-    // means: don't pass --model at all and let the CLI use whatever the
-    // subscription defaults to. The concrete ids are read out of the installed
-    // binary by fetchClaudeCodeModels(), so they track the CLI as it updates.
-    property var claudeCodeModelsList: ["default"]
-    // Effort choices for the currently-selected Claude Code model (empty = unsupported).
-    readonly property var claudeCodeEffortOptions: {
-        var lv = effortLevelsFor(activeModel());
-        return lv.length > 0 ? ["default"].concat(lv) : [];
+
+    // Refresh the model list when switching to an OpenAI-compatible provider, so a
+    // key added after startup takes effect without a reload.
+    onProviderChanged: {
+        cancelRateLimitRetry();
+        if (isOpenaiCompat)
+            fetchOpenaiCompatModels(provider);
+        else if (isClaude)
+            fetchClaudeModels();
     }
-    // Currently selected provider ("ollama" | "claude-code" | "claude"), persisted in config.
-    readonly property string provider: GlobalConfig.ai.defaultProvider || "ollama"
-    readonly property bool isClaude: provider === "claude"       // Anthropic HTTP API (API key)
-    readonly property bool isClaudeCode: provider === "claude-code" // `claude` CLI (subscription)
-    // Runtime cache of Claude Code CLI session ids, keyed by chat id (also persisted
-    // into allChatSessions so --resume works across shell restarts).
-    property var claudeCodeSessions: ({})
-    property var currentClaudeCodeProc: null
-    // Prompt suggestions (Claude Code): starter prompts generated on demand.
-    property var promptSuggestions: []
-    property bool loadingSuggestions: false
-    // Resolve the Anthropic API key: ANTHROPIC_API_KEY env var wins, config field is the fallback.
-    // These providers all expose the same /models catalogue and take the same
-    // /chat/completions request, so they share one model list, key handling and
-    // request path, and differ only in base URL and key.
-    readonly property bool isOpenaiCompat: root.openaiCompatProviders.indexOf(provider) !== -1
-    // opencode is the exception: it is in the list above because it shares all of
-    // that, but only for part of its catalogue — the rest needs Anthropic Messages,
-    // and it authenticates with x-api-key. See opencodeWire() and setAuthHeader().
-    readonly property bool isOpencode: provider === "opencode" || provider === "opencode-go"
-    readonly property var openaiCompatProviders: ["openai", "gemini", "openrouter", "opencode", "opencode-go"]
-    // Which wire format an opencode model needs. The gateway routes by model rather
-    // than by product, and the split differs between zen and go — minimax is
-    // OpenAI-compatible on zen but Anthropic-compatible on go — so this is keyed on
-    // both. Prefixes rather than full ids, so a new point release of an existing
-    // family keeps working; when opencode adds a family, this is what needs updating.
-    readonly property var opencodeAnthropicPrefixes: ({
-        "opencode": ["claude-", "qwen"],
-        "opencode-go": ["minimax-", "qwen"]
-    })
-    // zen serves GPT over /responses and Gemini over /models/[id]. Neither is a
-    // format the shell speaks, so those models are kept out of the picker instead
-    // of being offered and then failing on send.
-    readonly property var opencodeUnsupportedPrefixes: ({
-        "opencode": ["gpt-", "gemini-"],
-        "opencode-go": []
-    })
-    // True when the request for the active provider and model must be built and
-    // parsed as Anthropic Messages rather than OpenAI chat completions.
-    readonly property bool anthropicWire: isClaude || (isOpencode && opencodeWire(provider, activeModel()) === "anthropic")
-    // The API key for a provider. The environment variable wins over the config
-    // field, so a key exported in the session is never overridden by a stale one
-    // saved in settings.
-    // API keys live in the session keyring (Secret Service — KWallet on KDE,
-    // gnome-keyring elsewhere), not in shell.json. A config file is world-readable
-    // by anything running as the user and ends up in dotfile backups and git
-    // repos; a key is not the kind of thing to leave sitting there.
-    //
-    // The config fields are kept only so an existing plaintext key can be moved
-    // across once and then cleared.
-    property var keyringKeys: ({})
-    // Config field backing each provider, used only for the one-time migration.
-    readonly property var legacyKeyFields: ({
-        "claude": "anthropicApiKey",
-        "openai": "openaiApiKey",
-        "gemini": "geminiApiKey",
-        "openrouter": "openrouterApiKey",
-        "opencode": "opencodeApiKey"
-    })
-    // Providers that need a key before they can send anything.
-    readonly property bool needsApiKey: isClaude || isOpenaiCompat
-    // Providers exposed in the provider selector (respecting the enable toggles).
-    readonly property var providerList: {
-        var l = [];
-        if (GlobalConfig.ai.enableOllama)
-            l.push("ollama");
-        if (GlobalConfig.ai.enableClaudeCode)
-            l.push("claude-code");
-        if (GlobalConfig.ai.enableClaude)
-            l.push("claude");
-        if (GlobalConfig.ai.enableOpenai)
-            l.push("openai");
-        if (GlobalConfig.ai.enableGemini)
-            l.push("gemini");
-        if (GlobalConfig.ai.enableOpenrouter)
-            l.push("openrouter");
-        if (GlobalConfig.ai.enableOpencode)
-            l.push("opencode");
-        if (GlobalConfig.ai.enableOpencodeGo)
-            l.push("opencode-go");
-        if (l.length === 0)
-            l.push("ollama");
-        return l;
+
+    onVisibleChanged: {
+        if (visible) {
+            refreshAllModels();
+            if (savedContentY >= 0) {
+                Qt.callLater(function() { listView.contentY = savedContentY; });
+            }
+        } else {
+            savedContentY = listView.contentY;
+        }
     }
-    property bool isTyping: false
-    property bool isThinking: false
-    property string currentThoughtText: ""
-    property bool isThoughtExpanded: false
-    property bool inAgentLoop: false
-    // Rate limiting. Providers answer a 429 with how long to wait, so honour that
-    // instead of surfacing an error the user can only respond to by waiting anyway.
-    property int rateLimitRetries: 0
-    readonly property int maxRateLimitRetries: 3
-    property bool onFreeTier: false   // learned from the quota metric name in a 429
-    // Ticks once a second so the status line counts down rather than showing a
-    // number frozen at whatever the wait started as.
-    property int rateLimitSecondsLeft: 0
-    property int runningToolsCount: 0
-    property string accumulatedToolResults: ""
-    property string accumulatedToolImage: ""
-    // Real display names (login email / name) read from each account's .claude.json.
-    property var resolvedAccountNames: ({})
-    readonly property var claudeAccountIds: {
-        var l = [];
-        var a = claudeAccounts();
-        for (var i = 0; i < a.length; i++)
-            l.push(a[i].id);
-        return l;
-    }
-    property string currentActionText: "Thinking..."
-    // Models offered by the OpenAI-compatible providers, keyed by provider id.
-    // Fetched from /models on demand; the fallbacks below are used until a fetch
-    // succeeds (and when it can't, e.g. no key yet).
-    property var openaiCompatModels: ({})
-    // Providers charge a request for their model list too, and on a free tier that
-    // is quota the user would rather spend on answers — so fetch each provider's
-    // list once per session instead of every time the sidebar opens.
-    property var modelsFetched: ({})
-    property var allChatSessions: []
 
     function startTypingAnimation(text) {
         isThinking = false;
@@ -211,6 +101,7 @@ Item {
         typingTimer.start();
         listView.positionViewAtEnd();
     }
+
     // Ask every enabled provider what it offers, rather than shipping lists that
     // go stale each time a vendor releases a model.
     function refreshAllModels() {
@@ -223,13 +114,22 @@ Item {
                 fetchOpenaiCompatModels(compat[i]);
         }
     }
+
+    Component.onCompleted: {
+        loadAllKeys();
+        refreshAllModels();
+        loadHistory();
+    }
+
     // ── XHR network error handling ────────────────────────────────
     // QML's XMLHttpRequest does not fire onreadystatechange for network
     // failures (DNS, connection refused, timeout). Without an onerror
     // handler the UI silently hangs with a loading indicator forever.
+
     function logFetchError(provider) {
         Logger.log("[AI] Network error fetching models from " + (provider || "unknown"));
     }
+
     function handleSendError() {
         isTyping = false;
         isThinking = false;
@@ -247,6 +147,14 @@ Item {
             }
         }
     }
+
+    property var ollamaModelsList: []
+
+    // Every provider's model list is discovered from that provider, so none of
+    // them need editing here when a vendor ships a new model. Anthropic's list
+    // comes from GET /v1/models (needs the API key the provider requires anyway).
+    property var claudeModelsList: []
+
     function fetchClaudeModels() {
         const key = root.getApiKeyFor("claude");
         if (key === "")
@@ -285,6 +193,13 @@ Item {
         xhr.onerror = () => { root.logFetchError("Claude"); };
         xhr.send();
     }
+
+    // Model choices for the Claude Code (subscription CLI) provider. "default"
+    // means: don't pass --model at all and let the CLI use whatever the
+    // subscription defaults to. The concrete ids are read out of the installed
+    // binary by fetchClaudeCodeModels(), so they track the CLI as it updates.
+    property var claudeCodeModelsList: ["default"]
+
     // Effort/thinking levels vary per model: recent models add xhigh/max, some support
     // fewer, and several (haiku, older sonnet, opus ≤4.1) support none at all. Returns
     // the valid levels for a given model ("" when the model has no effort control).
@@ -325,6 +240,13 @@ Item {
         }
         return [];
     }
+
+    // Effort choices for the currently-selected Claude Code model (empty = unsupported).
+    readonly property var claudeCodeEffortOptions: {
+        var lv = effortLevelsFor(activeModel());
+        return lv.length > 0 ? ["default"].concat(lv) : [];
+    }
+
     // Extract the model IDs the installed `claude` binary knows about (a real
     // "fetch" of what this CLI version supports), merged with the handy aliases.
     function fetchClaudeCodeModels() {
@@ -349,6 +271,7 @@ Item {
             Logger.log("[AI] claude-code model fetch error: " + e.message);
         }
     }
+
     function applyClaudeCodeModels(text) {
         // The binary also embeds unrelated strings that merely start with "claude-"
         // and long-dead models, so only ids shaped like <family>-<version> survive,
@@ -460,6 +383,7 @@ Item {
             Logger.log("[AI] suggestion process error: " + e.message);
         }
     }
+
     function applyPromptSuggestions(text) {
         loadingSuggestions = false;
         var resultStr = "";
@@ -483,6 +407,7 @@ Item {
             promptSuggestions = list;
         }
     }
+
     // A stored CLI session id only applies to the account that created it (session
     // ids live under that account's CLAUDE_CONFIG_DIR). If the active account differs,
     // return "" so we start a fresh session under the new account instead of a
@@ -500,6 +425,7 @@ Item {
             }
         return "";
     }
+
     function setClaudeCodeSession(chatId, sid) {
         if (!sid)
             return;
@@ -513,6 +439,7 @@ Item {
             }
         }
     }
+
     // Plain-text transcript of the conversation so far, used to seed a *fresh* CLI
     // session (new chat, or after switching account) with prior context. Includes the
     // latest user message and skips the streaming placeholder. Returns "" when there
@@ -534,6 +461,20 @@ Item {
             return "";
         return "Continue this conversation. Conversation so far:\n\n" + lines.join("\n\n") + "\n\nReply to the last user message.";
     }
+
+    // Resolve the Anthropic API key: ANTHROPIC_API_KEY env var wins, config field is the fallback.
+    // These providers all expose the same /models catalogue and take the same
+    // /chat/completions request, so they share one model list, key handling and
+    // request path, and differ only in base URL and key.
+    readonly property bool isOpenaiCompat: root.openaiCompatProviders.indexOf(provider) !== -1
+
+    // opencode is the exception: it is in the list above because it shares all of
+    // that, but only for part of its catalogue — the rest needs Anthropic Messages,
+    // and it authenticates with x-api-key. See opencodeWire() and setAuthHeader().
+    readonly property bool isOpencode: provider === "opencode" || provider === "opencode-go"
+
+    readonly property var openaiCompatProviders: ["openai", "gemini", "openrouter", "opencode", "opencode-go"]
+
     function openaiCompatBase(p) {
         const which = p || provider;
         if (which === "gemini")
@@ -546,6 +487,25 @@ Item {
             return GlobalConfig.ai.opencodeGoUrl || "https://opencode.ai/zen/go/v1";
         return GlobalConfig.ai.openaiUrl || "https://api.openai.com/v1";
     }
+
+    // Which wire format an opencode model needs. The gateway routes by model rather
+    // than by product, and the split differs between zen and go — minimax is
+    // OpenAI-compatible on zen but Anthropic-compatible on go — so this is keyed on
+    // both. Prefixes rather than full ids, so a new point release of an existing
+    // family keeps working; when opencode adds a family, this is what needs updating.
+    readonly property var opencodeAnthropicPrefixes: ({
+        "opencode": ["claude-", "qwen"],
+        "opencode-go": ["minimax-", "qwen"]
+    })
+
+    // zen serves GPT over /responses and Gemini over /models/[id]. Neither is a
+    // format the shell speaks, so those models are kept out of the picker instead
+    // of being offered and then failing on send.
+    readonly property var opencodeUnsupportedPrefixes: ({
+        "opencode": ["gpt-", "gemini-"],
+        "opencode-go": []
+    })
+
     function opencodeWire(p, model) {
         const prefixes = root.opencodeAnthropicPrefixes[p] || [];
         for (var i = 0; i < prefixes.length; i++)
@@ -553,6 +513,7 @@ Item {
                 return "anthropic";
         return "openai";
     }
+
     function opencodeSupports(p, model) {
         const prefixes = root.opencodeUnsupportedPrefixes[p] || [];
         for (var i = 0; i < prefixes.length; i++)
@@ -560,6 +521,11 @@ Item {
                 return false;
         return true;
     }
+
+    // True when the request for the active provider and model must be built and
+    // parsed as Anthropic Messages rather than OpenAI chat completions.
+    readonly property bool anthropicWire: isClaude || (isOpencode && opencodeWire(provider, activeModel()) === "anthropic")
+
     // opencode's /messages endpoint ignores Authorization and answers "Missing API
     // key"; x-api-key is read by both of its endpoints, so it is the one that works
     // whichever wire the chosen model needs. The others take the bearer token.
@@ -571,15 +537,30 @@ Item {
         else
             xhr.setRequestHeader("Authorization", "Bearer " + key);
     }
+
+    // The API key for a provider. The environment variable wins over the config
+    // field, so a key exported in the session is never overridden by a stale one
+    // saved in settings.
+    // API keys live in the session keyring (Secret Service — KWallet on KDE,
+    // gnome-keyring elsewhere), not in shell.json. A config file is world-readable
+    // by anything running as the user and ends up in dotfile backups and git
+    // repos; a key is not the kind of thing to leave sitting there.
+    //
+    // The config fields are kept only so an existing plaintext key can be moved
+    // across once and then cleared.
+    property var keyringKeys: ({})
+
     // zen and go are one opencode account, so both read and write the same entry
     // rather than making the user paste the key twice.
     function keyringOwner(p) {
         const which = p || provider;
         return which === "opencode-go" ? "opencode" : which;
     }
+
     function keyringAttr(p) {
         return "caelestia-ai-" + root.keyringOwner(p);
     }
+
     function loadKeyring(p) {
         const which = p || provider;
         const cmd = ["secret-tool", "lookup", "service", "caelestia", "key", root.keyringAttr(which)];
@@ -592,6 +573,7 @@ Item {
             o.running = true;
         } catch (e) {}
     }
+
     function onKeyringKey(p, key, proc) {
         if (key !== "") {
             const m = root.keyringKeys;
@@ -601,6 +583,7 @@ Item {
         if (proc)
             proc.destroy();
     }
+
     function storeKeyring(p, key) {
         const which = root.keyringOwner(p || provider);
         const m = root.keyringKeys;
@@ -620,6 +603,7 @@ Item {
             o.running = true;
         } catch (e) {}
     }
+
     // Move a key that predates keyring storage out of the config, once.
     function migratePlaintextKey(p, configKey) {
         const existing = (GlobalConfig.ai[configKey] || "").trim();
@@ -629,6 +613,7 @@ Item {
         GlobalConfig.ai[configKey] = "";
         Logger.log("[AI] moved " + p + " API key from shell.json into the keyring");
     }
+
     function getApiKeyFor(p) {
         const which = p || provider;
         var envName = "ANTHROPIC_API_KEY";
@@ -657,15 +642,30 @@ Item {
             return stored;
         return (configured || "").trim();
     }
+
+    // Config field backing each provider, used only for the one-time migration.
+    readonly property var legacyKeyFields: ({
+        "claude": "anthropicApiKey",
+        "openai": "openaiApiKey",
+        "gemini": "geminiApiKey",
+        "openrouter": "openrouterApiKey",
+        "opencode": "opencodeApiKey"
+    })
+
     function loadAllKeys() {
         for (const p in root.legacyKeyFields) {
             root.loadKeyring(p);
             root.migratePlaintextKey(p, root.legacyKeyFields[p]);
         }
     }
+
     function getApiKey() {
         return root.getApiKeyFor(root.provider);
     }
+
+    // Providers that need a key before they can send anything.
+    readonly property bool needsApiKey: isClaude || isOpenaiCompat
+
     // The model to send for the active provider. Nothing is hardcoded: until a
     // provider's list has been fetched the saved choice is used as-is, and when
     // there is no saved choice the first model the provider offered wins.
@@ -678,6 +678,7 @@ Item {
             return GlobalConfig.ai[root.defaultModelField(provider)] || root.openaiCompatModelList()[0] || "";
         return GlobalConfig.ai.defaultOllamaModel || root.ollamaModelsList[0] || "";
     }
+
     // The config field holding the saved model choice for an OpenAI-compatible provider.
     function defaultModelField(p) {
         const which = p || provider;
@@ -691,6 +692,31 @@ Item {
             return "defaultOpencodeGoModel";
         return "defaultOpenaiModel";
     }
+
+    // Providers exposed in the provider selector (respecting the enable toggles).
+    readonly property var providerList: {
+        var l = [];
+        if (GlobalConfig.ai.enableOllama)
+            l.push("ollama");
+        if (GlobalConfig.ai.enableClaudeCode)
+            l.push("claude-code");
+        if (GlobalConfig.ai.enableClaude)
+            l.push("claude");
+        if (GlobalConfig.ai.enableOpenai)
+            l.push("openai");
+        if (GlobalConfig.ai.enableGemini)
+            l.push("gemini");
+        if (GlobalConfig.ai.enableOpenrouter)
+            l.push("openrouter");
+        if (GlobalConfig.ai.enableOpencode)
+            l.push("opencode");
+        if (GlobalConfig.ai.enableOpencodeGo)
+            l.push("opencode-go");
+        if (l.length === 0)
+            l.push("ollama");
+        return l;
+    }
+
     function providerLabel(p) {
         if (p === "claude-code")
             return "Claude Code";
@@ -788,10 +814,12 @@ Item {
             return Math.ceil(parseFloat(m[1]) * 1000) + 500;
         return 15000;
     }
+
     function shellQuote(str) {
         if (str === null || str === undefined) return "''";
         return "'" + String(str).replace(/'/g, "'\\''") + "'";
     }
+
     // Parse <tool_call>{...}</tool_call> blocks from model response text
     function parseTextToolCalls(text) {
         var calls = [];
@@ -817,6 +845,7 @@ Item {
         }
         return calls;
     }
+
     // Strip all <tool_call>...</tool_call> blocks (and text after partial open tag)
     function stripToolCalls(text) {
         var startTag = "<tool_call>";
@@ -832,6 +861,7 @@ Item {
         }
         return result.replace(/\s+$/, '');
     }
+
     function runAgentCommand(cmd, type) {
         var commandStr = Array.isArray(cmd) ? JSON.stringify(cmd) : '["sh", "-c", ' + JSON.stringify("exec </dev/null; " + cmd) + ']';
         var processQml = "import QtQuick\n" +
@@ -897,16 +927,20 @@ Item {
             checkToolsFinished();
         }
     }
+
     function checkToolsFinished() {
         if (runningToolsCount <= 0) {
             var b64 = accumulatedToolImage ? accumulatedToolImage : null;
             sendPrompt(accumulatedToolResults.trim(), true, b64, "multi_tool");
         }
     }
+
     // ---- Claude Code provider (subscription `claude` CLI, no API key) ----
+
     function claudeCodeCwd() {
         return Quickshell.env("HOME") || ".";
     }
+
     // Resolve the `claude` binary without depending on the shell PATH (Quickshell may
     // not inherit ~/.local/bin). If the config value is left at the default "claude",
     // point at the official installer location; a custom value is used verbatim.
@@ -920,6 +954,7 @@ Item {
         }
         return b;
     }
+
     // ---- Claude accounts (multi-login via CLAUDE_CONFIG_DIR) ----
     // The default ~/.claude login is always present as an implicit "Default" (id "").
     // Additional accounts each get their own config dir under ~/.config/caelestia/claude/<id>.
@@ -942,6 +977,7 @@ Item {
         } catch (e) {}
         return list;
     }
+
     function activeClaudeAccountObj() {
         var id = GlobalConfig.ai.activeClaudeAccount || "";
         var list = claudeAccounts();
@@ -950,15 +986,21 @@ Item {
                 return list[i];
         return list[0];
     }
+
     function activeClaudeConfigDir() {
         return activeClaudeAccountObj().dir || "";
     }
+
+    // Real display names (login email / name) read from each account's .claude.json.
+    property var resolvedAccountNames: ({})
+
     function accountJsonPath(id) {
         var home = Quickshell.env("HOME") || "";
         if (!id || id === "")
             return home + "/.claude.json";
         return home + "/.config/caelestia/claude/" + id + "/.claude.json";
     }
+
     function accountLabel(id) {
         if (resolvedAccountNames[id])
             return resolvedAccountNames[id];
@@ -1008,6 +1050,7 @@ Item {
             return "    environment: ({ \"CLAUDE_CONFIG_DIR\": " + JSON.stringify(dir) + " })\n";
         return "";
     }
+
     function logClaudeCodeStderr(proc, line) {
         if (!line)
             return;
@@ -1017,6 +1060,7 @@ Item {
         proc.errAcc = (proc.errAcc || "") + t + "\n";
         Logger.log("[ClaudeCode] " + t);
     }
+
     // Heuristic: does this CLI output indicate the Claude account isn't logged in?
     function isClaudeCodeAuthError(text) {
         if (!text)
@@ -1035,9 +1079,11 @@ Item {
             || t.indexOf("sign in") !== -1
             || t.indexOf("credentials") !== -1;
     }
+
     function claudeCodeAuthHint() {
         return "It appears that Claude is not logged into your account.\n\nOpen a terminal, run the command `claude`, and log in with your subscription, then try again here.";
     }
+
     // Generate a short chat title via a one-shot `claude -p ... --output-format json`.
     function generateClaudeCodeTitleAsync(chatId, firstMessage) {
         if (!firstMessage)
@@ -1067,6 +1113,7 @@ Item {
             Logger.log("[AI] claude-code title process error: " + e.message);
         }
     }
+
     function handleClaudeCodeTitle(chatId, text, proc) {
         try {
             var parsed = JSON.parse(text);
@@ -1076,6 +1123,7 @@ Item {
         if (proc)
             proc.destroy();
     }
+
     function stopClaudeCode() {
         if (root.currentClaudeCodeProc) {
             try {
@@ -1084,6 +1132,7 @@ Item {
             root.currentClaudeCodeProc = null;
         }
     }
+
     function sendClaudeCode(promptText) {
         // Drop any stale empty assistant placeholder, then add a fresh bubble to stream into.
         for (var i = chatHistory.count - 1; i >= 0; i--) {
@@ -1163,6 +1212,7 @@ Item {
             saveHistory();
         }
     }
+
     function onClaudeCodeLine(proc, line) {
         line = (line || "").trim();
         if (line === "")
@@ -1237,6 +1287,7 @@ Item {
             return;
         }
     }
+
     function finalizeClaudeCode(proc) {
         if (proc.done)
             return;
@@ -1252,6 +1303,7 @@ Item {
         saveHistory();
         listView.positionViewAtEnd();
     }
+
     function onClaudeCodeExit(proc, code) {
         if (!proc.done) {
             if ((proc.acc || "").trim() === "") {
@@ -1267,6 +1319,9 @@ Item {
             root.currentClaudeCodeProc = null;
         proc.destroy();
     }
+
+    property string currentActionText: "Thinking..."
+
     function fetchOllamaModels() {
         var ollamaUrl = GlobalConfig.ai.ollamaUrl || "http://localhost:11434";
         var xhr = new XMLHttpRequest();
@@ -1298,9 +1353,21 @@ Item {
         xhr.onerror = () => { root.logFetchError("Ollama"); };
         xhr.send();
     }
+
+    // Models offered by the OpenAI-compatible providers, keyed by provider id.
+    // Fetched from /models on demand; the fallbacks below are used until a fetch
+    // succeeds (and when it can't, e.g. no key yet).
+    property var openaiCompatModels: ({})
+
     function openaiCompatModelList(p) {
         return root.openaiCompatModels[p || provider] || [];
     }
+
+    // Providers charge a request for their model list too, and on a free tier that
+    // is quota the user would rather spend on answers — so fetch each provider's
+    // list once per session instead of every time the sidebar opens.
+    property var modelsFetched: ({})
+
     function fetchOpenaiCompatModels(p, force = false) {
         const which = p || provider;
         if (!force && root.modelsFetched[which])
@@ -1364,6 +1431,9 @@ Item {
         xhr.onerror = () => { root.logFetchError(which); };
         xhr.send();
     }
+
+    property var allChatSessions: []
+
     function createNewChat() {
         cancelRateLimitRetry();
         typingTimer.stop();
@@ -1375,6 +1445,7 @@ Item {
         chatHistory.clear();
         isHistoryTab = false;
     }
+
     function loadChat(id) {
         cancelRateLimitRetry();
         typingTimer.stop();
@@ -1406,6 +1477,7 @@ Item {
         Qt.callLater(function() { listView.positionViewAtEnd(); });
         isHistoryTab = false;
     }
+
     function loadHistory() {
         allChatSessions = [];
         var jsonStr = GlobalConfig.ai.ollamaHistoryJson;
@@ -1434,6 +1506,7 @@ Item {
             createNewChat();
         }
     }
+
     function saveHistory() {
         var msgs = [];
         for (var i = 0; i < chatHistory.count; i++) {
@@ -1493,6 +1566,7 @@ Item {
         
         GlobalConfig.ai.ollamaHistoryJson = JSON.stringify(allChatSessions);
     }
+
     function deleteChat(id) {
         cancelRateLimitRetry();
         var idx = -1;
@@ -1523,6 +1597,7 @@ Item {
             }
         }
     }
+
     function clearAllHistory() {
         cancelRateLimitRetry();
         allChatSessions = [];
@@ -1530,6 +1605,7 @@ Item {
         GlobalConfig.ai.ollamaHistoryJson = "[]";
         createNewChat();
     }
+
     function applyGeneratedTitle(chatId, raw) {
         if (!raw)
             return;
@@ -1539,6 +1615,7 @@ Item {
         if (title.length > 0)
             updateChatTitle(chatId, title);
     }
+
     function generateChatTitleAsync(chatId, firstMessage) {
         if (!firstMessage) return;
 
@@ -1640,6 +1717,7 @@ Item {
             stream: false
         }));
     }
+
     function updateChatTitle(chatId, title) {
         if (!title || !chatId) return;
         
@@ -1668,6 +1746,7 @@ Item {
             }
         }
     }
+
     function addAiMessage(message) {
         chatHistory.append({
             "isUser": false,
@@ -1678,6 +1757,7 @@ Item {
         listView.positionViewAtEnd();
         saveHistory();
     }
+
     function sendPrompt(promptText, isSystemToolResult = false, base64Image = null, toolName = "", isRetry = false) {
         if (!promptText.trim() && !base64Image) return;
 
@@ -2181,126 +2261,13 @@ Item {
 
         xhr.send(JSON.stringify(requestBody));
     }
-    // Refresh the model list when switching to an OpenAI-compatible provider, so a
-    // key added after startup takes effect without a reload.
-    onProviderChanged: {
-        cancelRateLimitRetry();
-        if (isOpenaiCompat)
-            fetchOpenaiCompatModels(provider);
-        else if (isClaude)
-            fetchClaudeModels();
-    }
-    onVisibleChanged: {
-        if (visible) {
-            refreshAllModels();
-            if (savedContentY >= 0) {
-                Qt.callLater(function() { listView.contentY = savedContentY; });
-            }
-        } else {
-            savedContentY = listView.contentY;
-        }
-    }
-    Component.onCompleted: {
-        loadAllKeys();
-        refreshAllModels();
-        loadHistory();
-    }
-    onIsTypingChanged: {
-        if (isTyping) listView.positionViewAtEnd();
-    }
 
-    ListModel { id: chatHistory }
-    ListModel { id: historySessionsModel }
-    Timer {
-        id: typingTimer
-
-        property string fullText: ""
-        property string currentText: ""
-        property int charIndex: 0
-        property int targetIdx: -1
-
-        interval: 16
-        repeat: true
-        onTriggered: {
-            if (targetIdx < 0 || targetIdx >= chatHistory.count) {
-                stop();
-                isTyping = false;
-                isThinking = false;
-                inAgentLoop = false;
-                return;
-            }
-            if (charIndex >= fullText.length) {
-                stop();
-                chatHistory.setProperty(targetIdx, "text", fullText);
-                chatHistory.setProperty(targetIdx, "isFinished", true);
-                saveHistory();
-                isTyping = false;
-                isThinking = false;
-                inAgentLoop = false;
-                return;
-            }
-            var chunkSize = Math.max(1, Math.ceil(fullText.length / 30));
-            currentText += fullText.substr(charIndex, chunkSize);
-            charIndex += chunkSize;
-            chatHistory.setProperty(targetIdx, "text", currentText);
-            listView.positionViewAtEnd();
-        }
-    }
-    Timer {
-        id: rateLimitRetryTimer
-
-        property var retryFn: null
-        property string forChat: ""
-        property string forModel: ""
-
-        interval: 1000
-        repeat: true
-        onTriggered: {
-            root.rateLimitSecondsLeft--;
-            if (root.rateLimitSecondsLeft > 0) {
-                root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
-                return;
-            }
-            stop();
-            if (forChat !== root.currentChatId || forModel !== root.activeModel()) {
-                retryFn = null;          // the user moved on; the answer is no longer wanted
-                root.currentActionText = "";
-                root.isTyping = false;
-                root.isThinking = false;
-                root.inAgentLoop = false;
-                return;
-            }
-            if (retryFn) { const f = retryFn; retryFn = null; f(); }
-        }
-    }
-    // One FileView per account resolves its login name from .claude.json.
-    Instantiator {
-        model: root.claudeAccountIds
-        delegate: FileView {
-            required property string modelData
-
-            path: root.accountJsonPath(modelData)
-            printErrors: false
-            watchChanges: false
-            onLoaded: {
-                try {
-                    var d = JSON.parse(text());
-                    var oa = d.oauthAccount || {};
-                    var nm = oa.displayName || oa.emailAddress || "";
-                    if (nm) {
-                        var map = root.resolvedAccountNames;
-                        map[modelData] = nm;
-                        root.resolvedAccountNames = Object.assign({}, map);
-                    }
-                } catch (e) {}
-            }
-        }
-    }
     Item {
         id: mainWrapper
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.medium
+
          // Mode Switcher Row (Chat / History)
          RowLayout {
              id: modeSwitcherRow
@@ -2337,20 +2304,22 @@ Item {
                      MultiEffect {
                          anchors.fill: parent
                          source: switcherBlurSource
-                         blurEnabled: GlobalConfig.appearance.blur
+                         blurEnabled: true
                          blurMax: 32
                      }
                  }
+
                  StyledRect {
                      width: isHistoryTab ? historyTab.width : chatTab.width
                      height: parent.height
                      radius: Tokens.rounding.full
                      color: Colours.palette.m3primary
                      x: isHistoryTab ? historyTab.x : chatTab.x
-
+                     
                      Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                      Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                  }
+
                  Row {
                      id: modeRow
 
@@ -2361,12 +2330,15 @@ Item {
 
                          height: parent.height
                          width: !isHistoryTab ? 40 : chatContent.implicitWidth + Tokens.padding.medium * 2
+                         
 
                          Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
                          StateLayer {
                              radius: Tokens.rounding.full
                              onClicked: isHistoryTab = false
                          }
+
                          Row {
                              id: chatContent
 
@@ -2388,17 +2360,21 @@ Item {
                              }
                          }
                      }
+
                      Item {
                          id: historyTab
 
                          height: parent.height
                          width: isHistoryTab ? 40 : historyContent.implicitWidth + Tokens.padding.medium * 2
+                         
 
                          Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
                          StateLayer {
                              radius: Tokens.rounding.full
                              onClicked: isHistoryTab = true
                          }
+
                          Row {
                              id: historyContent
 
@@ -2422,7 +2398,9 @@ Item {
                      }
                  }
              }
+
          }
+
          // Provider + model (+ account) selectors on their own row; a Flow so the
          // pills wrap to a second line instead of overflowing a narrow sidebar.
          Flow {
@@ -2434,19 +2412,23 @@ Item {
              anchors.topMargin: Tokens.spacing.small
              z: 10
              spacing: Tokens.spacing.small
-             // Provider Selector Split Button (Ollama / Claude Code)
 
+             // Provider Selector Split Button (Ollama / Claude Code)
              SplitButton {
                  id: providerSelector
 
                  type: SplitButton.Tonal
                  verticalPadding: 4
                  visible: root.providerList.length > 1
+                 Layout.preferredWidth: implicitWidth
+
                  active: menuItems.find(m => m.modelData === root.provider) ?? menuItems[0] ?? null
                  menu.onItemSelected: item => {
                      GlobalConfig.ai.defaultProvider = item.modelData;
                  }
+
                  menuItems: providerVariants.instances
+
                  fallbackIcon: "cloud"
                  fallbackText: qsTr("Provider")
                  stateLayer.disabled: true
@@ -2456,21 +2438,22 @@ Item {
 
                      model: root.providerList
 
-                     model: root.providerList
                      delegate: MenuItem {
                          required property string modelData
 
                          text: root.providerLabel(modelData)
                      }
                  }
-                 Layout.preferredWidth: implicitWidth
              }
+
              // Model Selector Split Button
              SplitButton {
                  id: modelSelector
 
                  type: SplitButton.Tonal
                  verticalPadding: 4
+                 Layout.preferredWidth: implicitWidth
+
                  active: menuItems.find(m => m.modelData === root.activeModel()) ?? menuItems[0] ?? null
                  menu.onItemSelected: item => {
                      if (root.isClaudeCode) {
@@ -2484,7 +2467,9 @@ Item {
                      else
                          GlobalConfig.ai.defaultOllamaModel = item.modelData;
                  }
+
                  menuItems: modelVariants.instances
+
                  fallbackIcon: "smart_toy"
                  fallbackText: qsTr("Select Model")
                  stateLayer.disabled: true
@@ -2501,14 +2486,15 @@ Item {
                              return root.openaiCompatModelList();
                          return root.ollamaModelsList;
                      }
+
                      delegate: MenuItem {
                          required property string modelData
 
                          text: modelData
                      }
                  }
-                 Layout.preferredWidth: implicitWidth
              }
+
              // Effort / thinking-level Selector (Claude Code).
              SplitButton {
                  id: effortSelector
@@ -2516,11 +2502,14 @@ Item {
                  type: SplitButton.Tonal
                  verticalPadding: 4
                  visible: root.isClaudeCode && root.claudeCodeEffortOptions.length > 0
+
                  active: menuItems.find(m => m.modelData === (GlobalConfig.ai.claudeCodeEffort || "default")) ?? menuItems[0] ?? null
                  menu.onItemSelected: item => {
                      GlobalConfig.ai.claudeCodeEffort = item.modelData;
                  }
+
                  menuItems: effortVariants.instances
+
                  fallbackIcon: "neurology"
                  fallbackText: qsTr("Effort")
                  stateLayer.disabled: true
@@ -2530,7 +2519,6 @@ Item {
 
                      model: root.claudeCodeEffortOptions
 
-                     model: root.claudeCodeEffortOptions
                      delegate: MenuItem {
                          required property string modelData
 
@@ -2538,6 +2526,7 @@ Item {
                      }
                  }
              }
+
              // Account Selector (Claude Code multi-login) — only when >1 account exists.
              SplitButton {
                  id: accountSelector
@@ -2545,11 +2534,14 @@ Item {
                  type: SplitButton.Tonal
                  verticalPadding: 4
                  visible: root.isClaudeCode && root.claudeAccountIds.length > 1
+
                  active: menuItems.find(m => m.modelData === (GlobalConfig.ai.activeClaudeAccount || "")) ?? menuItems[0] ?? null
                  menu.onItemSelected: item => {
                      GlobalConfig.ai.activeClaudeAccount = item.modelData;
                  }
+
                  menuItems: accountVariants.instances
+
                  fallbackIcon: "person"
                  fallbackText: qsTr("Account")
                  stateLayer.disabled: true
@@ -2559,7 +2551,6 @@ Item {
 
                      model: root.claudeAccountIds
 
-                     model: root.claudeAccountIds
                      delegate: MenuItem {
                          required property string modelData
 
@@ -2567,7 +2558,10 @@ Item {
                      }
                  }
              }
+
+
          }
+         
          Item {
              id: contentStack
 
@@ -2576,8 +2570,8 @@ Item {
              anchors.left: parent.left
              anchors.right: parent.right
              anchors.topMargin: Tokens.spacing.medium
-             // Chat View
 
+             // Chat View
              Item {
                  anchors.fill: parent
                  opacity: !isHistoryTab ? 1 : 0
@@ -2585,7 +2579,6 @@ Item {
 
                  Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
-                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
                  VerticalFadeListView {
                      id: listView
 
@@ -2665,9 +2658,10 @@ Item {
                          height: isThinking ? bubbleBg.height + Tokens.spacing.medium : 0
                          visible: opacity > 0
                          opacity: isThinking ? 1 : 0
-
+                         
                          Behavior on height { Anim { type: Anim.DefaultSpatial } }
                          Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
+
                          StyledRect {
                              id: bubbleBg
 
@@ -2676,6 +2670,7 @@ Item {
                              height: footerCol.implicitHeight + Tokens.padding.medium * 2
                              radius: Tokens.rounding.large
                              color: Colours.tPalette.m3surfaceContainer
+
                              // Asymmetric corners
                              topLeftRadius: Tokens.rounding.large
                              topRightRadius: Tokens.rounding.large
@@ -2688,15 +2683,16 @@ Item {
                                  anchors.fill: parent
                                  anchors.margins: Tokens.padding.medium
                                  spacing: Tokens.spacing.small
-
+                                 
                                  Row {
                                      spacing: Tokens.spacing.small
-
+                                     
                                      LoadingIndicator {
                                          width: 20
                                          height: 20
                                          color: Colours.palette.m3primary
                                      }
+                                     
                                      // M3 Expressive Animated Text Wrapper
                                      Item {
                                          width: mainText.implicitWidth
@@ -2704,6 +2700,7 @@ Item {
                                          // The bubble smoothly expands/shrinks as the text width changes
 
                                          Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                                         
                                          StyledText {
                                              id: mainText
 
@@ -2715,9 +2712,6 @@ Item {
 
                                              property string nextText: ""
 
-                                             text: displayedText
-                                             color: Colours.palette.m3onSurfaceVariant
-                                             font: Tokens.font.body.small
                                              transform: Translate { id: textTrans; y: 0 }
                                              opacity: 1.0
 
@@ -2730,9 +2724,8 @@ Item {
                                                          switchAnim.restart();
                                                      }
                                                  }
-
-                                                 target: root
                                              }
+
                                              SequentialAnimation {
                                                  id: switchAnim
 
@@ -2747,6 +2740,7 @@ Item {
                                                      NumberAnimation { target: mainText; property: "opacity"; to: 1.0; duration: 250; easing.type: Easing.OutQuad }
                                                  }
                                              }
+
                                              SequentialAnimation {
                                                  running: isThinking && !switchAnim.running
                                                  loops: Animation.Infinite
@@ -2756,11 +2750,13 @@ Item {
                                              }
                                          }
                                      }
+                                     
                                      Item {
                                          visible: root.currentThoughtText !== ""
                                          width: Tokens.spacing.medium
                                          height: 1
                                      }
+                                     
                                      Item {
                                          visible: root.currentThoughtText !== ""
                                          width: thoughtRowFooter.implicitWidth
@@ -2794,8 +2790,9 @@ Item {
                                      width: footerThoughtContent.width
                                      height: root.isThoughtExpanded ? footerThoughtContent.implicitHeight : 0
                                      clip: true
-
+                                     
                                      Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+
                                      TextEdit {
                                          id: footerThoughtContent
 
@@ -2810,7 +2807,7 @@ Item {
                                          selectionColor: Colours.palette.m3primary
                                          selectedTextColor: Colours.palette.m3onPrimary
                                          opacity: root.isThoughtExpanded ? 1.0 : 0.0
-
+                                         
                                          Behavior on opacity {
                                              SequentialAnimation {
                                                  PauseAnimation { duration: root.isThoughtExpanded ? 100 : 0 }
@@ -2822,6 +2819,7 @@ Item {
                              }
                          }
                      }
+
                      delegate: Item {
                          id: delegateItem
 
@@ -2833,27 +2831,32 @@ Item {
                          width: listView.width - Tokens.padding.large
                          visible: (!delegateItem.isFinished && isThinking) ? false : (delegateItem.text !== "" || delegateItem.thoughtText !== "")
                          height: visible ? bubbleRect.height : 0
+                         
                          scale: 0.0
                          opacity: 0.0
+                         
                          Component.onCompleted: {
                              popInAnim.start();
                          }
-                         onIsFinishedChanged: {
-                             if (isFinished) popDoneAnim.start();
-                         }
-
+                         
                          ParallelAnimation {
                              id: popInAnim
 
                              NumberAnimation { target: delegateItem; property: "scale"; from: 0.8; to: 1.0; duration: 300; easing.type: Easing.OutBack }
                              NumberAnimation { target: delegateItem; property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutQuad }
                          }
+                         
                          SequentialAnimation {
                              id: popDoneAnim
 
                              NumberAnimation { target: delegateItem; property: "scale"; from: 1.0; to: 1.02; duration: 100; easing.type: Easing.OutQuad }
                              NumberAnimation { target: delegateItem; property: "scale"; from: 1.02; to: 1.0; duration: 150; easing.type: Easing.OutSine }
                          }
+                         
+                         onIsFinishedChanged: {
+                             if (isFinished) popDoneAnim.start();
+                         }
+
                          StyledRect {
                              id: bubbleRect
 
@@ -2861,17 +2864,19 @@ Item {
 
                              anchors.right: delegateItem.isUser ? parent.right : undefined
                              anchors.left: delegateItem.isUser ? undefined : parent.left
+                             
                              // Let implicitWidth dictate width (with +8 buffer for layout engine) to stop short words from splitting line breaks
                              width: Math.min(maxBubbleWidth, bubbleLayout.implicitWidth + Tokens.padding.medium * 2 + 8)
                              height: bubbleLayout.implicitHeight + Tokens.padding.medium * 2
                              radius: Tokens.rounding.large
                              color: delegateItem.isUser ? Colours.palette.m3primary : Colours.tPalette.m3surfaceContainer
+
                              // Asymmetric corners
                              topLeftRadius: Tokens.rounding.large
                              topRightRadius: Tokens.rounding.large
                              bottomLeftRadius: delegateItem.isUser ? Tokens.rounding.large : 4
                              bottomRightRadius: delegateItem.isUser ? 4 : Tokens.rounding.large
-
+                             
                              Column {
                                  id: bubbleLayout
 
@@ -2917,14 +2922,16 @@ Item {
                                          onClicked: bubbleLayout.isExpanded = !bubbleLayout.isExpanded
                                      }
                                  }
+
                                  Item {
                                      id: thoughtContentWrapper
 
                                      width: thoughtContent.width
                                      height: bubbleLayout.isExpanded ? thoughtContent.implicitHeight : 0
                                      clip: true
-
+                                     
                                      Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
+
                                      TextEdit {
                                          id: thoughtContent
 
@@ -2932,6 +2939,7 @@ Item {
                                          textFormat: Text.MarkdownText
                                          
                                          property string fullThought: bubbleLayout.delegateThought
+                                         
                                          property bool cursorVisible: true
 
                                          Timer {
@@ -2942,6 +2950,7 @@ Item {
                                          }
                                          
                                          text: delegateItem.isFinished ? fullThought : fullThought + (cursorVisible ? "▌" : "")
+                                         
                                          color: Colours.palette.m3onSurfaceVariant
 
                                          font: Tokens.font.body.small
@@ -2957,13 +2966,7 @@ Item {
                                          selectedTextColor: Colours.palette.m3onPrimary
 
                                          opacity: bubbleLayout.isExpanded ? 1.0 : 0.0
-
-                                         Timer {
-                                             running: !delegateItem.isFinished
-                                             repeat: true
-                                             interval: 400
-                                             onTriggered: thoughtContent.cursorVisible = !thoughtContent.cursorVisible
-                                         }
+                                         
                                          Behavior on opacity {
                                              SequentialAnimation {
                                                  PauseAnimation { duration: bubbleLayout.isExpanded ? 100 : 0 }
@@ -2972,6 +2975,7 @@ Item {
                                          }
                                      }
                                  }
+
                                  TextEdit {
                                      id: messageText
 
@@ -2979,6 +2983,7 @@ Item {
                                      width: Math.min(implicitWidth, bubbleRect.maxBubbleWidth - Tokens.padding.medium * 2)
                                      
                                      property string fullText: delegateItem.text !== undefined ? delegateItem.text : ""
+                                     
                                      property bool cursorVisible: true
 
                                      Timer {
@@ -2989,6 +2994,7 @@ Item {
                                      }
                                      
                                      text: delegateItem.isFinished ? fullText : fullText + (cursorVisible ? "▌" : "")
+                                     
                                      color: delegateItem.isUser ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
 
                                      font: Tokens.font.body.small
@@ -3003,12 +3009,6 @@ Item {
 
                                      selectedTextColor: Colours.palette.m3onPrimary
 
-                                     Timer {
-                                         running: !delegateItem.isFinished
-                                         repeat: true
-                                         interval: 400
-                                         onTriggered: messageText.cursorVisible = !messageText.cursorVisible
-                                     }
                                      MouseArea {
                                          anchors.fill: parent
                                          hoverEnabled: true
@@ -3020,63 +3020,8 @@ Item {
                              }
                          }
                      }
-
-                     ColumnLayout {
-                         anchors.centerIn: parent
-                         opacity: chatHistory.count === 0 && !isTyping && !isThinking ? 1.0 : 0.0
-                         visible: opacity > 0
-                         spacing: Tokens.spacing.large
-
-                         Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
-                         Item {
-                             implicitWidth: 72
-                             implicitHeight: 72
-
-                             Logo {
-                                 id: emptyStateLogo
-
-                                 anchors.fill: parent
-                                 visible: false // hide original for MultiEffect to take over
-                             }
-                             MultiEffect {
-                                 anchors.fill: parent
-                                 source: emptyStateLogo
-                                 colorization: 1.0
-                                 colorizationColor: Colours.palette.m3primary
-                             }
-                             Layout.alignment: Qt.AlignHCenter
-                         }
-                         StyledText {
-                             id: greetingText
-
-                             property var phrases: [
-                                 "Ask away, %1!",
-                                 "How can I help you today, %1?",
-                                 "What's on your mind, %1?",
-                                 "Ready when you are, %1!",
-                                 "Let's get started, %1.",
-                                 "What shall we explore today, %1?",
-                                 "I'm all ears, %1!"
-                             ]
-
-                             horizontalAlignment: Text.AlignHCenter
-                             wrapMode: Text.Wrap
-                             font: Tokens.font.title.medium
-                             color: Colours.palette.m3onSurfaceVariant
-                             Component.onCompleted: {
-                                 var user = Quickshell.env("USER") || "user";
-                                 var userCapitalized = user.charAt(0).toUpperCase() + user.slice(1);
-                                 var phrase = phrases[Math.floor(Math.random() * phrases.length)];
-                                 text = phrase.replace("%1", userCapitalized);
-                             }
-                             Layout.alignment: Qt.AlignHCenter
-                             Layout.maximumWidth: listView.width - (Tokens.padding.large * 2)
-                         }
-                     }
-                     ScrollBar.vertical: StyledScrollBar {
-                         flickable: listView
-                     }
                  }
+
                  // Scroll to bottom button
                  Item {
                      id: scrollBtnWrapper
@@ -3093,7 +3038,6 @@ Item {
 
                      Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
 
-                     Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                      StyledRect {
                          id: scrollBtnBg
 
@@ -3101,6 +3045,7 @@ Item {
                          radius: 18
                          color: Colours.tPalette.m3surfaceContainerHigh
                      }
+
                      MultiEffect {
                          anchors.fill: scrollBtnBg
                          source: scrollBtnBg
@@ -3109,18 +3054,21 @@ Item {
                          shadowBlur: 0.5
                          shadowVerticalOffset: 2
                      }
+
                      MaterialIcon {
                          anchors.centerIn: parent
                          text: "arrow_downward"
                          font: Tokens.font.icon.small
                          color: Colours.palette.m3onSurface
                      }
+
                      MouseArea {
                          anchors.fill: parent
                          cursorShape: Qt.PointingHandCursor
                          onClicked: listView.positionViewAtEnd()
                      }
                  }
+
                  // Prompt suggestion chips (Claude Code) — float just above the input.
                  ColumnLayout {
                      id: suggestionBox
@@ -3132,24 +3080,30 @@ Item {
                      z: 11
                      spacing: Tokens.spacing.small
                      visible: root.isClaudeCode && root.promptSuggestions.length > 0
-                     // Header with a close button.
 
+                     // Header with a close button.
                      RowLayout {
+                         Layout.fillWidth: true
                          spacing: Tokens.spacing.small
 
                          StyledText {
+                             Layout.fillWidth: true
                              text: qsTr("Suggestions")
                              color: Colours.palette.m3onSurfaceVariant
                              font: Tokens.font.label.small
-                             Layout.fillWidth: true
                          }
+
                          Item {
+                             Layout.preferredWidth: 24
+                             Layout.preferredHeight: 24
+
                              MaterialIcon {
                                  anchors.centerIn: parent
                                  text: "close"
                                  color: closeSugMouse.containsMouse ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
                                  font: Tokens.font.icon.small
                              }
+
                              MouseArea {
                                  id: closeSugMouse
 
@@ -3158,11 +3112,9 @@ Item {
                                  cursorShape: Qt.PointingHandCursor
                                  onClicked: root.promptSuggestions = []
                              }
-                             Layout.preferredWidth: 24
-                             Layout.preferredHeight: 24
                          }
-                         Layout.fillWidth: true
                      }
+
                      Repeater {
                          model: root.promptSuggestions
 
@@ -3182,6 +3134,7 @@ Item {
                                      inputArea.forceActiveFocus();
                                  }
                              }
+
                              StyledText {
                                  id: sugChipText
 
@@ -3196,10 +3149,10 @@ Item {
                                  font: Tokens.font.body.small
                                  wrapMode: Text.Wrap
                              }
-                             Layout.fillWidth: true
                          }
                      }
                  }
+
                  // Input Box Row
                  StyledRect {
                      id: inputBoxRow
@@ -3229,10 +3182,11 @@ Item {
                          MultiEffect {
                              anchors.fill: parent
                              source: inputBlurSource
-                             blurEnabled: GlobalConfig.appearance.blur
+                             blurEnabled: true
                              blurMax: 32
                          }
                      }
+
                      StateLayer {
                          id: inputStateLayer
 
@@ -3242,6 +3196,7 @@ Item {
                          cursorShape: Qt.IBeamCursor
                          onClicked: inputArea.forceActiveFocus()
                      }
+
                      RowLayout {
                          anchors.fill: parent
                          anchors.leftMargin: Tokens.padding.large
@@ -3250,7 +3205,9 @@ Item {
 
                          ScrollView {
                              id: inputScroll
-
+                             Layout.fillWidth: true
+                             Layout.fillHeight: true
+                             
                              TextArea {
                                  id: inputArea
 
@@ -3262,13 +3219,6 @@ Item {
                                  wrapMode: Text.Wrap
                                  selectByMouse: true
                                  background: null
-                                 Keys.onPressed: event => {
-                                     if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
-                                         event.accepted = true;
-                                         root.sendPrompt(inputArea.text);
-                                         inputArea.clear();
-                                     }
-                                 }
 
                                  MouseArea {
                                      anchors.fill: parent
@@ -3281,13 +3231,22 @@ Item {
                                           mouse.accepted = false;
                                       }
                                  }
+
+                                 Keys.onPressed: event => {
+                                     if (event.key === Qt.Key_Return && !(event.modifiers & Qt.ShiftModifier)) {
+                                         event.accepted = true;
+                                         root.sendPrompt(inputArea.text);
+                                         inputArea.clear();
+                                     }
+                                 }
                              }
-                             Layout.fillWidth: true
-                             Layout.fillHeight: true
                          }
+
                          // Prompt suggestions trigger (Claude Code).
                          Item {
                              visible: root.isClaudeCode
+                             Layout.preferredWidth: visible ? 32 : 0
+                             Layout.preferredHeight: 32
 
                              MaterialIcon {
                                  anchors.centerIn: parent
@@ -3295,6 +3254,7 @@ Item {
                                  color: sugMouse.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                                  font: Tokens.font.icon.small
                              }
+
                              MouseArea {
                                  id: sugMouse
 
@@ -3303,19 +3263,22 @@ Item {
                                  cursorShape: Qt.PointingHandCursor
                                  onClicked: root.fetchPromptSuggestions()
                              }
-                             Layout.preferredWidth: visible ? 32 : 0
-                             Layout.preferredHeight: 32
                          }
+
                          Item {
+                             Layout.preferredWidth: 36
+                             Layout.preferredHeight: 36
+
                              MaterialShape {
                                  anchors.fill: parent
                                  color: root.isTyping ? Colours.palette.m3error : (inputArea.text.length > 0 ? Colours.palette.m3primary : Colours.layer(Colours.tPalette.m3surfaceContainerHigh, 2))
                                  shape: root.isTyping ? MaterialShape.Cookie4Sided : (inputArea.text.length > 0 ? MaterialShape.Arrow : MaterialShape.Circle)
                                  scale: (inputArea.text.length === 0 && !root.isTyping) ? 1 : sendMouse.pressed ? 0.6 : sendMouse.containsMouse ? 0.8 : 0.7
                                  rotation: 0
-
+                                 
                                  Behavior on scale { Anim { type: Anim.FastSpatial } }
                                  Behavior on color { CAnim {} }
+
                                  MouseArea {
                                      id: sendMouse
 
@@ -3342,6 +3305,7 @@ Item {
                                      }
                                  }
                              }
+
                              MaterialIcon {
                                  anchors.centerIn: parent
                                  text: "arrow_upward"
@@ -3351,12 +3315,11 @@ Item {
 
                                  Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                              }
-                             Layout.preferredWidth: 36
-                             Layout.preferredHeight: 36
                          }
                      }
                  }
              }
+
              // History Grid View
              Item {
                  anchors.fill: parent
@@ -3365,16 +3328,17 @@ Item {
 
                  Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
-                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
                  GridView {
                      anchors.top: parent.top
                      anchors.left: parent.left
                      anchors.right: parent.right
                      anchors.bottom: newChatButton.top
                      anchors.bottomMargin: Tokens.spacing.medium
+                     
                      cellWidth: width / 2
                      cellHeight: 90
                      model: historySessionsModel
+
                      delegate: Item {
                          required property var model
                          property string chatId: model && model.id ? String(model.id) : ""
@@ -3393,12 +3357,15 @@ Item {
                                  radius: Tokens.rounding.medium
                                  onClicked: loadChat(chatId)
                              }
+
                              RowLayout {
                                  anchors.fill: parent
                                  anchors.margins: Tokens.padding.small
                                  spacing: Tokens.spacing.medium
 
                                  StyledRect {
+                                     Layout.preferredWidth: 32
+                                     Layout.preferredHeight: 32
                                      radius: 16
                                      color: Colours.tPalette.m3surfaceContainerHighest
 
@@ -3408,25 +3375,29 @@ Item {
                                          color: Colours.palette.m3onSurfaceVariant
                                          font: Tokens.font.icon.small
                                      }
-                                     Layout.preferredWidth: 32
-                                     Layout.preferredHeight: 32
                                  }
+
                                  ColumnLayout {
+                                     Layout.fillWidth: true
                                      spacing: 0
 
                                      Text {
+                                         Layout.fillWidth: true
+                                         Layout.alignment: Qt.AlignVCenter
                                          text: chatTitle ? chatTitle : "New Chat"
                                          color: Colours.palette.m3onSurface
                                          font: Tokens.font.label.small
                                          elide: Text.ElideRight
                                           wrapMode: Text.Wrap
                                           maximumLineCount: 3
-                                         Layout.fillWidth: true
-                                         Layout.alignment: Qt.AlignVCenter
                                      }
-                                     Layout.fillWidth: true
                                  }
+
                                  Item {
+                                     Layout.alignment: Qt.AlignTop | Qt.AlignRight
+                                     Layout.preferredWidth: 24
+                                     Layout.preferredHeight: 24
+                                     
                                      StyledRect {
                                          anchors.fill: parent
                                          radius: 12
@@ -3435,12 +3406,14 @@ Item {
 
                                          Behavior on opacity { NumberAnimation { duration: 150 } }
                                      }
+
                                      MaterialIcon {
                                          anchors.centerIn: parent
                                          text: "close"
                                          font: Tokens.font.icon.small
                                          color: Colours.palette.m3onSurfaceVariant
                                      }
+
                                      MouseArea {
                                          id: deleteMouseArea
 
@@ -3449,14 +3422,12 @@ Item {
                                          cursorShape: Qt.PointingHandCursor
                                          onClicked: deleteChat(chatId)
                                      }
-                                     Layout.alignment: Qt.AlignTop | Qt.AlignRight
-                                     Layout.preferredWidth: 24
-                                     Layout.preferredHeight: 24
                                  }
                              }
                          }
                      }
                  }
+
                  // "Clear All" button
                  StyledRect {
                      id: clearAllButton
@@ -3472,6 +3443,7 @@ Item {
                          radius: 16
                          onClicked: clearAllHistory()
                      }
+
                      RowLayout {
                          id: clearAllLayout
 
@@ -3490,6 +3462,7 @@ Item {
                          }
                      }
                  }
+
                  // "New Chat" button
                  StyledRect {
                      id: newChatButton
@@ -3505,6 +3478,7 @@ Item {
                          radius: 16
                          onClicked: createNewChat()
                      }
+
                      RowLayout {
                          id: newChatLayout
 
