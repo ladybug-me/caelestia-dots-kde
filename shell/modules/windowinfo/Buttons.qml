@@ -47,7 +47,7 @@ ColumnLayout {
             Button {
                 required property int index
                 readonly property int wsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].index : index + 1
-                readonly property string wsName: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.workspaces[index].name : wsId
+                readonly property string wsName: wsId.toString()
                 readonly property bool isCurrent: root.client?.workspace?.id === wsId
 
                 onClicked: {
