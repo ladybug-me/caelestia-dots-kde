@@ -152,6 +152,10 @@ Item {
         readonly property real maxRadius: Math.sqrt(width * width + height * height)
         property real maskRadius: root.skipTransition ? maxRadius : 0
         readonly property var shapes: [
+            MaterialShape.Circle, MaterialShape.Square, MaterialShape.Diamond,
+            MaterialShape.ClamShell, MaterialShape.Pentagon, MaterialShape.Gem,
+            MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Cookie6Sided
+        ]
         property int currentShape: MaterialShape.Circle
         readonly property string currentSchemeName: Colours.showPreview ? Colours.previewScheme : Colours.scheme
         readonly property string currentVariantName: Colours.showPreview ? Colours.previewVariant : Colours.variant
@@ -313,9 +317,5 @@ Item {
                 type: Anim.Emphasized
                 duration: 2500
             }
-            MaterialShape.Circle, MaterialShape.Square, MaterialShape.Diamond,
-            MaterialShape.ClamShell, MaterialShape.Pentagon, MaterialShape.Gem,
-            MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Cookie6Sided
-        ]
     }
 }

@@ -29,7 +29,7 @@ StyledRect {
     readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.dock) ? GlobalConfig.bar.previewFontScales.dock : 0.0) : 0.0
     readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
     readonly property int previewWidth: Math.round(Tokens.sizes.bar.windowPreviewSize * scaleOffset)
-    readonly property int cardWidth: (root.model && root.model.toplevels && root.model.toplevels.length > 1)
+    readonly property int cardWidth: (root.model && root.model.toplevels && root.model.toplevels.length > 1) ? Math.round(previewWidth * 0.55) : previewWidth
     // root.model is a snapshot taken when the popout opened, not a live binding, so
     // it never learns a window closed on its own — that card's screencast dies
     // (KWin has nothing left to stream) and falls back to the app icon instead of
@@ -344,6 +344,4 @@ StyledRect {
             Layout.alignment: Qt.AlignHCenter
         }
     }
-        ? Math.round(previewWidth * 0.55)
-        : previewWidth
 }

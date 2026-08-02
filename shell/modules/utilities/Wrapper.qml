@@ -62,6 +62,7 @@ Item {
                 easing: Tokens.anim.standardDecel
             }
         }
+    ]
 
     Behavior on offsetScale {
         Anim {}
@@ -96,5 +97,4 @@ Item {
             deformMatrix: root.deformMatrix
         }
     }
-    ]
 }

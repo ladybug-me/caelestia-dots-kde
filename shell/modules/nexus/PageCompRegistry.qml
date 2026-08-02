@@ -19,10 +19,10 @@ import qs.modules.nexus.pages.panels.taskbar
 QtObject {
     id: root
 
-    readonly property list<Component> pageComps: [
     readonly property Component placeholderComp: Component {
         PlaceholderComp {}
     }
+    readonly property list<Component> pageComps: [
         // Personalization
         Component {
             // Appearance
@@ -271,6 +271,7 @@ QtObject {
                 }
             }
         }
+    ]
 
     component PlaceholderComp: Item {
         property NexusState nState // To avoid the warning from non-existent property
@@ -299,5 +300,4 @@ QtObject {
             }
         }
     }
-    ]
 }

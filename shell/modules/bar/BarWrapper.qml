@@ -78,6 +78,7 @@ Item {
                 type: Anim.Emphasized
             }
         }
+    ]
 
     Component {
         id: horizontalBar
@@ -125,7 +126,6 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: undefined
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "right"
@@ -138,7 +138,6 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: undefined
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "top"
@@ -151,7 +150,6 @@ Item {
                     anchors.top: undefined
                     anchors.bottom: parent.bottom
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "bottom"
@@ -164,10 +162,7 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: undefined
                 }
-                Config.screen: root.screen.name
             }
         ]
     }
-    Config.screen: screen.name
-    ]
 }

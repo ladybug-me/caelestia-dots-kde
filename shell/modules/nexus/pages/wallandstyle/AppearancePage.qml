@@ -30,6 +30,7 @@ PageBase {
                 command: ["bash", "-c", "nohup bash -c 'caelestia shell -k; sleep 2; caelestia shell -d; sleep 1;caelestia shell nexus openPage 0 8' >/dev/null 2>&1 & disown"]
             }
         }
+    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -192,5 +193,4 @@ PageBase {
             Layout.fillWidth: true
         }
     }
-    ]
 }

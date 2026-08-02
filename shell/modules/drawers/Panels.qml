@@ -90,7 +90,6 @@ Item {
                 anchors.left: parent.left
                 anchors.right: undefined
             }
-            Config.screen: root.screen.name
         },
         State {
             name: "bottom"
@@ -121,8 +120,8 @@ Item {
                 target: sidebar
                 anchors.topMargin: -4
             }
-            Config.screen: root.screen.name
         }
+    ]
 
     Item {
         id: osdWrapper
@@ -273,6 +272,4 @@ Item {
         visibilities: root.visibilities
         panels: root
     }
-    Config.screen: screen.name
-    ]
 }

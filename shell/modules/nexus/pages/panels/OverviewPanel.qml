@@ -12,10 +12,6 @@ PageBase {
     id: root
 
     readonly property list<MenuItem> layoutTypeItems: [
-    readonly property list<MenuItem> easingTypeItems: [
-
-    title: qsTr("Overview")
-    isSubPage: true
         MenuItem {
             property int value: 0
 
@@ -26,6 +22,9 @@ PageBase {
 
             text: qsTr("GNOME Grid")
         }
+    ]
+
+    readonly property list<MenuItem> easingTypeItems: [
         MenuItem {
             property int value: 0
 
@@ -91,6 +90,10 @@ PageBase {
 
             text: qsTr("Bounce Out")
         }
+    ]
+
+    title: qsTr("Overview")
+    isSubPage: true
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -266,6 +269,4 @@ PageBase {
             onMoved: v => GlobalConfig.overview.gridFadeSpeed = v
         }
     }
-    ]
-    ]
 }

@@ -40,14 +40,7 @@ StyledRect {
     color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
     border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
     border.width: active ? 2 : (isOccupied ? 0 : 2)
-    transform: Translate {
-        x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
-        y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
-    }
     states: [
-
-    Behavior on color { CAnim {} }
-    Behavior on border.color { CAnim {} }
         State {
             when: workspaceDragHandler.active
 
@@ -57,6 +50,15 @@ StyledRect {
                 z: 999
             }
         }
+    ]
+
+    transform: Translate {
+        x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
+        y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
+    }
+
+    Behavior on color { CAnim {} }
+    Behavior on border.color { CAnim {} }
     DragHandler {
         id: workspaceDragHandler
 
@@ -226,6 +228,7 @@ StyledRect {
                             z: 999
                         }
                     }
+                ]
 
                 DragHandler {
                     id: dragHandler
@@ -287,7 +290,6 @@ StyledRect {
                 Drag.source: iconDelegate
                 Drag.hotSpot.x: width / 2
                 Drag.hotSpot.y: height / 2
-                ]
             }
         }
     }
@@ -298,5 +300,4 @@ StyledRect {
     Drag.source: root
     Drag.hotSpot.x: width / 2
     Drag.hotSpot.y: height / 2
-    ]
 }

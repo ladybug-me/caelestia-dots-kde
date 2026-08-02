@@ -421,7 +421,6 @@ StyledWindow {
                 }
             }
         }
-        Config.screen: root.screen.name
     }
     DrawerVisibilities {
         id: visibilities
@@ -465,7 +464,6 @@ StyledWindow {
                     anchors.leftMargin: GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0
                     anchors.rightMargin: 0
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "right"
@@ -487,7 +485,6 @@ StyledWindow {
                     anchors.leftMargin: 0
                     anchors.rightMargin: GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "top"
@@ -509,7 +506,6 @@ StyledWindow {
                     anchors.topMargin: GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0
                     anchors.bottomMargin: 0
                 }
-                Config.screen: root.screen.name
             },
             State {
                 name: "bottom"
@@ -531,8 +527,8 @@ StyledWindow {
                     anchors.bottomMargin: GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0
                     anchors.topMargin: 0
                 }
-                Config.screen: root.screen.name
             }
+        ]
 
         MouseArea {
             anchors.fill: parent
@@ -620,7 +616,6 @@ StyledWindow {
             screenName: root.screen.name
             z: 9999
         }
-        ]
     }
 
     component PanelBg: BlobRect {

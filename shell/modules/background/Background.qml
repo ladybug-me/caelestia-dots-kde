@@ -104,16 +104,16 @@ Variants {
                 if (Config.bar.position === "bottom") return -clockBarZone / 2;
                 return 0;
             }
-            state: Config.background.desktopClock.position
-            states: [
-            transitions: Transition {
-                AnchorAnim {}
-            }
             sourceComponent: DesktopClock {
                 wallpaper: behindClock
                 absX: clockLoader.x
                 absY: clockLoader.y
             }
+            transitions: Transition {
+                AnchorAnim {}
+            }
+            state: Config.background.desktopClock.position
+            states: [
                 State {
                     name: "top-left"
 
@@ -220,17 +220,17 @@ Variants {
                 if (Config.bar.position === "bottom") return -lyricsBarZone / 2;
                 return 0;
             }
-            state: Config.background.desktopLyrics.position
-            states: [
-            transitions: Transition {
-                AnchorAnim {}
-            }
             sourceComponent: DesktopLyrics {
                 screen: modelData
                 wallpaper: behindClock
                 absX: lyricsLoader.x
                 absY: lyricsLoader.y
             }
+            transitions: Transition {
+                AnchorAnim {}
+            }
+            state: Config.background.desktopLyrics.position
+            states: [
                 State {
                     name: "top-left"
 

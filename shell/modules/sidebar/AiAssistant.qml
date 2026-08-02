@@ -2781,6 +2781,14 @@ Item {
                              id: greetingText
 
                              property var phrases: [
+                                 "Ask away, %1!",
+                                 "How can I help you today, %1?",
+                                 "What's on your mind, %1?",
+                                 "Ready when you are, %1!",
+                                 "Let's get started, %1.",
+                                 "What shall we explore today, %1?",
+                                 "I'm all ears, %1!"
+                             ]
 
                              horizontalAlignment: Text.AlignHCenter
                              wrapMode: Text.Wrap
@@ -2794,14 +2802,6 @@ Item {
                              }
                              Layout.alignment: Qt.AlignHCenter
                              Layout.maximumWidth: listView.width - (Tokens.padding.large * 2)
-                                 "Ask away, %1!",
-                                 "How can I help you today, %1?",
-                                 "What's on your mind, %1?",
-                                 "Ready when you are, %1!",
-                                 "Let's get started, %1.",
-                                 "What shall we explore today, %1?",
-                                 "I'm all ears, %1!"
-                             ]
                          }
                      }
                      ScrollBar.vertical: StyledScrollBar {

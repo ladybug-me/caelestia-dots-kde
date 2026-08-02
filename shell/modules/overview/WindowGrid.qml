@@ -167,7 +167,6 @@ Item {
                                 return (w > 0 && h > 0) ? (w / h) : (16.0 / 10.0);
                             }
 
-                            states: [
                             x: dragHandler.active ? x : layoutProps.x
                             y: dragHandler.active ? y : layoutProps.y
                             implicitWidth: cardLayout.implicitWidth + Tokens.padding.medium * 2
@@ -180,6 +179,7 @@ Item {
                             Component.onDestruction: {
                                 root.cardItems = root.cardItems.filter(x => x !== activeWin);
                             }
+                            states: [
                                 State {
                                     when: dragHandler.active
 
@@ -192,6 +192,7 @@ Item {
                                         opacity: 0.8
                                     }
                                 }
+                            ]
 
                             DragHandler {
                                 id: dragHandler
@@ -376,7 +377,6 @@ Item {
                             Drag.active: dragHandler.active
                             Drag.source: activeWin
                             Drag.hotSpot: dragHandler.centroid.position
-                            ]
                         }
                     }
                 }
