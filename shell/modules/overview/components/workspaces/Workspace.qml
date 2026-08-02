@@ -54,6 +54,37 @@ StyledRect {
     signal selected()
     signal reselected()
 
+    Drag.active: workspaceDragHandler.active
+    Drag.source: root
+    Drag.hotSpot.x: width / 2
+    Drag.hotSpot.y: height / 2
+
+    transform: Translate {
+        x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
+        y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
+    }
+
+    states: [
+        State {
+            when: workspaceDragHandler.active
+            PropertyChanges {
+                target: root
+                opacity: 0.8
+                z: 999
+            }
+        }
+    ]
+
+    DragHandler {
+        id: workspaceDragHandler
+        target: null
+        onActiveChanged: {
+            if (!active) {
+                root.Drag.drop();
+            }
+        }
+    }
+
     StateLayer {
         id: workspaceMouseArea
         anchors.fill: parent
