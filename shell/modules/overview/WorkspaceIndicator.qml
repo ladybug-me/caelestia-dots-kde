@@ -15,6 +15,7 @@ Item {
     property int count: 0
     property int currentIndex: 0
     signal workspaceSelected(int index)
+    signal workspaceReselected(int index)
 
     implicitWidth: layout.implicitWidth + Tokens.padding.small
     implicitHeight: layout.implicitHeight + Tokens.padding.small
@@ -76,6 +77,18 @@ Item {
             }
         }
 
+        Loader {
+            asynchronous: true
+            anchors.verticalCenter: parent.verticalCenter
+            active: true
+
+            sourceComponent: WsComponents.ActiveIndicator {
+                activeWsId: root.activeWsId
+                workspaces: workspaces
+                mask: layout
+            }
+        }
+
         GridLayout {
             id: layout
 
@@ -99,18 +112,6 @@ Item {
             }
         }
 
-        Loader {
-            asynchronous: true
-            anchors.verticalCenter: parent.verticalCenter
-            active: Config.bar.workspaces.activeIndicator
-
-            sourceComponent: WsComponents.ActiveIndicator {
-                activeWsId: root.activeWsId
-                workspaces: workspaces
-                mask: layout
-            }
-        }
-
         MouseArea {
             anchors.fill: layout
             onClicked: event => {
@@ -122,6 +123,8 @@ Item {
 
                 if (root.activeWsId !== ws) {
                     root.workspaceSelected(ws - 1);
+                } else {
+                    root.workspaceReselected(ws - 1);
                 }
             }
             onWheel: event => {

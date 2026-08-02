@@ -3,14 +3,15 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import M3Shapes
+import Quickshell.Widgets
 import Caelestia.Config
 import qs.components
+import qs.components.images
 import qs.services
 import qs.utils
 import Caelestia.Services
 
-GridLayout {
+StyledRect {
     id: root
 
     required property int index
@@ -19,287 +20,96 @@ GridLayout {
     required property int groupOffset
 
     readonly property bool isWorkspace: true // Flag for finding workspace children
-    readonly property bool isHorizontal: true
-    readonly property int indicatorSize: 40 // Default size for the workspace indicator
-
-    // Unanimated prop for others to use as reference
-    readonly property int size: implicitWidth + (hasWindows ? Tokens.padding.extraSmall : 0)
+    readonly property int indicatorSize: 120 // Increased height for rectangular box
+    readonly property int size: implicitWidth
 
     readonly property int ws: groupOffset + index + 1
-    readonly property int maxIcons: Config.bar.workspaces.maxWindowIcons
+    readonly property int maxIcons: 8
     readonly property bool isOccupied: occupied[ws] ?? false
-    readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
+    readonly property bool hasWindows: isOccupied
     property var kwinWindowList: KWinActiveWindowBridge.windowList
-
-    columns: -1
-    rows: 1
-    flow: GridLayout.LeftToRight
+    
+    readonly property bool active: activeWsId === ws
 
     Layout.alignment: Qt.AlignVCenter
-    Layout.preferredWidth: size
-    Layout.preferredHeight: -1
+    Layout.preferredWidth: 200
+    Layout.preferredHeight: indicatorSize
 
-    columnSpacing: 0
-    rowSpacing: 0
+    implicitWidth: 200
+    implicitHeight: indicatorSize
 
-    Loader {
-        id: indicator
+    radius: Tokens.rounding.medium
+    color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
+    
+    border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
+    border.width: active ? 2 : (isOccupied ? 0 : 2)
 
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-        Layout.preferredWidth: indicatorSize - Tokens.padding.small
-        Layout.preferredHeight: indicatorSize - Tokens.padding.small
+    Behavior on color { CAnim {} }
+    Behavior on border.color { CAnim {} }
 
-        asynchronous: true
-        sourceComponent: Config.bar.workspaces.useIcon ? iconComponent : textComponent
+    StyledText {
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: Tokens.padding.small
+        text: root.ws.toString()
+        font.pixelSize: 24
+        font.weight: Font.Bold
+        color: Colours.tPalette.m3onSurfaceVariant
+        opacity: 0.3
     }
 
-    Component {
-        id: textComponent
-
-        StyledText {
-            anchors.fill: parent
-            animate: true
-            text: {
-                const wsName = root.ws;
-                let displayName = wsName.toString();
-                if (Config.bar.workspaces.capitalisation.toLowerCase() === "upper") {
-                    displayName = displayName.toUpperCase();
-                } else if (Config.bar.workspaces.capitalisation.toLowerCase() === "lower") {
-                    displayName = displayName.toLowerCase();
-                }
-                const label = Config.bar.workspaces.label || displayName;
-                const occupiedLabel = Config.bar.workspaces.occupiedLabel || label;
-                const activeLabel = Config.bar.workspaces.activeLabel || (root.isOccupied ? occupiedLabel : label);
-                return root.activeWsId === root.ws ? activeLabel : root.isOccupied ? occupiedLabel : label;
-            }
-            color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
-            horizontalAlignment: Qt.AlignHCenter
-            verticalAlignment: Qt.AlignVCenter
-            font.family: Tokens.font.workspaces
-        }
-    }
-
-    Component {
-        id: iconComponent
-
-        Item {
-            id: iconRoot
-
-            // Track if this position was active (independent of which workspace)
-            readonly property bool active: root.activeWsId === root.ws
-            property int randShape: MaterialShape.Slanted
-            property bool wasPositionActive: false
-            property int lastKnownWs: -1
-            property int prevActiveWsId: -1
-
-            // Track the previous workspace at this position (before current change)
-            property int prevWs: -1
-
-            // Watch for workspace ID changes while inactive by using a binding
-            property int watchedWs: root.ws
-
-            // Track the last watched ws separately for detecting changes
-            property int lastWatchedWs: -1
-
-            // JavaScript functions
-            function handleActivation() {
-                const wsChanged = lastKnownWs !== root.ws;
-                if (active && (!wasPositionActive || wsChanged)) {
-                    const shapes = [MaterialShape.Slanted, MaterialShape.Arch, MaterialShape.Oval, MaterialShape.Pill, MaterialShape.Triangle, MaterialShape.Arrow, MaterialShape.Diamond, MaterialShape.Pentagon, MaterialShape.Gem, MaterialShape.VerySunny, MaterialShape.Sunny, MaterialShape.Cookie4Sided, MaterialShape.Cookie6Sided, MaterialShape.Cookie7Sided, MaterialShape.Cookie9Sided, MaterialShape.Cookie12Sided, MaterialShape.Clover4Leaf, MaterialShape.Clover8Leaf, MaterialShape.SoftBurst, MaterialShape.Ghostish];
-                    const shuffled = [...shapes].sort(() => Math.random() - 0.5);
-                    randShape = shuffled[0];
-                    wsShape.shape = randShape;
-                    wsShape.scale = 1 / 3;
-                    deactivateAnim.stop();
-                    activateAnim.fromValue = 1 / 3;
-                    activateAnim.toValue = 2 / 3;
-                    activateAnim.running = true;
-                } else if (!active && (wasPositionActive || wsChanged)) {
-                    const targetShape = root.isOccupied ? MaterialShape.Square : MaterialShape.Circle;
-                    wsShape.shape = targetShape;
-                    wsShape.scale = 1 / 3;
-                    activateAnim.stop();
-                    deactivateAnim.stop();
-                }
-                wasPositionActive = active;
-                prevWs = lastKnownWs;
-                lastKnownWs = root.ws;
-                prevActiveWsId = root.activeWsId;
-            }
-
-            // Signal handlers
-            onWatchedWsChanged: {
-                if (lastWatchedWs !== -1 && watchedWs !== lastWatchedWs && !active) {
-                    activateAnim.stop();
-                    deactivateAnim.stop();
-                    wsShape.shape = root.isOccupied ? MaterialShape.Square : MaterialShape.Circle;
-                    wsShape.scale = 1 / 3;
-                }
-                lastWatchedWs = watchedWs;
-            }
-
-            onPrevActiveWsIdChanged: {
-                if (prevActiveWsId !== -1 && prevActiveWsId !== root.activeWsId && active) {
-                    handleActivation();
-                }
-            }
-
-            onActiveChanged: handleActivation()
-
-            // Bindings
-            implicitWidth: indicatorSize - Tokens.padding.small
-            implicitHeight: indicatorSize - Tokens.padding.small
-
-            // Initialize state when component is created
-            Component.onCompleted: {
-                if (active) {
-                    handleActivation();
-                } else {
-                    wsShape.shape = root.isOccupied ? MaterialShape.Square : MaterialShape.Circle;
-                }
-                wasPositionActive = active;
-                prevWs = -1;
-                lastKnownWs = root.ws;
-                prevActiveWsId = root.activeWsId;
-                lastWatchedWs = root.ws;
-            }
-
-            MaterialShape {
-                id: wsShape
-
-                anchors.centerIn: parent
-                implicitSize: iconRoot.width
-                width: implicitWidth
-                height: implicitHeight
-                scale: iconRoot.active ? 2 / 3 : 1 / 3
-                color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
-
-                Behavior on color {
-                    CAnim {}
-                }
-
-                Behavior on scale {
-                    enabled: !activateAnim.running && !deactivateAnim.running
-
-                    Anim {
-                        type: Anim.DefaultEffects
-                    }
-                }
-
-                SequentialAnimation {
-                    id: activateAnim
-
-                    property real fromValue: 1 / 3
-                    property real toValue: 2 / 3
-
-                    Anim {
-                        target: wsShape
-                        property: "scale"
-                        from: activateAnim.fromValue
-                        to: activateAnim.toValue
-                        type: Anim.FastSpatial
-                    }
-                }
-
-                SequentialAnimation {
-                    id: deactivateAnim
-
-                    property real fromValue: 2 / 3
-                    property real toValue: 1 / 3
-
-                    Anim {
-                        target: wsShape
-                        property: "scale"
-                        from: deactivateAnim.fromValue
-                        to: deactivateAnim.toValue
-                        type: Anim.FastSpatial
-                    }
-                }
-            }
-        }
-    }
-
-    Loader {
-        id: windows
-
-        asynchronous: true
-
-        Layout.alignment: Qt.AlignVCenter
-        Layout.fillWidth: enabled
-        Layout.topMargin: 0
-        Layout.leftMargin: -indicatorSize / 10
-
-        visible: active
-        active: root.hasWindows
-
-        sourceComponent: rowComponent
-    }
-
-    Component {
-        id: rowComponent
-
-        Row {
-            spacing: 0
-
-            add: Transition {
-                Anim {
-                    properties: "scale"
-                    from: 0
-                    to: 1
-                    easing: Tokens.anim.standardDecel
-                }
-            }
-
-            move: Transition {
-                Anim {
-                    properties: "scale"
-                    to: 1
-                    easing: Tokens.anim.standardDecel
-                }
-                Anim {
-                    properties: "x,y"
-                }
-            }
-
-            Repeater {
-                model: ScriptModel {
-                    values: {
-                        const ws = root.ws;
-                        let windows = [];
-                        const kwinList = root.kwinWindowList; // Force QML dependency tracker
-                        if (typeof KWinActiveWindowBridge !== "undefined" && kwinList) {
-                            const wins = kwinList;
-                            for (let i = 0; i < wins.length; ++i) {
-                                const w = wins[i];
-                                if (w.workspace && (w.workspace.id === ws || w.workspace.index === ws) && w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
-                                    windows.push(w);
-                                }
-                            }
-                        } else if (typeof Hypr !== "undefined") {
-                            const wins = Hypr.toplevels.values;
-                            for (let i = 0; i < wins.length; ++i) {
-                                if (wins[i].workspace && wins[i].workspace.id === ws) {
-                                    windows.push(wins[i]);
-                                }
+    GridLayout {
+        anchors.fill: parent
+        anchors.margins: Tokens.padding.medium
+        rowSpacing: Tokens.padding.small
+        columnSpacing: Tokens.padding.small
+        
+        readonly property int count: repeater.count
+        columns: count <= 2 ? Math.max(1, count) : Math.ceil(count / 2)
+        
+        Repeater {
+            id: repeater
+            model: ScriptModel {
+                values: {
+                    const wsId = root.ws;
+                    let windows = [];
+                    const kwinList = root.kwinWindowList; 
+                    if (typeof KWinActiveWindowBridge !== "undefined" && kwinList) {
+                        const wins = kwinList;
+                        for (let i = 0; i < wins.length; ++i) {
+                            const w = wins[i];
+                            if (w.workspace && (w.workspace.id === wsId || w.workspace.index === wsId) && w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
+                                windows.push(w);
                             }
                         }
-                        const maxIcons = root.maxIcons;
-                        return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
+                    } else if (typeof Hypr !== "undefined") {
+                        const wins = Hypr.toplevels.values;
+                        for (let i = 0; i < wins.length; ++i) {
+                            if (wins[i].workspace && wins[i].workspace.id === wsId) {
+                                windows.push(wins[i]);
+                            }
+                        }
                     }
+                    const maxIcons = root.maxIcons;
+                    return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                 }
-
-                MaterialIcon {
-                    required property var modelData
-
-                    grade: 0
-                    text: Icons.getAppCategoryIcon(modelData.lastIpcObject ? modelData.lastIpcObject["class"] : modelData["class"], "terminal")
-                    color: Colours.palette.m3onSurfaceVariant
+            }
+            
+            delegate: StyledRect {
+                required property var modelData
+                
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: Tokens.rounding.small
+                color: Colours.tPalette.m3surfaceContainerHigh
+                
+                IconImage {
+                    anchors.centerIn: parent
+                    implicitSize: Math.min(parent.width, parent.height) * 0.6
+                    asynchronous: true
+                    source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
                 }
             }
         }
-    }
-
-    Behavior on Layout.preferredWidth {
-        Anim {}
     }
 }

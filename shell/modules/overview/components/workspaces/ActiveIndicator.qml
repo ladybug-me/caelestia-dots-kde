@@ -51,22 +51,9 @@ StyledRect {
     x: offset + mask.x
     y: 0
     implicitWidth: size
-    implicitHeight: indicatorSize - Tokens.padding.small
-    radius: Tokens.rounding.full
+    implicitHeight: indicatorSize
+    radius: Tokens.rounding.medium
     color: Colours.palette.m3primary
-
-    Colouriser {
-        source: root.mask
-        sourceColor: Colours.palette.m3onSurface
-        colorizationColor: Colours.palette.m3onPrimary
-
-        anchors.verticalCenter: parent.verticalCenter
-
-        x: -parent.offset
-        y: 0
-        implicitWidth: root.mask.implicitWidth
-        implicitHeight: root.mask.implicitHeight
-    }
 
     Behavior on leading {
         enabled: root.Config.bar.workspaces.activeTrail

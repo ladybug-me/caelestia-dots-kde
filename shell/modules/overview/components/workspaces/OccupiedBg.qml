@@ -69,11 +69,11 @@ Item {
 
             x: (start?.x ?? 0) - 1
             y: 0
-            implicitWidth: (start && end ? end.x + end.size - start.x + 2 : 0)
-            implicitHeight: (indicatorSize - Tokens.padding.small + 2)
+            implicitWidth: (start && end ? end.x + end.size - start.x : 0)
+            implicitHeight: indicatorSize
 
             color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
-            radius: Tokens.rounding.full
+            radius: Tokens.rounding.medium
 
             scale: 0
             Component.onCompleted: scale = 1

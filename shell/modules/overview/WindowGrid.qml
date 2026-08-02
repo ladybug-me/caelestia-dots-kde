@@ -20,6 +20,7 @@ Item {
 
     property var cardItems: []
     property var activeInfoClient: null
+    property var panels: null
     
     signal requestWindowInfo(var client)
     signal requestClose()
@@ -358,7 +359,7 @@ Item {
         id: indicatorContainer
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: Tokens.padding.large
+        anchors.bottomMargin: -(root.panels ? root.panels.bottomMargin : 0) + Tokens.padding.large
         
         implicitWidth: workspaceIndicator.implicitWidth + Tokens.padding.large * 2
         implicitHeight: workspaceIndicator.implicitHeight + Tokens.padding.medium * 2
@@ -371,6 +372,7 @@ Item {
             count: listView.count
             currentIndex: listView.currentIndex
             onWorkspaceSelected: index => listView.currentIndex = index
+            onWorkspaceReselected: root.requestClose()
         }
     }
 

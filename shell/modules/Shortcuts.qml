@@ -103,7 +103,15 @@ Scope {
         onPressed: {
             if (root.hasFullscreen)
                 return;
-            Recorder.start();
+            if (Recorder.running) {
+                if (Recorder.paused) {
+                    Recorder.togglePause();
+                } else {
+                    Recorder.stop();
+                }
+            } else {
+                Recorder.start();
+            }
         }
     }
 
