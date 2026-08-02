@@ -31,6 +31,13 @@ class ServiceConfig : public ConfigObject {
     CONFIG_GLOBAL_PROPERTY(qreal, maxVolume, 1.0)
     CONFIG_GLOBAL_PROPERTY(bool, smartScheme, true)
 
+    // Launch pinned dock apps through systemd user units (app2unit) instead of
+    // spawning the command directly. Undefined-at-runtime before this existed;
+    // the QML reads it to pick between the two launch paths.
+    CONFIG_GLOBAL_PROPERTY(bool, useSystemd, false)
+    // Optional Wallhaven API key (NSFW searches require one).
+    CONFIG_GLOBAL_PROPERTY(QString, wallhavenApiKey)
+
     // Automatic light/dark switching.
     CONFIG_GLOBAL_PROPERTY(bool, autoSchemeEnabled, false)
     // "solar" derives the times from weatherLocation; "fixed" uses the two below.

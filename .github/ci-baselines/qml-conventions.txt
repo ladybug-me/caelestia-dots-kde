@@ -1,0 +1,561 @@
+blank-after-open-brace	modules/nexus/pages/panels/taskbar/BarComponents.qml	no blank line expected after opening brace
+blank-before-close-brace	modules/background/Background.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/bar/components/workspaces/Workspaces.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/bar/popouts/Bluetooth.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/bar/popouts/Github.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/bar/popouts/Network.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/launcher/ContentList.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/launcher/WindowSwitcherList.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/nexus/pages/wallandstyle/KMYCSettings.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/screenshot/regionSelector/CircleSelectionDetails.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/screenshot/regionSelector/RegionSelection.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/sidebar/AiAssistant.qml	no blank line expected before closing brace
+blank-before-close-brace	services/Audio.qml	no blank line expected before closing brace
+blank-before-close-brace	services/DiscordRPC.qml	no blank line expected before closing brace
+file-structure	modules/nexus/PageCompRegistry.qml	no blank lines expected within imports
+file-structure	modules/nexus/common/ShortcutRow.qml	no blank lines expected within imports
+file-structure	modules/nexus/common/UpdateTimeline.qml	blank line expected between imports and content
+file-structure	modules/nexus/pages/ServicesPage.qml	no blank lines expected within imports
+file-structure	modules/nexus/pages/desktop/KrohnkitePage.qml	only one blank line expected between imports and content
+file-structure	modules/screenshot/ScreenshotAction.qml	blank line expected between pragmas and imports
+file-structure	modules/screenshot/regionSelector/RegionFunctions.qml	blank line expected between pragmas and imports
+file-structure	services/AutoScheme.qml	no blank lines expected within imports
+file-structure	services/ColorPicker.qml	blank line expected between pragmas and imports
+import-order	components/PolkitDialog.qml	'MNShapes' should appear before 'qs.utils'
+import-order	components/PolkitDialog.qml	'QtQuick.Effects' should appear before 'Caelestia.Config'
+import-order	components/containers/VerticalFadeFlickable.qml	'QtQuick.Effects' should appear before 'qs.components.effects'
+import-order	components/containers/VerticalFadeListView.qml	'QtQuick.Effects' should appear before 'qs.components.effects'
+import-order	modules/BluetoothReconnect.qml	'Quickshell' should appear before 'qs.utils'
+import-order	modules/background/Background.qml	'Quickshell.Hyprland' should appear before 'qs.services'
+import-order	modules/background/DesktopIcons.qml	'Qt.labs.folderlistmodel' should appear before 'qs.services'
+import-order	modules/bar/BarWrapper.qml	'Quickshell.Wayland' should appear before 'qs.modules.bar.popouts'
+import-order	modules/bar/components/GithubActivity.qml	'MNShapes' should appear before 'qs.modules.bar.components'
+import-order	modules/bar/components/StatusIcons.qml	'Caelestia' should appear before 'qs.utils'
+import-order	modules/bar/components/performance/PerfBattery.qml	'qs.services' should appear before 'qs.utils'
+import-order	modules/bar/components/workspaces/Workspace.qml	'Caelestia.Services' should appear before 'qs.utils'
+import-order	modules/bar/popouts/DockContext.qml	'Caelestia.Services' should appear before 'qs.components'
+import-order	modules/bar/popouts/DockHover.qml	'QtQuick' should appear before 'Quickshell'
+import-order	modules/bar/popouts/Github.qml	'MNShapes' should appear before 'qs.services'
+import-order	modules/bar/popouts/Github.qml	'qs.services' should appear before 'qs.modules.bar.components'
+import-order	modules/drawers/ContentWindow.qml	'QtQuick.Controls' should appear before 'QtCore'
+import-order	modules/launcher/WallpaperList.qml	'Caelestia' should appear before 'Caelestia.Config' (less nested first)
+import-order	modules/launcher/items/WindowSwitcherItem.qml	'Caelestia' should appear before 'Caelestia.Services' (less nested first)
+import-order	modules/lock/Lock.qml	'Caelestia.Config' should appear before 'qs.services'
+import-order	modules/nexus/PageCompRegistry.qml	'qs.modules.nexus.pages.desktop' should appear before 'qs.modules.nexus.pages.panels.taskbar' (less nested first)
+import-order	modules/nexus/common/ShortcutRow.qml	'QtQuick.Effects' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/common/StackPage.qml	'Caelestia.Config' should appear before 'qs.utils'
+import-order	modules/nexus/common/StackPage.qml	'QtQuick.Controls' should appear before 'qs.utils'
+import-order	modules/nexus/pages/DesktopPage.qml	'Quickshell' should appear before 'Caelestia.Services'
+import-order	modules/nexus/pages/PowerPage.qml	'qs.services' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/UpdatesPage.qml	'qs.utils' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/desktop/KrohnkitePage.qml	'Quickshell' should appear before 'Caelestia.Services'
+import-order	modules/nexus/pages/panels/DashboardPanel.qml	'MNShapes' should appear before 'Caelestia.Config'
+import-order	modules/nexus/pages/panels/taskbar/BarComponents.qml	'Quickshell.Services.UPower' should appear before 'qs.modules.bar.components'
+import-order	modules/nexus/pages/panels/taskbar/BarGithub.qml	'Quickshell' should appear before 'qs.modules.bar.components'
+import-order	modules/nexus/pages/panels/taskbar/BarGithub.qml	'qs.services' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/services/ArpcPage.qml	'Caelestia' should appear before 'Caelestia.Services' (less nested first)
+import-order	modules/nexus/pages/services/ArpcPage.qml	'Quickshell' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/services/ArpcPage.qml	'qs.services' should appear before 'qs.utils'
+import-order	modules/nexus/pages/services/GameModePage.qml	'Quickshell' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/services/GameModePage.qml	'qs.services' should appear before 'qs.utils'
+import-order	modules/nexus/pages/services/GameModeTargetsPage.qml	'Caelestia' should appear before 'Caelestia.Services' (less nested first)
+import-order	modules/nexus/pages/services/GameModeTargetsPage.qml	'Quickshell' should appear before 'qs.services'
+import-order	modules/nexus/pages/services/GameModeTargetsPage.qml	'qs.services' should appear before 'qs.modules.nexus.common'
+import-order	modules/nexus/pages/wallandstyle/AppearancePage.qml	'QtQuick.Layouts' should appear before 'QtCore'
+import-order	modules/nexus/pages/wallandstyle/AppearancePage.qml	'Quickshell.Io' should appear before 'Caelestia.Config'
+import-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	'Quickshell' should appear before 'qs.utils'
+import-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	'qs.utils' should appear before 'qs.modules.nexus.common'
+import-order	modules/screenshot/regionSelector/CursorGuide.qml	'Caelestia.Config' should appear before 'qs.components'
+import-order	modules/screenshot/regionSelector/OptionsToolbar.qml	'QtQuick' should appear before 'qs.utils'
+import-order	modules/screenshot/regionSelector/RegionSelection.qml	'QtQuick' should appear before 'qs.utils'
+import-order	modules/screenshot/regionSelector/RegionSelector.qml	'QtQuick' should appear before 'qs.services'
+import-order	modules/sidebar/DinoGame.qml	'qs.services' should appear before 'qs.utils'
+import-order	modules/utilities/cards/RecordingList.qml	'Qt.labs.folderlistmodel' should appear before 'qs.utils'
+import-order	services/DiscordRPC.qml	'Quickshell' should appear before 'Caelestia.Config'
+import-order	services/DiscordRPC.qml	'qs.services' should appear before 'qs.utils'
+import-order	services/UpdateChecker.qml	'qs.services' should appear before 'qs.utils'
+import-order	shell.qml	'qs.services' should appear before 'qs.utils'
+missing-section-separator	components/PolkitDialog.qml	blank line expected between id and bindings
+missing-section-separator	components/PolkitDialog.qml	blank line expected between id and child objects
+missing-section-separator	components/containers/StyledWindow.qml	blank line expected between property declarations and bindings
+missing-section-separator	components/controls/Menu.qml	blank line expected between bindings and property declarations
+missing-section-separator	components/misc/CustomShortcut.qml	blank line expected between id and child objects
+missing-section-separator	lockscreen.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/background/Background.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/background/Background.qml	blank line expected between id and bindings
+missing-section-separator	modules/background/BadAppleOverlay.qml	blank line expected between id and bindings
+missing-section-separator	modules/background/BadAppleOverlay.qml	blank line expected between id and child objects
+missing-section-separator	modules/background/BadAppleOverlay.qml	blank line expected between id and property declarations
+missing-section-separator	modules/background/BadAppleOverlay.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/background/BadAppleVideo.qml	blank line expected between id and bindings
+missing-section-separator	modules/background/DesktopContextMenu.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/background/DesktopContextMenu.qml	blank line expected between id and bindings
+missing-section-separator	modules/background/DesktopContextMenu.qml	blank line expected between id and child objects
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between id and bindings
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between id and property declarations
+missing-section-separator	modules/background/DesktopIcons.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/background/Wallpaper.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/background/Wallpaper.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/background/Wallpaper.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/Bar.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/bar/Bar.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/bar/Bar.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/bar/Bar.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/components/Dock.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/bar/components/GithubActivity.qml	blank line expected between bindings and functions
+missing-section-separator	modules/bar/components/StatusIcons.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/bar/components/StatusIcons.qml	blank line expected between property declarations and child objects
+missing-section-separator	modules/bar/components/Tray.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/bar/components/Tray.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/bar/components/performance/PerfNetwork.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/bar/components/performance/PerfStat.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/bar/components/performance/PerfStat.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/components/workspaces/Workspaces.qml	blank line expected between bindings and functions
+missing-section-separator	modules/bar/components/workspaces/Workspaces.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/bar/popouts/ActiveWindow.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/bar/popouts/Battery.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/bar/popouts/Battery.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/popouts/DockHover.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/bar/popouts/DockHover.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/popouts/NightLight.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/popouts/TrayMenu.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/bar/popouts/TrayMenu.qml	blank line expected between component definitions and property declarations
+missing-section-separator	modules/bar/popouts/TrayMenu.qml	blank line expected between id and bindings
+missing-section-separator	modules/bar/popouts/WirelessPassword.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/bar/popouts/kblayout/KbLayout.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/dashboard/Content.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/dashboard/dash/MediaShapes.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/dashboard/dash/MediaShapes.qml	blank line expected between bindings and functions
+missing-section-separator	modules/dashboard/dash/MediaShapes.qml	blank line expected between id and bindings
+missing-section-separator	modules/drawers/ContentWindow.qml	blank line expected between bindings and functions
+missing-section-separator	modules/drawers/ContentWindow.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/drawers/ContentWindow.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/drawers/ContentWindow.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/drawers/ContentWindow.qml	blank line expected between id and bindings
+missing-section-separator	modules/drawers/Interactions.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/drawers/Interactions.qml	blank line expected between id and bindings
+missing-section-separator	modules/drawers/Panels.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/drawers/Regions.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/drawers/blur/BlurBodies.qml	blank line expected between property declarations and child objects
+missing-section-separator	modules/drawers/blur/BlurCorners.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/drawers/blur/BlurCorners.qml	blank line expected between property declarations and functions
+missing-section-separator	modules/drawers/blur/BlurMask.qml	blank line expected between id and property declarations
+missing-section-separator	modules/drawers/blur/BlurOffsets.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/launcher/AnimationsList.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/AnimationsList.qml	blank line expected between id and property declarations
+missing-section-separator	modules/launcher/AppList.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/launcher/AppList.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/AppList.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/Content.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/launcher/ContentList.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/launcher/ContentList.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/launcher/ContentList.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/ContentList.qml	blank line expected between id and property declarations
+missing-section-separator	modules/launcher/ContentList.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/launcher/WallpaperList.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/launcher/WallpaperList.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/WindowSwitcherList.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/Wrapper.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/launcher/items/AppItem.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/items/ClipItem.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/items/ClipItem.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/launcher/items/WindowSwitcherItem.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/launcher/items/WindowSwitcherItem.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/items/WindowSwitcherItem.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/launcher/items/WindowSwitcherItem.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/services/Animations.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/services/Clipboard.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/services/Emojis.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/services/Keybinds.qml	blank line expected between bindings and functions
+missing-section-separator	modules/launcher/services/M3Variants.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/launcher/services/M3Variants.qml	blank line expected between id and bindings
+missing-section-separator	modules/launcher/services/Schemes.qml	blank line expected between id and bindings
+missing-section-separator	modules/lock/BackgroundContent.qml	blank line expected between id and bindings
+missing-section-separator	modules/lock/Center.qml	blank line expected between id and bindings
+missing-section-separator	modules/lock/Content.qml	blank line expected between id and bindings
+missing-section-separator	modules/lock/LockBackgroundWindow.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/lock/LockBackgroundWindow.qml	blank line expected between id and bindings
+missing-section-separator	modules/lock/WeatherInfo.qml	blank line expected between id and child objects
+missing-section-separator	modules/nexus/NavPane.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/Nexus.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/common/CommitRow.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/DoubleStepperRow.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/common/DoubleStepperRow.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/KeyCaptureDialog.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/PageBase.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/ShortcutRow.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/common/ShortcutRow.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/nexus/common/ShortcutRow.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/ShortcutRow.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/common/UpdateTimeline.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/common/UpdateTimeline.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/common/UpdateTimeline.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/common/UpdateTimeline.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/common/UpdateTimeline.qml	blank line expected between signal declarations and property declarations
+missing-section-separator	modules/nexus/pages/AiSettingsPage.qml	blank line expected between component definitions and functions
+missing-section-separator	modules/nexus/pages/AiSettingsPage.qml	blank line expected between component definitions and property declarations
+missing-section-separator	modules/nexus/pages/AiSettingsPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/AiSettingsPage.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/AiSettingsPage.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/pages/AppsPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/DesktopPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/ServicesPage.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/UpdatesPage.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/UpdatesPage.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/UpdatesPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/UpdatesPage.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/nexus/pages/UpdatesPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/UtilitiesPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePage.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePreview.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePreview.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePreview.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/nexus/pages/desktop/KrohnkitePreview.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/panels/DashboardPanel.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarComponents.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarComponents.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarComponents.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarComponents.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarComponents.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarGithub.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/panels/taskbar/BarWorkspaces.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/services/ArpcPage.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/services/ArpcPage.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/services/ArpcPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/services/ArpcPage.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/services/GameModePage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/services/GameModeTargetsPage.qml	blank line expected between bindings and functions
+missing-section-separator	modules/nexus/pages/services/GameModeTargetsPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/services/GameModeTargetsPage.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/AddShortcutDialog.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/AddShortcutDialog.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/AppearancePage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/AppearancePage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/ColourSelect.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/wallandstyle/ColourSelect.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/ColourSelect.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	blank line expected between id and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/KMYCSettings.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/KMYCSettings.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/notifications/Wrapper.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/TempScreenshotProcess.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/TempScreenshotProcess.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/recorder/Recorder.qml	blank line expected between bindings and functions
+missing-section-separator	modules/screenshot/recorder/Recorder.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/screenshot/recorder/Recorder.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/recorder/Recorder.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/recorder/Recorder.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/screenshot/regionSelector/CircleSelectionDetails.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/CircleSelectionDetails.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/CursorGuide.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/screenshot/regionSelector/CursorGuide.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/screenshot/regionSelector/CursorGuide.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/screenshot/regionSelector/CursorGuide.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/CursorGuide.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/OptionsToolbar.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/OptionsToolbar.qml	blank line expected between property declarations and signal declarations
+missing-section-separator	modules/screenshot/regionSelector/RectCornersSelectionDetails.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/screenshot/regionSelector/RectCornersSelectionDetails.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RectCornersSelectionDetails.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/RectCornersSelectionDetails.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and functions
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and signal declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/RegionSelector.qml	blank line expected between functions and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelector.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelector.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/screenshot/regionSelector/TargetRegion.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/screenshot/regionSelector/TargetRegion.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/TargetRegion.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/TargetRegion.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/screenshot/regionSelector/Toolbar.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/regionSelector/Toolbar.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/Toolbar.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/screenshot/regionSelector/ToolbarTabBar.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/screenshot/regionSelector/ToolbarTabBar.qml	blank line expected between id and bindings
+missing-section-separator	modules/screenshot/regionSelector/ToolbarTabBar.qml	blank line expected between id and property declarations
+missing-section-separator	modules/screenshot/regionSelector/ToolbarTabBar.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/session/Content.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/session/Content.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/shimeji/Shimeji.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/shimeji/Shimeji.qml	blank line expected between id and bindings
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between bindings and functions
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between id and bindings
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between id and property declarations
+missing-section-separator	modules/sidebar/Content.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between bindings and functions
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between id and bindings
+missing-section-separator	modules/sidebar/DinoGame.qml	blank line expected between property declarations and child objects
+missing-section-separator	modules/sidebar/NotifDock.qml	blank line expected between id and bindings
+missing-section-separator	modules/sidebar/Wrapper.qml	blank line expected between bindings and functions
+missing-section-separator	modules/sidebar/Wrapper.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/sidebar/Wrapper.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/utilities/Content.qml	blank line expected between id and bindings
+missing-section-separator	modules/utilities/cards/Toggles.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/utilities/cards/Toggles.qml	blank line expected between id and bindings
+missing-section-separator	services/Audio.qml	blank line expected between id and child objects
+missing-section-separator	services/AutoScheme.qml	blank line expected between bindings and functions
+missing-section-separator	services/Brightness.qml	blank line expected between bindings and functions
+missing-section-separator	services/Brightness.qml	blank line expected between id and bindings
+missing-section-separator	services/ColorPicker.qml	blank line expected between id and bindings
+missing-section-separator	services/Colours.qml	blank line expected between bindings and functions
+missing-section-separator	services/Colours.qml	blank line expected between child objects and bindings
+missing-section-separator	services/Colours.qml	blank line expected between functions and property declarations
+missing-section-separator	services/ContextMenuStore.qml	blank line expected between id and bindings
+missing-section-separator	services/ContextMenuStore.qml	blank line expected between property declarations and bindings
+missing-section-separator	services/DiscordRPC.qml	blank line expected between bindings and functions
+missing-section-separator	services/DiscordRPC.qml	blank line expected between bindings and property declarations
+missing-section-separator	services/DiscordRPC.qml	blank line expected between child objects and property declarations
+missing-section-separator	services/DiscordRPC.qml	blank line expected between property declarations and bindings
+missing-section-separator	services/Hypr.qml	blank line expected between id and bindings
+missing-section-separator	services/Hypr.qml	blank line expected between property declarations and bindings
+missing-section-separator	services/Recorder.qml	blank line expected between bindings and functions
+missing-section-separator	services/StartupTasks.qml	blank line expected between id and bindings
+missing-section-separator	services/UpdateChecker.qml	blank line expected between bindings and property declarations
+missing-section-separator	services/UpdateChecker.qml	blank line expected between child objects and property declarations
+missing-section-separator	services/UpdateChecker.qml	blank line expected between id and bindings
+missing-section-separator	services/VPN.qml	blank line expected between bindings and functions
+missing-section-separator	services/Wallpapers.qml	blank line expected between bindings and property declarations
+missing-section-separator	shell.qml	blank line expected between bindings and child objects
+missing-section-separator	shell.qml	blank line expected between bindings and functions
+missing-section-separator	shell.qml	blank line expected between child objects and property declarations
+missing-section-separator	shell.qml	blank line expected between id and bindings
+missing-section-separator	utils/Paths.qml	blank line expected between functions and property declarations
+section-order	components/PolkitDialog.qml	bindings should appear before child objects (seen at line N)
+section-order	components/PolkitDialog.qml	property declarations should appear before bindings (seen at line N)
+section-order	components/controls/CustomSpinBox.qml	functions should appear before bindings (seen at line N)
+section-order	components/controls/Menu.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/background/Background.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/background/BadAppleVideo.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/background/DesktopContextMenu.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/background/DesktopContextMenu.qml	functions should appear before bindings (seen at line N)
+section-order	modules/background/DesktopContextMenu.qml	functions should appear before child objects (seen at line N)
+section-order	modules/background/DesktopContextMenu.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/background/DesktopIcons.qml	functions should appear before bindings (seen at line N)
+section-order	modules/background/DesktopIcons.qml	functions should appear before child objects (seen at line N)
+section-order	modules/background/DesktopIcons.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/background/DesktopIcons.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/background/Wallpaper.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/background/Wallpaper.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/bar/Bar.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/bar/Bar.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/bar/Bar.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/bar/components/Dock.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/bar/components/Dock.qml	functions should appear before bindings (seen at line N)
+section-order	modules/bar/components/Dock.qml	functions should appear before child objects (seen at line N)
+section-order	modules/bar/components/Dock.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/bar/components/Dock.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/bar/components/GithubActivity.qml	functions should appear before bindings (seen at line N)
+section-order	modules/bar/components/GithubActivity.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/bar/components/StatusIcons.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/bar/components/performance/PerfStat.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/bar/components/workspaces/Workspaces.qml	functions should appear before bindings (seen at line N)
+section-order	modules/bar/components/workspaces/Workspaces.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/bar/popouts/ActiveWindow.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/bar/popouts/DockHover.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/bar/popouts/TrayMenu.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/bar/popouts/TrayMenu.qml	functions should appear before child objects (seen at line N)
+section-order	modules/bar/popouts/TrayMenu.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/bar/popouts/TrayMenu.qml	property declarations should appear before component definitions (seen at line N)
+section-order	modules/bar/popouts/WirelessPassword.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/bar/popouts/kblayout/KbLayout.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/dashboard/Content.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/dashboard/TerminalTab.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/dashboard/TerminalTab.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/dashboard/dash/MediaShapes.qml	functions should appear before bindings (seen at line N)
+section-order	modules/dashboard/dash/MediaShapes.qml	functions should appear before child objects (seen at line N)
+section-order	modules/dashboard/dash/MediaShapes.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/drawers/ContentWindow.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/drawers/ContentWindow.qml	functions should appear before bindings (seen at line N)
+section-order	modules/drawers/ContentWindow.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/drawers/ContentWindow.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/drawers/Interactions.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/drawers/Interactions.qml	functions should appear before child objects (seen at line N)
+section-order	modules/drawers/Interactions.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/drawers/Panels.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/drawers/Regions.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/drawers/blur/BlurCorners.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/drawers/blur/BlurOffsets.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/AnimationsList.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/AppList.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/AppList.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/AppList.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/Content.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/Content.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/ContentList.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/ContentList.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/ContentList.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/WallpaperList.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/WallpaperList.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/WindowSwitcherList.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/items/AppItem.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/items/AppItem.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/items/ClipItem.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/items/ClipItem.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/items/EmojiItem.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/items/WindowSwitcherItem.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/launcher/items/WindowSwitcherItem.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/items/WindowSwitcherItem.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/launcher/items/WindowSwitcherItem.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/launcher/items/WindowSwitcherItem.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/launcher/services/Clipboard.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/services/Clipboard.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/launcher/services/Clipboard.qml	property declarations should appear before signal declarations (seen at line N)
+section-order	modules/launcher/services/Emojis.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/services/Keybinds.qml	functions should appear before bindings (seen at line N)
+section-order	modules/launcher/services/Keybinds.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/launcher/services/M3Variants.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/lock/Lock.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/lock/LockBackgroundWindow.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/Nexus.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/PageRegistry.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/PageRegistry.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/PageRegistry.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/nexus/common/DoubleStepperRow.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/common/KeyCaptureDialog.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/common/KeyCaptureDialog.qml	property declarations should appear before signal declarations (seen at line N)
+section-order	modules/nexus/common/ShortcutRow.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/common/UpdateTimeline.qml	property declarations should appear before signal declarations (seen at line N)
+section-order	modules/nexus/navpane/SearchResults.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/AiSettingsPage.qml	bindings should appear before component definitions (seen at line N)
+section-order	modules/nexus/pages/AiSettingsPage.qml	child objects should appear before component definitions (seen at line N)
+section-order	modules/nexus/pages/AiSettingsPage.qml	functions should appear before component definitions (seen at line N)
+section-order	modules/nexus/pages/AiSettingsPage.qml	property declarations should appear before component definitions (seen at line N)
+section-order	modules/nexus/pages/AudioPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/DesktopPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/LanguageAndRegion.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/ServicesPage.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/nexus/pages/ShortcutManagerPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/ShortcutManagerPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/UpdatesPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/UpdatesPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/UpdatesPage.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/desktop/KrohnkitePage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/desktop/KrohnkitePreview.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/desktop/KrohnkitePreview.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/desktop/KrohnkitePreview.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/DashboardPanel.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarComponents.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarComponents.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarComponents.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarComponents.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarGithub.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarGithub.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarWorkspaces.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/panels/taskbar/BarWorkspaces.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/services/ArpcPage.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/services/ArpcPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/services/ArpcPage.qml	functions should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/services/ArpcPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/services/GameModeTargetsPage.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/services/GameModeTargetsPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/services/GameModeTargetsPage.qml	functions should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/services/GameModeTargetsPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/AddShortcutDialog.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/AppearancePage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/AppearancePage.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/ContextMenuPage.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/KMYCSettings.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/KMYCSettings.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/VideoWallpapersPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/notifications/Wrapper.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/TempScreenshotProcess.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/recorder/Recorder.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/screenshot/recorder/Recorder.qml	functions should appear before bindings (seen at line N)
+section-order	modules/screenshot/recorder/Recorder.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/CursorGuide.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/CursorGuide.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/CursorGuide.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/RectCornersSelectionDetails.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	functions should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	functions should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelection.qml	signal declarations should appear before bindings (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelector.qml	functions should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/RegionSelector.qml	property declarations should appear before functions (seen at line N)
+section-order	modules/screenshot/regionSelector/TargetRegion.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/screenshot/regionSelector/Toolbar.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/session/Content.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/shimeji/Shimeji.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/sidebar/AiAssistant.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/sidebar/AiAssistant.qml	functions should appear before bindings (seen at line N)
+section-order	modules/sidebar/AiAssistant.qml	functions should appear before child objects (seen at line N)
+section-order	modules/sidebar/AiAssistant.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/sidebar/AiAssistant.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/sidebar/Content.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/sidebar/Content.qml	functions should appear before bindings (seen at line N)
+section-order	modules/sidebar/Content.qml	functions should appear before child objects (seen at line N)
+section-order	modules/sidebar/Content.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/sidebar/DinoGame.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/sidebar/DinoGame.qml	functions should appear before bindings (seen at line N)
+section-order	modules/sidebar/DinoGame.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/sidebar/News.qml	functions should appear before bindings (seen at line N)
+section-order	modules/sidebar/News.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/sidebar/NotifDock.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/sidebar/Wrapper.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/sidebar/Wrapper.qml	functions should appear before bindings (seen at line N)
+section-order	modules/sidebar/Wrapper.qml	property declarations should appear before child objects (seen at line N)
+section-order	modules/utilities/cards/Toggles.qml	property declarations should appear before bindings (seen at line N)
+section-order	services/Audio.qml	bindings should appear before child objects (seen at line N)
+section-order	services/Audio.qml	functions should appear before child objects (seen at line N)
+section-order	services/Audio.qml	property declarations should appear before child objects (seen at line N)
+section-order	services/AutoScheme.qml	functions should appear before bindings (seen at line N)
+section-order	services/Brightness.qml	functions should appear before bindings (seen at line N)
+section-order	services/Brightness.qml	property declarations should appear before functions (seen at line N)
+section-order	services/ColorPicker.qml	functions should appear before child objects (seen at line N)
+section-order	services/Colours.qml	bindings should appear before child objects (seen at line N)
+section-order	services/Colours.qml	functions should appear before bindings (seen at line N)
+section-order	services/Colours.qml	property declarations should appear before functions (seen at line N)
+section-order	services/ContextMenuStore.qml	bindings should appear before child objects (seen at line N)
+section-order	services/DiscordRPC.qml	functions should appear before bindings (seen at line N)
+section-order	services/DiscordRPC.qml	functions should appear before child objects (seen at line N)
+section-order	services/DiscordRPC.qml	property declarations should appear before bindings (seen at line N)
+section-order	services/DiscordRPC.qml	property declarations should appear before child objects (seen at line N)
+section-order	services/GameMode.qml	functions should appear before bindings (seen at line N)
+section-order	services/Recorder.qml	functions should appear before bindings (seen at line N)
+section-order	services/Recorder.qml	property declarations should appear before child objects (seen at line N)
+section-order	services/UpdateChecker.qml	functions should appear before child objects (seen at line N)
+section-order	services/UpdateChecker.qml	property declarations should appear before bindings (seen at line N)
+section-order	services/UpdateChecker.qml	property declarations should appear before child objects (seen at line N)
+section-order	services/VPN.qml	functions should appear before bindings (seen at line N)
+section-order	services/Wallpapers.qml	functions should appear before bindings (seen at line N)
+section-order	services/Wallpapers.qml	property declarations should appear before bindings (seen at line N)
+section-order	services/WinIcons.qml	functions should appear before bindings (seen at line N)
+section-order	services/WinIcons.qml	functions should appear before child objects (seen at line N)
+section-order	shell.qml	bindings should appear before child objects (seen at line N)
+section-order	shell.qml	functions should appear before bindings (seen at line N)
+section-order	shell.qml	property declarations should appear before bindings (seen at line N)
+section-order	shell.qml	property declarations should appear before child objects (seen at line N)
+section-order	utils/Paths.qml	property declarations should appear before functions (seen at line N)
