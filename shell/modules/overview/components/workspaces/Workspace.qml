@@ -40,6 +40,17 @@ StyledRect {
     color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
     border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
     border.width: active ? 2 : (isOccupied ? 0 : 2)
+    Layout.alignment: Qt.AlignVCenter
+    Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
+    Layout.preferredHeight: indicatorSize
+    Drag.active: workspaceDragHandler.active
+    Drag.source: root
+    Drag.hotSpot.x: width / 2
+    Drag.hotSpot.y: height / 2
+    transform: Translate {
+        x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
+        y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
+    }
     states: [
         State {
             when: workspaceDragHandler.active
@@ -51,11 +62,6 @@ StyledRect {
             }
         }
     ]
-
-    transform: Translate {
-        x: workspaceDragHandler.active ? workspaceDragHandler.translation.x : 0
-        y: workspaceDragHandler.active ? workspaceDragHandler.translation.y : 0
-    }
 
     Behavior on color { CAnim {} }
     Behavior on border.color { CAnim {} }
@@ -210,6 +216,12 @@ StyledRect {
 
                 radius: Tokens.rounding.small
                 color: Colours.tPalette.m3surfaceContainerHigh
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Drag.active: dragHandler.active
+                Drag.source: iconDelegate
+                Drag.hotSpot.x: width / 2
+                Drag.hotSpot.y: height / 2
                 states: [
                     State {
                         when: dragHandler.active
@@ -284,20 +296,7 @@ StyledRect {
                         }
                     }
                 }
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Drag.active: dragHandler.active
-                Drag.source: iconDelegate
-                Drag.hotSpot.x: width / 2
-                Drag.hotSpot.y: height / 2
             }
         }
     }
-    Layout.alignment: Qt.AlignVCenter
-    Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
-    Layout.preferredHeight: indicatorSize
-    Drag.active: workspaceDragHandler.active
-    Drag.source: root
-    Drag.hotSpot.x: width / 2
-    Drag.hotSpot.y: height / 2
 }
