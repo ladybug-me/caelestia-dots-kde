@@ -21,7 +21,7 @@ CORE_PACKAGES=(
     libaubio-dev aubio-tools lm-sensors libsensors-dev
     libpipewire-0.3-dev pipewire libc6
     qt6-base-dev qt6-base-private-dev qt6-declarative-dev qml6-module-qtquick qt6-wayland qt6-wayland-dev qt6-svg-dev qt6-shadertools-dev
-    libkf6globalaccel-dev libkf6windowsystem-dev libkf6kpipewire-dev libsecret-1-dev
+    libkf6globalaccel-dev libkf6windowsystem-dev libkpipewire-dev libsecret-1-dev
     ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libqalculate-dev qalc
 )
 
@@ -30,16 +30,16 @@ SHELL_PACKAGES=(
 )
 
 THEME_PACKAGES=(
-    adw-gtk3-theme fonts-rubik
+    adw-gtk3
 )
 
 UTILITY_PACKAGES=(
-    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng spectacle slurp grim xdg-utils sassc
+    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc
 )
 
 # Packages that need manual build or script fallback on Debian if apt package missing
 FALLBACK_PKGS=(
-    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty
+    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty adw-gtk3
 )
 
 # Build final package list based on selected group
@@ -48,10 +48,10 @@ FALLBACK_TARGETS=()
 case "$PACKAGE_GROUP" in
     core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit") ;;
     shell)  PACKAGES=("${SHELL_PACKAGES[@]}");  FALLBACK_TARGETS=("quickshell" "starship") ;;
-    themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=() ;;
+    themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=("adw-gtk3") ;;
     utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "wl-clip-persist" "satty") ;;
     all|*)  PACKAGES=("${CORE_PACKAGES[@]}" "${SHELL_PACKAGES[@]}" "${THEME_PACKAGES[@]}" "${UTILITY_PACKAGES[@]}")
-            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty") ;;
+            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty" "adw-gtk3") ;;
 esac
 
 log "Installing packages (group: $PACKAGE_GROUP)..."
@@ -189,6 +189,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             fi
             ;;
         wl-clip-persist)
+            sudo apt-get install -y cargo || true
             if command -v cargo >/dev/null 2>&1; then
                 cargo install wl-clip-persist || { err "cargo install $pkg failed."; FAILED_PKGS+=("$pkg"); }
             else
@@ -197,11 +198,24 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             fi
             ;;
         satty)
+            sudo apt-get install -y cargo || true
             if command -v cargo >/dev/null 2>&1; then
                 cargo install satty || { err "cargo install $pkg failed."; FAILED_PKGS+=("$pkg"); }
             else
                 log "satty not found via apt, skipping optional cargo build."
             fi
+            ;;
+        adw-gtk3)
+            tmpdir="$(mktemp -d)"
+            log "Downloading adw-gtk3 theme..."
+            if curl -sL "https://github.com/lassekongo83/adw-gtk3/releases/download/v5.3/adw-gtk3v5-3.tar.xz" | tar -xJ -C "$tmpdir"; then
+                mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/themes"
+                cp -r "$tmpdir/adw-gtk3" "$tmpdir/adw-gtk3-dark" "${XDG_DATA_HOME:-$HOME/.local/share}/themes/" || { err "Failed to install adw-gtk3"; FAILED_PKGS+=("$pkg"); }
+            else
+                err "Failed to download adw-gtk3 theme."
+                FAILED_PKGS+=("$pkg")
+            fi
+            rm -rf "$tmpdir"
             ;;
         *)
             err "No manual fallback defined for $pkg."
@@ -234,14 +248,18 @@ _pid_cc=$!
 curl -sL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/JetBrainsMono.zip" -o "/tmp/JetBrainsMono.zip" &
 _pid_jb=$!
 
+curl -sL "https://github.com/google/fonts/raw/main/ofl/rubik/Rubik-VariableFont_wght.ttf" -o "${XDG_DATA_HOME:-$HOME/.local/share}/fonts/Rubik-VariableFont_wght.ttf" &
+_pid_ru=$!
+
 # Wait for all downloads to finish
-wait $_pid_ms $_pid_cc $_pid_jb
+wait $_pid_ms $_pid_cc $_pid_jb $_pid_ru
 
 # Extract zip files
 unzip -qo "/tmp/CascadiaCode.zip" -d "${XDG_DATA_HOME:-$HOME/.local/share}/fonts" 2>/dev/null && rm -f "/tmp/CascadiaCode.zip" || { err "Failed to extract CascadiaCode font."; echo "CascadiaCode font" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_packages.txt"; }
 unzip -qo "/tmp/JetBrainsMono.zip" -d "${XDG_DATA_HOME:-$HOME/.local/share}/fonts" 2>/dev/null && rm -f "/tmp/JetBrainsMono.zip" || { err "Failed to extract JetBrains Mono Nerd Font."; echo "JetBrains Mono Nerd Font" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_packages.txt"; }
-# Material Symbols is a single .ttf, no extraction needed
+# Material Symbols and Rubik are single .ttf files, no extraction needed
 [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/fonts/MaterialSymbolsRounded.ttf" ]] || { err "Failed to download Material Symbols font."; echo "Material Symbols font" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_packages.txt"; }
+[[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/fonts/Rubik-VariableFont_wght.ttf" ]] || { err "Failed to download Rubik font."; echo "Rubik font" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_packages.txt"; }
 
 fc-cache -f
 
