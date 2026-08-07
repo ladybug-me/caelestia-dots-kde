@@ -203,7 +203,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             ;;
         satty)
             if ! command -v cargo-binstall >/dev/null 2>&1; then
-                curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash || true
+                curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash || true # ci:allow-curl-pipe
                 export PATH="$PATH:$HOME/.cargo/bin"
                 # Add to PATH permanently for future shell sessions
                 for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
@@ -225,7 +225,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             fi
             ;;
         uv)
-            if curl -LsSf https://astral.sh/uv/install.sh | sh; then
+            if curl -LsSf https://astral.sh/uv/install.sh | sh; then # ci:allow-curl-pipe
                 log "uv installed successfully."
                 export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
             else
