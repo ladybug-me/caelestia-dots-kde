@@ -34,12 +34,12 @@ THEME_PACKAGES=(
 )
 
 UTILITY_PACKAGES=(
-    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc
+    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc uv
 )
 
 # Packages that need manual build or script fallback on Debian if apt package missing
 FALLBACK_PKGS=(
-    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty adw-gtk3
+    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty adw-gtk3 uv
 )
 
 # Build final package list based on selected group
@@ -49,9 +49,9 @@ case "$PACKAGE_GROUP" in
     core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit") ;;
     shell)  PACKAGES=("${SHELL_PACKAGES[@]}");  FALLBACK_TARGETS=("quickshell" "starship") ;;
     themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=("adw-gtk3") ;;
-    utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "wl-clip-persist" "satty") ;;
+    utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "wl-clip-persist" "satty" "uv") ;;
     all|*)  PACKAGES=("${CORE_PACKAGES[@]}" "${SHELL_PACKAGES[@]}" "${THEME_PACKAGES[@]}" "${UTILITY_PACKAGES[@]}")
-            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty" "adw-gtk3") ;;
+            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty" "adw-gtk3" "uv") ;;
 esac
 
 log "Installing packages (group: $PACKAGE_GROUP)..."
@@ -119,18 +119,11 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
     log "apt failed or package missing for $pkg. Attempting manual fallback..."
     case "$pkg" in
         quickshell)
-            tmpdir="$(mktemp -d)"
-            sudo apt-get install -y cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-wayland-dev libwayland-dev libkf6globalaccel-dev || true
-            if git clone https://github.com/outfoxxed/quickshell "$tmpdir"; then
-                (
-                    cd "$tmpdir" || exit 1
-                    cmake -B build -GNinja -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build
-                ) || { err "Manual build for $pkg failed."; FAILED_PKGS+=("$pkg"); }
-            else
-                err "Failed to clone $pkg."
-                FAILED_PKGS+=("$pkg")
-            fi
-            rm -rf "$tmpdir"
+            log "Attempting to install quickshell from PPA..."
+            sudo apt-get install -y software-properties-common || true
+            sudo add-apt-repository -y ppa:avengemedia/danklinux || true
+            sudo apt-get update || true
+            sudo apt-get install -y quickshell || { err "Failed to install quickshell from PPA."; FAILED_PKGS+=("$pkg"); }
             ;;
         libcava|cava)
             tmpdir="$(mktemp -d)"
@@ -168,11 +161,11 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             ;;
         gpu-screen-recorder)
             tmpdir="$(mktemp -d)"
-            sudo apt-get install -y meson ninja-build pkg-config libxcomposite-dev libxrandr-dev libxfixes-dev libdrm-dev libwayland-dev libpipewire-0.3-dev libcap-dev libavcodec-dev libavformat-dev libavutil-dev || true
-            if git clone https://git.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
+            sudo apt-get install -y build-essential git ffmpeg meson libxi-dev libdrm-dev libavcodec-dev libavformat-dev libx11-dev libxcomposite-dev libxdamage-dev libxrender-dev libxrandr-dev libpulse-dev libva-dev libcap-dev libdbus-1-dev libpipewire-0.3-dev libavfilter-dev libvulkan-dev || true
+            if git clone https://repo.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
-                    meson setup build && ninja -C build && sudo meson install -C build
+                    sudo ./install.sh
                 ) || { err "Manual build for $pkg failed."; FAILED_PKGS+=("$pkg"); }
             else
                 err "Failed to clone $pkg."
@@ -189,26 +182,55 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             fi
             ;;
         wl-clip-persist)
-            sudo apt-get install -y cargo || true
+            sudo apt-get install -y build-essential cargo git libwayland-dev || true
             if command -v cargo >/dev/null 2>&1; then
-                cargo install wl-clip-persist || { err "cargo install $pkg failed."; FAILED_PKGS+=("$pkg"); }
+                tmpdir="$(mktemp -d)"
+                if git clone https://github.com/Linus789/wl-clip-persist "$tmpdir"; then
+                    (
+                        cd "$tmpdir" || exit 1
+                        cargo build --release
+                        sudo cp target/release/wl-clip-persist /usr/local/bin/
+                    ) || { err "cargo build $pkg failed."; FAILED_PKGS+=("$pkg"); }
+                else
+                    err "Failed to clone $pkg."
+                    FAILED_PKGS+=("$pkg")
+                fi
+                rm -rf "$tmpdir"
             else
                 err "Cargo not available to build $pkg."
                 FAILED_PKGS+=("$pkg")
             fi
             ;;
         satty)
-            sudo apt-get install -y cargo || true
-            if command -v cargo >/dev/null 2>&1; then
-                cargo install satty || { err "cargo install $pkg failed."; FAILED_PKGS+=("$pkg"); }
+            if ! command -v cargo-binstall >/dev/null 2>&1; then
+                curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash || true
+                export PATH="$PATH:$HOME/.cargo/bin"
+                # Add to PATH permanently for future shell sessions
+                grep -q 'export PATH="$HOME/.cargo/bin:$PATH"' "$HOME/.bashrc" || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.bashrc"
+                grep -q 'export PATH="$HOME/.cargo/bin:$PATH"' "$HOME/.zshrc" 2>/dev/null || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.zshrc" 2>/dev/null || true
+                if command -v fish >/dev/null 2>&1; then
+                    fish -c 'fish_add_path ~/.cargo/bin' || true
+                fi
+            fi
+            if command -v cargo-binstall >/dev/null 2>&1; then
+                cargo-binstall -y satty || { err "cargo-binstall $pkg failed."; FAILED_PKGS+=("$pkg"); }
             else
-                log "satty not found via apt, skipping optional cargo build."
+                err "cargo-binstall not available to install $pkg."
+                FAILED_PKGS+=("$pkg")
+            fi
+            ;;
+        uv)
+            if curl -LsSf https://astral.sh/uv/install.sh | sh; then
+                log "uv installed successfully."
+            else
+                err "Failed to install uv."
+                FAILED_PKGS+=("$pkg")
             fi
             ;;
         adw-gtk3)
             tmpdir="$(mktemp -d)"
             log "Downloading adw-gtk3 theme..."
-            if curl -sL "https://github.com/lassekongo83/adw-gtk3/releases/download/v5.3/adw-gtk3v5-3.tar.xz" | tar -xJ -C "$tmpdir"; then
+            if curl -sL "https://github.com/lassekongo83/adw-gtk3/releases/download/v5.3/adw-gtk3v5.3.tar.xz" | tar -xJ -C "$tmpdir"; then
                 mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/themes"
                 cp -r "$tmpdir/adw-gtk3" "$tmpdir/adw-gtk3-dark" "${XDG_DATA_HOME:-$HOME/.local/share}/themes/" || { err "Failed to install adw-gtk3"; FAILED_PKGS+=("$pkg"); }
             else
