@@ -128,7 +128,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
         libcava|cava)
             tmpdir="$(mktemp -d)"
             sudo apt-get install -y libasound2-dev libfftw3-dev libpulse-dev libiniparser-dev meson ninja-build cmake gcc g++ || true
-            if git clone https://github.com/LukashonakV/cava "$tmpdir"; then
+            if git clone --depth 1 https://github.com/LukashonakV/cava "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     if [ -f "meson.build" ]; then
@@ -148,7 +148,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
         app2unit)
             tmpdir="$(mktemp -d)"
             sudo apt-get install -y make || true
-            if git clone https://github.com/Vladimir-csp/app2unit "$tmpdir"; then
+            if git clone --depth 1 https://github.com/Vladimir-csp/app2unit "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     sudo make install
@@ -162,7 +162,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
         gpu-screen-recorder)
             tmpdir="$(mktemp -d)"
             sudo apt-get install -y build-essential git ffmpeg meson libxi-dev libdrm-dev libavcodec-dev libavformat-dev libx11-dev libxcomposite-dev libxdamage-dev libxrender-dev libxrandr-dev libpulse-dev libva-dev libcap-dev libdbus-1-dev libpipewire-0.3-dev libavfilter-dev libvulkan-dev || true
-            if git clone https://repo.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
+            if git clone --depth 1 https://repo.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     sudo ./install.sh
@@ -185,7 +185,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             sudo apt-get install -y build-essential cargo git libwayland-dev || true
             if command -v cargo >/dev/null 2>&1; then
                 tmpdir="$(mktemp -d)"
-                if git clone https://github.com/Linus789/wl-clip-persist "$tmpdir"; then
+                if git clone --depth 1 https://github.com/Linus789/wl-clip-persist "$tmpdir"; then
                     (
                         cd "$tmpdir" || exit 1
                         cargo build --release
@@ -305,7 +305,7 @@ if [[ "$INSTALL_DARKLY" == "true" ]]; then
     if ! command -v darkly >/dev/null 2>&1; then
         tmpdir="$(mktemp -d)"
         sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev qt6-base-dev qt6-declarative-dev || true
-        if git clone https://github.com/Bali10050/Darkly "$tmpdir"; then
+        if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
                 cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build

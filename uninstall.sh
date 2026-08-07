@@ -577,13 +577,18 @@ if [[ -f /etc/sudoers.d/ydotoold-nopasswd ]]; then
     ok "Removed sudoers rule: ydotoold-nopasswd"
 fi
 
-# Compatibility symlinks
-for link in /usr/local/bin/sass /usr/local/bin/qdbus6 /usr/local/bin/caelestia; do
-    if [[ -L "$link" ]]; then
+# Compatibility symlinks and manually installed binaries
+for link in /usr/local/bin/sass /usr/local/bin/qdbus6 /usr/local/bin/caelestia /usr/local/bin/wl-clip-persist /usr/local/bin/gpu-screen-recorder; do
+    if [[ -L "$link" || -f "$link" ]]; then
         sudo rm -f "$link"
-        ok "Removed symlink: $link"
+        ok "Removed: $link"
     fi
 done
+
+if [[ -f "$HOME/.cargo/bin/satty" ]]; then
+    rm -f "$HOME/.cargo/bin/satty"
+    ok "Removed: satty (cargo)"
+fi
 
 # Remove the user from the 'input' group if it was added by the installer
 if groups "$USER" | grep -q '\binput\b'; then
@@ -640,9 +645,10 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         foot fish eza fastfetch btop bash
         adw-gtk3-theme fonts-rubik papirus-icon-theme
         fuzzel swappy brightnessctl ddcutil network-manager imagemagick
-        tesseract-ocr tesseract-ocr-eng spectacle slurp grim xdg-utils sassc
+        tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc
         libdbus-1-dev libdbus-glib-1-dev python3-dev
-        qt6-style-kvantum kvantum
+        qt6-style-kvantum kvantum quickshell
+        libxi-dev libdrm-dev libx11-dev libxcomposite-dev libxdamage-dev libxrender-dev libxrandr-dev libpulse-dev libva-dev libcap-dev libavfilter-dev libvulkan-dev
     )
 
     if [[ "$BASE_DISTRO" == "arch" ]]; then
@@ -697,7 +703,8 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
     # Remove uv-installed tools
     if command -v uv >/dev/null 2>&1; then
         uv tool uninstall kde-material-you-colors 2>/dev/null || true
-        ok "Removed kde-material-you-colors (uv)"
+        uv tool uninstall konsave 2>/dev/null || true
+        ok "Removed uv tools: kde-material-you-colors, konsave"
     fi
 
     # Remove Krohnkite KWin script if installed

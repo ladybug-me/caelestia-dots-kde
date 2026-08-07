@@ -171,7 +171,7 @@ for pkg in "${COPR_PKGS[@]}"; do
         libcava)
             tmpdir="$(mktemp -d)"
             sudo dnf install -y alsa-lib-devel fftw-devel pulseaudio-libs-devel iniparser-devel meson ninja-build cmake gcc-c++
-            if git clone https://github.com/LukashonakV/cava "$tmpdir"; then
+            if git clone --depth 1 https://github.com/LukashonakV/cava "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     if [ -f "meson.build" ]; then
@@ -191,7 +191,7 @@ for pkg in "${COPR_PKGS[@]}"; do
         app2unit)
             tmpdir="$(mktemp -d)"
             sudo dnf install -y make
-            if git clone https://github.com/Vladimir-csp/app2unit "$tmpdir"; then
+            if git clone --depth 1 https://github.com/Vladimir-csp/app2unit "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     sudo make install
@@ -205,7 +205,7 @@ for pkg in "${COPR_PKGS[@]}"; do
         gpu-screen-recorder)
             tmpdir="$(mktemp -d)"
             sudo dnf install -y meson ninja-build pkgconf libXcomposite-devel libXrandr-devel libXfixes-devel libdrm-devel wayland-devel pipewire-devel libcap-devel ffmpeg-devel
-            if git clone https://git.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
+            if git clone --depth 1 https://git.dec05eba.com/gpu-screen-recorder "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     meson setup build && ninja -C build && sudo meson install -C build
@@ -270,7 +270,14 @@ fc-cache -f
 log "Building and Installing Darkly KDE Theme..."
 if [[ "$INSTALL_DARKLY" == "true" ]]; then
     if ! command -v darkly >/dev/null 2>&1; then
-        sudo dnf copr enable -y deltacopy/darkly && sudo dnf install -y darkly || true
+        tmpdir="$(mktemp -d)"
+        sudo dnf install -y cmake extra-cmake-modules gettext kf6-kconfig-devel kf6-kconfigwidgets-devel kf6-kcoreaddons-devel kf6-kguiaddons-devel kf6-ki18n-devel kf6-kiconthemes-devel kf6-kio-devel kf6-kwidgetsaddons-devel kf6-kwindowsystem-devel qt6-qtbase-devel qt6-qtdeclarative-devel || true
+        if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
+            (
+                cd "$tmpdir" || exit 1
+                cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build
+            ) || err "Failed to build Darkly theme from source."
+        fi
     fi
 else
     log "Skipping Darkly package installation by user choice."

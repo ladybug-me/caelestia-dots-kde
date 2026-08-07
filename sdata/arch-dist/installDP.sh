@@ -17,7 +17,7 @@ if ! command -v yay >/dev/null 2>&1; then
     log "yay not found - installing..."
     sudo pacman -S --needed --noconfirm base-devel git || true
     tmpdir="$(mktemp -d)"
-    git clone https://aur.archlinux.org/yay-bin.git "$tmpdir"
+    git clone --depth 1 https://aur.archlinux.org/yay-bin.git "$tmpdir"
     (
         cd "$tmpdir" || exit 1
         makepkg -si --noconfirm
@@ -93,7 +93,7 @@ if ! yay -S --needed --noconfirm "${PACKAGES[@]}"; then
         if ! yay -S --needed --noconfirm "$pkg"; then
             log "yay failed to install $pkg. Attempting manual build from AUR..."
             tmpdir="$(mktemp -d)"
-            if git clone "https://aur.archlinux.org/${pkg}.git" "$tmpdir"; then
+            if git clone --depth 1 "https://aur.archlinux.org/${pkg}.git" "$tmpdir"; then
                 (
                     cd "$tmpdir" || exit 1
                     makepkg -si --noconfirm
