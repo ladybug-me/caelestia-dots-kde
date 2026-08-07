@@ -79,7 +79,6 @@ Variants {
         DesktopIcons {
             screenData: win.modelData
             z: 3
-            visible: true
         }
         Loader {
             id: clockLoader
