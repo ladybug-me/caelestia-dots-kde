@@ -189,7 +189,7 @@ StyledRect {
                             id: thumb
 
                             property var streamRequest: null
-                            readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
+                            readonly property int screencastSerial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
 
                             color: Colours.tPalette.m3surfaceContainerHighest
                             radius: Tokens.rounding.small
@@ -224,7 +224,13 @@ StyledRect {
                                 }
                                 anchors.centerIn: parent
                                 visible: thumb.screencastSerial !== 0
-                                objectSerial: thumb.screencastSerial
+                                Component.onCompleted: {
+                                    if ("objectSerial" in this) {
+                                        this.objectSerial = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.objectSerial : 0)
+                                    } else if ("nodeId" in this) {
+                                        this.nodeId = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.nodeId : 0)
+                                    }
+                                }
                             }
                             // Close button - only revealed while hovering this thumbnail
                             StyledRect {

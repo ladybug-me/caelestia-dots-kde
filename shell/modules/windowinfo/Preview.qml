@@ -38,7 +38,7 @@ Item {
             }
                         property var streamRequest: null
                         property string lastRequestedAddress: ""
-                readonly property int screencastSerial: streamRequest ? streamRequest.objectSerial : 0
+                readonly property int screencastSerial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
 
                         function updateStream() {
                             const addr = (root.client && root.client.address) ? root.client.address : "";
@@ -120,7 +120,13 @@ Item {
 
                     anchors.fill: parent
                     visible: preview.screencastSerial !== 0
-                    objectSerial: preview.screencastSerial
+                    Component.onCompleted: {
+                        if ("objectSerial" in this) {
+                            this.objectSerial = Qt.binding(() => preview.streamRequest ? preview.streamRequest.objectSerial : 0)
+                        } else if ("nodeId" in this) {
+                            this.nodeId = Qt.binding(() => preview.streamRequest ? preview.streamRequest.nodeId : 0)
+                        }
+                    }
                 }
     }
 }

@@ -94,7 +94,7 @@ Item {
         readonly property real maxW: Tokens.sizes.launcher.windowSwitcherWidth
         readonly property real maxH: maxW / 16 * 9
         property var streamRequest: null
-        readonly property int serial: streamRequest ? streamRequest.objectSerial : 0
+        readonly property int serial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: Tokens.padding.large
@@ -143,7 +143,13 @@ Item {
             width: Math.min(parent.width, parent.height * previewBox.windowAspect)
             height: Math.min(parent.height, parent.width / previewBox.windowAspect)
             visible: previewBox.serial !== 0
-            objectSerial: previewBox.serial
+            Component.onCompleted: {
+                if ("objectSerial" in this) {
+                    this.objectSerial = Qt.binding(() => previewBox.streamRequest ? previewBox.streamRequest.objectSerial : 0)
+                } else if ("nodeId" in this) {
+                    this.nodeId = Qt.binding(() => previewBox.streamRequest ? previewBox.streamRequest.nodeId : 0)
+                }
+            }
         }
 
         // Close button — only revealed while hovering this tile, same convention as
