@@ -221,6 +221,9 @@ if command -v pacman >/dev/null; then
 elif command -v dnf >/dev/null; then
     info "Running system update via dnf..."
     sudo dnf upgrade --refresh -y || warn "System update was canceled or failed. Continuing with non-sudo parts..."
+elif command -v apt-get >/dev/null; then
+    info "Running system update via apt..."
+    sudo apt-get update && sudo apt-get upgrade -y || warn "System update was canceled or failed. Continuing with non-sudo parts..."
 fi
 
 # 3. Build script now handles GUI privilege escalation natively.

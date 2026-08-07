@@ -38,11 +38,16 @@ detect_base_distro() {
             fedora|nobara|bazzite|rhel|centos|almalinux|rocky)
                 detected="fedora"
                 ;;
+            debian|ubuntu|pop|mint|kali|raspbian|elementary|zorin|deepin|devuan)
+                detected="debian"
+                ;;
             *)
                 if echo "${ID_LIKE:-}" | grep -iq "arch"; then
                     detected="arch"
                 elif echo "${ID_LIKE:-}" | grep -iq "fedora"; then
                     detected="fedora"
+                elif echo "${ID_LIKE:-}" | grep -iq -E "debian|ubuntu"; then
+                    detected="debian"
                 fi
                 ;;
         esac
@@ -53,6 +58,8 @@ detect_base_distro() {
             detected="arch"
         elif command -v dnf >/dev/null 2>&1; then
             detected="fedora"
+        elif command -v apt-get >/dev/null 2>&1; then
+            detected="debian"
         fi
     fi
 
@@ -220,6 +227,9 @@ normalize_line_endings_first() {
                         fedora)
                             sudo dnf install -y dos2unix || return 1
                             ;;
+                        debian)
+                            sudo apt-get update && sudo apt-get install -y dos2unix || return 1
+                            ;;
                         *)
                             echo "[WARN]  Could not detect distro for automatic dos2unix installation."
                             return 1
@@ -302,6 +312,12 @@ if [[ "${CAELESTIA_TMUX_MASTER:-0}" == "0" ]]; then
                 sudo dnf install -y gcc-c++ cmake make tmux
             else
                 sudo dnf install -y gcc-c++ cmake make
+            fi
+        elif [[ "$BASE_DISTRO" == "debian" ]]; then
+            if [[ "${CAELESTIA_USE_TMUX:-1}" == "1" ]]; then
+                sudo apt-get update && sudo apt-get install -y build-essential g++ cmake make tmux
+            else
+                sudo apt-get update && sudo apt-get install -y build-essential g++ cmake make
             fi
         else
             echo "Could not auto-install build tools. Please install manually: ${MISSING_PKGS[*]}"

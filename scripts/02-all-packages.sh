@@ -8,7 +8,9 @@ if [[ "${BASE_DISTRO:-}" == "arch" ]]; then
     bash "$BUNDLE_DIR/sdata/arch-dist/installDP.sh"
 elif [[ "${BASE_DISTRO:-}" == "fedora" ]]; then
     bash "$BUNDLE_DIR/sdata/fedora-dist/installDP_fedora.sh"
+elif [[ "${BASE_DISTRO:-}" == "debian" ]]; then
+    bash "$BUNDLE_DIR/sdata/debian-dist/installDP_debian.sh"
 else
-    echo "[ERR] BASE_DISTRO must be 'arch' or 'fedora' (got '${BASE_DISTRO:-unset}')" >&2
+    echo "[ERR] BASE_DISTRO must be 'arch', 'fedora', or 'debian' (got '${BASE_DISTRO:-unset}')" >&2
     exit 1
 fi

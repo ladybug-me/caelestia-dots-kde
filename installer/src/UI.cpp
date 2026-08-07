@@ -285,10 +285,10 @@ while (!g_quit) {
     }
 
     string distro_select() {
-        vector<string> options = {"Arch-based", "Fedora", "Exit"};
+        vector<string> options = {"Arch-based", "Fedora", "Debian-based", "Exit"};
         int selected = 0;
         int box_width = 63;
-        int box_height = 12;
+        int box_height = 13;
 
         bool animated_once = false;
 
@@ -323,7 +323,10 @@ while (!g_quit) {
             if (key == "KEY_up") { if (selected > 0) selected--; }
             else if (key == "KEY_down") { if (selected < options.size() - 1) selected++; }
             else if (key == "enter") {
-                return options[selected];
+                if (options[selected] == "Arch-based") return "arch";
+                if (options[selected] == "Fedora") return "fedora";
+                if (options[selected] == "Debian-based") return "debian";
+                return "exit";
             }
         }
     }
@@ -394,8 +397,12 @@ while (!g_quit) {
 
             if (g_base_distro == "arch") {
                 Draw::text(left + 2, y++, fit_line("[OK] System updated (pacman -Syu)", content_width), Draw::color("green"));
-            } else {
+            } else if (g_base_distro == "fedora") {
                 Draw::text(left + 2, y++, fit_line("[OK] System updated (dnf upgrade)", content_width), Draw::color("green"));
+            } else if (g_base_distro == "debian") {
+                Draw::text(left + 2, y++, fit_line("[OK] System updated (apt-get upgrade)", content_width), Draw::color("green"));
+            } else {
+                Draw::text(left + 2, y++, fit_line("[OK] System updated", content_width), Draw::color("green"));
             }
 
             print_step("Package installation", fit_line("Packages installed (PKGBUILDs + fonts + deps)", content_width));

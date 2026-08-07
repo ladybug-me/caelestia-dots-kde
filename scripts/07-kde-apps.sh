@@ -37,13 +37,29 @@ install_if_missing() {
             return 1
         }
         echo "  [OK]  $pkg installed."
+    elif [[ "$BASE_DISTRO" == "debian" ]]; then
+        if dpkg -s "$pkg" >/dev/null 2>&1; then
+            echo "  [SKIP] $pkg already installed."
+            return 0
+        fi
+        echo "  Installing $pkg..."
+        sudo apt-get install -y "$pkg" 2>/dev/null || {
+            echo -e "  \033[0;31m[FAIL] Could not install $pkg  skipping.\033[0m"
+            return 1
+        }
+        echo "  [OK]  $pkg installed."
     fi
 }
 
 #  Kvantum 
 if [[ "${INSTALL_KVANTUM:-true}" == "true" ]]; then
-    install_if_missing kvantum
-    install_if_missing kvantum-qt5 || true   # optional qt5 support
+    if [[ "$BASE_DISTRO" == "debian" ]]; then
+        install_if_missing qt6-style-kvantum || install_if_missing kvantum
+        install_if_missing qt5-style-kvantum || true
+    else
+        install_if_missing kvantum
+        install_if_missing kvantum-qt5 || true   # optional qt5 support
+    fi
 else
     echo "  [SKIP] Skipping Kvantum installation by user choice."
 fi
@@ -74,6 +90,16 @@ if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
         else
             echo "  [SKIP] kde-material-you-colors already installed."
         fi
+    elif [[ "$BASE_DISTRO" == "debian" ]]; then
+        if ! command -v kde-material-you-colors >/dev/null 2>&1; then
+            echo "  Installing kde-material-you-colors via uv..."
+            sudo apt-get install -y libdbus-1-dev libdbus-glib-1-dev python3-dev
+            uv tool install kde-material-you-colors >/dev/null 2>&1 || {
+                echo -e "  \033[0;31m[FAIL] Could not install kde-material-you-colors  skipping.\033[0m"
+            }
+        else
+            echo "  [SKIP] kde-material-you-colors already installed."
+        fi
     fi
 else
     echo "  [SKIP] Skipping kde-material-you-colors installation. Uninstalling if present..."
@@ -86,6 +112,8 @@ else
     if [[ "$BASE_DISTRO" == "arch" ]]; then
         sudo pacman -Rs --noconfirm kde-material-you-colors 2>/dev/null || true
     elif [[ "$BASE_DISTRO" == "fedora" ]]; then
+        uv tool uninstall kde-material-you-colors 2>/dev/null || true
+    elif [[ "$BASE_DISTRO" == "debian" ]]; then
         uv tool uninstall kde-material-you-colors 2>/dev/null || true
     fi
 fi

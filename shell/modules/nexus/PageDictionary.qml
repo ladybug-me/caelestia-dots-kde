@@ -167,7 +167,7 @@ QtObject {
             description: qsTr("System updates"),
             category: "system",
             settings: [
-                { label: qsTr("Software Updates"), keywords: ["upgrade", "packages", "pacman"] },
+                { label: qsTr("Software Updates"), keywords: ["upgrade", "packages", "pacman", "dnf", "apt"] },
                 { label: qsTr("Firmware Updates"), keywords: ["bios", "fwupd", "hardware"] }
             ]
         },

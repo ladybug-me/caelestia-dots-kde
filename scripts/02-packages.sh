@@ -30,6 +30,8 @@ if ! command -v python3 >/dev/null 2>&1 || ! python3 -m pip --version >/dev/null
         sudo pacman -S --needed --noconfirm python python-pip
     elif [[ "$BASE_DISTRO" == "fedora" ]]; then
         sudo dnf install -y python3 python3-pip
+    elif [[ "$BASE_DISTRO" == "debian" ]]; then
+        sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv
     fi
 fi
 

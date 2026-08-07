@@ -15,6 +15,12 @@ elif [[ "${BASE_DISTRO:-unknown}" == "fedora" ]]; then
     else
         sudo dnf upgrade --refresh
     fi
+elif [[ "${BASE_DISTRO:-unknown}" == "debian" ]]; then
+    if [[ -n "${CONFIRM_ARG:-}" ]]; then
+        sudo apt-get update && sudo apt-get upgrade -y
+    else
+        sudo apt-get update && sudo apt-get upgrade
+    fi
 else
     echo "[WARN] Distro not set properly, skipping system update."
 fi

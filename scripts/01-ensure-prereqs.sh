@@ -52,4 +52,20 @@ elif [[ "$BASE_DISTRO" == "fedora" ]]; then
         sudo dnf install -y yq createrepo_c jq
         echo "[OK]  Prerequisites installed."
     fi
+elif [[ "$BASE_DISTRO" == "debian" ]]; then
+    echo "==> Checking for Debian prerequisites (apt-get, yq, jq, build-essential)..."
+
+    if ! command -v apt-get >/dev/null 2>&1; then
+        echo -e "\033[0;31m[ERR] apt-get not found. This installer requires a Debian-based distribution.\033[0m"
+        exit 1
+    fi
+
+    if command -v yq >/dev/null 2>&1 && command -v jq >/dev/null 2>&1 && command -v g++ >/dev/null 2>&1; then
+        echo "[OK]  Prerequisites are already installed."
+    else
+        echo "==> Missing prerequisites  installing..."
+        sudo apt-get update
+        sudo apt-get install -y yq jq build-essential git curl
+        echo "[OK]  Prerequisites installed."
+    fi
 fi

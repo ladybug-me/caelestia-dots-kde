@@ -41,9 +41,11 @@ if [ -f /etc/os-release ]; then
     case "$ID" in
         arch|cachyos|endeavouros|manjaro|artix) BASE_DISTRO="arch" ;;
         fedora|nobara|bazzite|rhel|centos|almalinux|rocky) BASE_DISTRO="fedora" ;;
+        debian|ubuntu|pop|mint|kali|raspbian|elementary|zorin|deepin|devuan) BASE_DISTRO="debian" ;;
         *)
             if echo "${ID_LIKE:-}" | grep -iq "arch"; then BASE_DISTRO="arch"
             elif echo "${ID_LIKE:-}" | grep -iq "fedora"; then BASE_DISTRO="fedora"
+            elif echo "${ID_LIKE:-}" | grep -iq -E "debian|ubuntu"; then BASE_DISTRO="debian"
             else BASE_DISTRO="unknown"; fi
             ;;
     esac
@@ -53,11 +55,12 @@ fi
 
 if [[ "$BASE_DISTRO" == "unknown" ]]; then
     echo -e "${YELLOW}Could not detect distribution. Select base:${RST}"
-    echo "  1) Arch-based   2) Fedora-based   3) Exit"
-    read -r -p "Choice [1-3]: " _dc
+    echo "  1) Arch-based   2) Fedora-based   3) Debian-based   4) Exit"
+    read -r -p "Choice [1-4]: " _dc
     case "$_dc" in
         1) BASE_DISTRO="arch" ;;
         2) BASE_DISTRO="fedora" ;;
+        3) BASE_DISTRO="debian" ;;
         *) die "Exiting." ;;
     esac
 fi
@@ -626,6 +629,22 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         keyd
     )
 
+    DEBIAN_PACKAGES=(
+        cmake ninja-build ccache g++ build-essential
+        wl-clipboard cliphist inotify-tools wireplumber trash-cli jq yq
+        libaubio-dev aubio-tools lm-sensors libsensors-dev
+        libpipewire-0.3-dev pipewire
+        qt6-base-dev qt6-base-private-dev qt6-declarative-dev qml6-module-qtquick qt6-wayland qt6-wayland-dev qt6-svg-dev qt6-shadertools-dev
+        libkf6globalaccel-dev libkf6windowsystem-dev libkf6kpipewire-dev libsecret-1-dev
+        ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libqalculate-dev qalc
+        foot fish eza fastfetch btop bash
+        adw-gtk3-theme fonts-rubik papirus-icon-theme
+        fuzzel swappy brightnessctl ddcutil network-manager imagemagick
+        tesseract-ocr tesseract-ocr-eng spectacle slurp grim xdg-utils sassc
+        libdbus-1-dev libdbus-glib-1-dev python3-dev
+        qt6-style-kvantum kvantum
+    )
+
     if [[ "$BASE_DISTRO" == "arch" ]]; then
         warn "The following packages will be removed:"
         printf '  %s\n' "${ARCH_PACKAGES[@]}"
@@ -651,6 +670,18 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
             sudo dnf remove -y "${FEDORA_PACKAGES[@]}" 2>/dev/null || \
                 warn "Some packages could not be removed. Check manually."
             ok "Fedora packages removed"
+        else
+            skip "Package removal skipped"
+        fi
+    elif [[ "$BASE_DISTRO" == "debian" ]]; then
+        warn "The following packages will be removed:"
+        printf '  %s\n' "${DEBIAN_PACKAGES[@]}"
+        echo
+        read -r -p "Proceed? [y/N]: " _pkg_confirm
+        if [[ "${_pkg_confirm,,}" == "y" || "${_pkg_confirm,,}" == "yes" ]]; then
+            sudo apt-get remove -y "${DEBIAN_PACKAGES[@]}" 2>/dev/null || \
+                warn "Some packages could not be removed. Check manually."
+            ok "Debian packages removed"
         else
             skip "Package removal skipped"
         fi
