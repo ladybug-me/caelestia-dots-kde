@@ -34,12 +34,12 @@ THEME_PACKAGES=(
 )
 
 UTILITY_PACKAGES=(
-    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc uv
+    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc uv konsave
 )
 
 # Packages that need manual build or script fallback on Debian if apt package missing
 FALLBACK_PKGS=(
-    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty adw-gtk3 uv
+    quickshell starship libcava app2unit gpu-screen-recorder wl-clip-persist satty adw-gtk3 uv konsave
 )
 
 # Build final package list based on selected group
@@ -49,9 +49,9 @@ case "$PACKAGE_GROUP" in
     core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit") ;;
     shell)  PACKAGES=("${SHELL_PACKAGES[@]}");  FALLBACK_TARGETS=("quickshell" "starship") ;;
     themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=("adw-gtk3") ;;
-    utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "wl-clip-persist" "satty" "uv") ;;
+    utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "wl-clip-persist" "satty" "uv" "konsave") ;;
     all|*)  PACKAGES=("${CORE_PACKAGES[@]}" "${SHELL_PACKAGES[@]}" "${THEME_PACKAGES[@]}" "${UTILITY_PACKAGES[@]}")
-            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty" "adw-gtk3" "uv") ;;
+            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "wl-clip-persist" "satty" "adw-gtk3" "uv" "konsave") ;;
 esac
 
 log "Installing packages (group: $PACKAGE_GROUP)..."
@@ -206,14 +206,19 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
                 curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash || true
                 export PATH="$PATH:$HOME/.cargo/bin"
                 # Add to PATH permanently for future shell sessions
-                grep -q 'export PATH="$HOME/.cargo/bin:$PATH"' "$HOME/.bashrc" || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.bashrc"
-                grep -q 'export PATH="$HOME/.cargo/bin:$PATH"' "$HOME/.zshrc" 2>/dev/null || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$HOME/.zshrc" 2>/dev/null || true
+                for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
+                    touch "$rc" 2>/dev/null || true
+                    grep -q 'export PATH="$HOME/.cargo/bin:$PATH"' "$rc" 2>/dev/null || echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> "$rc" 2>/dev/null || true
+                done
                 if command -v fish >/dev/null 2>&1; then
-                    fish -c 'fish_add_path ~/.cargo/bin' || true
+                    fish -c 'fish_add_path ~/.cargo/bin' >/dev/null 2>&1 || true
                 fi
             fi
             if command -v cargo-binstall >/dev/null 2>&1; then
-                cargo-binstall -y satty || { err "cargo-binstall $pkg failed."; FAILED_PKGS+=("$pkg"); }
+                cargo-binstall -y satty || {
+                    log "Normal cargo-binstall failed. Trying with sudo..."
+                    sudo "$(command -v cargo-binstall)" -y satty || { err "sudo cargo-binstall $pkg failed."; FAILED_PKGS+=("$pkg"); }
+                }
             else
                 err "cargo-binstall not available to install $pkg."
                 FAILED_PKGS+=("$pkg")
@@ -222,8 +227,18 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
         uv)
             if curl -LsSf https://astral.sh/uv/install.sh | sh; then
                 log "uv installed successfully."
+                export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
             else
                 err "Failed to install uv."
+                FAILED_PKGS+=("$pkg")
+            fi
+            ;;
+        konsave)
+            export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+            if command -v uv >/dev/null 2>&1; then
+                uv tool install konsave || { err "uv tool install $pkg failed."; FAILED_PKGS+=("$pkg"); }
+            else
+                err "uv is required to install $pkg, but it is not available."
                 FAILED_PKGS+=("$pkg")
             fi
             ;;
@@ -290,7 +305,7 @@ if [[ "$INSTALL_DARKLY" == "true" ]]; then
     if ! command -v darkly >/dev/null 2>&1; then
         tmpdir="$(mktemp -d)"
         sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev qt6-base-dev qt6-declarative-dev || true
-        if git clone https://github.com/kaluran/darkly "$tmpdir"; then
+        if git clone https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
                 cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build
