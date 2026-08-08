@@ -34,7 +34,7 @@ THEME_PACKAGES=(
 )
 
 UTILITY_PACKAGES=(
-    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc uv konsave
+    fuzzel swappy brightnessctl ddcutil network-manager imagemagick tesseract-ocr tesseract-ocr-eng kde-spectacle slurp grim xdg-utils sassc python3-venv uv konsave
 )
 
 # Packages that need manual build or script fallback on Debian if apt package missing
@@ -308,7 +308,7 @@ if [[ "$INSTALL_DARKLY" == "true" ]]; then
         if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
-                cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build
+                cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_QT5=OFF && cmake --build build -j"$(nproc)" && sudo cmake --install build
             ) || err "Failed to build Darkly theme from source."
         fi
         rm -rf "$tmpdir"

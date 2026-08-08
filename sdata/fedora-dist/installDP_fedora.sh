@@ -275,7 +275,7 @@ if [[ "$INSTALL_DARKLY" == "true" ]]; then
         if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
-                cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && sudo cmake --install build
+                cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_QT5=OFF && cmake --build build -j"$(nproc)" && sudo cmake --install build
             ) || err "Failed to build Darkly theme from source."
         fi
     fi
