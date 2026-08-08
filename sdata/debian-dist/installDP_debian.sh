@@ -304,7 +304,7 @@ log "Building and Installing Darkly KDE Theme..."
 if [[ "$INSTALL_DARKLY" == "true" ]]; then
     if ! command -v darkly >/dev/null 2>&1; then
         tmpdir="$(mktemp -d)"
-        sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev qt6-base-dev qt6-declarative-dev || true
+        sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev libkf6colorscheme-dev libkf6kcmutils-dev libkf6kirigami-dev qt6-base-dev qt6-declarative-dev || true
         if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
