@@ -640,7 +640,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         libaubio-dev aubio-tools lm-sensors libsensors-dev
         libpipewire-0.3-dev pipewire
         qt6-base-dev qt6-base-private-dev qt6-declarative-dev qml6-module-qtquick qt6-wayland qt6-wayland-dev qt6-svg-dev qt6-shadertools-dev
-        libkf6globalaccel-dev libkf6windowsystem-dev libkf6kpipewire-dev libsecret-1-dev
+        libkf6globalaccel-dev libkf6windowsystem-dev libkf6kpipewire-dev libsecret-1-dev libkirigami-dev libkdecorations3-dev libkf6style-dev libkf6kcmutils-dev libkf6colorscheme-dev
         ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libqalculate-dev qalc
         foot fish eza fastfetch btop bash
         adw-gtk3-theme fonts-rubik papirus-icon-theme

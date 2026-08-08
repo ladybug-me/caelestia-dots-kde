@@ -304,11 +304,11 @@ log "Building and Installing Darkly KDE Theme..."
 if [[ "$INSTALL_DARKLY" == "true" ]]; then
     if ! command -v darkly >/dev/null 2>&1; then
         tmpdir="$(mktemp -d)"
-        sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev libkf6colorscheme-dev libkf6kcmutils-dev libkf6kirigami-dev qt6-base-dev qt6-declarative-dev qtbase5-dev qtdeclarative5-dev || true
+        sudo apt-get install -y cmake extra-cmake-modules gettext libkf6config-dev libkf6configwidgets-dev libkf6coreaddons-dev libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev libkf6kio-dev libkf6widgetsaddons-dev libkf6windowsystem-dev libkf6colorscheme-dev libkf6kcmutils-dev libkirigami-dev libkdecorations3-dev libkf6style-dev qt6-base-dev qt6-declarative-dev || true
         if git clone --depth 1 https://github.com/Bali10050/Darkly "$tmpdir"; then
             (
                 cd "$tmpdir" || exit 1
-                cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j"$(nproc)" && cd build && sudo cmake --install .
+                cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_QT5=OFF && cmake --build build -j"$(nproc)" && cd build && sudo cmake --install .
             ) || err "Failed to build Darkly theme from source."
         fi
         rm -rf "$tmpdir"
