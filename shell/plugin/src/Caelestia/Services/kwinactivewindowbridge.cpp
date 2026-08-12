@@ -47,6 +47,12 @@ void KWinActiveWindowBridgeAdaptor::notifyWindowList(const QString& windowsJson)
     }
 }
 
+void KWinActiveWindowBridgeAdaptor::notifyWindowListPing() {
+    if (auto* bridge = qobject_cast<KWinActiveWindowBridge*>(parent())) {
+        bridge->queueWindowListRefresh();
+    }
+}
+
 void KWinActiveWindowBridgeAdaptor::notifyCurrentDesktop(int desktop) {
     if (auto* bridge = qobject_cast<KWinActiveWindowBridge*>(parent())) {
         bridge->updateCurrentDesktop(desktop);
@@ -131,7 +137,7 @@ function notifyActiveWindowReal() {
     if (window && (window.resourceClass === "quickshell" || window.resourceClass === "plasmashell")) {
         return; // Ignore shell panels taking focus
     }
-    
+
     if (!window) {
         if (lastActiveUuid !== null) {
             lastActiveUuid = null;
@@ -178,7 +184,7 @@ function onActiveWindowChanged() {
 }
 
 function notifyWindowList() {
-    callDBus(BUS, PATH, IFACE, "notifyWindowList", JSON.stringify(caelestiaWindowList()));
+    callDBus(BUS, PATH, IFACE, "notifyWindowListPing");
 }
 
 workspace.windowActivated.connect(onActiveWindowChanged);
@@ -270,6 +276,9 @@ KWinActiveWindowBridge::KWinActiveWindowBridge(QObject* parent)
                 f.close();
             }
             m_pendingWindowListJson.clear();
+        } else {
+            // A ping was received, ask KWin for the full list now
+            refreshWindows();
         }
     });
 
@@ -623,6 +632,12 @@ void KWinActiveWindowBridge::previousDesktop() {
 
 void KWinActiveWindowBridge::updateWindowList(const QString& windowsJson) {
     m_pendingWindowListJson = windowsJson;
+    if (!m_windowListDebounce->isActive()) {
+        m_windowListDebounce->start();
+    }
+}
+
+void KWinActiveWindowBridge::queueWindowListRefresh() {
     if (!m_windowListDebounce->isActive()) {
         m_windowListDebounce->start();
     }
