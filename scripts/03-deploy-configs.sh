@@ -99,10 +99,17 @@ for config in fish fastfetch; do
     fi
 
     if [[ -d "$FISH_DIR/$config" ]]; then
-        # Remove
-        rm -rf "$HOME/.config/$config"
-        # Deploy
-        cp -r "$FISH_DIR/$config" "$HOME/.config/$config"
+        dest="$HOME/.config/$config"
+        # Determine force flag name (INSTALL_<UPPER>_FORCE)
+        force_var="INSTALL_$(echo "$config" | tr '[:lower:]' '[:upper:]')_FORCE"
+        if [[ -e "$dest" && "${!force_var:-false}" != "true" ]]; then
+            echo "    [SKIP] $config already exists; set ${force_var}=true to overwrite"
+            continue
+        fi
+
+        # Remove and deploy (force overwrite requested)
+        rm -rf "$dest"
+        cp -r "$FISH_DIR/$config" "$dest"
         echo "    Deployed: $config"
     fi
 done
@@ -147,7 +154,7 @@ if [[ "${APPLY_LOCKSCREEN:-true}" != "false" ]]; then
     if command -v kwriteconfig6 >/dev/null 2>&1 && command -v kpackagetool6 >/dev/null 2>&1; then
         if kpackagetool6 --list -t Plasma/Wallpaper 2>/dev/null | grep -q "net.dosowisko.PlasmaApplicationWallpaper"; then
             kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin net.dosowisko.PlasmaApplicationWallpaper
-            kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key command "quickshell -p $HOME/.config/quickshell/caelestia/lockscreen.qml"
+            kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key command "quickshell -p $HOME/.config/quic[...]"
             kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key fps 1
             kwriteconfig6 --file kscreenlockerrc --group Greeter --group LnF --group General --key alwaysShowClock false
             kwriteconfig6 --file kscreenlockerrc --group Greeter --group LnF --group General --key showMediaControls false

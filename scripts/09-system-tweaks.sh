@@ -35,7 +35,7 @@ echo "  caelestia KDE  Live System Tweaks"
 echo ""
 
 # 
-# TWEAK: Disable KDE OSD popups (volume, brightness notifications)
+# TWEAK: Disable KDE OSD popups (volume/brightness notifications)
 # 
 tweak_disable_kde_osd() {
     info "Disabling KDE OSD popups (volume/brightness)..."
@@ -77,6 +77,12 @@ EOF
 # 
 tweak_five_desktops() {
     info "Configuring 5 virtual desktops..."
+
+    # Do not overwrite user's existing desktop count unless explicitly requested
+    if [[ -f "$HOME/.config/kwinrc" ]] && grep -q "^Number=" "$HOME/.config/kwinrc" 2>/dev/null; then
+        info "Existing virtual desktop configuration found; skipping default desktop setup."
+        return
+    fi
 
     kwriteconfig6 --file kwinrc --group "Desktops" --key "Number" "5"
     kwriteconfig6 --file kwinrc --group "Desktops" --key "Rows" "1"
@@ -122,17 +128,23 @@ tweak_default_shell() {
         if [[ "$current_shell" == "$shell_path" ]]; then
             info "Shell is already set to $shell_path. Skipping chsh."
         else
-            run_sudo_non_interactive chsh -s "$shell_path" "$USER" 2>/dev/null || warn "Failed to change shell for $USER without prompting. You may need to run 'sudo chsh -s $shell_path $USER' manually."
+            warn "Shell differs from target ($current_shell != $shell_path). We will NOT change user's login shell during updates unless INSTALL_FORCE_CHANGE_SHELL=true. To force change, set INSTALL_FORCE_CHANGE_SHELL=true."
+            if [[ "${INSTALL_FORCE_CHANGE_SHELL:-false}" == "true" ]]; then
+                run_sudo_non_interactive chsh -s "$shell_path" "$USER" 2>/dev/null || warn "Failed to change shell for $USER without prompting. You may need to run 'sudo chsh -s $shell_path $USER' manually."
+            fi
         fi
         
         local konsole_profile_dir="$HOME/.local/share/konsole"
         mkdir -p "$konsole_profile_dir"
         
-        # Inject target shell into all existing Konsole profiles
+        # Inject target shell into all existing Konsole profiles (only if they don't already set a command)
         local profiles_found=0
         for profile in "$konsole_profile_dir"/*.profile; do
             if [[ -f "$profile" ]]; then
-                kwriteconfig6 --file "$profile" --group "General" --key "Command" "$shell_path"
+                # Only set Command if not already configured
+                if ! grep -q "^Command=" "$profile" 2>/dev/null; then
+                    kwriteconfig6 --file "$profile" --group "General" --key "Command" "$shell_path"
+                fi
                 profiles_found=1
             fi
         done
