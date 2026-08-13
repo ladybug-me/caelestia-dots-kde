@@ -224,7 +224,12 @@ if [[ "${1:-}" == "--list" ]]; then
     exit 0
 fi
 
-tweak_disable_kde_osdtweak_default_shell
+# Fix: separate concatenated tweak calls
+
+tweak_disable_kde_osd
+
+tweak_default_shell
+
 tweak_patch_caelestia_cli
 tweak_reload_kde
 
