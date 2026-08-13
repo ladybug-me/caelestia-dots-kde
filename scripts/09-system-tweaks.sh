@@ -183,9 +183,9 @@ old = '''    for pt in pts_path.iterdir():
 new = '''    for pt in pts_path.iterdir():
         if pt.name.isdigit():
             try:
-                res = subprocess.run([\"ps\", \"-t\", pt.name, \"-o\", \"comm=\"], capture_output=True, text=True)
+                res = subprocess.run(["ps", "-t", pt.name, "-o", "comm="], capture_output=True, text=True)
                 processes = [p.strip() for p in res.stdout.splitlines() if p.strip()]
-                if not any(re.match(r\"^(bash|zsh|fish|sh|dash|mksh|tcsh|csh|ksh)$\", p) for p in processes):
+                if not any(re.match(r"^(bash|zsh|fish|sh|dash|mksh|tcsh|csh|ksh)$", p) for p in processes):
                     continue
             except Exception:
                 pass
@@ -224,8 +224,7 @@ if [[ "${1:-}" == "--list" ]]; then
     exit 0
 fi
 
-tweak_disable_kde_osd
-tweak_default_shell
+tweak_disable_kde_osdtweak_default_shell
 tweak_patch_caelestia_cli
 tweak_reload_kde
 
