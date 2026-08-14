@@ -199,6 +199,12 @@ void KWinActiveWindowBridge::setWindowDesktop(const QString &address, int deskto
         if (auto wsState = KWinWorkspaceState::instance()) {
             QString uuid = wsState->uuidForIndex(desktopId);
             if (!uuid.isEmpty()) {
+                QStringList currentDesktops = handle->desktops();
+                for (const QString& oldUuid : currentDesktops) {
+                    if (oldUuid != uuid) {
+                        handle->request_leave_virtual_desktop(oldUuid);
+                    }
+                }
                 handle->request_enter_virtual_desktop(uuid);
             }
         }
