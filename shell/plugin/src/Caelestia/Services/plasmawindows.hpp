@@ -97,9 +97,29 @@ public:
 
 signals:
     void windowWithUuid(uint32_t id, const QString& uuid);
+    void windowMapped(uint32_t id);
 
 protected:
     void org_kde_plasma_window_management_window_with_uuid(uint32_t id, const QString& uuid) override;
+    void org_kde_plasma_window_management_window(uint32_t id) override;
+    void org_kde_plasma_window_management_stacking_order_changed(wl_array* ids) override;
+    void org_kde_plasma_window_management_stacking_order_uuid_changed(const QString& uuids) override;
+    void org_kde_plasma_window_management_stacking_order_changed_2() override;
+};
+
+class PlasmaStackingOrder : public QObject, public QtWayland::org_kde_plasma_stacking_order {
+    Q_OBJECT
+public:
+    explicit PlasmaStackingOrder(struct ::org_kde_plasma_stacking_order* object, QObject* parent = nullptr);
+    ~PlasmaStackingOrder() override;
+
+protected:
+    void org_kde_plasma_stacking_order_window(const QString &uuid) override;
+    void org_kde_plasma_stacking_order_done() override;
+
+signals:
+    void window(const QString& uuid);
+    void done();
 };
 
 /**
@@ -141,6 +161,7 @@ signals:
 
 private slots:
     void onWindowWithUuid(uint32_t id, const QString& uuid);
+    void onWindowMapped(uint32_t id);
 
 private:
     explicit PlasmaWindows(QObject* parent = nullptr);

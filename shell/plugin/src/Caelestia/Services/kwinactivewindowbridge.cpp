@@ -1,5 +1,6 @@
 #include "kwinactivewindowbridge.hpp"
 #include "plasmawindows.hpp"
+#include "kwinworkspacestate.hpp"
 #include <QGuiApplication>
 #include <QScreen>
 #include <QtDBus/QDBusConnection>
@@ -80,19 +81,22 @@ QString KWinActiveWindowBridge::getOutputNameForGeometry(int x, int y, int w, in
 }
 
 QVariantMap KWinActiveWindowBridge::windowToVariant(PlasmaWindowHandle* w) const {
-    int desktopId = -1;
+    QVariant desktopId = -1;
+    QVariant desktopUuid = "";
     if (!w->desktops().isEmpty()) {
-        // Wait, KWinWorkspaceState tracks ID to Int. Just pass the first desktop ID for now, 
-        // QuickShell components look up `workspace: { id: N }`
-        // We will just try to convert it to an int, or fallback to 1.
+        QString firstDesktop = w->desktops().first();
         bool ok;
-        int parsed = w->desktops().first().toInt(&ok);
+        int parsed = firstDesktop.toInt(&ok);
         if (ok) {
             desktopId = parsed;
+            desktopUuid = firstDesktop;
         } else {
-            // Plasma 6 uses UUIDs for desktops. If it fails to parse as int, we might need to 
-            // map it. For now, we leave it as 1, or try to find it in KWinWorkspaceState.
-            desktopId = 1;
+            // Plasma 6 uses UUIDs for desktops. Pass the UUID string directly to QML.
+            desktopUuid = firstDesktop;
+            if (auto wsState = KWinWorkspaceState::instance()) {
+                int idx = wsState->indexForId(firstDesktop);
+                if (idx != -1) desktopId = idx;
+            }
         }
     }
 
@@ -110,7 +114,7 @@ QVariantMap KWinActiveWindowBridge::windowToVariant(PlasmaWindowHandle* w) const
         {"minimized", w->isMinimized()},
         {"floating", !w->isFullscreen() && !w->isMaximized()}, // Fallback for floating state
         {"output", getOutputNameForGeometry(w->x(), w->y(), w->width(), w->height())},
-        {"workspace", QVariantMap{{"id", desktopId}}}
+        {"workspace", QVariantMap{{"id", desktopId}, {"uuid", desktopUuid}}}
     };
     return map;
 }
@@ -121,6 +125,7 @@ void KWinActiveWindowBridge::buildWindowList() {
     bool activeWindowFound = false;
 
     auto* plasmaWindows = PlasmaWindows::instance();
+// qDebug() << "KWinActiveWindowBridge::buildWindowList called, total UUIDs:" << plasmaWindows->windowUuids().size();
     for (const QString& uuid : plasmaWindows->windowUuids()) {
         if (auto* handle = plasmaWindows->handleFor(uuid)) {
             QVariantMap w = windowToVariant(handle);
@@ -129,9 +134,12 @@ void KWinActiveWindowBridge::buildWindowList() {
                 newActiveWindow = w;
                 activeWindowFound = true;
             }
+        } else {
+// qDebug() << "KWinActiveWindowBridge: handleFor returned nullptr for uuid" << uuid;
         }
     }
 
+// qDebug() << "KWinActiveWindowBridge: Emitting windowListChanged with" << m_windowList.size() << "windows.";
     emit windowListChanged();
 
     if (activeWindowFound && m_activeWindow != newActiveWindow) {
@@ -188,10 +196,12 @@ void KWinActiveWindowBridge::setWindowProperty(const QString &address, const QSt
 
 void KWinActiveWindowBridge::setWindowDesktop(const QString &address, int desktopId) {
     if (auto* handle = PlasmaWindows::instance()->handleFor(address)) {
-        // Wait, Wayland virtual desktop id is a string (UUID).
-        // Since we don't know the string UUID here easily without coupling to KWinWorkspaceState,
-        // we can use D-Bus for this specific action if we need to.
-        // But let's leave it as a stub or implement it using DBus VirtualDesktopManager.
+        if (auto wsState = KWinWorkspaceState::instance()) {
+            QString uuid = wsState->uuidForIndex(desktopId);
+            if (!uuid.isEmpty()) {
+                handle->request_enter_virtual_desktop(uuid);
+            }
+        }
     }
 }
 

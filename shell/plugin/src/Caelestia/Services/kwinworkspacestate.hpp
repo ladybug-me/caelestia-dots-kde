@@ -26,6 +26,10 @@ class KWinWorkspaceState : public QObject
     QML_SINGLETON
 
 public:
+    static KWinWorkspaceState* instance();
+    int indexForId(const QString& id) const;
+    QString uuidForIndex(int index) const;
+
     explicit KWinWorkspaceState(QObject *parent = nullptr);
     ~KWinWorkspaceState() override;
 

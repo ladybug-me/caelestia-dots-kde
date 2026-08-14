@@ -23,9 +23,33 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, KWinDesktopData &
     return argument;
 }
 
+static KWinWorkspaceState* s_instance = nullptr;
+
+KWinWorkspaceState* KWinWorkspaceState::instance() {
+    return s_instance;
+}
+
+int KWinWorkspaceState::indexForId(const QString& id) const {
+    for (int i = 0; i < m_desktops.size(); ++i) {
+        if (m_desktops[i].id == id) {
+            return i + 1; // Workspaces are 1-indexed in QML
+        }
+    }
+    return -1;
+}
+
+QString KWinWorkspaceState::uuidForIndex(int index) const {
+    int pos = index - 1; // Workspaces are 1-indexed in QML
+    if (pos >= 0 && pos < m_desktops.size()) {
+        return m_desktops[pos].id;
+    }
+    return QString();
+}
+
 KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
     : QObject(parent)
 {
+    s_instance = this;
     qDBusRegisterMetaType<KWinDesktopData>();
     qDBusRegisterMetaType<QList<KWinDesktopData>>();
 
@@ -46,7 +70,12 @@ KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
     fetchInitialState();
 }
 
-KWinWorkspaceState::~KWinWorkspaceState() = default;
+KWinWorkspaceState::~KWinWorkspaceState()
+{
+    if (s_instance == this) {
+        s_instance = nullptr;
+    }
+}
 
 void KWinWorkspaceState::fetchInitialState() {
     QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties", "Get");
