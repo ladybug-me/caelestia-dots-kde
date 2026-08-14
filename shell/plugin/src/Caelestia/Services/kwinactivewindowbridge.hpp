@@ -37,10 +37,8 @@ public:
     Q_INVOKABLE void setWindowDesktop(const QString &address, int desktopId);
     Q_INVOKABLE void setFullscreen(const QString& address, bool fullscreen);
     Q_INVOKABLE void setMaximized(const QString& address, bool maximized);
-    
-    Q_INVOKABLE void setDesktop(int desktopId);
-    Q_INVOKABLE void nextDesktop();
-    Q_INVOKABLE void previousDesktop();
+
+
 
     // Kept for backward compatibility, though no longer backed by JS
     Q_INVOKABLE void refreshWindows();
@@ -63,7 +61,7 @@ private:
     QVariantMap m_activeWindow;
     QVariantList m_windowList;
     QString m_activeOutputName;
-    
+
     QTimer m_updateTimer;
 };
 

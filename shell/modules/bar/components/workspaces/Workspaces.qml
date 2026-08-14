@@ -149,35 +149,17 @@ Item {
                         return;
                     if (container.activeWsId !== ws) {
                         if (typeof KWinWorkspaceState !== "undefined") {
-                            const wId = KWinWorkspaceState.workspaces[ws - 1]?.id || ws.toString();
-                            KWinWorkspaceState.switchTo(wId);
-                        } else {
-                            const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
-                            if (isKWin) {
-                                KWinActiveWindowBridge.setDesktop(ws);
-                            } else {
-                                Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "setCurrentDesktop", ws.toString()]);
-                            }
+                            KWinWorkspaceState.setDesktop(ws);
                         }
                     }
                 }
                 onWheel: event => {
                     if (!Config.bar.scrollActions.workspaces) return;
-                    
-                    const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
-                    
+
                     if (event.angleDelta.y > 0 || event.angleDelta.x > 0) {
-                        if (isKWin) {
-                            KWinActiveWindowBridge.previousDesktop();
-                        } else {
-                            Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "previousDesktop"]);
-                        }
+                        KWinWorkspaceState.previousDesktop();
                     } else if (event.angleDelta.y < 0 || event.angleDelta.x < 0) {
-                        if (isKWin) {
-                            KWinActiveWindowBridge.nextDesktop();
-                        } else {
-                            Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "nextDesktop"]);
-                        }
+                        KWinWorkspaceState.nextDesktop();
                     }
                 }
             }

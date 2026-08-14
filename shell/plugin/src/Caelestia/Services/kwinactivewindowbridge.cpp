@@ -10,7 +10,7 @@ namespace caelestia::services {
 
 KWinActiveWindowBridge::KWinActiveWindowBridge(QObject *parent)
     : QObject(parent) {
-    
+
     m_updateTimer.setSingleShot(true);
     m_updateTimer.setInterval(50);
     connect(&m_updateTimer, &QTimer::timeout, this, &KWinActiveWindowBridge::buildWindowList);
@@ -67,7 +67,7 @@ QString KWinActiveWindowBridge::getOutputNameForGeometry(int x, int y, int w, in
     QRect windowRect(x, y, w, h);
     int maxIntersectArea = 0;
     QString bestScreenName = "";
-    
+
     for (QScreen* screen : QGuiApplication::screens()) {
         QRect intersect = screen->geometry().intersected(windowRect);
         int area = intersect.width() * intersect.height();
@@ -76,7 +76,7 @@ QString KWinActiveWindowBridge::getOutputNameForGeometry(int x, int y, int w, in
             bestScreenName = screen->name();
         }
     }
-    
+
     return bestScreenName;
 }
 
@@ -187,7 +187,7 @@ void KWinActiveWindowBridge::setWindowProperty(const QString &address, const QSt
         else if (property == "keep_below") state = QtWayland::org_kde_plasma_window_management::state_keep_below;
         else if (property == "skip_taskbar") state = QtWayland::org_kde_plasma_window_management::state_skiptaskbar;
         else if (property == "demands_attention") state = QtWayland::org_kde_plasma_window_management::state_demands_attention;
-        
+
         if (state != 0) {
             handle->set_state(enable ? state : 0, state);
         }
@@ -217,19 +217,7 @@ void KWinActiveWindowBridge::setMaximized(const QString& address, bool maximized
     }
 }
 
-void KWinActiveWindowBridge::setDesktop(int desktopId) {
-    // Left empty for now, QML should use KWinWorkspaceState directly
-}
 
-void KWinActiveWindowBridge::nextDesktop() {
-    QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/KWin", "org.kde.KWin", "nextDesktop");
-    QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
-}
-
-void KWinActiveWindowBridge::previousDesktop() {
-    QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/KWin", "org.kde.KWin", "previousDesktop");
-    QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
-}
 
 void KWinActiveWindowBridge::refreshWindows() {
     scheduleWindowListUpdate();

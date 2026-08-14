@@ -289,70 +289,70 @@ Scope {
         // qmllint enable unresolved-type
         name: "workspace1"
         description: "Switch to workspace 1"
-        onPressed: KWinActiveWindowBridge.setDesktop(1)
+        onPressed: KWinWorkspaceState.setDesktop(1)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace2"
         description: "Switch to workspace 2"
-        onPressed: KWinActiveWindowBridge.setDesktop(2)
+        onPressed: KWinWorkspaceState.setDesktop(2)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace3"
         description: "Switch to workspace 3"
-        onPressed: KWinActiveWindowBridge.setDesktop(3)
+        onPressed: KWinWorkspaceState.setDesktop(3)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace4"
         description: "Switch to workspace 4"
-        onPressed: KWinActiveWindowBridge.setDesktop(4)
+        onPressed: KWinWorkspaceState.setDesktop(4)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace5"
         description: "Switch to workspace 5"
-        onPressed: KWinActiveWindowBridge.setDesktop(5)
+        onPressed: KWinWorkspaceState.setDesktop(5)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace6"
         description: "Switch to workspace 6"
-        onPressed: KWinActiveWindowBridge.setDesktop(6)
+        onPressed: KWinWorkspaceState.setDesktop(6)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace7"
         description: "Switch to workspace 7"
-        onPressed: KWinActiveWindowBridge.setDesktop(7)
+        onPressed: KWinWorkspaceState.setDesktop(7)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace8"
         description: "Switch to workspace 8"
-        onPressed: KWinActiveWindowBridge.setDesktop(8)
+        onPressed: KWinWorkspaceState.setDesktop(8)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace9"
         description: "Switch to workspace 9"
-        onPressed: KWinActiveWindowBridge.setDesktop(9)
+        onPressed: KWinWorkspaceState.setDesktop(9)
     }
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "workspace10"
         description: "Switch to workspace 10"
-        onPressed: KWinActiveWindowBridge.setDesktop(10)
+        onPressed: KWinWorkspaceState.setDesktop(10)
     }
     IpcHandler {
         function toggle(drawer: string): void {

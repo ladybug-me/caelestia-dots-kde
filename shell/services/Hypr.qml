@@ -84,12 +84,12 @@ Singleton {
     readonly property var focusedWorkspace: ({ id: root.mockActiveWs, name: root.mockActiveWs.toString() })
     readonly property var focusedMonitor: {
         let _ = root.monitors;
-        
+
         let targetName = "";
         if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.activeOutputName) {
             targetName = KWinActiveWindowBridge.activeOutputName;
         }
-        
+
         if (targetName !== "") {
             for (let key in root._monitorCache) {
                 if (root._monitorCache[key].name === targetName) {
@@ -97,13 +97,13 @@ Singleton {
                 }
             }
         }
-        
+
         for (let key in root._monitorCache) {
             if (root._monitorCache[key].focused) {
                 return root._monitorCache[key];
             }
         }
-        
+
         let keys = Object.keys(root._monitorCache);
         if (keys.length > 0) return root._monitorCache[keys[0]];
         return null;
@@ -265,10 +265,11 @@ Singleton {
             if (isKDE) {
                 // Relative workspace scrolling: "r+1" / "r-1"
                 if (/^r[+-]\d+$/.test(ws)) {
-                    if (ws.charAt(1) === "+")
-                        KWinActiveWindowBridge.nextDesktop();
-                    else
-                        KWinActiveWindowBridge.previousDesktop();
+                    if (ws.charAt(1) === "+") {
+                        KWinWorkspaceState.nextDesktop();
+                    } else {
+                        KWinWorkspaceState.previousDesktop();
+                    }
                 } else {
                     KWinWorkspaceState.switchTo(ws);
                 }
@@ -311,8 +312,8 @@ Singleton {
             if (isKDE) {
                 const method = (request === "dpms on") ? "turnOn" : "turnOff";
                 Quickshell.execDetached([
-                    "qdbus6", "org.kde.Solid.PowerManagement", 
-                    "/org/kde/Solid/PowerManagement/Actions/DPMSControl", 
+                    "qdbus6", "org.kde.Solid.PowerManagement",
+                    "/org/kde/Solid/PowerManagement/Actions/DPMSControl",
                     "org.kde.Solid.PowerManagement.Actions.DPMSControl." + method
                 ]);
             }

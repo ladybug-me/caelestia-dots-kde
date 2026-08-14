@@ -99,7 +99,7 @@ StyledRect {
                 } else {
                     const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
                     if (isKWin) {
-                        KWinActiveWindowBridge.setDesktop(root.ws);
+                        KWinWorkspaceState.setDesktop(root.ws);
                     } else {
                         Quickshell.execDetached(["qdbus6", "org.kde.KWin", "/KWin", "setCurrentDesktop", root.ws.toString()]);
                     }
