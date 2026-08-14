@@ -147,21 +147,20 @@ cmake --install build || {
     exit 1
 }
 
-info "Configuring workspace-tracker KWin Effect..."
-rm -rf build-workspace-tracker
-cmake -B build-workspace-tracker -S kwin-effects/workspace-tracker -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/.local" || {
-    warn "Workspace tracker KWin effect configuration failed."
+info "Building and installing workspace-tracker KWin Effect..."
+rm -rf kwin-effects/workspace-tracker/build
+cmake -B kwin-effects/workspace-tracker/build -S kwin-effects/workspace-tracker -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr > /dev/null || {
+    warn "Workspace tracker configuration failed."
+}
+cmake --build kwin-effects/workspace-tracker/build -j"$(nproc)" > /dev/null || {
+    warn "Workspace tracker build failed."
+}
+sudo cmake --install kwin-effects/workspace-tracker/build > /dev/null || {
+    warn "Workspace tracker system installation failed."
 }
 
-info "Building workspace-tracker KWin Effect..."
-cmake --build build-workspace-tracker -j"$(nproc)" || {
-    warn "Workspace tracker KWin effect build failed."
-}
-
-info "Installing workspace-tracker KWin Effect..."
-cmake --install build-workspace-tracker || {
-    warn "Workspace tracker KWin effect installation failed."
-}
+qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
+ok "Installed workspace-tracker to KDE."
 
 # Validate every generated QML module before declaring success. Checking only
 # Caelestia.Config lets a partial install reach Quickshell and fail as a large
