@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Caelestia Workspace Tracker
+Comment=Exports workspace transition offsets via Unix socket for Caelestia Shell
+Icon=preferences-system-windows
+Type=Service
+X-KDE-ServiceTypes=KWin/Effect
+X-KDE-PluginInfo-Author=Caelestia
+X-KDE-PluginInfo-Email=caelestia@example.com
+X-KDE-PluginInfo-Name=kwin_workspace_tracker
+X-KDE-PluginInfo-Version=1.0
+X-KDE-PluginInfo-Category=Appearance
+X-KDE-PluginInfo-License=GPL
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-API=javascript

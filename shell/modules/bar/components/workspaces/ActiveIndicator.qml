@@ -5,6 +5,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.effects
 import qs.services
+import Caelestia.Services
 
 StyledRect {
     id: root
@@ -30,9 +31,41 @@ StyledRect {
     readonly property int offsetAmt: rawScale < 0.8 ? 1 : 0
 
     property var currentItem: workspaces.count > 0 ? workspaces.itemAt(currentWsIdx) : null
-    property real leading: currentItem ? (isHorizontal ? currentItem.x : currentItem.y) : 0
-    property real trailing: currentItem ? (isHorizontal ? currentItem.x : currentItem.y) : 0
-    property real currentSize: currentItem ? (currentItem as Workspace).size : 0
+    property real rawSwipeOffset: KWinWorkspaceState.swipeOffset
+    property bool isSwiping: rawSwipeOffset !== 0.0
+
+    property real basePos: currentItem ? (isHorizontal ? currentItem.x : currentItem.y) : 0
+    property real baseSize: currentItem ? (currentItem as Workspace).size : 0
+
+    property real interpolatedPos: {
+        if (!isSwiping) return basePos;
+        let startIdx = currentWsIdx;
+        let endIdx = rawSwipeOffset > 0 ? startIdx + 1 : startIdx - 1;
+        if (endIdx < 0 || endIdx >= workspaces.count) endIdx = startIdx;
+        let startItem = workspaces.itemAt(startIdx);
+        let endItem = workspaces.itemAt(endIdx);
+        if (!startItem || !endItem) return basePos;
+        let startPos = isHorizontal ? startItem.x : startItem.y;
+        let endPos = isHorizontal ? endItem.x : endItem.y;
+        return startPos + Math.abs(rawSwipeOffset) * (endPos - startPos);
+    }
+
+    property real interpolatedSize: {
+        if (!isSwiping) return baseSize;
+        let startIdx = currentWsIdx;
+        let endIdx = rawSwipeOffset > 0 ? startIdx + 1 : startIdx - 1;
+        if (endIdx < 0 || endIdx >= workspaces.count) endIdx = startIdx;
+        let startItem = workspaces.itemAt(startIdx);
+        let endItem = workspaces.itemAt(endIdx);
+        if (!startItem || !endItem) return baseSize;
+        let startSize = startItem.size;
+        let endSize = endItem.size;
+        return startSize + Math.abs(rawSwipeOffset) * (endSize - startSize);
+    }
+
+    property real leading: interpolatedPos
+    property real trailing: interpolatedPos
+    property real currentSize: interpolatedSize
     property real offset: Math.min(leading, trailing)
     property real size: {
         const s = Math.abs(leading - trailing) + currentSize;
@@ -77,13 +110,13 @@ StyledRect {
     }
 
     Behavior on leading {
-        enabled: root.Config.bar.workspaces.activeTrail
+        enabled: root.Config.bar.workspaces.activeTrail && !root.isSwiping
 
         EAnim {}
     }
 
     Behavior on trailing {
-        enabled: root.Config.bar.workspaces.activeTrail
+        enabled: root.Config.bar.workspaces.activeTrail && !root.isSwiping
 
         EAnim {
             duration: Tokens.anim.durations.normal * 2
@@ -91,19 +124,19 @@ StyledRect {
     }
 
     Behavior on currentSize {
-        enabled: root.Config.bar.workspaces.activeTrail
+        enabled: root.Config.bar.workspaces.activeTrail && !root.isSwiping
 
         EAnim {}
     }
 
     Behavior on offset {
-        enabled: !root.Config.bar.workspaces.activeTrail
+        enabled: !root.Config.bar.workspaces.activeTrail && !root.isSwiping
 
         EAnim {}
     }
 
     Behavior on size {
-        enabled: !root.Config.bar.workspaces.activeTrail
+        enabled: !root.Config.bar.workspaces.activeTrail && !root.isSwiping
 
         EAnim {}
     }

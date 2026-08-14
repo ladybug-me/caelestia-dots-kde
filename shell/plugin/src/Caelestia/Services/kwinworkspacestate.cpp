@@ -1,10 +1,13 @@
 #include "kwinworkspacestate.hpp"
 #include <QDebug>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QDBusInterface>
 #include <QDBusMetaType>
+#include <QStandardPaths>
 #include <algorithm>
 
 namespace caelestia::services {
@@ -46,6 +49,10 @@ QString KWinWorkspaceState::uuidForIndex(int index) const {
     return QString();
 }
 
+double KWinWorkspaceState::swipeOffset() const {
+    return m_swipeOffset;
+}
+
 KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
     : QObject(parent)
 {
@@ -68,12 +75,52 @@ KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
                 this, SLOT(onRowsChanged(uint)));
 
     fetchInitialState();
+    setupTrackerServer();
 }
 
 KWinWorkspaceState::~KWinWorkspaceState()
 {
+    if (m_trackerServer) {
+        m_trackerServer->close();
+        m_trackerServer->deleteLater();
+    }
     if (s_instance == this) {
         s_instance = nullptr;
+    }
+}
+
+void KWinWorkspaceState::setupTrackerServer() {
+    m_trackerServer = new QLocalServer(this);
+    QString socketPath = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation) + QStringLiteral("/caelestia-workspace-tracker");
+    QLocalServer::removeServer(socketPath);
+
+    qDebug() << "KWinWorkspaceState: Setting up tracker server at" << socketPath;
+
+    if (m_trackerServer->listen(socketPath)) {
+        connect(m_trackerServer, &QLocalServer::newConnection, this, [this]() {
+            qDebug() << "KWinWorkspaceState: New connection to tracker server";
+            QLocalSocket* clientSocket = m_trackerServer->nextPendingConnection();
+            connect(clientSocket, &QLocalSocket::readyRead, this, [this, clientSocket]() {
+                while (clientSocket->bytesAvailable() >= 12) { // sizeof(DesktopTransition) = 12
+                    struct DesktopTransition {
+                        int desktop;
+                        float x;
+                        float y;
+                    } payload;
+
+                    clientSocket->read(reinterpret_cast<char*>(&payload), sizeof(payload));
+
+                    double newOffset = static_cast<double>(payload.x);
+                    if (m_swipeOffset != newOffset) {
+                        m_swipeOffset = newOffset;
+                        emit swipeOffsetChanged();
+                    }
+                }
+            });
+            connect(clientSocket, &QLocalSocket::disconnected, clientSocket, &QLocalSocket::deleteLater);
+        });
+    } else {
+        qDebug() << "Failed to start workspace tracker server:" << m_trackerServer->errorString();
     }
 }
 

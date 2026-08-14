@@ -6,6 +6,8 @@
 #include <QQmlEngine>
 #include <QDBusArgument>
 
+class QLocalServer;
+
 namespace caelestia::services {
 
 struct KWinDesktopData {
@@ -22,6 +24,7 @@ class KWinWorkspaceState : public QObject
     Q_OBJECT
     Q_PROPERTY(int activeId READ activeId NOTIFY activeIdChanged)
     Q_PROPERTY(QVariantList workspaces READ workspaces NOTIFY workspacesChanged)
+    Q_PROPERTY(double swipeOffset READ swipeOffset NOTIFY swipeOffsetChanged)
     QML_ELEMENT
     QML_SINGLETON
 
@@ -35,6 +38,7 @@ public:
 
     int activeId() const;
     QVariantList workspaces() const;
+    double swipeOffset() const;
 
     Q_INVOKABLE void switchTo(const QString& id);
     Q_INVOKABLE void createWorkspace(const QString& name = QString());
@@ -47,6 +51,7 @@ public:
 signals:
     void activeIdChanged();
     void workspacesChanged();
+    void swipeOffsetChanged();
 
 private slots:
     void onDesktopCreated(const QString& id, const caelestia::services::KWinDesktopData& desktopData);
@@ -59,11 +64,14 @@ private slots:
 private:
     void fetchInitialState();
     void updateActiveId();
+    void setupTrackerServer();
 
     QList<KWinDesktopData> m_desktops;
     QString m_currentUuid;
     int m_activeId = 0;
     uint m_rows = 1;
+    double m_swipeOffset = 0.0;
+    ::QLocalServer* m_trackerServer = nullptr;
 };
 
 } // namespace caelestia::services
