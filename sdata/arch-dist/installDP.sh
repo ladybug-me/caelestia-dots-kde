@@ -47,7 +47,7 @@ THEME_PACKAGES=(
 )
 
 UTILITY_PACKAGES=(
-    swappy brightnessctl ddcutil networkmanager imagemagick tesseract tesseract-data-eng satty spectacle xdg-utils sassc bat ripgrep lazygit xdg-user-dirs
+    swappy ddcutil networkmanager imagemagick tesseract tesseract-data-eng satty spectacle xdg-utils sassc bat ripgrep lazygit xdg-user-dirs
 )
 
 # Build final package list based on selected group
