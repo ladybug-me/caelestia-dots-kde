@@ -8,7 +8,7 @@
 #include <qjsonobject.h>
 #include <qjsonarray.h>
 #include <qjsondocument.h>
-#include <qfilesystemwatcher.h>
+
 
 namespace caelestia::services {
 
@@ -72,7 +72,6 @@ private:
     QVariantList m_windowList;
     QVariantMap m_windowByAddress;
     QVariantList m_addresses;
-    QFileSystemWatcher* m_kwinWatcher{nullptr};
 
     QVariantList m_workspaces;
     QVariantMap m_workspaceById;
@@ -93,6 +92,8 @@ private:
     void socketStateChanged(QLocalSocket::LocalSocketState state);
     void readEvent();
     void handleEvent(const QString& event);
+    void onKWinWindowListChanged();
+    void onKWinActiveWindowChanged();
 
     SocketPtr makeRequestJson(const QString& request, const std::function<void(bool, QJsonDocument)>& callback);
     SocketPtr makeRequest(const QString& request, const std::function<void(bool, QByteArray)>& callback);

@@ -1,10 +1,9 @@
 #include "hyprlandstate.hpp"
+#include "plasmawindows.hpp"
 
 #include <qdir.h>
 #include <qlocalsocket.h>
 #include <qloggingcategory.h>
-#include <qfilesystemwatcher.h>
-#include <qfile.h>
 
 Q_LOGGING_CATEGORY(lcHyprState, "caelestia.services.hyprlandstate", QtInfoMsg)
 
@@ -19,24 +18,13 @@ HyprlandState::HyprlandState(QObject* parent)
 
     const auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
     if (his.isEmpty()) {
-        qCWarning(lcHyprState) << "$HYPRLAND_INSTANCE_SIGNATURE is unset. Using KDE fallback bridge.";
-        m_kwinWatcher = new QFileSystemWatcher(this);
-        QString runtimeDir = qEnvironmentVariable("XDG_RUNTIME_DIR", "/tmp");
-        QString filePath = runtimeDir + "/qs_kwin_windows.json";
-        if (!QFile::exists(filePath)) {
-            QFile f(filePath);
-            if (f.open(QIODevice::WriteOnly)) {
-                f.write("[]");
-                f.close();
-            }
-        }
-        if (QFile::exists(filePath)) {
-            m_kwinWatcher->addPath(filePath);
-        }
-        connect(m_kwinWatcher, &QFileSystemWatcher::fileChanged, this, [this](const QString&) {
-            updateWindowList();
-        });
-        updateAll();
+        qCWarning(lcHyprState) << "$HYPRLAND_INSTANCE_SIGNATURE is unset. Using KDE (PlasmaWindows) bridge.";
+        auto* pw = PlasmaWindows::instance();
+        connect(pw, &PlasmaWindows::windowAdded, this, &HyprlandState::onKWinWindowListChanged);
+        connect(pw, &PlasmaWindows::handleLost, this, &HyprlandState::onKWinWindowListChanged);
+        // Push the initial state that PlasmaWindows already has
+        onKWinWindowListChanged();
+        onKWinActiveWindowChanged();
         return;
     }
 
@@ -90,43 +78,53 @@ void HyprlandState::updateAll() {
     updateActiveWorkspace();
 }
 
-void HyprlandState::updateWindowList() {
-    if (m_kwinWatcher) {
-        QFile f(qEnvironmentVariable("XDG_RUNTIME_DIR", "/tmp") + "/qs_kwin_windows.json");
-        if (f.open(QIODevice::ReadOnly)) {
-            const auto doc = QJsonDocument::fromJson(f.readAll());
-            const auto clients = doc.array();
-            QVariantList newList;
-            QVariantMap newByAddress;
-            QVariantList newAddresses;
-            QVariantMap newActiveWindow;
-            for (const auto& c : clients) {
-                const auto obj = c.toObject();
-                const auto cls = obj.value("class").toString();
-                if (cls.isEmpty() || cls.toLower().contains("quickshell")) continue;
-                const auto variant = obj.toVariantMap();
-                newList.append(variant);
-                const auto addr = obj.value("address").toString();
-                newByAddress.insert(addr, variant);
-                newAddresses.append(addr);
-                
-                if (obj.value("focused").toBool()) {
-                    newActiveWindow = variant;
-                }
-            }
-            m_windowList = newList;
-            m_windowByAddress = newByAddress;
-            m_addresses = newAddresses;
-            
-            if (m_activeWindow != newActiveWindow) {
-                m_activeWindow = newActiveWindow;
-                emit activeWindowChanged();
-            }
-            
-            emit windowListChanged();
+void HyprlandState::onKWinWindowListChanged() {
+    auto* pw = PlasmaWindows::instance();
+    QVariantList newList;
+    QVariantMap newByAddress;
+    QVariantList newAddresses;
+    QVariantMap newActiveWindow;
+    for (const QString& uuid : pw->windowUuids()) {
+        auto* handle = pw->handleFor(uuid);
+        if (!handle) continue;
+        const auto cls = handle->appId();
+        if (cls.isEmpty() || cls.toLower().contains("quickshell")) continue;
+        const QVariantMap variant = {
+            { "address", handle->uuid() },
+            { "pid",     static_cast<int>(handle->pid()) },
+            { "title",   handle->title() },
+            { "class",   handle->appId() },
+            { "x",       handle->x() },
+            { "y",       handle->y() },
+            { "width",   static_cast<int>(handle->width()) },
+            { "height",  static_cast<int>(handle->height()) },
+            { "fullscreen", handle->isFullscreen() },
+            { "maximized",  handle->isMaximized() },
+            { "minimized",  handle->isMinimized() },
+        };
+        newList.append(variant);
+        newByAddress.insert(handle->uuid(), variant);
+        newAddresses.append(handle->uuid());
+        if (handle->isActive()) {
+            newActiveWindow = variant;
         }
-        return;
     }
+    m_windowList = newList;
+    m_windowByAddress = newByAddress;
+    m_addresses = newAddresses;
+    emit windowListChanged();
+    // Also update active window from the same pass
+    if (m_activeWindow != newActiveWindow) {
+        m_activeWindow = newActiveWindow;
+        emit activeWindowChanged();
+    }
+}
+
+void HyprlandState::onKWinActiveWindowChanged() {
+    // Active window state is derived in onKWinWindowListChanged; nothing more needed here.
+}
+
+void HyprlandState::updateWindowList() {
 
     if (!m_clientsRefresh.isNull()) {
         m_clientsRefresh->close();
