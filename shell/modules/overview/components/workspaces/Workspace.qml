@@ -20,6 +20,8 @@ StyledRect {
     required property int groupOffset
     readonly property bool isWorkspace: true
     property real scaleFactor: 1.0
+    property real swipeOffset: 0.0
+    property bool isSwiping: false
     readonly property int baseIndicatorSize: 120
     readonly property int baseWidth: 200
     readonly property int indicatorSize: Math.floor(baseIndicatorSize * scaleFactor)
@@ -30,6 +32,17 @@ StyledRect {
     readonly property bool hasWindows: isOccupied
     property var kwinWindowList: KWinActiveWindowBridge.windowList
     readonly property bool active: activeWsId === ws
+    readonly property real swipeWeight: {
+        if (!isSwiping || swipeOffset === 0.0) return active ? 1.0 : 0.0;
+        const activeIdx = activeWsId - 1;
+        const targetIdx = swipeOffset > 0 ? activeIdx + 1 : activeIdx - 1;
+        const t = Math.abs(swipeOffset);
+        const myIdx = ws - 1;
+        if (myIdx === activeIdx) return 1.0 - t;
+        if (myIdx === targetIdx) return t;
+        return 0.0;
+    }
+    property real smoothSwipeWeight: swipeWeight
 
     signal selected()
     signal reselected()
@@ -38,7 +51,12 @@ StyledRect {
     implicitHeight: indicatorSize
     radius: Tokens.rounding.large
     color: active ? Colours.layer(Colours.palette.m3surfaceContainerHighest, 1) : (isOccupied ? Colours.tPalette.m3surfaceContainer : "transparent")
-    border.color: active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant
+    border.color: isSwiping ? Qt.rgba(
+        Colours.palette.m3primary.r * smoothSwipeWeight + Colours.tPalette.m3outlineVariant.r * (1.0 - smoothSwipeWeight),
+        Colours.palette.m3primary.g * smoothSwipeWeight + Colours.tPalette.m3outlineVariant.g * (1.0 - smoothSwipeWeight),
+        Colours.palette.m3primary.b * smoothSwipeWeight + Colours.tPalette.m3outlineVariant.b * (1.0 - smoothSwipeWeight),
+        Colours.palette.m3primary.a * smoothSwipeWeight + Colours.tPalette.m3outlineVariant.a * (1.0 - smoothSwipeWeight))
+        : (active ? Colours.palette.m3primary : Colours.tPalette.m3outlineVariant)
     border.width: active ? 2 : (isOccupied ? 0 : 2)
     Layout.alignment: Qt.AlignVCenter
     Layout.preferredWidth: Math.floor(baseWidth * scaleFactor)
@@ -64,7 +82,15 @@ StyledRect {
     ]
 
     Behavior on color { CAnim {} }
-    Behavior on border.color { CAnim {} }
+    Behavior on smoothSwipeWeight {
+        enabled: root.isSwiping
+
+        SmoothedAnimation {
+            velocity: -1
+            duration: 60
+            easing.type: Easing.Linear
+        }
+    }
     DragHandler {
         id: workspaceDragHandler
 

@@ -18,6 +18,8 @@ Item {
     property int maxWidth: 1000
     readonly property real requiredWidth: (count + 1) * 200 + count * Tokens.spacing.small
     readonly property real scaleFactor: requiredWidth > maxWidth ? maxWidth / requiredWidth : 1.0
+    property real swipeOffset: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.swipeOffset : 0.0
+    property bool isSwiping: false
     readonly property var occupied: {
         let occ = {};
         for (let i = 1; i <= root.count; ++i) {
@@ -52,6 +54,15 @@ Item {
     implicitWidth: layout.implicitWidth + Tokens.padding.small
     implicitHeight: layout.implicitHeight + Tokens.padding.small
 
+    onSwipeOffsetChanged: {
+        if (swipeOffset !== 0.0) {
+            isSwiping = true;
+            wsSwipeSettleTimer.stop();
+        } else {
+            wsSwipeSettleTimer.restart();
+        }
+    }
+
     Connections {
         function onWorkspacesChanged() {
             if (typeof KWinActiveWindowBridge !== "undefined") {
@@ -60,6 +71,13 @@ Item {
         }
 
         target: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState : null
+    }
+    Timer {
+        id: wsSwipeSettleTimer
+
+        interval: 120
+        repeat: false
+        onTriggered: root.isSwiping = false
     }
     Item {
         anchors.fill: parent
@@ -105,6 +123,8 @@ Item {
                     activeWsId: root.activeWsId
                     occupied: root.occupied
                     groupOffset: 0
+                    swipeOffset: root.swipeOffset
+                    isSwiping: root.isSwiping
                     onSelected: root.workspaceSelected(ws - 1)
                     onReselected: root.workspaceReselected(ws - 1)
                 }

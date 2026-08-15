@@ -2,10 +2,10 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.effects
 import qs.services
-import Caelestia.Services
 
 StyledRect {
     id: root
@@ -32,12 +32,12 @@ StyledRect {
 
     property var currentItem: workspaces.count > 0 ? workspaces.itemAt(currentWsIdx) : null
     property real rawSwipeOffset: KWinWorkspaceState.swipeOffset
-    property bool isSwiping: rawSwipeOffset !== 0.0
-
+    // isSwiping stays true for a short settle period after swipeOffset returns to 0
+    // to let the SmoothedAnimation reach its target before EAnim kicks back in.
+    property bool isSwiping: false
     property real basePos: currentItem ? (isHorizontal ? currentItem.x : currentItem.y) : 0
     property real baseSize: currentItem ? (currentItem as Workspace).size : 0
-
-    property real interpolatedPos: {
+    property real targetPos: {
         if (!isSwiping) return basePos;
         let startIdx = currentWsIdx;
         let endIdx = rawSwipeOffset > 0 ? startIdx + 1 : startIdx - 1;
@@ -49,8 +49,7 @@ StyledRect {
         let endPos = isHorizontal ? endItem.x : endItem.y;
         return startPos + Math.abs(rawSwipeOffset) * (endPos - startPos);
     }
-
-    property real interpolatedSize: {
+    property real targetSize: {
         if (!isSwiping) return baseSize;
         let startIdx = currentWsIdx;
         let endIdx = rawSwipeOffset > 0 ? startIdx + 1 : startIdx - 1;
@@ -58,14 +57,18 @@ StyledRect {
         let startItem = workspaces.itemAt(startIdx);
         let endItem = workspaces.itemAt(endIdx);
         if (!startItem || !endItem) return baseSize;
-        let startSize = startItem.size;
-        let endSize = endItem.size;
+        let startSize = (startItem as Workspace).size;
+        let endSize = (endItem as Workspace).size;
         return startSize + Math.abs(rawSwipeOffset) * (endSize - startSize);
     }
+    // Smoothed intermediaries absorb rapid swipe updates so the indicator
+    // never jumps even when swipe events arrive faster than a frame.
+    property real smoothPos: targetPos
+    property real smoothSize: targetSize
 
-    property real leading: interpolatedPos
-    property real trailing: interpolatedPos
-    property real currentSize: interpolatedSize
+    property real leading: smoothPos
+    property real trailing: smoothPos
+    property real currentSize: smoothSize
     property real offset: Math.min(leading, trailing)
     property real size: {
         const s = Math.abs(leading - trailing) + currentSize;
@@ -83,6 +86,14 @@ StyledRect {
         lastWs = cWs;
         cWs = currentWsIdx;
     }
+    onRawSwipeOffsetChanged: {
+        if (rawSwipeOffset !== 0.0) {
+            isSwiping = true;
+            swipeSettleTimer.stop();
+        } else {
+            swipeSettleTimer.restart();
+        }
+    }
 
     clip: true
     anchors.horizontalCenter: isHorizontal ? undefined : parent.horizontalCenter
@@ -95,6 +106,13 @@ StyledRect {
     radius: Tokens.rounding.full
     color: Colours.palette.m3primary
 
+    Timer {
+        id: swipeSettleTimer
+
+        interval: 120
+        repeat: false
+        onTriggered: root.isSwiping = false
+    }
     Colouriser {
         source: root.mask
         sourceColor: Colours.palette.m3onSurface
@@ -104,9 +122,26 @@ StyledRect {
         y: isHorizontal ? 0 : -parent.offset + offsetAmt
         implicitWidth: root.mask.implicitWidth
         implicitHeight: root.mask.implicitHeight
-
         anchors.horizontalCenter: isHorizontal ? undefined : parent.horizontalCenter
         anchors.verticalCenter: isHorizontal ? parent.verticalCenter : undefined
+    }
+    Behavior on smoothPos {
+        enabled: root.isSwiping
+
+        SmoothedAnimation {
+            velocity: -1
+            duration: 60
+            easing.type: Easing.Linear
+        }
+    }
+    Behavior on smoothSize {
+        enabled: root.isSwiping
+
+        SmoothedAnimation {
+            velocity: -1
+            duration: 60
+            easing.type: Easing.Linear
+        }
     }
 
     Behavior on leading {
