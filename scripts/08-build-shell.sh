@@ -159,6 +159,10 @@ sudo cmake --install kwin-effects/workspace-tracker/build > /dev/null || {
     warn "Workspace tracker system installation failed."
 }
 
+if command -v kwriteconfig6 >/dev/null 2>&1; then
+    kwriteconfig6 --file kwinrc --group Plugins --key kwin_workspace_trackerEnabled true
+fi
+
 qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
 ok "Installed workspace-tracker to KDE."
 

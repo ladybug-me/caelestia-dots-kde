@@ -412,7 +412,8 @@ fi
 # Disable Caelestia KWin plugins
 kwriteconfig6 --file kwinrc --group "Plugins" --key "quickshell-kde-bridgeEnabled" "false" 2>/dev/null || true
 kwriteconfig6 --file kwinrc --group "Plugins" --key "krohnkiteEnabled"             "false" 2>/dev/null || true
-ok "Disabled KWin plugins: quickshell-kde-bridge, krohnkite"
+kwriteconfig6 --file kwinrc --group "Plugins" --key "kwin_workspace_trackerEnabled" "false" 2>/dev/null || true
+ok "Disabled KWin plugins: quickshell-kde-bridge, krohnkite, kwin_workspace_tracker"
 
 # Restore desktop count to 1 (KDE default)
 kwriteconfig6 --file kwinrc --group "Desktops" --key "Number" "1" 2>/dev/null || true
@@ -582,6 +583,14 @@ for link in /usr/local/bin/sass /usr/local/bin/qdbus6 /usr/local/bin/caelestia /
     if [[ -L "$link" || -f "$link" ]]; then
         sudo rm -f "$link"
         ok "Removed: $link"
+    fi
+done
+
+# System-level KWin effect
+for effect_lib in /usr/lib/qt6/plugins/kwin/effects/plugins/kwin_workspace_tracker.so /usr/lib64/qt6/plugins/kwin/effects/plugins/kwin_workspace_tracker.so; do
+    if [[ -f "$effect_lib" ]]; then
+        sudo rm -f "$effect_lib"
+        ok "Removed system KWin effect: $effect_lib"
     fi
 done
 

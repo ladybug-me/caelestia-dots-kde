@@ -116,10 +116,10 @@ Item {
             width: listView.width
             height: listView.height
             Component.onCompleted: {
-                console.log("WindowGrid Page initialized. wsId:", wsId, "windows found:", wsWindows.length, "Total windows globally:", typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList.length : -1);
+                //console.log("WindowGrid Page initialized. wsId:", wsId, "windows found:", wsWindows.length, "Total windows globally:", typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList.length : -1);
             }
             onWsWindowsChanged: {
-                console.log("WindowGrid Page updated. wsId:", wsId, "windows found:", wsWindows.length);
+                //console.log("WindowGrid Page updated. wsId:", wsId, "windows found:", wsWindows.length);
             }
 
             TapHandler {
