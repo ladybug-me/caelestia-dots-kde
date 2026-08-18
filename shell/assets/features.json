@@ -1,0 +1,11 @@
+{
+  "features": [
+    {
+      "id": "welcome_widget_intro",
+      "title": "Welcome to Caelestia Updates",
+      "description": "Whenever we introduce exciting new features, they will appear here so you never miss out. Enjoy the refined aesthetic and improved functionality!",
+      "media_type": "image",
+      "media_url": "logo.svg"
+    }
+  ]
+}

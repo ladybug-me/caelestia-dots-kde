@@ -19,6 +19,7 @@ import "modules/lock"
 import "modules/polkit"
 import "modules/screenshot/regionSelector"
 import "modules/overview"
+import "modules/welcome" as Welcome
 import QtQml
 import Quickshell
 import Quickshell.Io
@@ -102,6 +103,7 @@ ShellRoot {
     }
 
     Services.StartupTasks {}
+    Welcome.WelcomeWidget {}
 
     Process {
         id: bbdxCheckProcess
