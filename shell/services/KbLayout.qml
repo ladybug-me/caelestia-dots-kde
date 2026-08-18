@@ -90,23 +90,4 @@ Singleton {
         onRunningChanged: if (!running)
             activeProc.running = true
     }
-
-    Process {
-        id: dbusMonitor
-
-        command: ["dbus-monitor", "--session", "type='signal',interface='org.kde.KeyboardLayouts'"]
-        running: root.started
-
-        stdout: SplitParser {
-            onRead: text => {
-                if (text.indexOf("layoutChanged") !== -1) {
-                    if (!activeProc.running)
-                        activeProc.running = true
-                } else if (text.indexOf("layoutListChanged") !== -1) {
-                    if (!layoutsProc.running)
-                        layoutsProc.running = true
-                }
-            }
-        }
-    }
 }

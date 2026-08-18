@@ -4,7 +4,6 @@ import QtQuick
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
-import qs.services
 
 // TODO: handle this better later
 
@@ -123,15 +122,6 @@ Item {
 
     ListModel {
         id: layoutsModel
-    }
-
-    Connections {
-        function onActiveIndexChanged() {
-            if (!fetchActiveLayouts.running && layoutsModel.count > 0)
-                fetchActiveLayouts.running = true;
-        }
-
-        target: KbLayout
     }
 
     Process {
