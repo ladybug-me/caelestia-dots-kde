@@ -126,12 +126,12 @@ Item {
     }
 
     Connections {
-        target: KbLayout
-
         function onActiveIndexChanged() {
             if (!fetchActiveLayouts.running && layoutsModel.count > 0)
                 fetchActiveLayouts.running = true;
         }
+
+        target: KbLayout
     }
 
     Process {
