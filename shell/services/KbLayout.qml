@@ -64,6 +64,16 @@ Singleton {
         activeIndex = index >= 0 && index < layouts.length ? index : -1;
     }
 
+    Timer {
+        id: pollTimer
+
+        interval: 750
+        repeat: true
+        running: root.started && root.layouts.length > 0
+        onTriggered: if (!activeProc.running)
+            activeProc.running = true
+    }
+
     Component.onCompleted: start()
 
     Process {
