@@ -64,16 +64,6 @@ Singleton {
         activeIndex = index >= 0 && index < layouts.length ? index : -1;
     }
 
-    Timer {
-        id: pollTimer
-
-        interval: 750
-        repeat: true
-        running: root.started && root.layouts.length > 0
-        onTriggered: if (!activeProc.running)
-            activeProc.running = true
-    }
-
     Component.onCompleted: start()
 
     Process {
@@ -99,5 +89,24 @@ Singleton {
 
         onRunningChanged: if (!running)
             activeProc.running = true
+    }
+
+    Process {
+        id: dbusMonitor
+
+        command: ["dbus-monitor", "--session", "type='signal',interface='org.kde.KeyboardLayouts'"]
+        running: root.started
+
+        stdout: SplitParser {
+            onRead: text => {
+                if (text.indexOf("layoutChanged") !== -1) {
+                    if (!activeProc.running)
+                        activeProc.running = true
+                } else if (text.indexOf("layoutListChanged") !== -1) {
+                    if (!layoutsProc.running)
+                        layoutsProc.running = true
+                }
+            }
+        }
     }
 }
