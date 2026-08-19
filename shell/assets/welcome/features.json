@@ -1,0 +1,44 @@
+{
+  "features": [
+    {
+      "id": "welcome_widget_intro",
+      "title": "Welcome to Caelestia Updates",
+      "description": "Whenever we introduce exciting new features, they will appear here so you never miss out. Enjoy the refined aesthetic and improved functionality!",
+      "icon": "celebration",
+      "media_type": "video",
+      "media_url": "../badapple.mp4"
+    },
+    {
+      "id": "ai_assistant_preview",
+      "title": "Smarter AI Assistant",
+      "description": "Your AI assistant just got a massive upgrade. It now understands context better, responds faster, and seamlessly integrates with your active workspace.",
+      "icon": "smart_toy",
+      "media_type": "image",
+      "media_url": "../logo.svg"
+    },
+    {
+      "id": "dynamic_theming",
+      "title": "Dynamic Material Theming",
+      "description": "Caelestia now fully supports Material You dynamic theming. Your entire shell will dynamically adjust its colors based on your wallpaper, creating a beautifully cohesive experience.",
+      "icon": "palette",
+      "media_type": "image",
+      "media_url": "../wallpapers/Material-Nebula.png"
+    },
+    {
+      "id": "refined_widgets",
+      "title": "Refined Widgets",
+      "description": "All your favorite widgets have been given a fresh coat of paint. Enjoy smoother animations, better spacing, and a cleaner overall aesthetic that feels truly premium.",
+      "icon": "widgets",
+      "media_type": "image",
+      "media_url": "../bongocat.gif"
+    },
+    {
+      "id": "performance_boost",
+      "title": "Under-The-Hood Improvements",
+      "description": "We've heavily optimized the QML rendering engine to ensure that your shell runs buttery smooth, even on lower-end hardware. Expect significantly lower memory usage!",
+      "icon": "speed",
+      "media_type": "image",
+      "media_url": "../dino.gif"
+    }
+  ]
+}
