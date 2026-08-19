@@ -24,6 +24,12 @@ FloatingWindow {
     property int expandedIndex: -1
     property bool loaded: false
     property bool hasAnimated: false
+    
+    function isVideo(url) {
+        if (!url) return false;
+        let lower = url.toLowerCase();
+        return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".avi") || lower.endsWith(".mov");
+    }
 
     color: Colours.tPalette.m3surface
     surfaceFormat.opaque: false
@@ -80,6 +86,8 @@ FloatingWindow {
                 readonly property real startupBlockHeight: 90.38 + Tokens.spacing.large + titleText.implicitHeight
                 readonly property real startupBlockY: (homeRoot.height - startupBlockHeight) / 2 - 40
                 
+                property bool isAnimatingState: false
+                
                 anchors.fill: parent
                 
                 state: root.hasAnimated ? "loaded" : "startup"
@@ -89,9 +97,17 @@ FloatingWindow {
                     interval: 2300
                     running: !root.hasAnimated
                     onTriggered: {
+                        homeRoot.isAnimatingState = true
                         root.hasAnimated = true
                         homeRoot.state = "loaded"
+                        finishAnimTimer.start()
                     }
+                }
+                
+                Timer {
+                    id: finishAnimTimer
+                    interval: 850 // slightly longer than the 800ms animation
+                    onTriggered: homeRoot.isAnimatingState = false
                 }
                 
                 
@@ -100,14 +116,9 @@ FloatingWindow {
                     width: 128
                     height: 90.38
                     transformOrigin: Item.TopLeft
-                    
                     x: homeRoot.state === "startup" ? (homeRoot.width - width) / 2 : (homeRoot.width - (64 + Tokens.spacing.medium + titleText.implicitWidth)) / 2
                     y: homeRoot.state === "startup" ? homeRoot.startupBlockY : (46 - 45.19) / 2
                     scale: homeRoot.state === "startup" ? 1.0 : 64 / 128
-                    
-                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
-                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
-                    Behavior on scale { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                     
                     AnimatedLogo {
                         id: logoAnim
@@ -120,27 +131,18 @@ FloatingWindow {
                     text: "What's New in Caelestia"
                     font: Tokens.font.title.builders.large.weight(Font.Medium).build()
                     color: Colours.palette.m3onSurface
-                    
                     x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : logoItem.x + 64 + Tokens.spacing.medium
                     y: homeRoot.state === "startup" ? homeRoot.startupBlockY + 90.38 + Tokens.spacing.large : (46 - implicitHeight) / 2
-                    
-                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
-                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                 }
                 StyledText {
                     id: startupVersionText
                     text: CUtils.version ? "v" + CUtils.version : ""
                     font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
                     color: Colours.palette.m3onSurfaceVariant
-                    
-                    x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : logoItem.x + 64 + Tokens.spacing.medium
+                    x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : titleText.x
                     y: titleText.y + titleText.implicitHeight
                     
                     opacity: homeRoot.state === "startup" ? 1 : 0
-                    
-                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
-                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { enabled: root.hasAnimated; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
                 }
                 
                 // Features List
@@ -164,8 +166,9 @@ FloatingWindow {
                         height: 64 + Tokens.spacing.large
                         
                         StyledText {
-                            anchors.centerIn: parent
-                            text: CUtils.version ? "Caelestia v" + CUtils.version : ""
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: Math.max(0, featuresList.height - featuresList.contentHeight) + (parent.height - implicitHeight) / 2
+                            text: CUtils.version ? "v" + CUtils.version : ""
                             font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
                             color: Colours.palette.m3onSurfaceVariant
                         }
@@ -223,7 +226,7 @@ FloatingWindow {
                                     
                                     MaterialIcon {
                                         anchors.centerIn: parent
-                                        text: (feature && feature.icon) ? feature.icon : (feature && feature.media_type === "video" ? "videocam" : "new_releases")
+                                        text: (feature && feature.icon) ? feature.icon : (feature && root.isVideo(feature.media_url) ? "videocam" : "new_releases")
                                         color: Colours.palette.m3onSecondaryContainer
                                         fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                                         grade: 25
@@ -317,13 +320,14 @@ FloatingWindow {
         Component {
             id: featurePage
             
-            ColumnLayout {
+            Item {
                 property var featureData
                 property int currentIndex: -1
                 property bool hasMedia: featureData && !!featureData.media_url
                 
-                anchors.fill: parent
-                spacing: Tokens.spacing.large
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: Tokens.spacing.large
                 
                 // Header with Back Button
                 RowLayout {
@@ -357,23 +361,49 @@ FloatingWindow {
                         }
                     }
                     
-                    ColumnLayout {
+                    StyledText {
                         Layout.fillWidth: true
-                        spacing: 0
+                        text: featureData ? featureData.title : ""
+                        font: Tokens.font.title.builders.large.weight(Font.Medium).build()
+                        color: Colours.palette.m3onSurface
+                        verticalAlignment: Text.AlignVCenter
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                    }
+                    
+                    StyledRect {
+                        Layout.preferredWidth: 48
+                        Layout.preferredHeight: 48
+                        radius: Tokens.rounding.full
+                        color: gotItLayer.containsMouse ? Colours.palette.m3surfaceVariant : "transparent"
                         
-                        StyledText {
-                            Layout.fillWidth: true
-                            text: featureData ? featureData.title : ""
-                            font: Tokens.font.title.builders.large.weight(Font.Medium).build()
-                            color: Colours.palette.m3onSurface
-                            verticalAlignment: Text.AlignVCenter
-                            elide: Text.ElideRight
+                        Behavior on color { CAnim {} }
+                        
+                        StateLayer {
+                            id: gotItLayer
+                            anchors.fill: parent
+                            topLeftRadius: parent.radius
+                            topRightRadius: parent.radius
+                            bottomLeftRadius: parent.radius
+                            bottomRightRadius: parent.radius
+                            
+                            onClicked: {
+                                let currentId = featureData.id
+                                writeStateProcess.command = ["bash", "-c", "echo '" + currentId + "' >> ~/.local/share/caelestia/state/seen_features.txt"]
+                                writeStateProcess.running = true
+                                
+                                stackView.pop()
+                                
+                                let newUnseen = root.unseenFeatures.filter(f => f.id !== currentId)
+                                root.unseenFeatures = newUnseen
+                            }
                         }
                         
-                        StyledText {
-                            text: CUtils.version ? "v" + CUtils.version : ""
-                            font: Tokens.font.body.builders.small.weight(Font.Medium).build()
-                            color: Colours.palette.m3onSurfaceVariant
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "check"
+                            color: Colours.palette.m3onSurface
+                            fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                         }
                     }
                 }
@@ -402,21 +432,33 @@ FloatingWindow {
                             radius: Tokens.rounding.small
                             color: Colours.palette.m3surface
                             opacity: 0.5
+                            visible: {
+                                if (!featureData) return false;
+                                if (featureData.media_transparent) return false;
+                                if (featureData.media_url) {
+                                    let url = featureData.media_url.toLowerCase();
+                                    if (url.endsWith(".png") || url.endsWith(".svg") || url.endsWith(".gif")) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            }
                         }
                         
-                        Image {
+                        AnimatedImage {
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.small
                             source: hasMedia ? Qt.resolvedUrl("../../assets/welcome/" + featureData.media_url) : ""
-                            visible: hasMedia && featureData.media_type !== "video"
+                            visible: hasMedia && !root.isVideo(featureData.media_url)
                             fillMode: Image.PreserveAspectFit
+                            playing: visible
                         }
                         
                         VideoOutput {
                             id: vidOut
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.small
-                            visible: hasMedia && featureData.media_type === "video"
+                            visible: hasMedia && root.isVideo(featureData.media_url)
                             fillMode: VideoOutput.PreserveAspectFit
                         }
                         
@@ -432,7 +474,7 @@ FloatingWindow {
                             loops: MediaPlayer.Infinite
                             
                             Component.onCompleted: {
-                                if (hasMedia && featureData.media_type === "video") {
+                                if (hasMedia && root.isVideo(featureData.media_url)) {
                                     play()
                                 }
                             }
@@ -446,42 +488,13 @@ FloatingWindow {
                         font: Tokens.font.body.large
                         color: Colours.palette.m3onSurfaceVariant
                         wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignHCenter
                     }
-                    }
-                }
-                
-                // Got It Button
-                StyledRect {
-                        Layout.alignment: Qt.AlignRight
-                        width: 100
-                        height: 36
-                        radius: Tokens.rounding.medium
-                        color: Colours.palette.m3primary
-                        
-                        StyledText {
-                            anchors.centerIn: parent
-                            text: "Got it!"
-                            color: Colours.palette.m3onPrimary
-                            font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
-                        }
-                        
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                let currentId = featureData.id
-                                writeStateProcess.command = ["bash", "-c", "echo '" + currentId + "' >> ~/.local/share/caelestia/state/seen_features.txt"]
-                                writeStateProcess.running = true
-                                
-                                stackView.pop()
-                                
-                                let newUnseen = root.unseenFeatures.filter(f => f.id !== currentId)
-                                root.unseenFeatures = newUnseen
-                            }
-                        }
-                    }
-            }
-        }
+                    } // End of inner ColumnLayout
+                } // End of ScrollView
+            } // End of outer ColumnLayout
+        } // End of root Item
+    } // End of Component
     } // End Container Item
     Process {
         id: readProcess
