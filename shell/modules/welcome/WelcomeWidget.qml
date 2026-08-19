@@ -8,6 +8,7 @@ import QtMultimedia
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Caelestia // Required for CUtils
 import Caelestia.Config
 import Caelestia.Blobs // Required for BlobGroup and BlobInvertedRect
 import qs.components
@@ -126,6 +127,21 @@ FloatingWindow {
                     Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                     Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                 }
+                StyledText {
+                    id: startupVersionText
+                    text: CUtils.version ? "v" + CUtils.version : ""
+                    font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+                    color: Colours.palette.m3onSurfaceVariant
+                    
+                    x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : logoItem.x + 64 + Tokens.spacing.medium
+                    y: titleText.y + titleText.implicitHeight
+                    
+                    opacity: homeRoot.state === "startup" ? 1 : 0
+                    
+                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on opacity { enabled: root.hasAnimated; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+                }
                 
                 // Features List
                 ListView {
@@ -142,6 +158,18 @@ FloatingWindow {
                     model: root.unseenFeatures
                     
                     Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    
+                    footer: Item {
+                        width: featuresList.width
+                        height: 64 + Tokens.spacing.large
+                        
+                        StyledText {
+                            anchors.centerIn: parent
+                            text: CUtils.version ? "Caelestia v" + CUtils.version : ""
+                            font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
+                            color: Colours.palette.m3onSurfaceVariant
+                        }
+                    }
                     
                     delegate: StyledRect {
                         id: delegateRect
@@ -237,6 +265,52 @@ FloatingWindow {
                         }
                     }
                 }
+                
+                Item {
+                    id: fabContainer
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.margins: Tokens.spacing.large
+                    width: 56
+                    height: 56
+                    
+                    opacity: homeRoot.state === "startup" ? 0 : 1
+                    
+                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    
+                    StyledRect {
+                        id: markAllBtn
+                        anchors.fill: parent
+                        radius: Tokens.rounding.full
+                        color: Colours.palette.m3primary
+                        
+                        opacity: markAllMouse.pressed ? 0.85 : (markAllMouse.containsMouse ? 0.95 : 1.0)
+                        scale: markAllMouse.pressed ? 0.95 : (markAllMouse.containsMouse ? 1.05 : 1.0)
+                        
+                        Behavior on opacity { CAnim { duration: 150 } }
+                        Behavior on scale { CAnim { duration: 150 } }
+                        
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: "done_all"
+                            color: Colours.palette.m3onPrimary
+                            fontStyle: Tokens.font.icon.builders.large.weight(Font.Medium).build()
+                        }
+                        
+                        MouseArea {
+                            id: markAllMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                let script = "for id in " + root.unseenFeatures.map(f => f.id).join(" ") + "; do echo \"$id\" >> ~/.local/share/caelestia/state/seen_features.txt; done"
+                                writeStateProcess.command = ["bash", "-c", script]
+                                writeStateProcess.running = true
+                                root.unseenFeatures = []
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -283,13 +357,24 @@ FloatingWindow {
                         }
                     }
                     
-                    StyledText {
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        text: featureData ? featureData.title : ""
-                        font: Tokens.font.title.builders.large.weight(Font.Medium).build()
-                        color: Colours.palette.m3onSurface
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
+                        spacing: 0
+                        
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: featureData ? featureData.title : ""
+                            font: Tokens.font.title.builders.large.weight(Font.Medium).build()
+                            color: Colours.palette.m3onSurface
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+                        
+                        StyledText {
+                            text: CUtils.version ? "v" + CUtils.version : ""
+                            font: Tokens.font.body.builders.small.weight(Font.Medium).build()
+                            color: Colours.palette.m3onSurfaceVariant
+                        }
                     }
                 }
                 
@@ -411,7 +496,7 @@ FloatingWindow {
                     let data = JSON.parse(jsonText)
                     let loadedFeatures = data.features || []
                     
-                    let seen = seenText.split("\\n").map(s => s.trim()).filter(s => s.length > 0)
+                    let seen = seenText.split("\n").map(s => s.trim()).filter(s => s.length > 0)
                     
                     root.features = loadedFeatures
                     root.unseenFeatures = loadedFeatures.filter(f => !seen.includes(f.id))
