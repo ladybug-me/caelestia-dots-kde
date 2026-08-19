@@ -22,6 +22,7 @@ FloatingWindow {
     property var unseenFeatures: []
     property int expandedIndex: -1
     property bool loaded: false
+    property bool hasAnimated: false
 
     color: Colours.tPalette.m3surface
     surfaceFormat.opaque: false
@@ -71,41 +72,76 @@ FloatingWindow {
         Component {
             id: homePage
             
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: Tokens.spacing.large
+            Item {
+                id: homeRoot
                 
-                // Header
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Tokens.spacing.medium
+                // Calculate centered block bounds
+                readonly property real startupBlockHeight: 90.38 + Tokens.spacing.large + titleText.implicitHeight
+                readonly property real startupBlockY: (homeRoot.height - startupBlockHeight) / 2 - 40
+                
+                anchors.fill: parent
+                
+                state: root.hasAnimated ? "loaded" : "startup"
+                
+                Timer {
+                    id: startupTimer
+                    interval: 2300
+                    running: !root.hasAnimated
+                    onTriggered: {
+                        root.hasAnimated = true
+                        homeRoot.state = "loaded"
+                    }
+                }
+                
+                
+                Item {
+                    id: logoItem
+                    width: 128
+                    height: 90.38
+                    transformOrigin: Item.TopLeft
                     
-                    Item {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 34
-                        
-                        AnimatedLogo {
-                            scale: 48 / 128
-                            transformOrigin: Item.TopLeft
-                        }
+                    x: homeRoot.state === "startup" ? (homeRoot.width - width) / 2 : (homeRoot.width - (64 + Tokens.spacing.medium + titleText.implicitWidth)) / 2
+                    y: homeRoot.state === "startup" ? homeRoot.startupBlockY : (46 - 45.19) / 2
+                    scale: homeRoot.state === "startup" ? 1.0 : 64 / 128
+                    
+                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on scale { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    
+                    AnimatedLogo {
+                        id: logoAnim
+                        anchors.fill: parent
                     }
+                }
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: "What's New in Caelestia"
-                        font: Tokens.font.title.builders.large.weight(Font.Medium).build()
-                        color: Colours.palette.m3onSurface
-                        verticalAlignment: Text.AlignVCenter
-                    }
+                StyledText {
+                    id: titleText
+                    text: "What's New in Caelestia"
+                    font: Tokens.font.title.builders.large.weight(Font.Medium).build()
+                    color: Colours.palette.m3onSurface
+                    
+                    x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : logoItem.x + 64 + Tokens.spacing.medium
+                    y: homeRoot.state === "startup" ? homeRoot.startupBlockY + 90.38 + Tokens.spacing.large : (46 - implicitHeight) / 2
+                    
+                    Behavior on x { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on y { enabled: root.hasAnimated; NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                 }
                 
                 // Features List
                 ListView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    id: featuresList
+                    anchors.top: parent.top
+                    anchors.topMargin: 46 + Tokens.spacing.large
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    
+                    opacity: homeRoot.state === "startup" ? 0 : 1
                     clip: true
                     spacing: Tokens.spacing.medium
                     model: root.unseenFeatures
+                    
+                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                     
                     delegate: StyledRect {
                         id: delegateRect
@@ -258,16 +294,23 @@ FloatingWindow {
                 }
                 
                 // Expanded Content
-                ColumnLayout {
+                ScrollView {
+                    id: expandedScrollView
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    spacing: Tokens.spacing.medium
+                    contentWidth: availableWidth
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    clip: true
                     
-                    // Media Container
-                    Item {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        visible: hasMedia
+                    ColumnLayout {
+                        width: expandedScrollView.availableWidth
+                        spacing: Tokens.spacing.large
+                        
+                        // Media Container
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 280
+                            visible: hasMedia
                         
                         StyledRect {
                             anchors.fill: parent
@@ -319,12 +362,11 @@ FloatingWindow {
                         color: Colours.palette.m3onSurfaceVariant
                         wrapMode: Text.WordWrap
                     }
-                    
-                    // Spacer
-                    Item { Layout.fillHeight: true }
-                    
-                    // Got It Button
-                    StyledRect {
+                    }
+                }
+                
+                // Got It Button
+                StyledRect {
                         Layout.alignment: Qt.AlignRight
                         width: 100
                         height: 36
@@ -353,7 +395,6 @@ FloatingWindow {
                             }
                         }
                     }
-                }
             }
         }
     } // End Container Item
