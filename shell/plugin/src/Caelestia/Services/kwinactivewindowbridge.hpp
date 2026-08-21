@@ -30,6 +30,7 @@ public:
     QVariantList windowList() const;
     QString pendingFocusAddress() const;
 
+    Q_INVOKABLE QString cursorOutputName() const;
     Q_INVOKABLE void focusWindow(const QString &address);
     Q_INVOKABLE void closeWindow(const QString &address);
     Q_INVOKABLE void minimizeWindow(const QString &address);

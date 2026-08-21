@@ -45,6 +45,11 @@ QString KWinActiveWindowBridge::pendingFocusAddress() const {
     return m_pendingFocusAddress;
 }
 
+QString KWinActiveWindowBridge::cursorOutputName() const {
+    const auto message = QDBusMessage::createMethodCall("org.kde.KWin", "/KWin", "org.kde.KWin", "activeOutputName");
+    return QDBusConnection::sessionBus().call(message).arguments().value(0).toString();
+}
+
 void KWinActiveWindowBridge::onWindowAdded(const QString& uuid) {
     if (auto* handle = PlasmaWindows::instance()->handleFor(uuid)) {
         connect(handle, &PlasmaWindowHandle::titleChanged, this, &KWinActiveWindowBridge::scheduleWindowListUpdate);
