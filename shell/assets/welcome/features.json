@@ -26,6 +26,12 @@
       "description": "Extract text from any image or region on your screen instantly. Use the new Meta+Shift+D shortcut to select an area, and the recognized text will be automatically copied to your clipboard.",
       "icon": "text_fields",
       "media_url": "text_recognition_512.png"
+    },
+    {
+      "id": "window_screenshot_selector_20260822",
+      "title": "Window Screenshot Selector",
+      "description": "Capture specific application windows effortlessly. Toggle the window screenshot mode in the screenshot toolbar to hover and preview individual windows in real-time, then click to capture cleanly without manual cropping.",
+      "icon": "desktop_windows"
     }
   ]
 }

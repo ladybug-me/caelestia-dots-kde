@@ -60,8 +60,9 @@ https://github.com/user-attachments/assets/4c3e20c9-5050-4cc8-8e9c-32fd0594ac8b
 | `Super + Space` | App launcher |
 | `Super + B` | Notification sidebar |
 | `Super + V` | Clipboard history |
-| `Super + Shift + A` | Google Lens |
 | `Super + Shift + S` | Screenshot |
+| `Super + Shift + A` | Google Lens |
+| `Super + Shift + D` | Text recognition |
 | `Super + Ctrl + S` | Screen recorder |
 | `Super + Shift + C` | Color picker |
 | `Super + Shift + V` | Emoji selector |
