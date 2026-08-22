@@ -18,6 +18,9 @@ PanelWindow {
     WlrLayershell.namespace: "osd"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    
+
+
     exclusionMode: ExclusionMode.Ignore
     anchors {
         left: true
@@ -511,16 +514,17 @@ PanelWindow {
         visible: root.phase === RegionSelection.Phase.Select && !root.showWindowOutlines
     }
 
+    GlobalShortcut {
+        name: "caelestia_screenshot_escape"
+        key: root.visible ? "Escape" : ""
+        onActivated: root.dismiss()
+    }
+
     MouseArea {
         id: mouseArea
 
         anchors.fill: parent
         focus: root.visible
-        Keys.onPressed: (event) => { // Esc to close
-            if (event.key === Qt.Key_Escape) {
-                root.dismiss();
-            }
-        }
         cursorShape: root.showWindowOutlines
             ? (root.targetedRegionValid() ? Qt.PointingHandCursor : Qt.ArrowCursor)
             : (root.draggedAway ? Qt.ArrowCursor : Qt.CrossCursor)
