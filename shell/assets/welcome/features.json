@@ -19,6 +19,13 @@
       "title": "Integrated more than ever",
       "description": "1. Alt+F4 no longer closes the shell. 2. Whenever you open and close any drawer, it will seamlessly return focus to the window you were previously using! 3. Kwin native protocols are used to interact with windows, creating much faster experience!",
       "icon": "keyboard_return"
+    },
+    {
+      "id": "text_recognition#512",
+      "title": "Text Recognition (OCR)",
+      "description": "Extract text from any image or region on your screen instantly. Use the new Meta+Shift+D shortcut to select an area, and the recognized text will be automatically copied to your clipboard.",
+      "icon": "text_fields",
+      "media_url": "text_recognition_512.png"
     }
   ]
 }
