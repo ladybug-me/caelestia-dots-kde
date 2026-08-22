@@ -631,7 +631,7 @@ PanelWindow {
                 }
             }
             delegate: TargetRegion {
-                z: 2
+                z: targeted ? 99 : 2
 
                 required property var modelData
                 clientDimensions: modelData
@@ -643,8 +643,7 @@ PanelWindow {
                     && root.targetedRegionY === modelData.at[1] //
                     && root.targetedRegionWidth === modelData.size[0] //
                     && root.targetedRegionHeight === modelData.size[1])
-
-                opacity: root.draggedAway ? 0 : root.targetRegionOpacity
+                opacity: root.draggedAway ? 0 : (root.targetedRegionValid() && !targeted ? 0 : root.targetRegionOpacity)
                 borderColor: root.windowBorderColor
                 // Fade alpha to 0 instead of the literal "transparent" string,
                 // which would animate RGB through black via TargetRegion's
@@ -666,7 +665,7 @@ PanelWindow {
                 }
             }
             delegate: TargetRegion {
-                z: 3
+                z: targeted ? 99 : 2
 
                 required property var modelData
                 clientDimensions: modelData
@@ -675,8 +674,7 @@ PanelWindow {
                     && root.targetedRegionY === modelData.at[1]
                     && root.targetedRegionWidth === modelData.size[0]
                     && root.targetedRegionHeight === modelData.size[1])
-
-                opacity: root.draggedAway ? 0 : root.targetRegionOpacity
+                opacity: root.draggedAway ? 0 : (root.targetedRegionValid() && !targeted ? 0 : root.targetRegionOpacity)
                 borderColor: root.windowBorderColor
                 fillColor: targeted ? root.windowFillColor : Qt.alpha(root.windowFillColor, 0)
                 text: `${modelData.namespace}`
