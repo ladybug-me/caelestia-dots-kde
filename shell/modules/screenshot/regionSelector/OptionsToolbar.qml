@@ -26,11 +26,15 @@ Toolbar {
 
         tabButtonList: [
             {"icon": "content_cut", "name": qsTr("Screenshot")},
-            {"icon": "image_search", "name": qsTr("Google Lens")}
+            {"icon": "image_search", "name": qsTr("Google Lens")},
+            {"icon": "text_fields", "name": qsTr("Text Recognition")}
         ]
-        currentIndex: root.action === RegionSelection.SnipAction.Search ? 1 : 0
+        currentIndex: root.action === RegionSelection.SnipAction.Search ? 1 : (root.action === RegionSelection.SnipAction.CharRecognition ? 2 : 0)
         onCurrentIndexChanged: {
-            root.action = currentIndex === 0 ? RegionSelection.SnipAction.Copy : RegionSelection.SnipAction.Search;
+            if (currentIndex === 0) root.action = RegionSelection.SnipAction.Copy;
+            else if (currentIndex === 1) root.action = RegionSelection.SnipAction.Search;
+            else if (currentIndex === 2) root.action = RegionSelection.SnipAction.CharRecognition;
+            
             root.selectionMode = RegionSelection.SelectionMode.RectCorners;
         }
     }

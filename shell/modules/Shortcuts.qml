@@ -88,6 +88,15 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "ocr"
+        description: "Recognize text on screen"
+        onPressed: {
+            regionSelector.ocr();
+        }
+    }
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "screenRecording"
         description: "Toggle screen recording"
         onPressed: {
