@@ -38,7 +38,7 @@ Toolbar {
 
         Tooltip {
             target: parent
-            text: qsTr("Window screenshot")
+            text: qsTr("Window Selector")
         }
     }
 

@@ -472,15 +472,16 @@ PanelWindow {
             spectacleFlags = "-b -a -n -e"; // exclude decorations on right-click (edit)
         }
 
+        const tmpFile = Paths.runtimeTemp(`snip-window-${Date.now()}.png`);
+        const actionCmdArray = ScreenshotAction.getCommand(
+            0, 0, 99999, 99999, tmpFile, root.getScreenshotAction(), saveDir
+        );
+        const actionScript = actionCmdArray[2];
+
         const command = [
             "bash", "-c",
             `set -euo pipefail; ` +
-            `mkdir -p '${saveDir}'; ` +
-            `F="${saveDir}/screenshot-$(date +%Y-%m-%d_%H.%M.%S).png"; ` +
-            `spectacle ${spectacleFlags} -o "$F" && ` +
-            `wl-copy -t image/png < "$F"; ` +
-            `ACTION=$(notify-send "Screenshot Captured" "Saved to $F" -i "$F" -a "Screenshot" --action="open=Open" --action="folder=Open Folder" || true); ` +
-            `if [ "$ACTION" = "open" ]; then xdg-open "$F"; elif [ "$ACTION" = "folder" ]; then xdg-open "${saveDir}"; fi`
+            `spectacle ${spectacleFlags} -o '${tmpFile}' && ${actionScript}`
         ];
 
         // Focus the window, dismiss overlay, then shoot after a short delay
