@@ -2,7 +2,6 @@ blank-after-open-brace	modules/nexus/pages/panels/taskbar/BarComponents.qml	no b
 blank-before-close-brace	modules/bar/popouts/Bluetooth.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/bar/popouts/Github.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/bar/popouts/Network.qml	no blank line expected before closing brace
-blank-before-close-brace	modules/launcher/ContentList.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/launcher/WindowSwitcherList.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/nexus/pages/wallandstyle/KMYCSettings.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/screenshot/regionSelector/CircleSelectionDetails.qml	no blank line expected before closing brace
@@ -11,8 +10,8 @@ blank-before-close-brace	modules/sidebar/AiAssistant.qml	no blank line expected 
 blank-before-close-brace	services/Audio.qml	no blank line expected before closing brace
 blank-before-close-brace	services/DiscordRPC.qml	no blank line expected before closing brace
 missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and property declarations
 missing-section-separator	modules/welcome/WelcomeWidget.qml	blank line expected between id and bindings
-missing-section-separator	services/Wallpapers.qml	blank line expected between bindings and property declarations
 section-order	components/PolkitDialog.qml	bindings should appear before child objects (seen at line N)
 section-order	components/PolkitDialog.qml	property declarations should appear before bindings (seen at line N)
 section-order	components/controls/CustomSpinBox.qml	functions should appear before bindings (seen at line N)
@@ -48,9 +47,6 @@ section-order	modules/launcher/AppList.qml	functions should appear before bindin
 section-order	modules/launcher/AppList.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/launcher/Content.qml	bindings should appear before child objects (seen at line N)
 section-order	modules/launcher/Content.qml	functions should appear before bindings (seen at line N)
-section-order	modules/launcher/ContentList.qml	bindings should appear before child objects (seen at line N)
-section-order	modules/launcher/ContentList.qml	functions should appear before bindings (seen at line N)
-section-order	modules/launcher/ContentList.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/launcher/WallpaperList.qml	bindings should appear before child objects (seen at line N)
 section-order	modules/launcher/WallpaperList.qml	functions should appear before bindings (seen at line N)
 section-order	modules/launcher/WindowSwitcherList.qml	functions should appear before bindings (seen at line N)
@@ -180,7 +176,6 @@ section-order	services/UpdateChecker.qml	functions should appear before child ob
 section-order	services/UpdateChecker.qml	property declarations should appear before bindings (seen at line N)
 section-order	services/UpdateChecker.qml	property declarations should appear before child objects (seen at line N)
 section-order	services/VPN.qml	functions should appear before bindings (seen at line N)
-section-order	services/Wallpapers.qml	property declarations should appear before bindings (seen at line N)
 section-order	services/WinIcons.qml	functions should appear before bindings (seen at line N)
 section-order	shell.qml	bindings should appear before child objects (seen at line N)
 section-order	shell.qml	functions should appear before bindings (seen at line N)
