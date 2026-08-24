@@ -1,3 +1,4 @@
+import org.kde.pipewire as Pipewire
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -6,7 +7,6 @@ import Quickshell.Services.Mpris
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
-import qs.components.images
 import qs.services
 import qs.utils
 
@@ -188,16 +188,50 @@ StyledRect {
                         StyledClippingRect {
                             id: thumb
 
+                            property var streamRequest: null
+                            readonly property int screencastSerial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
+
                             color: Colours.tPalette.m3surfaceContainerHighest
                             radius: Tokens.rounding.small
-
-                            WindowPreview {
-                                anchors.fill: parent
-                                address: card.modelData?.address ?? ""
-                                fallbackIcon: root.iconSource
-                                sourceAspect: card.windowAspect
+                            // Deferred out of incubation: see ScreencastManager.
+                            Component.onCompleted: Qt.callLater(function () {
+                                if (card.modelData?.address)
+                                    thumb.streamRequest = ScreencastManager.requestStream(card.modelData.address);
+                            })
+                            Component.onDestruction: {
+                                if (card.modelData.address) {
+                                    ScreencastManager.releaseStream(card.modelData.address);
+                                }
                             }
 
+                            IconImage {
+                                anchors.centerIn: parent
+                                implicitSize: thumb.height * 0.5
+                                asynchronous: true
+                                visible: thumb.screencastSerial === 0
+                                source: root.iconSource
+                            }
+                            Pipewire.PipeWireSourceItem {
+                                width: {
+                                    const wAspect = card.windowAspect;
+                                    const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                    return (wAspect > containerAspect) ? thumb.width : thumb.height * wAspect;
+                                }
+                                height: {
+                                    const wAspect = card.windowAspect;
+                                    const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                    return (wAspect > containerAspect) ? thumb.width / wAspect : thumb.height;
+                                }
+                                anchors.centerIn: parent
+                                visible: thumb.screencastSerial !== 0
+                                Component.onCompleted: {
+                                    if ("objectSerial" in this) {
+                                        this.objectSerial = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.objectSerial : 0)
+                                    } else if ("nodeId" in this) {
+                                        this.nodeId = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.nodeId : 0)
+                                    }
+                                }
+                            }
                             // Close button - only revealed while hovering this thumbnail
                             StyledRect {
                                 anchors.top: parent.top
