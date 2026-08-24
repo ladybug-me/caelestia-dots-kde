@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import org.kde.pipewire as Pipewire
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -414,25 +415,85 @@ Item {
                                 StyledClippingRect {
                                     id: thumb
 
+                                    property var streamRequest: null
+                                    readonly property int screencastSerial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
+
+                                    function updateStream() {
+                                        const isStolen = root.activeInfoClient && root.activeInfoClient.address === modelData.address;
+                                        // Only the page in view and its immediate
+                                        // neighbours, so a workspace three swipes
+                                        // away is not being captured for nothing.
+                                        const nearView = Math.abs(page.index - listView.currentIndex) <= 1;
+                                        if (root.opacity > 0 && nearView && modelData.address && !isStolen) {
+                                            if (!streamRequest) {
+                                                streamRequest = ScreencastManager.requestStream(modelData.address);
+                                            }
+                                        } else {
+                                            if (streamRequest) {
+                                                ScreencastManager.releaseStream(modelData.address);
+                                                streamRequest = null;
+                                            }
+                                        }
+                                    }
+
                                     anchors.top: parent.top
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     height: parent.height - (caption.opacity * (caption.implicitHeight + Tokens.padding.extraSmall * 2))
                                     color: Colours.tPalette.m3surfaceContainerHighest
                                     radius: Tokens.rounding.medium
+                                    // Deferred out of incubation: see ScreencastManager.
+                                    Component.onCompleted: Qt.callLater(updateStream)
+                                    Component.onDestruction: {
+                                        if (streamRequest && modelData.address) {
+                                            ScreencastManager.releaseStream(modelData.address);
+                                        }
+                                    }
 
-                                    WindowPreview {
-                                        // Only the page in view and its immediate
-                                        // neighbours: a workspace three swipes away
-                                        // is not worth a stream. The window shown in
-                                        // the info panel is excluded too -- that
-                                        // panel puts up its own frozen frame.
-                                        active: root.opacity > 0 && Math.abs(page.index - listView.currentIndex) <= 1
-                                            && !(root.activeInfoClient && root.activeInfoClient.address === modelData.address)
-                                        address: modelData.address ?? ""
-                                        anchors.fill: parent
-                                        fallbackIcon: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
-                                        sourceAspect: activeWin.windowAspect
+                                    Connections {
+                                        function onOpacityChanged() {
+                                            thumb.updateStream();
+                                        }
+                                        function onActiveInfoClientChanged() {
+                                            thumb.updateStream();
+                                        }
+
+                                        target: root
+                                    }
+                                    Connections {
+                                        function onCurrentIndexChanged() {
+                                            thumb.updateStream();
+                                        }
+
+                                        target: listView
+                                    }
+                                    IconImage {
+                                        anchors.centerIn: parent
+                                        implicitSize: thumb.height * 0.5
+                                        asynchronous: true
+                                        visible: thumb.screencastSerial === 0
+                                        source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
+                                    }
+                                    Pipewire.PipeWireSourceItem {
+                                        width: {
+                                            const wAspect = activeWin.windowAspect;
+                                            const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                            return (wAspect > containerAspect) ? thumb.height * wAspect : thumb.width;
+                                        }
+                                        height: {
+                                            const wAspect = activeWin.windowAspect;
+                                            const containerAspect = thumb.width / Math.max(1, thumb.height);
+                                            return (wAspect > containerAspect) ? thumb.height : thumb.width / wAspect;
+                                        }
+                                        anchors.centerIn: parent
+                                        visible: thumb.screencastSerial !== 0
+                                        Component.onCompleted: {
+                                        if ("objectSerial" in this) {
+                                            this.objectSerial = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.objectSerial : 0)
+                                        } else if ("nodeId" in this) {
+                                            this.nodeId = Qt.binding(() => thumb.streamRequest ? thumb.streamRequest.nodeId : 0)
+                                        }
+                                    }
                                     }
 
                                     Image {

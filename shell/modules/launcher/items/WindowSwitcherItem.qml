@@ -1,3 +1,4 @@
+import org.kde.pipewire as Pipewire
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
@@ -92,6 +93,8 @@ Item {
         }
         readonly property real maxW: Tokens.sizes.launcher.windowSwitcherWidth
         readonly property real maxH: maxW / 16 * 9
+        property var streamRequest: null
+        readonly property int serial: streamRequest ? (streamRequest.objectSerial || streamRequest.nodeId) : 0
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: Tokens.padding.large
@@ -108,11 +111,45 @@ Item {
         color: "transparent"
         radius: Tokens.rounding.medium
 
-        WindowPreview {
-            anchors.fill: parent
-            address: root.modelData?.address ?? ""
-            fallbackIcon: root.modelData ? WinIcons.sourceFor(null, root.modelData.class, root.modelData.iconName, root.modelData.pid ?? 0) : ""
-            sourceAspect: previewBox.windowAspect
+        Component.onDestruction: {
+            if (previewBox.streamRequest && root.modelData && root.modelData.address) {
+                ScreencastManager.releaseStream(root.modelData.address);
+            }
+        }
+
+        Timer {
+            id: debounceTimer
+
+            interval: 20
+            running: true
+            repeat: false
+            onTriggered: {
+                if (root.modelData && root.modelData.address) {
+                    previewBox.streamRequest = ScreencastManager.requestStream(root.modelData.address);
+                }
+            }
+        }
+
+        IconImage {
+            anchors.centerIn: parent
+            implicitSize: previewBox.height * 0.5
+            asynchronous: true
+            visible: previewBox.serial === 0
+            source: root.modelData ? WinIcons.sourceFor(null, root.modelData.class, root.modelData.iconName, root.modelData.pid ?? 0) : ""
+        }
+
+        Pipewire.PipeWireSourceItem {
+            anchors.centerIn: parent
+            width: Math.min(parent.width, parent.height * previewBox.windowAspect)
+            height: Math.min(parent.height, parent.width / previewBox.windowAspect)
+            visible: previewBox.serial !== 0
+            Component.onCompleted: {
+                if ("objectSerial" in this) {
+                    this.objectSerial = Qt.binding(() => previewBox.streamRequest ? previewBox.streamRequest.objectSerial : 0)
+                } else if ("nodeId" in this) {
+                    this.nodeId = Qt.binding(() => previewBox.streamRequest ? previewBox.streamRequest.nodeId : 0)
+                }
+            }
         }
 
         // Close button — only revealed while hovering this tile, same convention as
