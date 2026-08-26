@@ -1,0 +1,2 @@
+module Caelestia.Api
+singleton CaelestiaApi 1.0 CaelestiaApi.qml
