@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.components
 import qs.modules.nexus.common
+import api 1.0
 
 PageBase {
     id: root
@@ -19,10 +20,31 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Plugin support")
+            text: qsTr("Installed Plugins")
         }
 
+        Repeater {
+            model: CaelestiaApi.plugins.available
+
+            delegate: ToggleRow {
+                Layout.fillWidth: true
+                first: index === 0
+                last: index === (CaelestiaApi.plugins.available.count - 1)
+                
+                text: name
+                subtext: path
+                
+                checked: enabled
+                onToggled: {
+                    PluginLoader.setPluginEnabled(name, checked);
+                    // Shell restart is required to apply plugin changes completely
+                    // but we update the settings immediately.
+                }
+            }
+        }
+        
         ConnectedRect {
+            visible: CaelestiaApi.plugins.available.count === 0
             Layout.fillWidth: true
             first: true
             last: true
@@ -47,7 +69,7 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Plugins are not available yet")
+                        text: qsTr("No plugins installed")
                         font: Tokens.font.title.medium
                     }
                 }

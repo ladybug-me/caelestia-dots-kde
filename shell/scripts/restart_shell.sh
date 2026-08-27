@@ -15,7 +15,7 @@ rm -rf "${XDG_RUNTIME_DIR:-/run/user/$UID}/quickshell/"*
 source /etc/profile
 [ -f ~/.profile ] && source ~/.profile
 [ -f ~/.bashrc ] && source ~/.bashrc
-export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"
 export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
 export QS_NO_RELOAD_POPUP=1
 export QS_DROP_EXPENSIVE_FONTS=1

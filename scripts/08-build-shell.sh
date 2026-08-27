@@ -272,12 +272,12 @@ export QML2_IMPORT_PATH="$QML_BASE${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
 
 # Add wrapper config to bashrc/fish
 if ! grep -q "QML2_IMPORT_PATH=.*caelestia" ~/.bashrc; then
-    echo 'export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"' >> ~/.bashrc
+    echo 'export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"' >> ~/.bashrc
     echo 'export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"' >> ~/.bashrc
 fi
 if [ -f "$HOME/.config/fish/config.fish" ]; then
     if ! grep -q "QML2_IMPORT_PATH" ~/.config/fish/config.fish; then
-        echo 'set -gx QML2_IMPORT_PATH "$HOME/.local/lib/qt6/qml"' >> ~/.config/fish/config.fish
+        echo 'set -gx QML2_IMPORT_PATH "$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"' >> ~/.config/fish/config.fish
         echo 'set -gx CAELESTIA_LIB_DIR "$HOME/.local/lib/caelestia"' >> ~/.config/fish/config.fish
     fi
 fi

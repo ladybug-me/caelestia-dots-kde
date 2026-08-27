@@ -24,6 +24,7 @@ import QtQml
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
+import api 1.0
 import qs.components.containers
 import qs.services
 import qs.utils
@@ -100,6 +101,7 @@ ShellRoot {
 
     Component.onCompleted: {
         Qt.callLater(() => { Weather.reload(); });
+        PluginLoader.loadPlugins();
     }
 
     Services.StartupTasks {}

@@ -60,5 +60,47 @@ QtObject {
         readonly property var emojis: Backend.EmojiDb
         readonly property var shortcuts: Backend.GlobalShortcutDispatcher
         readonly property var keyboard: Services.KbLayout
+
+        readonly property ListModel topBarLeft: ListModel {}
+        readonly property ListModel topBarMiddle: ListModel {}
+        readonly property ListModel topBarRight: ListModel {}
+        readonly property ListModel launcherWidgets: ListModel {}
+
+        function injectTopBarLeft(url, props) {
+            topBarLeft.append({ "url": url, "props": props || {} })
+        }
+        function injectTopBarMiddle(url, props) {
+            topBarMiddle.append({ "url": url, "props": props || {} })
+        }
+        function injectTopBarRight(url, props) {
+            topBarRight.append({ "url": url, "props": props || {} })
+        }
+        function injectLauncherWidget(url, props) {
+            launcherWidgets.append({ "url": url, "props": props || {} })
+        }
+    }
+
+    readonly property QtObject shortcuts: QtObject {
+        function register(name, description, key, callback) {
+            let qml = `
+                import QtQuick
+                import qs.components.misc
+
+                CustomShortcut {
+                    name: "${name}"
+                    description: "${description}"
+                    key: "${key}"
+                }
+            `;
+            let shortcut = Qt.createQmlObject(qml, apiRoot, "dynamicShortcut_" + name);
+            if (shortcut && callback) {
+                shortcut.pressed.connect(callback);
+            }
+            return shortcut;
+        }
+    }
+
+    readonly property QtObject plugins: QtObject {
+        property ListModel available: ListModel {}
     }
 }

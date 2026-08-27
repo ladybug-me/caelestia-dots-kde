@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
 export CAELESTIA_LIB_DIR="${CAELESTIA_LIB_DIR:-$HOME/.local/lib/caelestia}"
 
 self="$(realpath "$0")"
