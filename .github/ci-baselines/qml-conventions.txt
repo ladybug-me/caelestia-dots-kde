@@ -9,7 +9,21 @@ blank-before-close-brace	modules/screenshot/regionSelector/RegionSelection.qml	n
 blank-before-close-brace	modules/sidebar/AiAssistant.qml	no blank line expected before closing brace
 blank-before-close-brace	services/Audio.qml	no blank line expected before closing brace
 blank-before-close-brace	services/DiscordRPC.qml	no blank line expected before closing brace
+file-structure	modules/nexus/pages/PluginsPage.qml	only one blank line expected between imports and content
+file-structure	modules/plugins/wallpaper-selector/main.qml	no blank lines expected within imports
+import-order	modules/plugins/wallpaper-selector/main.qml	'qs.components' should appear before 'qs.services'
+missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between id and bindings
+missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between property declarations and bindings
+missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between child objects and bindings
+missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between child objects and property declarations
+missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between id and bindings
 missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/plugins/wallpaper-selector/main.qml	blank line expected between bindings and child objects
+missing-section-separator	modules/plugins/wallpaper-selector/main.qml	blank line expected between bindings and functions
+missing-section-separator	modules/plugins/wallpaper-selector/main.qml	blank line expected between bindings and property declarations
+missing-section-separator	modules/plugins/wallpaper-selector/main.qml	blank line expected between id and bindings
 missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and property declarations
 missing-section-separator	modules/welcome/WelcomeWidget.qml	blank line expected between id and bindings
 section-order	components/PolkitDialog.qml	bindings should appear before child objects (seen at line N)
@@ -80,6 +94,10 @@ section-order	modules/nexus/pages/AiSettingsPage.qml	functions should appear bef
 section-order	modules/nexus/pages/AiSettingsPage.qml	property declarations should appear before component definitions (seen at line N)
 section-order	modules/nexus/pages/DesktopPage.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/nexus/pages/LanguageAndRegion.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/PluginSettingsPopup.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/PluginSettingsPopup.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/nexus/pages/PluginsPage.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/nexus/pages/PluginsPage.qml	property declarations should appear before child objects (seen at line N)
 section-order	modules/nexus/pages/ServicesPage.qml	property declarations should appear before functions (seen at line N)
 section-order	modules/nexus/pages/ShortcutManagerPage.qml	functions should appear before bindings (seen at line N)
 section-order	modules/nexus/pages/ShortcutManagerPage.qml	property declarations should appear before bindings (seen at line N)
@@ -119,6 +137,9 @@ section-order	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	functions sho
 section-order	modules/nexus/pages/wallandstyle/WallpaperSelect.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	functions should appear before bindings (seen at line N)
 section-order	modules/nexus/pages/wallandstyle/WallpaperSettingsPage.qml	property declarations should appear before bindings (seen at line N)
+section-order	modules/plugins/wallpaper-selector/main.qml	functions should appear before bindings (seen at line N)
+section-order	modules/plugins/wallpaper-selector/main.qml	functions should appear before child objects (seen at line N)
+section-order	modules/plugins/wallpaper-selector/main.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/screenshot/TempScreenshotProcess.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/screenshot/recorder/Recorder.qml	bindings should appear before child objects (seen at line N)
 section-order	modules/screenshot/recorder/Recorder.qml	functions should appear before bindings (seen at line N)

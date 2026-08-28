@@ -4,7 +4,7 @@ import QtQuick
 import QtCore
 import Quickshell
 import Quickshell.Io
-import api 1.0
+import qs.services.api
 
 Item {
     id: pluginLoader
@@ -124,6 +124,7 @@ Item {
 
                             let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
                             meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
+                            meta.settings = meta.settings || [];
 
                             pluginLoader.discovered.push(meta);
                         } catch(e) {

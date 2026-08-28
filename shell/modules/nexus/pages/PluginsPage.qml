@@ -8,10 +8,19 @@ import qs.components
 import qs.components.controls
 import qs.services
 import qs.modules.nexus.common
-import api 1.0
+import qs.services.api
+
 
 PageBase {
     id: root
+
+    Item {
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: 0
+        PluginSettingsPopup {
+            id: settingsPopup
+        }
+    }
 
     // Count helpers since Repeater.count counts all items regardless of visibility
     readonly property int bundledCount: {
@@ -96,7 +105,7 @@ PageBase {
                 id: bundledRepeater
 
                 model: CaelestiaApi.plugins.available
-                delegate: ToggleRow {
+                delegate: ConnectedRect {
                     id: bundledDelegate
 
                     required property int index
@@ -106,18 +115,60 @@ PageBase {
                     required property string source
                     required property string id
                     required property bool enabled
+                    required property var settings
 
                     Layout.fillWidth: true
                     visible: bundledDelegate.source === "bundled"
                     first: bundledDelegate.index === 0
                     last: bundledDelegate.index === (bundledRepeater.count - 1)
+                    implicitHeight: bundledRowLayout.implicitHeight + bundledRowLayout.anchors.margins * 2
 
-                    text: bundledDelegate.name
-                    subtext: "v" + bundledDelegate.version + " • " + bundledDelegate.description
+                    RowLayout {
+                        id: bundledRowLayout
+                        anchors.fill: parent
+                        anchors.margins: Tokens.padding.medium
+                        anchors.leftMargin: Tokens.padding.largeIncreased
+                        anchors.rightMargin: Tokens.padding.largeIncreased
+                        spacing: Tokens.spacing.medium
 
-                    checked: bundledDelegate.enabled
-                    onToggled: {
-                        PluginLoader.setPluginEnabled(bundledDelegate.id || bundledDelegate.name, !bundledDelegate.enabled);
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: bundledDelegate.name
+                                font: Tokens.font.body.small
+                                elide: Text.ElideRight
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: "v" + bundledDelegate.version + " • " + bundledDelegate.description
+                                color: Colours.palette.m3onSurfaceVariant
+                                font: Tokens.font.label.small
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        StyledSwitch {
+                            checked: bundledDelegate.enabled
+                            onToggled: {
+                                PluginLoader.setPluginEnabled(bundledDelegate.id || bundledDelegate.name, !bundledDelegate.enabled);
+                            }
+                        }
+                        
+                        IconButton {
+                            icon: "settings"
+                            type: IconButton.Tonal
+                            visible: bundledDelegate.settings && bundledDelegate.settings.count > 0
+                            onClicked: {
+                                settingsPopup.pluginId = bundledDelegate.id || bundledDelegate.name;
+                                settingsPopup.pluginName = bundledDelegate.name;
+                                // Convert QQmlListModel to array if needed, but passing as is works for Repeater model
+                                settingsPopup.settingsSchema = bundledDelegate.settings;
+                                settingsPopup.open();
+                            }
+                        }
                     }
                 }
             }
@@ -141,6 +192,7 @@ PageBase {
                     required property string source
                     required property string id
                     required property bool enabled
+                    required property var settings
 
                     Layout.fillWidth: true
                     visible: userDelegate.source === "user"
@@ -181,6 +233,18 @@ PageBase {
                             checked: userDelegate.enabled
                             onCheckedChanged: {
                                 PluginLoader.setPluginEnabled(userDelegate.id || userDelegate.name, checked);
+                            }
+                        }
+
+                        IconButton {
+                            icon: "settings"
+                            type: IconButton.Tonal
+                            visible: userDelegate.settings && userDelegate.settings.count > 0
+                            onClicked: {
+                                settingsPopup.pluginId = userDelegate.id || userDelegate.name;
+                                settingsPopup.pluginName = userDelegate.name;
+                                settingsPopup.settingsSchema = userDelegate.settings;
+                                settingsPopup.open();
                             }
                         }
 

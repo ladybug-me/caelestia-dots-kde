@@ -24,7 +24,7 @@ import QtQml
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
-import api 1.0
+import qs.services.api
 import qs.components.containers
 import qs.services
 import qs.utils
