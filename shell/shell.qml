@@ -20,6 +20,7 @@ import "modules/polkit"
 import "modules/screenshot/regionSelector"
 import "modules/overview"
 import "modules/welcome" as Welcome
+import QtQuick
 import QtQml
 import Quickshell
 import Quickshell.Io
