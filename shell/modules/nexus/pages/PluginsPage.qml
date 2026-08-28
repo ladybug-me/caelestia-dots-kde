@@ -49,15 +49,15 @@ PageBase {
                 if (root.currentTab === 0) {
                     PluginLoader.reloadPlugins();
                 } else {
-                    CaelestiaApi.plugins.store.fetchIndex();
+                    PluginStore.fetchIndex();
                 }
             }
         }
     ]
 
     Component.onCompleted: {
-        if (CaelestiaApi.plugins.store.storePlugins.count === 0) {
-            CaelestiaApi.plugins.store.fetchIndex();
+        if (PluginStore.storePlugins.count === 0) {
+            PluginStore.fetchIndex();
         }
     }
 
@@ -252,7 +252,7 @@ PageBase {
                             icon: "delete"
                             type: IconButton.Tonal
                             onClicked: {
-                                CaelestiaApi.plugins.store.removePlugin(userDelegate.id || userDelegate.name);
+                                PluginStore.removePlugin(userDelegate.id || userDelegate.name);
                             }
                         }
                     }
@@ -299,7 +299,7 @@ PageBase {
             spacing: Tokens.spacing.extraSmall / 2
 
             ConnectedRect {
-                visible: CaelestiaApi.plugins.store.loading || CaelestiaApi.plugins.store.installing || CaelestiaApi.plugins.store.error
+                visible: PluginStore.loading || PluginStore.installing || PluginStore.error
                 Layout.fillWidth: true
                 first: true
                 last: storeRepeater.count === 0
@@ -314,7 +314,7 @@ PageBase {
 
                     MaterialIcon {
                         Layout.alignment: Qt.AlignTop
-                        text: CaelestiaApi.plugins.store.error ? "error" : "downloading"
+                        text: PluginStore.error ? "error" : "downloading"
                         fontStyle: Tokens.font.icon.large
                     }
                     ColumnLayout {
@@ -323,7 +323,7 @@ PageBase {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: CaelestiaApi.plugins.store.error ? CaelestiaApi.plugins.store.errorMessage : (CaelestiaApi.plugins.store.installing ? CaelestiaApi.plugins.store.installProgress : qsTr("Loading store..."))
+                            text: PluginStore.error ? PluginStore.errorMessage : (PluginStore.installing ? PluginStore.installProgress : qsTr("Loading store..."))
                             font: Tokens.font.title.medium
                         }
                     }
@@ -333,27 +333,27 @@ PageBase {
             SectionHeader {
                 first: true
                 text: qsTr("Available Plugins")
-                visible: storeRepeater.count > 0 && !CaelestiaApi.plugins.store.error
+                visible: storeRepeater.count > 0 && !PluginStore.error
             }
 
             Repeater {
                 id: storeRepeater
 
-                model: CaelestiaApi.plugins.store.storePlugins
+                model: PluginStore.storePlugins
                 delegate: ConnectedRect {
                     id: storeDelegate
 
                     required property int index
+                    required property string pluginId
                     required property string name
                     required property string version
                     required property string description
-                    required property string id
                     required property string path
 
                     property bool isInstalled: {
                         let installed = false;
                         for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
-                            if (CaelestiaApi.plugins.available.get(i).id === storeDelegate.id) {
+                            if (CaelestiaApi.plugins.available.get(i).id === storeDelegate.pluginId) {
                                 installed = true;
                                 break;
                             }
@@ -381,24 +381,25 @@ PageBase {
                             spacing: 0
 
                             StyledText {
+                                Layout.fillWidth: true
                                 text: storeDelegate.name
                                 font: Tokens.font.body.small
                                 elide: Text.ElideRight
                             }
                             StyledText {
+                                Layout.fillWidth: true
                                 text: "v" + storeDelegate.version + " • " + storeDelegate.description
                                 color: Colours.palette.m3onSurfaceVariant
                                 font: Tokens.font.label.small
                                 elide: Text.ElideRight
-                                Layout.fillWidth: true
                             }
                         }
 
                         TextButton {
                             text: storeDelegate.isInstalled ? qsTr("Installed") : qsTr("Install")
-                            enabled: !storeDelegate.isInstalled && !CaelestiaApi.plugins.store.installing
+                            enabled: !storeDelegate.isInstalled && !PluginStore.installing
                             onClicked: {
-                                CaelestiaApi.plugins.store.installPlugin(storeDelegate.id, storeDelegate.path);
+                                PluginStore.installPlugin(storeDelegate.pluginId, storeDelegate.path);
                             }
                         }
                     }

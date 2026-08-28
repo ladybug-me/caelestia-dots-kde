@@ -2,6 +2,7 @@ import QtQuick
 
 QtObject {
     id: root
+
     function register(name, description, key, callback) {
         let qml = `
             import QtQuick

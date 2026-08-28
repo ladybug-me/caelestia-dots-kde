@@ -45,6 +45,9 @@ QtObject {
                             let plugins = storeRoot.indexData.plugins || [];
                             for (let i = 0; i < plugins.length; i++) {
                                 let p = plugins[i];
+                                // Rename 'id' to 'pluginId' to avoid clash with QML's reserved 'id' keyword
+                                // in ComponentBehavior:Bound delegates
+                                p.pluginId = p.id;
                                 storeRoot.storePlugins.append(p);
                             }
                             storeRoot.indexFetched();
@@ -76,8 +79,8 @@ QtObject {
             git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
             git config core.sparseCheckout true
             echo "${repoPath}/*" >> .git/info/sparse-checkout
-            git fetch -q --depth 1 origin main
-            git reset --hard -q origin/main
+            git fetch -q --depth 1 origin plugin/wallpaper-selector
+            git reset --hard -q origin/plugin/wallpaper-selector
             mkdir -p $(dirname "${targetDir}")
             rm -rf "${targetDir}"
             mv "${repoPath}" "${targetDir}"
