@@ -1,4 +1,2 @@
 module api
 singleton CaelestiaApi 1.0 CaelestiaApi.qml
-singleton PluginLoader 1.0 PluginLoader.qml
-singleton PluginStore 1.0 PluginStore.qml
