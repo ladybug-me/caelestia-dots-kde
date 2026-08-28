@@ -2,19 +2,35 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.services
 import qs.modules.nexus.common
 import api 1.0
 
 PageBase {
     id: root
 
-    title: qsTr("Plugins")
-
+    // Count helpers since Repeater.count counts all items regardless of visibility
+    readonly property int bundledCount: {
+        let n = 0;
+        for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
+            if (CaelestiaApi.plugins.available.get(i).source === "bundled") n++;
+        }
+        return n;
+    }
+    readonly property int userCount: {
+        let n = 0;
+        for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
+            if (CaelestiaApi.plugins.available.get(i).source === "user") n++;
+        }
+        return n;
+    }
     property int currentTab: 0 // 0 = Installed, 1 = Store
 
+    title: qsTr("Plugins")
     headerActions: [
         IconButton {
             icon: "refresh"
@@ -45,7 +61,7 @@ PageBase {
         RowLayout {
             Layout.fillWidth: true
             spacing: Tokens.spacing.medium
-            
+
             ToggleButton {
                 Layout.fillWidth: true
                 label: qsTr("Installed")
@@ -53,7 +69,7 @@ PageBase {
                 toggled: root.currentTab === 0
                 onClicked: root.currentTab = 0
             }
-            
+
             ToggleButton {
                 Layout.fillWidth: true
                 label: qsTr("Store")
@@ -64,7 +80,7 @@ PageBase {
         }
 
         Item { Layout.preferredHeight: Tokens.spacing.large }
-        
+
         // --- INSTALLED TAB ---
         ColumnLayout {
             Layout.fillWidth: true
@@ -74,43 +90,67 @@ PageBase {
             SectionHeader {
                 first: true
                 text: qsTr("Shell Plugins")
-                visible: bundledRepeater.count > 0
+                visible: root.bundledCount > 0
             }
             Repeater {
                 id: bundledRepeater
+
                 model: CaelestiaApi.plugins.available
                 delegate: ToggleRow {
+                    id: bundledDelegate
+
+                    required property int index
+                    required property string name
+                    required property string version
+                    required property string description
+                    required property string source
+                    required property string id
+                    required property bool enabled
+
                     Layout.fillWidth: true
-                    visible: source === "bundled"
-                    first: index === 0
-                    last: index === (bundledRepeater.count - 1)
-                    
-                    text: name
-                    subtext: "v" + version + " • " + description
-                    
-                    checked: enabled
+                    visible: bundledDelegate.source === "bundled"
+                    first: bundledDelegate.index === 0
+                    last: bundledDelegate.index === (bundledRepeater.count - 1)
+
+                    text: bundledDelegate.name
+                    subtext: "v" + bundledDelegate.version + " • " + bundledDelegate.description
+
+                    checked: bundledDelegate.enabled
                     onToggled: {
-                        PluginLoader.setPluginEnabled(id || name, checked);
+                        PluginLoader.setPluginEnabled(bundledDelegate.id || bundledDelegate.name, !bundledDelegate.enabled);
                     }
                 }
             }
 
             SectionHeader {
                 text: qsTr("User Installed")
-                visible: userRepeater.count > 0
+                visible: root.userCount > 0
+                first: root.bundledCount === 0
             }
             Repeater {
                 id: userRepeater
+
                 model: CaelestiaApi.plugins.available
                 delegate: ConnectedRect {
+                    id: userDelegate
+
+                    required property int index
+                    required property string name
+                    required property string version
+                    required property string description
+                    required property string source
+                    required property string id
+                    required property bool enabled
+
                     Layout.fillWidth: true
-                    visible: source === "user"
-                    first: index === 0
-                    last: index === (userRepeater.count - 1)
+                    visible: userDelegate.source === "user"
+                    first: userDelegate.index === 0
+                    last: userDelegate.index === (userRepeater.count - 1)
                     implicitHeight: userRowLayout.implicitHeight + userRowLayout.anchors.margins * 2
 
                     RowLayout {
                         id: userRowLayout
+
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         anchors.leftMargin: Tokens.padding.largeIncreased
@@ -123,14 +163,14 @@ PageBase {
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: name
+                                text: userDelegate.name
                                 font: Tokens.font.body.small
                                 elide: Text.ElideRight
                             }
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: "v" + version + " • " + description
+                                text: "v" + userDelegate.version + " • " + userDelegate.description
                                 color: Colours.palette.m3onSurfaceVariant
                                 font: Tokens.font.label.small
                                 elide: Text.ElideRight
@@ -138,23 +178,23 @@ PageBase {
                         }
 
                         StyledSwitch {
-                            checked: enabled
+                            checked: userDelegate.enabled
                             onCheckedChanged: {
-                                PluginLoader.setPluginEnabled(id || name, checked);
+                                PluginLoader.setPluginEnabled(userDelegate.id || userDelegate.name, checked);
                             }
                         }
-                        
+
                         IconButton {
                             icon: "delete"
                             type: IconButton.Tonal
                             onClicked: {
-                                CaelestiaApi.plugins.store.removePlugin(id || name);
+                                CaelestiaApi.plugins.store.removePlugin(userDelegate.id || userDelegate.name);
                             }
                         }
                     }
                 }
             }
-            
+
             ConnectedRect {
                 visible: CaelestiaApi.plugins.available.count === 0
                 Layout.fillWidth: true
@@ -164,6 +204,7 @@ PageBase {
 
                 RowLayout {
                     id: statusInst
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.largeIncreased
                     spacing: Tokens.spacing.medium
@@ -176,6 +217,7 @@ PageBase {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: Tokens.spacing.extraSmall
+
                         StyledText {
                             Layout.fillWidth: true
                             text: qsTr("No plugins installed")
@@ -185,13 +227,13 @@ PageBase {
                 }
             }
         }
-        
+
         // --- STORE TAB ---
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.currentTab === 1
             spacing: Tokens.spacing.extraSmall / 2
-            
+
             ConnectedRect {
                 visible: CaelestiaApi.plugins.store.loading || CaelestiaApi.plugins.store.installing || CaelestiaApi.plugins.store.error
                 Layout.fillWidth: true
@@ -201,6 +243,7 @@ PageBase {
 
                 RowLayout {
                     id: storeStatusInst
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.largeIncreased
                     spacing: Tokens.spacing.medium
@@ -213,6 +256,7 @@ PageBase {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: Tokens.spacing.extraSmall
+
                         StyledText {
                             Layout.fillWidth: true
                             text: CaelestiaApi.plugins.store.error ? CaelestiaApi.plugins.store.errorMessage : (CaelestiaApi.plugins.store.installing ? CaelestiaApi.plugins.store.installProgress : qsTr("Loading store..."))
@@ -227,20 +271,25 @@ PageBase {
                 text: qsTr("Available Plugins")
                 visible: storeRepeater.count > 0 && !CaelestiaApi.plugins.store.error
             }
-            
+
             Repeater {
                 id: storeRepeater
+
                 model: CaelestiaApi.plugins.store.storePlugins
                 delegate: ConnectedRect {
-                    Layout.fillWidth: true
-                    first: index === 0
-                    last: index === (storeRepeater.count - 1)
-                    implicitHeight: storeRow.implicitHeight + storeRow.anchors.margins * 2
-                    
+                    id: storeDelegate
+
+                    required property int index
+                    required property string name
+                    required property string version
+                    required property string description
+                    required property string id
+                    required property string path
+
                     property bool isInstalled: {
                         let installed = false;
                         for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
-                            if (CaelestiaApi.plugins.available.get(i).id === model.id) {
+                            if (CaelestiaApi.plugins.available.get(i).id === storeDelegate.id) {
                                 installed = true;
                                 break;
                             }
@@ -248,36 +297,44 @@ PageBase {
                         return installed;
                     }
 
+                    Layout.fillWidth: true
+                    first: storeDelegate.index === 0
+                    last: storeDelegate.index === (storeRepeater.count - 1)
+                    implicitHeight: storeRow.implicitHeight + storeRow.anchors.margins * 2
+
+
                     RowLayout {
                         id: storeRow
+
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         anchors.leftMargin: Tokens.padding.largeIncreased
                         anchors.rightMargin: Tokens.padding.largeIncreased
                         spacing: Tokens.spacing.medium
-                        
+
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 0
+
                             StyledText {
-                                text: name
+                                text: storeDelegate.name
                                 font: Tokens.font.body.small
                                 elide: Text.ElideRight
                             }
                             StyledText {
-                                text: "v" + version + " • " + description
+                                text: "v" + storeDelegate.version + " • " + storeDelegate.description
                                 color: Colours.palette.m3onSurfaceVariant
                                 font: Tokens.font.label.small
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
                         }
-                        
+
                         TextButton {
-                            text: isInstalled ? qsTr("Installed") : qsTr("Install")
-                            enabled: !isInstalled && !CaelestiaApi.plugins.store.installing
+                            text: storeDelegate.isInstalled ? qsTr("Installed") : qsTr("Install")
+                            enabled: !storeDelegate.isInstalled && !CaelestiaApi.plugins.store.installing
                             onClicked: {
-                                CaelestiaApi.plugins.store.installPlugin(model.id, model.path);
+                                CaelestiaApi.plugins.store.installPlugin(storeDelegate.id, storeDelegate.path);
                             }
                         }
                     }

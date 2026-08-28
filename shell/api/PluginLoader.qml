@@ -9,17 +9,47 @@ import api 1.0
 Item {
     id: pluginLoader
 
-    property var loadedPlugins: []
+    // Map of plugin id -> live QML object instance
+    property var pluginInstances: ({})
+
     property var discovered: []
-    
     property bool loadRequested: false
     property bool finalized: false
-
     property int pendingMeta: 0
 
     property Settings pluginSettings: Settings {
-        category: "Plugins"
         property var disabledPlugins: []
+
+        category: "Plugins"
+    }
+
+    function loadPlugin(meta) {
+        let id = meta.id || meta.name;
+        if (pluginInstances[id]) return; // already loaded
+        if (meta.type !== "quickshell") return;
+
+        let mainFile = meta.path + "/main.qml";
+        let component = Qt.createComponent("file://" + mainFile);
+        if (component.status === Component.Ready) {
+            let obj = component.createObject(pluginLoader);
+            if (obj !== null) {
+                pluginInstances[id] = obj;
+                console.log("Plugin loaded: " + mainFile);
+            } else {
+                console.log("Plugin createObject failed: " + mainFile);
+            }
+        } else if (component.status === Component.Error) {
+            console.log("Plugin compile error: " + mainFile + "\n" + component.errorString());
+        }
+    }
+
+    function unloadPlugin(id) {
+        if (pluginInstances[id]) {
+            pluginInstances[id].destroy();
+            delete pluginInstances[id];
+            pluginInstances = pluginInstances; // force notify
+            console.log("Plugin unloaded: " + id);
+        }
     }
 
     function setPluginEnabled(name, enable) {
@@ -32,11 +62,18 @@ Item {
             disabled.push(name);
             pluginSettings.disabledPlugins = disabled;
         }
-        
+
         let av = CaelestiaApi.plugins.available;
         for (let i = 0; i < av.count; i++) {
-            if (av.get(i).id === name || av.get(i).name === name) {
+            let item = av.get(i);
+            let itemId = item.id || item.name;
+            if (itemId === name || item.name === name) {
                 av.setProperty(i, "enabled", enable);
+                if (enable) {
+                    loadPlugin(item);
+                } else {
+                    unloadPlugin(itemId);
+                }
             }
         }
     }
@@ -44,58 +81,50 @@ Item {
     function checkAndFinalize() {
         if (pendingMeta > 0) return;
         if (finalized) return;
-        
+
         finalized = true;
         CaelestiaApi.plugins.available.clear();
-        
-        // Unload old ones (simplified, we just drop the refs for now)
-        for (let j = 0; j < loadedPlugins.length; j++) {
-            if (loadedPlugins[j]) loadedPlugins[j].destroy();
+
+        // Destroy all currently running plugin instances
+        for (let key in pluginInstances) {
+            if (pluginInstances[key]) pluginInstances[key].destroy();
         }
-        loadedPlugins = [];
+        pluginInstances = {};
 
         for (let k = 0; k < discovered.length; k++) {
             let meta = discovered[k];
             CaelestiaApi.plugins.available.append(meta);
-            
-            if (meta.enabled && meta.type === "quickshell") {
-                let mainFile = meta.path + "/main.qml";
-                let component = Qt.createComponent("file://" + mainFile);
-                if (component.status === Component.Ready) {
-                    let plugin = component.createObject(pluginLoader);
-                    if (plugin !== null) {
-                        loadedPlugins.push(plugin);
-                        console.log("Successfully loaded plugin from: " + mainFile);
-                    } else {
-                        console.log("Error creating plugin object from: " + mainFile);
-                    }
-                } else if (component.status === Component.Error) {
-                    console.log("Error compiling plugin component from: " + mainFile + "\n" + component.errorString());
-                }
+
+            if (meta.enabled) {
+                loadPlugin(meta);
             }
         }
         console.log("Plugins finalized! Discovered count: ", discovered.length);
     }
 
+
     function readMetadata(pluginInfo) {
         let metaPath = pluginInfo.path + "/metadata.json";
         pendingMeta++;
-        
+        console.log("readMetadata called for", pluginInfo.id, "at", metaPath);
+
         let proc = Qt.createQmlObject(`
             import Quickshell.Io
             Process {
                 command: ["cat", "${metaPath}"]
                 stdout: StdioCollector { id: out }
+                stderr: StdioCollector { id: err }
                 onExited: (code) => {
+                    console.log("readMetadata cat exited with code:", code, "stdout:", out.text, "stderr:", err.text);
                     if (code === 0) {
                         try {
                             let meta = JSON.parse(out.text);
                             meta.path = "${pluginInfo.path}";
                             meta.source = "${pluginInfo.source}";
-                            
+
                             let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
                             meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
-                            
+
                             pluginLoader.discovered.push(meta);
                         } catch(e) {
                             console.log("Failed to parse metadata.json for", "${pluginInfo.id}", e);
@@ -115,23 +144,22 @@ Item {
         discovered = [];
         finalized = false;
         pendingMeta = 0;
-        
+
         let configHome = Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config");
-        let script = Quickshell.env("CAELESTIA_LIB_DIR") + "/scripts/list-plugins.sh";
-        if (!Quickshell.env("CAELESTIA_LIB_DIR")) {
-            // fallback
-            script = configHome + "/quickshell/caelestia/scripts/list-plugins.sh";
-        }
-        
+        let script = configHome + "/quickshell/caelestia/scripts/list-plugins.sh";
+
         let proc = Qt.createQmlObject(`
             import Quickshell.Io
             Process {
                 command: ["bash", "${script}"]
                 stdout: StdioCollector { id: out }
+                stderr: StdioCollector { id: err }
                 onExited: (code) => {
+                    console.log("listPluginsProc exited with code:", code, "stdout:", out.text, "stderr:", err.text);
                     if (code === 0) {
                         try {
                             let list = JSON.parse(out.text);
+                            console.log("Parsed plugin list, length:", list.length);
                             if (list.length === 0) {
                                 pluginLoader.checkAndFinalize();
                             }
@@ -151,7 +179,7 @@ Item {
         `, pluginLoader, "listPluginsProc");
         proc.running = true;
     }
-    
+
     function reloadPlugins() {
         loadPlugins();
     }
