@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import QtCore
 import Quickshell
+import Quickshell.Io
 import api 1.0
 
 Item {
@@ -13,6 +14,8 @@ Item {
     
     property bool loadRequested: false
     property bool finalized: false
+
+    property int pendingMeta: 0
 
     property Settings pluginSettings: Settings {
         category: "Plugins"
@@ -32,63 +35,124 @@ Item {
         
         let av = CaelestiaApi.plugins.available;
         for (let i = 0; i < av.count; i++) {
-            if (av.get(i).name === name) {
+            if (av.get(i).id === name || av.get(i).name === name) {
                 av.setProperty(i, "enabled", enable);
             }
         }
     }
 
     function checkAndFinalize() {
+        if (pendingMeta > 0) return;
         if (finalized) return;
+        
         finalized = true;
         CaelestiaApi.plugins.available.clear();
+        
+        // Unload old ones (simplified, we just drop the refs for now)
+        for (let j = 0; j < loadedPlugins.length; j++) {
+            if (loadedPlugins[j]) loadedPlugins[j].destroy();
+        }
+        loadedPlugins = [];
+
         for (let k = 0; k < discovered.length; k++) {
-            CaelestiaApi.plugins.available.append(discovered[k]);
+            let meta = discovered[k];
+            CaelestiaApi.plugins.available.append(meta);
+            
+            if (meta.enabled && meta.type === "quickshell") {
+                let mainFile = meta.path + "/main.qml";
+                let component = Qt.createComponent("file://" + mainFile);
+                if (component.status === Component.Ready) {
+                    let plugin = component.createObject(pluginLoader);
+                    if (plugin !== null) {
+                        loadedPlugins.push(plugin);
+                        console.log("Successfully loaded plugin from: " + mainFile);
+                    } else {
+                        console.log("Error creating plugin object from: " + mainFile);
+                    }
+                } else if (component.status === Component.Error) {
+                    console.log("Error compiling plugin component from: " + mainFile + "\n" + component.errorString());
+                }
+            }
         }
         console.log("Plugins finalized! Discovered count: ", discovered.length);
     }
 
-    function processFoundPlugin(basePath, pluginName) {
-        if (!pluginName) return;
+    function readMetadata(pluginInfo) {
+        let metaPath = pluginInfo.path + "/metadata.json";
+        pendingMeta++;
         
-        let pluginDir = basePath + "/" + pluginName;
-        let mainFile = pluginDir + "/main.qml";
-        
-        let disabled = pluginSettings.disabledPlugins || [];
-        let isEnabled = disabled.indexOf(pluginName) === -1;
-
-        discovered.push({ "name": pluginName, "path": pluginDir, "enabled": isEnabled });
-
-        if (!isEnabled) {
-            console.log("Skipping disabled plugin: " + pluginName);
-            return;
-        }
-        
-        let component = Qt.createComponent("file://" + mainFile);
-        if (component.status === Component.Ready) {
-            let plugin = component.createObject(pluginLoader);
-            if (plugin !== null) {
-                loadedPlugins.push(plugin);
-                console.log("Successfully loaded plugin from: " + mainFile);
-            } else {
-                console.log("Error creating plugin object from: " + mainFile);
+        let proc = Qt.createQmlObject(`
+            import Quickshell.Io
+            Process {
+                command: ["cat", "${metaPath}"]
+                stdout: StdioCollector { id: out }
+                onExited: (code) => {
+                    if (code === 0) {
+                        try {
+                            let meta = JSON.parse(out.text);
+                            meta.path = "${pluginInfo.path}";
+                            meta.source = "${pluginInfo.source}";
+                            
+                            let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
+                            meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
+                            
+                            pluginLoader.discovered.push(meta);
+                        } catch(e) {
+                            console.log("Failed to parse metadata.json for", "${pluginInfo.id}", e);
+                        }
+                    }
+                    pluginLoader.pendingMeta--;
+                    pluginLoader.checkAndFinalize();
+                    destroy();
+                }
             }
-        } else if (component.status === Component.Error) {
-            console.log("Error compiling plugin component from: " + mainFile + "\n" + component.errorString());
-        }
+        `, pluginLoader, "metaReader_" + pluginInfo.id);
+        proc.running = true;
     }
 
     function loadPlugins(): void {
         loadRequested = true;
         discovered = [];
         finalized = false;
+        pendingMeta = 0;
         
-        let home = Quickshell.env("HOME");
+        let configHome = Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config");
+        let script = Quickshell.env("CAELESTIA_LIB_DIR") + "/scripts/list-plugins.sh";
+        if (!Quickshell.env("CAELESTIA_LIB_DIR")) {
+            // fallback
+            script = configHome + "/quickshell/caelestia/scripts/list-plugins.sh";
+        }
         
-        // Since Quickshell Singletons fail to instantiate FolderListModel or Process correctly 
-        // to dynamically list directories without C++, we load known plugins explicitly.
-        pluginLoader.processFoundPlugin(home + "/.config/caelestia/plugins", "bar-autohide");
-        
-        pluginLoader.checkAndFinalize();
+        let proc = Qt.createQmlObject(`
+            import Quickshell.Io
+            Process {
+                command: ["bash", "${script}"]
+                stdout: StdioCollector { id: out }
+                onExited: (code) => {
+                    if (code === 0) {
+                        try {
+                            let list = JSON.parse(out.text);
+                            if (list.length === 0) {
+                                pluginLoader.checkAndFinalize();
+                            }
+                            for (let i = 0; i < list.length; i++) {
+                                pluginLoader.readMetadata(list[i]);
+                            }
+                        } catch(e) {
+                            console.log("Error parsing plugin list:", e);
+                            pluginLoader.checkAndFinalize();
+                        }
+                    } else {
+                        pluginLoader.checkAndFinalize();
+                    }
+                    destroy();
+                }
+            }
+        `, pluginLoader, "listPluginsProc");
+        proc.running = true;
+    }
+    
+    function reloadPlugins() {
+        loadPlugins();
     }
 }

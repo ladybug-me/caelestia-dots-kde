@@ -102,5 +102,6 @@ QtObject {
 
     readonly property QtObject plugins: QtObject {
         property ListModel available: ListModel {}
+        readonly property var store: PluginStore
     }
 }
