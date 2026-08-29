@@ -18,8 +18,8 @@ StyledRect {
     required property string versionText
     required property string descriptionText
     property string authorNameText: ""
-    property string authorAvatarUrl: ""
     property string iconText: "extension"
+    property string iconImageUrl: ""
 
     default property Component actionComponent
 
@@ -80,12 +80,16 @@ StyledRect {
                 radius: Tokens.rounding.full
                 color: Colours.palette.m3secondaryContainer
                 
-                FadeImage {
-                    id: avatarImage
+                AnimatedImage {
+                    id: pluginIconImage
                     anchors.fill: parent
-                    source: root.authorAvatarUrl
-                    visible: root.authorAvatarUrl !== ""
+                    source: root.iconImageUrl
+                    visible: root.iconImageUrl !== ""
                     fillMode: Image.PreserveAspectCrop
+                    playing: true
+                    
+                    opacity: status === Image.Ready ? 1 : 0
+                    Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                 }
 
                 MaterialIcon {
@@ -95,7 +99,7 @@ StyledRect {
                     fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                     grade: 25
                     fill: 1
-                    visible: root.authorAvatarUrl === "" || avatarImage.status !== Image.Ready
+                    visible: root.iconImageUrl === "" || pluginIconImage.status !== Image.Ready
                 }
             }
 

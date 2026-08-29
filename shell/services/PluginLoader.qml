@@ -132,11 +132,7 @@ Item {
                             // Extract author information
                             meta.authorName = meta.author ? (meta.author.name || "") : "";
                             let aUrl = meta.author ? (meta.author.url || "") : "";
-                            meta.authorAvatar = "";
-                            if (aUrl && aUrl.indexOf("github.com/") !== -1) {
-                                let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
-                                meta.authorAvatar = cleanUrl + ".png";
-                            }
+                            meta.icon = meta.icon || "extension";
 
                             pluginLoader.discovered.push(meta);
                         } catch(e) {
@@ -212,11 +208,7 @@ Item {
         // Extract author information
         meta.authorName = meta.author ? (meta.author.name || "") : "";
         let aUrl = meta.author ? (meta.author.url || "") : "";
-        meta.authorAvatar = "";
-        if (aUrl && aUrl.indexOf("github.com/") !== -1) {
-            let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
-            meta.authorAvatar = cleanUrl + ".png";
-        }
+        meta.icon = meta.icon || "extension";
 
         CaelestiaApi.plugins.available.append(meta);
         pluginLoader.pluginsReloaded();

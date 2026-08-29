@@ -39,7 +39,30 @@ PageBase {
         return n;
     }
     property int currentTab: 0 // 0 = Installed, 1 = Store
-    property string storeBranch: "main"
+    property string storeBranch: "plugin/wallpaper-selector"
+
+    function resolveIconUrl(iconString, basePath, isStorePlugin) {
+        if (!iconString || iconString === "default") return "";
+        let s = iconString.toLowerCase();
+        let isImg = s.endsWith(".png") || s.endsWith(".jpg") || s.endsWith(".jpeg") || s.endsWith(".gif") || s.endsWith(".svg");
+        if (!isImg) return "";
+        
+        if (iconString.indexOf("http://") === 0 || iconString.indexOf("https://") === 0 || iconString.indexOf("file://") === 0) return iconString;
+        if (iconString.indexOf("/") === 0) return "file://" + iconString;
+        
+        if (isStorePlugin) {
+            return "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + basePath + "/" + iconString;
+        }
+        return "file://" + basePath + "/" + iconString;
+    }
+    
+    function resolveIconText(iconString) {
+        if (!iconString || iconString === "default") return "extension";
+        let s = iconString.toLowerCase();
+        let isImg = s.endsWith(".png") || s.endsWith(".jpg") || s.endsWith(".jpeg") || s.endsWith(".gif") || s.endsWith(".svg");
+        if (isImg) return "extension";
+        return iconString;
+    }
 
     title: qsTr("Plugins")
     headerActions: [
@@ -143,7 +166,7 @@ PageBase {
                     required property string path
                     required property string mediaurl
                     required property string authorName
-                    required property string authorAvatar
+                    required property string icon
 
                     Layout.fillWidth: true
                     visible: bundledDelegate.source === "bundled"
@@ -152,7 +175,8 @@ PageBase {
                     versionText: bundledDelegate.version
                     descriptionText: bundledDelegate.description
                     authorNameText: bundledDelegate.authorName
-                    authorAvatarUrl: bundledDelegate.authorAvatar
+                    iconText: root.resolveIconText(bundledDelegate.icon)
+                    iconImageUrl: root.resolveIconUrl(bundledDelegate.icon, bundledDelegate.path, false)
                     mediaUrl: {
                         if (!mediaurl) return "";
                         if (mediaurl.indexOf("http://") === 0 || mediaurl.indexOf("https://") === 0 || mediaurl.indexOf("file://") === 0) return mediaurl;
@@ -210,7 +234,7 @@ PageBase {
                     required property string path
                     required property string mediaurl
                     required property string authorName
-                    required property string authorAvatar
+                    required property string icon
 
                     Layout.fillWidth: true
                     visible: userDelegate.source === "user"
@@ -219,7 +243,8 @@ PageBase {
                     versionText: userDelegate.version
                     descriptionText: userDelegate.description
                     authorNameText: userDelegate.authorName
-                    authorAvatarUrl: userDelegate.authorAvatar
+                    iconText: root.resolveIconText(userDelegate.icon)
+                    iconImageUrl: root.resolveIconUrl(userDelegate.icon, userDelegate.path, false)
                     mediaUrl: {
                         if (!mediaurl) return "";
                         if (mediaurl.indexOf("http://") === 0 || mediaurl.indexOf("https://") === 0 || mediaurl.indexOf("file://") === 0) return mediaurl;
@@ -380,7 +405,8 @@ PageBase {
                     versionText: storeDelegate.version
                     descriptionText: storeDelegate.description
                     authorNameText: storeDelegate.authorName
-                    authorAvatarUrl: storeDelegate.authorAvatar
+                    iconText: root.resolveIconText(storeDelegate.icon)
+                    iconImageUrl: root.resolveIconUrl(storeDelegate.icon, storeDelegate.path, true)
                     mediaUrl: storeDelegate.mediaurl ? ("https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + storeDelegate.path + "/" + storeDelegate.mediaurl) : ""
 
                     actionComponent: Component {
