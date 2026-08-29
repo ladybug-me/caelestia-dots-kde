@@ -39,6 +39,7 @@ PageBase {
         return n;
     }
     property int currentTab: 0 // 0 = Installed, 1 = Store
+    property string storeBranch: "main"
 
     title: qsTr("Plugins")
     headerActions: [
@@ -53,7 +54,7 @@ PageBase {
             }
 
             onClicked: {
-                PluginStore.fetchIndex();
+                PluginStore.fetchIndex(root.storeBranch);
             }
         },
         TextButton {
@@ -78,7 +79,7 @@ PageBase {
 
     Component.onCompleted: {
         if (PluginStore.storePlugins.count === 0) {
-            PluginStore.fetchIndex();
+            PluginStore.fetchIndex(root.storeBranch);
         }
     }
 
@@ -128,7 +129,7 @@ PageBase {
                 id: bundledRepeater
 
                 model: CaelestiaApi.plugins.available
-                delegate: ConnectedRect {
+                delegate: ExpandablePluginRow {
                     id: bundledDelegate
 
                     required property int index
@@ -139,57 +140,43 @@ PageBase {
                     required property string id
                     required property bool enabled
                     required property var settings
+                    required property string path
+                    property string mediaurl: ""
 
                     Layout.fillWidth: true
                     visible: bundledDelegate.source === "bundled"
-                    first: bundledDelegate.index === 0
-                    last: bundledDelegate.index === (bundledRepeater.count - 1)
-                    implicitHeight: bundledRowLayout.implicitHeight + bundledRowLayout.anchors.margins * 2
 
-                    RowLayout {
-                        id: bundledRowLayout
-                        anchors.fill: parent
-                        anchors.margins: Tokens.padding.medium
-                        anchors.leftMargin: Tokens.padding.largeIncreased
-                        anchors.rightMargin: Tokens.padding.largeIncreased
-                        spacing: Tokens.spacing.medium
+                    titleText: bundledDelegate.name
+                    versionText: bundledDelegate.version
+                    descriptionText: bundledDelegate.description
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: bundledDelegate.name
-                                font: Tokens.font.body.small
-                                elide: Text.ElideRight
-                            }
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: "v" + bundledDelegate.version + " • " + bundledDelegate.description
-                                color: Colours.palette.m3onSurfaceVariant
-                                font: Tokens.font.label.small
-                                elide: Text.ElideRight
-                            }
+                    Component.onCompleted: {
+                        if (mediaurl) {
+                            mediaUrl = "file://" + path + "/" + mediaurl;
                         }
+                    }
 
-                        StyledSwitch {
-                            checked: bundledDelegate.enabled
-                            onToggled: {
-                                PluginLoader.setPluginEnabled(bundledDelegate.id || bundledDelegate.name, !bundledDelegate.enabled);
+                    actionComponent: Component {
+                        RowLayout {
+                            spacing: Tokens.spacing.medium
+
+                            StyledSwitch {
+                                checked: bundledDelegate.enabled
+                                onToggled: {
+                                    PluginLoader.setPluginEnabled(bundledDelegate.id || bundledDelegate.name, !bundledDelegate.enabled);
+                                }
                             }
-                        }
-                        
-                        IconButton {
-                            icon: "settings"
-                            type: IconButton.Tonal
-                            visible: bundledDelegate.settings && bundledDelegate.settings.count > 0
-                            onClicked: {
-                                settingsPopup.pluginId = bundledDelegate.id || bundledDelegate.name;
-                                settingsPopup.pluginName = bundledDelegate.name;
-                                // Convert QQmlListModel to array if needed, but passing as is works for Repeater model
-                                settingsPopup.settingsSchema = bundledDelegate.settings;
-                                settingsPopup.open();
+                            
+                            IconButton {
+                                icon: "settings"
+                                type: IconButton.Tonal
+                                visible: bundledDelegate.settings && bundledDelegate.settings.count > 0
+                                onClicked: {
+                                    settingsPopup.pluginId = bundledDelegate.id || bundledDelegate.name;
+                                    settingsPopup.pluginName = bundledDelegate.name;
+                                    settingsPopup.settingsSchema = bundledDelegate.settings;
+                                    settingsPopup.open();
+                                }
                             }
                         }
                     }
@@ -205,7 +192,7 @@ PageBase {
                 id: userRepeater
 
                 model: CaelestiaApi.plugins.available
-                delegate: ConnectedRect {
+                delegate: ExpandablePluginRow {
                     id: userDelegate
 
                     required property int index
@@ -216,66 +203,51 @@ PageBase {
                     required property string id
                     required property bool enabled
                     required property var settings
+                    required property string path
+                    property string mediaurl: ""
 
                     Layout.fillWidth: true
                     visible: userDelegate.source === "user"
-                    first: userDelegate.index === 0
-                    last: userDelegate.index === (userRepeater.count - 1)
-                    implicitHeight: userRowLayout.implicitHeight + userRowLayout.anchors.margins * 2
 
-                    RowLayout {
-                        id: userRowLayout
+                    titleText: userDelegate.name
+                    versionText: userDelegate.version
+                    descriptionText: userDelegate.description
 
-                        anchors.fill: parent
-                        anchors.margins: Tokens.padding.medium
-                        anchors.leftMargin: Tokens.padding.largeIncreased
-                        anchors.rightMargin: Tokens.padding.largeIncreased
-                        spacing: Tokens.spacing.medium
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: userDelegate.name
-                                font: Tokens.font.body.small
-                                elide: Text.ElideRight
-                            }
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: "v" + userDelegate.version + " • " + userDelegate.description
-                                color: Colours.palette.m3onSurfaceVariant
-                                font: Tokens.font.label.small
-                                elide: Text.ElideRight
-                            }
+                    Component.onCompleted: {
+                        if (mediaurl) {
+                            mediaUrl = "file://" + path + "/" + mediaurl;
                         }
+                    }
 
-                        StyledSwitch {
-                            checked: userDelegate.enabled
-                            onCheckedChanged: {
-                                PluginLoader.setPluginEnabled(userDelegate.id || userDelegate.name, checked);
+                    actionComponent: Component {
+                        RowLayout {
+                            spacing: Tokens.spacing.medium
+
+                            StyledSwitch {
+                                checked: userDelegate.enabled
+                                onCheckedChanged: {
+                                    PluginLoader.setPluginEnabled(userDelegate.id || userDelegate.name, checked);
+                                }
                             }
-                        }
 
-                        IconButton {
-                            icon: "settings"
-                            type: IconButton.Tonal
-                            visible: userDelegate.settings && userDelegate.settings.count > 0
-                            onClicked: {
-                                settingsPopup.pluginId = userDelegate.id || userDelegate.name;
-                                settingsPopup.pluginName = userDelegate.name;
-                                settingsPopup.settingsSchema = userDelegate.settings;
-                                settingsPopup.open();
+                            IconButton {
+                                icon: "settings"
+                                type: IconButton.Tonal
+                                visible: userDelegate.settings && userDelegate.settings.count > 0
+                                onClicked: {
+                                    settingsPopup.pluginId = userDelegate.id || userDelegate.name;
+                                    settingsPopup.pluginName = userDelegate.name;
+                                    settingsPopup.settingsSchema = userDelegate.settings;
+                                    settingsPopup.open();
+                                }
                             }
-                        }
 
-                        IconButton {
-                            icon: "delete"
-                            type: IconButton.Tonal
-                            onClicked: {
-                                PluginStore.removePlugin(userDelegate.id || userDelegate.name);
+                            IconButton {
+                                icon: "delete"
+                                type: IconButton.Tonal
+                                onClicked: {
+                                    PluginStore.removePlugin(userDelegate.id || userDelegate.name);
+                                }
                             }
                         }
                     }
@@ -325,7 +297,7 @@ PageBase {
                 visible: PluginStore.loading || PluginStore.installing || PluginStore.error
                 Layout.fillWidth: true
                 first: true
-                last: storeRepeater.count === 0
+                last: true
                 implicitHeight: storeStatusInst.implicitHeight + Tokens.padding.largeIncreased * 2
 
                 RowLayout {
@@ -363,7 +335,7 @@ PageBase {
                 id: storeRepeater
 
                 model: PluginStore.storePlugins
-                delegate: ConnectedRect {
+                delegate: ExpandablePluginRow {
                     id: storeDelegate
 
                     required property int index
@@ -371,10 +343,9 @@ PageBase {
                     required property string name
                     required property string version
                     required property string description
-                    required property string path
+                    property string path: "plugins/" + pluginId
+                    property string mediaurl: ""
 
-                    // Direct bindings — re-evaluated automatically when PluginStore.installedPluginIds
-                    // is reassigned (which happens on install/remove actions).
                     readonly property bool isInstalled: PluginStore.installedPluginIds.indexOf(storeDelegate.pluginId) !== -1
                     readonly property bool isUpdateAvailable: {
                         if (!isInstalled)
@@ -396,43 +367,23 @@ PageBase {
                     }
 
                     Layout.fillWidth: true
-                    first: storeDelegate.index === 0
-                    last: storeDelegate.index === (storeRepeater.count - 1)
-                    implicitHeight: storeRow.implicitHeight + storeRow.anchors.margins * 2
 
-                    RowLayout {
-                        id: storeRow
+                    titleText: storeDelegate.name
+                    versionText: storeDelegate.version
+                    descriptionText: storeDelegate.description
 
-                        anchors.fill: parent
-                        anchors.margins: Tokens.padding.medium
-                        anchors.leftMargin: Tokens.padding.largeIncreased
-                        anchors.rightMargin: Tokens.padding.largeIncreased
-                        spacing: Tokens.spacing.medium
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: storeDelegate.name
-                                font: Tokens.font.body.small
-                                elide: Text.ElideRight
-                            }
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: "v" + storeDelegate.version + " • " + storeDelegate.description
-                                color: Colours.palette.m3onSurfaceVariant
-                                font: Tokens.font.label.small
-                                elide: Text.ElideRight
-                            }
+                    Component.onCompleted: {
+                        if (mediaurl) {
+                            mediaUrl = "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + path + "/" + mediaurl;
                         }
+                    }
 
+                    actionComponent: Component {
                         TextButton {
                             text: storeDelegate.isUpdateAvailable ? qsTr("Update") : (storeDelegate.isInstalled ? qsTr("Installed") : qsTr("Install"))
                             enabled: (!storeDelegate.isInstalled || storeDelegate.isUpdateAvailable) && !PluginStore.installing
                             onClicked: {
-                                PluginStore.installPlugin(storeDelegate.pluginId, storeDelegate.path);
+                                PluginStore.installPlugin(storeDelegate.pluginId, storeDelegate.path, root.storeBranch);
                             }
                         }
                     }

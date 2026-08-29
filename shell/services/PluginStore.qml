@@ -81,7 +81,8 @@ Item {
         }
     }
 
-    function fetchIndex() {
+    function fetchIndex(branch) {
+        let fetchBranch = branch || "main";
         loading = true;
         error = false;
         errorMessage = "";
@@ -98,7 +99,7 @@ Item {
             console.log("PluginStore: baseline seeded in fetchIndex:", JSON.stringify(ids));
         }
 
-        fetchProc.command = ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/plugin/wallpaper-selector/index.json"];
+        fetchProc.command = ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + fetchBranch + "/index.json"];
         fetchProc.running = true;
     }
 
@@ -132,8 +133,12 @@ Item {
         }
     }
 
-    function installPlugin(id, repoPath) {
-        if (!id || !repoPath) return;
+    function installPlugin(id, repoPath, branch) {
+        if (!id) return;
+        
+        let installBranch = branch || "main";
+
+        let actualRepoPath = repoPath || ("plugins/" + id);
 
         installing = true;
         installProgress = "Cloning plugin '" + id + "'...";
@@ -146,12 +151,12 @@ cd "$TMP_DIR"
 git init -q
 git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
 git config core.sparseCheckout true
-echo "${repoPath}/*" >> .git/info/sparse-checkout
-git fetch -q --depth 1 origin "plugin/${id}"
-git reset --hard -q "origin/plugin/${id}"
+echo "${actualRepoPath}/*" >> .git/info/sparse-checkout
+git fetch -q --depth 1 --filter=blob:none origin "${installBranch}"
+git reset --hard -q "origin/${installBranch}"
 mkdir -p "$(dirname "${targetDir}")"
 rm -rf "${targetDir}"
-mv "${repoPath}" "${targetDir}"
+mv "${actualRepoPath}" "${targetDir}"
 rm -rf "$TMP_DIR"
 echo "DONE"`;
 
