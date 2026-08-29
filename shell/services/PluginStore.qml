@@ -133,6 +133,13 @@ echo "DONE"`;
                         // in ComponentBehavior:Bound delegates
                         p.pluginId = p.id;
                         p.mediaurl = p.mediaurl || "";
+                        p.authorName = p.author ? (p.author.name || "") : "";
+                        let aUrl = p.author ? (p.author.url || "") : "";
+                        p.authorAvatar = "";
+                        if (aUrl && aUrl.indexOf("github.com/") !== -1) {
+                            let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
+                            p.authorAvatar = cleanUrl + ".png";
+                        }
                         storeRoot.storePlugins.append(p);
                     }
                     storeRoot.indexFetched();

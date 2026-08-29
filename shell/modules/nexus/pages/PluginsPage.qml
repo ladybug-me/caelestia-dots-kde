@@ -142,6 +142,8 @@ PageBase {
                     required property var settings
                     required property string path
                     required property string mediaurl
+                    required property string authorName
+                    required property string authorAvatar
 
                     Layout.fillWidth: true
                     visible: bundledDelegate.source === "bundled"
@@ -149,6 +151,8 @@ PageBase {
                     titleText: bundledDelegate.name
                     versionText: bundledDelegate.version
                     descriptionText: bundledDelegate.description
+                    authorNameText: bundledDelegate.authorName
+                    authorAvatarUrl: bundledDelegate.authorAvatar
                     mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
 
                     actionComponent: Component {
@@ -200,6 +204,8 @@ PageBase {
                     required property var settings
                     required property string path
                     required property string mediaurl
+                    required property string authorName
+                    required property string authorAvatar
 
                     Layout.fillWidth: true
                     visible: userDelegate.source === "user"
@@ -207,6 +213,8 @@ PageBase {
                     titleText: userDelegate.name
                     versionText: userDelegate.version
                     descriptionText: userDelegate.description
+                    authorNameText: userDelegate.authorName
+                    authorAvatarUrl: userDelegate.authorAvatar
                     mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
 
                     actionComponent: Component {
@@ -361,6 +369,8 @@ PageBase {
                     titleText: storeDelegate.name
                     versionText: storeDelegate.version
                     descriptionText: storeDelegate.description
+                    authorNameText: storeDelegate.authorName
+                    authorAvatarUrl: storeDelegate.authorAvatar
                     mediaUrl: storeDelegate.mediaurl ? ("https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + storeDelegate.path + "/" + storeDelegate.mediaurl) : ""
 
                     actionComponent: Component {

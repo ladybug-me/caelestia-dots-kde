@@ -128,6 +128,15 @@ Item {
                             meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
                             meta.settings = meta.settings || [];
                             meta.mediaurl = meta.mediaurl || "";
+                            
+                            // Extract author information
+                            meta.authorName = meta.author ? (meta.author.name || "") : "";
+                            let aUrl = meta.author ? (meta.author.url || "") : "";
+                            meta.authorAvatar = "";
+                            if (aUrl && aUrl.indexOf("github.com/") !== -1) {
+                                let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
+                                meta.authorAvatar = cleanUrl + ".png";
+                            }
 
                             pluginLoader.discovered.push(meta);
                         } catch(e) {
@@ -200,6 +209,15 @@ Item {
         meta.settings = meta.settings || [];
         meta.mediaurl = meta.mediaurl || "";
 
+        // Extract author information
+        meta.authorName = meta.author ? (meta.author.name || "") : "";
+        let aUrl = meta.author ? (meta.author.url || "") : "";
+        meta.authorAvatar = "";
+        if (aUrl && aUrl.indexOf("github.com/") !== -1) {
+            let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
+            meta.authorAvatar = cleanUrl + ".png";
+        }
+
         CaelestiaApi.plugins.available.append(meta);
         pluginLoader.pluginsReloaded();
     }
@@ -235,6 +253,15 @@ Item {
                     meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
                     meta.settings = meta.settings || [];
                     meta.mediaurl = meta.mediaurl || "";
+
+                    // Extract author information
+                    meta.authorName = meta.author ? (meta.author.name || "") : "";
+                    let aUrl = meta.author ? (meta.author.url || "") : "";
+                    meta.authorAvatar = "";
+                    if (aUrl && aUrl.indexOf("github.com/") !== -1) {
+                        let cleanUrl = aUrl.endsWith("/") ? aUrl.slice(0, -1) : aUrl;
+                        meta.authorAvatar = cleanUrl + ".png";
+                    }
 
                     console.log("addPluginToAvailable: adding", meta.id, "to available list. mediaurl:", meta.mediaurl);
                     CaelestiaApi.plugins.available.append(meta);

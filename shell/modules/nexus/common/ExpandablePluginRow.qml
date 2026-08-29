@@ -17,6 +17,8 @@ StyledRect {
     required property string titleText
     required property string versionText
     required property string descriptionText
+    property string authorNameText: ""
+    property string authorAvatarUrl: ""
     property string iconText: "extension"
 
     default property Component actionComponent
@@ -72,12 +74,20 @@ StyledRect {
             spacing: Tokens.spacing.medium
 
             // Circular Icon
-            StyledRect {
+            StyledClippingRect {
                 Layout.preferredHeight: 48
                 Layout.preferredWidth: 48
                 radius: Tokens.rounding.full
                 color: Colours.palette.m3secondaryContainer
                 
+                FadeImage {
+                    id: avatarImage
+                    anchors.fill: parent
+                    source: root.authorAvatarUrl
+                    visible: root.authorAvatarUrl !== ""
+                    fillMode: Image.PreserveAspectCrop
+                }
+
                 MaterialIcon {
                     anchors.centerIn: parent
                     text: root.iconText
@@ -85,6 +95,7 @@ StyledRect {
                     fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                     grade: 25
                     fill: 1
+                    visible: root.authorAvatarUrl === "" || avatarImage.status !== Image.Ready
                 }
             }
 
@@ -119,7 +130,19 @@ StyledRect {
                             font: Tokens.font.label.small
                         }
                     }
+
                     Item { Layout.fillWidth: true } // spacer
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: root.descriptionText
+                    font: Tokens.font.label.small
+                    color: Colours.palette.m3onSurfaceVariant
+                    elide: Text.ElideRight
+                    wrapMode: root.isExpanded ? Text.Wrap : Text.NoWrap
+                    maximumLineCount: root.isExpanded ? 10 : 1
+                    visible: root.descriptionText !== ""
                 }
             }
 
@@ -179,13 +202,20 @@ StyledRect {
                 }
             }
 
-            StyledText {
-                Layout.fillWidth: true
-                text: root.descriptionText
-                font: Tokens.font.body.small
-                color: Colours.palette.m3onSurfaceVariant
-                wrapMode: Text.Wrap
-                visible: root.descriptionText !== ""
+            StyledRect {
+                color: Colours.layer(Colours.palette.m3surfaceContainerHighest, 1)
+                radius: Tokens.rounding.small
+                implicitWidth: authorText.implicitWidth + Tokens.padding.small * 2
+                implicitHeight: authorText.implicitHeight + Tokens.padding.extraSmall
+                visible: root.authorNameText !== ""
+
+                StyledText {
+                    id: authorText
+                    anchors.centerIn: parent
+                    text: root.authorNameText ? "by " + root.authorNameText : ""
+                    font: Tokens.font.label.small
+                    color: Colours.palette.m3primary
+                }
             }
 
             AudioOutput {
