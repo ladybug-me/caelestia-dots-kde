@@ -24,9 +24,6 @@ Item {
     readonly property bool isClipboardMode: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
     readonly property int footerSpacing: Tokens.spacing.small
 
-    implicitWidth: listWrapper.width + padding * 2
-    implicitHeight: listWrapper.height + sessionFooter.height + searchWrapper.height + listWrapper.anchors.bottomMargin + sessionFooter.anchors.bottomMargin + searchWrapper.anchors.bottomMargin
-
     function clearClipboardHistory(): void {
         Clipboard.clearHistory();
     }
@@ -37,9 +34,10 @@ Item {
             Quickshell.execDetached(command);
     }
 
-    Connections {
-        target: Clipboard
+    implicitWidth: listWrapper.width + padding * 2
+    implicitHeight: listWrapper.height + sessionFooter.height + searchWrapper.height + listWrapper.anchors.bottomMargin + sessionFooter.anchors.bottomMargin + searchWrapper.anchors.bottomMargin
 
+    Connections {
         function onClearHistoryFinished(success: bool): void {
             if (success) {
                 if (GlobalConfig.utilities.toasts.clipboardChanged)
@@ -48,6 +46,8 @@ Item {
                 Toaster.toast(qsTr("Failed to clear clipboard history"), "", "error");
             }
         }
+
+        target: Clipboard
     }
 
     Item {
