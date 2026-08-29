@@ -20,12 +20,12 @@ import "modules/polkit"
 import "modules/screenshot/regionSelector"
 import "modules/overview"
 import "modules/welcome" as Welcome
+import qs.services.api
 import QtQuick
 import QtQml
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
-import qs.services.api
 import qs.components.containers
 import qs.services
 import qs.utils

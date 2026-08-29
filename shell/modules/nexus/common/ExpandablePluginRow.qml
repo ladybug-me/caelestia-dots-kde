@@ -3,13 +3,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtMultimedia
+import Quickshell
 import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.components.images
 import qs.services
-import Quickshell
 
 StyledRect {
     id: root
@@ -47,10 +47,20 @@ StyledRect {
     radius: Tokens.rounding.large
     color: Colours.layer(Colours.palette.m3surfaceContainerHigh, root.isExpanded ? 3 : 1)
 
+    // Automatically play/pause media when expanded
+    onIsExpandedChanged: {
+        if (isExpanded && isVideo(mediaUrl)) {
+            mediaPlay.play()
+        } else if (!isExpanded && isVideo(mediaUrl)) {
+            mediaPlay.pause()
+        }
+    }
+
     Behavior on color { CAnim {} }
 
     StateLayer {
         id: stateLayer
+
         anchors.fill: parent
         topLeftRadius: parent.radius
         topRightRadius: parent.radius
@@ -62,6 +72,7 @@ StyledRect {
 
     ColumnLayout {
         id: contentColumn
+
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
@@ -82,6 +93,7 @@ StyledRect {
                 
                 AnimatedImage {
                     id: pluginIconImage
+
                     anchors.fill: parent
                     source: root.iconImageUrl
                     visible: root.iconImageUrl !== ""
@@ -89,6 +101,7 @@ StyledRect {
                     playing: true
                     
                     opacity: status === Image.Ready ? 1 : 0
+
                     Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                 }
 
@@ -128,6 +141,7 @@ StyledRect {
                         
                         StyledText {
                             id: versionBadge
+
                             anchors.centerIn: parent
                             text: "v" + root.versionText
                             color: Colours.palette.m3onSurfaceVariant
@@ -169,6 +183,7 @@ StyledRect {
         ColumnLayout {
             id: expandedContent
             Layout.fillWidth: true
+
             spacing: Tokens.spacing.large
             visible: root.isExpanded
             
@@ -176,6 +191,7 @@ StyledRect {
                 id: mediaItem
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.mediaUrl ? 220 : 0
+
                 visible: true
                 clip: true
 
@@ -189,6 +205,7 @@ StyledRect {
 
                 AnimatedImage {
                     id: pluginImage
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.small
                     source: root.mediaUrl
@@ -199,6 +216,7 @@ StyledRect {
 
                 VideoOutput {
                     id: vidOut
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.small
                     visible: root.isVideo(root.mediaUrl)
@@ -215,6 +233,7 @@ StyledRect {
 
                 StyledText {
                     id: authorText
+
                     anchors.centerIn: parent
                     text: root.authorNameText ? "by " + root.authorNameText : ""
                     font: Tokens.font.label.small
@@ -224,10 +243,12 @@ StyledRect {
 
             AudioOutput {
                     id: aOut
+
                     muted: true
                 }
                 MediaPlayer {
                     id: mediaPlay
+
                     videoOutput: vidOut
                     audioOutput: aOut
                     source: root.isVideo(root.mediaUrl) ? root.mediaUrl : ""
@@ -238,15 +259,6 @@ StyledRect {
                         else pause()
                     }
                 }
-        }
-    }
-    
-    // Automatically play/pause media when expanded
-    onIsExpandedChanged: {
-        if (isExpanded && isVideo(mediaUrl)) {
-            mediaPlay.play()
-        } else if (!isExpanded && isVideo(mediaUrl)) {
-            mediaPlay.pause()
         }
     }
 }

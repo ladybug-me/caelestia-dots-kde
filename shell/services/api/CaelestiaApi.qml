@@ -1,14 +1,9 @@
 pragma Singleton
 
-import QtQuick
-
-// Import C++ backend
-import Caelestia as Backend
-
-// Import QML Services
 import "../" as Services
 import "../../utils" as Utils
-
+import QtQuick
+import Caelestia as Backend
 
 QtObject {
     id: apiRoot

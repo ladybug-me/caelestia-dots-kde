@@ -1,6 +1,6 @@
+import "../" as Services
 import QtQuick
 import Caelestia as Backend
-import "../" as Services
 
 QtObject {
     readonly property var wallpaper: Services.Wallpapers

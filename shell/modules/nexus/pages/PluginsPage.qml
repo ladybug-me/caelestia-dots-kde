@@ -1,27 +1,18 @@
 pragma ComponentBehavior: Bound
 
+import qs.services.api
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
 import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
 import qs.modules.nexus.common
-import qs.services.api
-import Quickshell.Io
-
 
 PageBase {
     id: root
-
-    Item {
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: 0
-        PluginSettingsPopup {
-            id: settingsPopup
-        }
-    }
 
     // Count helpers since Repeater.count counts all items regardless of visibility
     readonly property int bundledCount: {
@@ -39,7 +30,7 @@ PageBase {
         return n;
     }
     property int currentTab: 0 // 0 = Installed, 1 = Store
-    property string storeBranch: "plugin/wallpaper-selector"
+    property string storeBranch: "main"
 
     function resolveIconUrl(iconString, basePath, isStorePlugin) {
         if (!iconString || iconString === "default") return "";
@@ -64,7 +55,16 @@ PageBase {
         return iconString;
     }
 
+    Item {
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: 0
+        PluginSettingsPopup {
+            id: settingsPopup
+        }
+    }
+
     title: qsTr("Plugins")
+
     headerActions: [
         TextButton {
             text: qsTr("Refresh")

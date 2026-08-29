@@ -21,6 +21,7 @@ PageBase {
     property var workspaceShortcuts: []
 
     property var tilingShortcuts: []
+
     property string shortcutQuery
 
     function matchesShortcut(item: var): bool {

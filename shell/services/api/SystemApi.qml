@@ -1,7 +1,7 @@
-import QtQuick
-import Caelestia as Backend
 import "../" as Services
 import "../../utils" as Utils
+import QtQuick
+import Caelestia as Backend
 
 QtObject {
     readonly property var session: Backend.SessionManager

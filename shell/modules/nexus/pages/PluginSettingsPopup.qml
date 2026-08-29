@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Layouts
 import QtCore
 import Caelestia.Config
 import qs.components
@@ -19,11 +19,14 @@ Popup {
     dim: true
 
     property string pluginId: ""
+
     property var settingsSchema: []
+
     property string pluginName: ""
 
     Settings {
         id: pSettings
+
         category: "Plugin_" + root.pluginId
     }
 
@@ -64,12 +67,15 @@ Popup {
                     RowLayout {
                         visible: delegateRow.modelData.type === "enum"
                         spacing: Tokens.spacing.extraSmall
+
                         Repeater {
                             model: delegateRow.modelData.options
                             delegate: TextButton {
                                 required property string modelData
+
                                 text: modelData
                                 // Force re-evaluating the value by binding to root's visible state
+
                                 property string currentVal: root.visible ? pSettings.value(delegateRow.modelData.id, delegateRow.modelData.default) : ""
                                 enabled: currentVal !== modelData
                                 onClicked: {

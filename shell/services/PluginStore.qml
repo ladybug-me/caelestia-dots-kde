@@ -1,10 +1,10 @@
 pragma Singleton
 
+import qs.services.api
 import QtQuick
 import QtCore
 import Quickshell
 import Quickshell.Io
-import qs.services.api
 
 Item {
     id: storeRoot
