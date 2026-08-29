@@ -23,6 +23,8 @@ Item {
         category: "Plugins"
     }
 
+    signal pluginsReloaded()
+
     function loadPlugin(meta) {
         let id = meta.id || meta.name;
         if (pluginInstances[id]) return; // already loaded
@@ -53,7 +55,9 @@ Item {
     }
 
     function setPluginEnabled(name, enable) {
-        let disabled = pluginSettings.disabledPlugins || [];
+        // Must slice() to create a new array instance, otherwise assigning it back
+        // to pluginSettings.disabledPlugins won't trigger the QML change signal or save it.
+        let disabled = (pluginSettings.disabledPlugins || []).slice();
         let index = disabled.indexOf(name);
         if (enable && index > -1) {
             disabled.splice(index, 1);
@@ -100,6 +104,7 @@ Item {
             }
         }
         console.log("Plugins finalized! Discovered count: ", discovered.length);
+        pluginsReloaded();
     }
 
 
@@ -181,7 +186,65 @@ Item {
         proc.running = true;
     }
 
-    function reloadPlugins() {
-        loadPlugins();
+    function removePluginFromAvailable(id) {
+        for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
+            if (CaelestiaApi.plugins.available.get(i).id === id) {
+                CaelestiaApi.plugins.available.remove(i);
+                pluginsReloaded();
+                return;
+            }
+        }
+    }
+
+    function _internalAppendPlugin(meta) {
+        let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
+        meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
+        meta.settings = meta.settings || [];
+        
+        CaelestiaApi.plugins.available.append(meta);
+        pluginLoader.pluginsReloaded();
+    }
+
+    function addPluginToAvailable(id, path, source) {
+        let meta = { path: path, source: source };
+        addMetaReader.pendingId = id;
+        addMetaReader.pendingPath = path;
+        addMetaReader.pendingSource = source;
+        addMetaReader.command = ["cat", path + "/metadata.json"];
+        addMetaReader.running = true;
+    }
+
+    Process {
+        id: addMetaReader
+
+        property string pendingId: ""
+        property string pendingPath: ""
+        property string pendingSource: ""
+
+        stdout: StdioCollector {
+            id: addMetaOut
+        }
+
+        onExited: (code) => {
+            if (code === 0 && addMetaOut.text.length > 0) {
+                try {
+                    let meta = JSON.parse(addMetaOut.text);
+                    meta.path = addMetaReader.pendingPath;
+                    meta.source = addMetaReader.pendingSource;
+
+                    let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
+                    meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
+                    meta.settings = meta.settings || [];
+
+                    console.log("addPluginToAvailable: adding", meta.id, "to available list");
+                    CaelestiaApi.plugins.available.append(meta);
+                    pluginsReloaded();
+                } catch(e) {
+                    console.log("addPluginToAvailable: error parsing metadata:", e);
+                }
+            } else {
+                console.log("addPluginToAvailable: cat failed, code:", code, "text:", addMetaOut.text);
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import qs.components.controls
 import qs.services
 import qs.modules.nexus.common
 import qs.services.api
+import Quickshell.Io
 
 
 PageBase {
@@ -41,16 +42,36 @@ PageBase {
 
     title: qsTr("Plugins")
     headerActions: [
-        IconButton {
-            icon: "refresh"
-            font: Tokens.font.icon.medium
-            type: IconButton.Tonal
+        TextButton {
+            text: qsTr("Refresh")
+            type: TextButton.Tonal
+            visible: root.currentTab === 1
+            scale: pressed ? 0.95 : 1.0
+
+            Behavior on scale {
+                Anim { type: Anim.DefaultEffects }
+            }
+
             onClicked: {
-                if (root.currentTab === 0) {
-                    PluginLoader.reloadPlugins();
-                } else {
-                    PluginStore.fetchIndex();
-                }
+                PluginStore.fetchIndex();
+            }
+        },
+        TextButton {
+            text: qsTr("Restart Shell")
+            type: TextButton.Filled
+            //visible: PluginStore.restartRequired
+            scale: pressed ? 0.95 : 1.0
+
+            Behavior on scale {
+                Anim { type: Anim.DefaultEffects }
+            }
+
+            onClicked: restartProcess.running = true
+
+            Process {
+                id: restartProcess
+
+                command: ["bash", "-c", "nohup bash -c 'bash \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/scripts/restart_shell.sh\"; sleep 1; caelestia shell nexus openPage 14 0' >/dev/null 2>&1 & disown"]
             }
         }
     ]
@@ -73,6 +94,7 @@ PageBase {
 
             ToggleButton {
                 Layout.fillWidth: true
+                explicitWidth: (root.cappedWidth - Tokens.spacing.medium) / 2
                 label: qsTr("Installed")
                 icon: "extension"
                 toggled: root.currentTab === 0
@@ -81,6 +103,7 @@ PageBase {
 
             ToggleButton {
                 Layout.fillWidth: true
+                explicitWidth: (root.cappedWidth - Tokens.spacing.medium) / 2
                 label: qsTr("Store")
                 icon: "store"
                 toggled: root.currentTab === 1
@@ -350,22 +373,32 @@ PageBase {
                     required property string description
                     required property string path
 
-                    property bool isInstalled: {
-                        let installed = false;
+                    // Direct bindings — re-evaluated automatically when PluginStore.installedPluginIds
+                    // is reassigned (which happens on install/remove actions).
+                    readonly property bool isInstalled: PluginStore.installedPluginIds.indexOf(storeDelegate.pluginId) !== -1
+                    readonly property bool isUpdateAvailable: {
+                        if (!isInstalled)
+                            return false;
                         for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
-                            if (CaelestiaApi.plugins.available.get(i).id === storeDelegate.pluginId) {
-                                installed = true;
-                                break;
+                            let p = CaelestiaApi.plugins.available.get(i);
+                            if (p.id === storeDelegate.pluginId && p.version && storeDelegate.version) {
+                                let v1 = storeDelegate.version.split('.');
+                                let v2 = p.version.split('.');
+                                for (let j = 0; j < Math.max(v1.length, v2.length); j++) {
+                                    let n1 = parseInt(v1[j] || 0);
+                                    let n2 = parseInt(v2[j] || 0);
+                                    if (n1 > n2) return true;
+                                    if (n1 < n2) break;
+                                }
                             }
                         }
-                        return installed;
+                        return false;
                     }
 
                     Layout.fillWidth: true
                     first: storeDelegate.index === 0
                     last: storeDelegate.index === (storeRepeater.count - 1)
                     implicitHeight: storeRow.implicitHeight + storeRow.anchors.margins * 2
-
 
                     RowLayout {
                         id: storeRow
@@ -396,8 +429,8 @@ PageBase {
                         }
 
                         TextButton {
-                            text: storeDelegate.isInstalled ? qsTr("Installed") : qsTr("Install")
-                            enabled: !storeDelegate.isInstalled && !PluginStore.installing
+                            text: storeDelegate.isUpdateAvailable ? qsTr("Update") : (storeDelegate.isInstalled ? qsTr("Installed") : qsTr("Install"))
+                            enabled: (!storeDelegate.isInstalled || storeDelegate.isUpdateAvailable) && !PluginStore.installing
                             onClicked: {
                                 PluginStore.installPlugin(storeDelegate.pluginId, storeDelegate.path);
                             }

@@ -22,6 +22,12 @@ PageBase {
             text: qsTr("Restart Shell")
             icon: "restart_alt"
             type: TextButton.Filled
+            scale: pressed ? 0.95 : 1.0
+
+            Behavior on scale {
+                Anim { type: Anim.DefaultEffects }
+            }
+
             onClicked: restartProcess.running = true
 
             Process {

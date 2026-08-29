@@ -4,126 +4,187 @@ import QtQuick
 import QtCore
 import Quickshell
 import Quickshell.Io
+import qs.services.api
 
-QtObject {
+Item {
     id: storeRoot
 
     property bool loading: false
     property bool error: false
     property string errorMessage: ""
-    
+
     property bool installing: false
     property string installProgress: ""
+
+    property bool restartRequired: false
+
+    // Predicted installed state — seeded once from disk scan on startup,
+    // then mutated purely by user actions (no re-scanning at runtime).
+    property var installedPluginIds: []
+    property bool baselineLoaded: false
+
+    signal indexFetched()
+    signal installedStateChanged()
 
     // Raw index from the server
     property var indexData: null
     property ListModel storePlugins: ListModel {}
 
-    signal indexFetched()
+    Connections {
+        target: PluginLoader
 
-    // 1. Fetch index.json from the github repo
+        function onPluginsReloaded() {
+            // Only seed once from the startup scan
+            if (storeRoot.baselineLoaded)
+                return;
+            storeRoot.baselineLoaded = true;
+            let ids = [];
+            let av = CaelestiaApi.plugins.available;
+            for (let i = 0; i < av.count; i++)
+                ids.push(av.get(i).id);
+            storeRoot.installedPluginIds = ids;
+            console.log("PluginStore: baseline loaded, installed:", JSON.stringify(ids));
+        }
+    }
+
+    // ── 1. Fetch store index ──────────────────────────────────────────────────
+
+    Process {
+        id: fetchProc
+
+        stdout: StdioCollector { id: fetchOut }
+        stderr: StdioCollector { id: fetchErr }
+
+        onExited: (code) => {
+            storeRoot.loading = false;
+            if (code !== 0) {
+                storeRoot.error = true;
+                storeRoot.errorMessage = "Failed to fetch plugins index (curl exit " + code + "): " + fetchErr.text;
+            } else {
+                try {
+                    storeRoot.indexData = JSON.parse(fetchOut.text);
+                    storeRoot.storePlugins.clear();
+                    let plugins = storeRoot.indexData.plugins || [];
+                    for (let i = 0; i < plugins.length; i++) {
+                        let p = plugins[i];
+                        // Rename 'id' to 'pluginId' to avoid clash with QML's reserved 'id' keyword
+                        // in ComponentBehavior:Bound delegates
+                        p.pluginId = p.id;
+                        storeRoot.storePlugins.append(p);
+                    }
+                    storeRoot.indexFetched();
+                } catch (e) {
+                    storeRoot.error = true;
+                    storeRoot.errorMessage = "Failed to parse index JSON: " + e;
+                }
+            }
+        }
+    }
+
     function fetchIndex() {
         loading = true;
         error = false;
         errorMessage = "";
-        
-        let proc = Qt.createQmlObject(`
-            import Quickshell.Io
-            Process {
-                command: ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/main/index.json"]
-                stdout: StdioCollector { id: out }
-                stderr: StdioCollector { id: err }
-                onExited: (code) => {
-                    storeRoot.loading = false;
-                    if (code !== 0) {
-                        storeRoot.error = true;
-                        storeRoot.errorMessage = "Failed to fetch plugins index (curl exit " + code + "): " + err.text;
-                    } else {
-                        try {
-                            storeRoot.indexData = JSON.parse(out.text);
-                            storeRoot.storePlugins.clear();
-                            let plugins = storeRoot.indexData.plugins || [];
-                            for (let i = 0; i < plugins.length; i++) {
-                                let p = plugins[i];
-                                // Rename 'id' to 'pluginId' to avoid clash with QML's reserved 'id' keyword
-                                // in ComponentBehavior:Bound delegates
-                                p.pluginId = p.id;
-                                storeRoot.storePlugins.append(p);
-                            }
-                            storeRoot.indexFetched();
-                        } catch (e) {
-                            storeRoot.error = true;
-                            storeRoot.errorMessage = "Failed to parse index JSON: " + e;
-                        }
-                    }
-                    destroy();
-                }
-            }
-        `, storeRoot, "fetchIndexProcess");
-        proc.running = true;
+
+        // Seed installed IDs from disk baseline if not done yet
+        // (handles the race condition where fetchIndex resolves before PluginLoader's pluginsReloaded)
+        if (!baselineLoaded && CaelestiaApi.plugins.available.count > 0) {
+            baselineLoaded = true;
+            let ids = [];
+            let av = CaelestiaApi.plugins.available;
+            for (let i = 0; i < av.count; i++)
+                ids.push(av.get(i).id);
+            installedPluginIds = ids;
+            console.log("PluginStore: baseline seeded in fetchIndex:", JSON.stringify(ids));
+        }
+
+        fetchProc.command = ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/plugin/wallpaper-selector/index.json"];
+        fetchProc.running = true;
     }
 
-    // 2. Install a plugin by cloning just that plugin's directory
+    // ── 2. Install a plugin ───────────────────────────────────────────────────
+
+    Process {
+        id: installProc
+
+        property string pendingId: ""
+        property string pendingTargetDir: ""
+
+        stdout: StdioCollector { id: installOut }
+        stderr: StdioCollector { id: installErr }
+
+        onExited: (code) => {
+            storeRoot.installing = false;
+            if (code !== 0) {
+                console.log("PluginStore: install error for", installProc.pendingId, ":", installErr.text, installOut.text);
+            } else {
+                console.log("PluginStore: install success for", installProc.pendingId);
+                storeRoot.restartRequired = true;
+                // Track as installed for UI prediction (predicted post-restart state)
+                let ids = storeRoot.installedPluginIds.slice();
+                if (ids.indexOf(installProc.pendingId) === -1)
+                    ids.push(installProc.pendingId);
+                storeRoot.installedPluginIds = ids;
+                console.log("PluginStore: installedPluginIds now:", JSON.stringify(ids));
+                // Also add to installed tab list
+                PluginLoader.addPluginToAvailable(installProc.pendingId, installProc.pendingTargetDir, "user");
+            }
+        }
+    }
+
     function installPlugin(id, repoPath) {
         if (!id || !repoPath) return;
-        
+
         installing = true;
         installProgress = "Cloning plugin '" + id + "'...";
-        
+
         let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
-        
-        let script = `
-            TMP_DIR=$(mktemp -d)
-            cd "$TMP_DIR"
-            git init -q
-            git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
-            git config core.sparseCheckout true
-            echo "${repoPath}/*" >> .git/info/sparse-checkout
-            git fetch -q --depth 1 origin plugin/wallpaper-selector
-            git reset --hard -q origin/plugin/wallpaper-selector
-            mkdir -p $(dirname "${targetDir}")
-            rm -rf "${targetDir}"
-            mv "${repoPath}" "${targetDir}"
-            rm -rf "$TMP_DIR"
-            echo "DONE"
-        `;
-        
-        let proc = Qt.createQmlObject(`
-            import Quickshell.Io
-            Process {
-                command: ["bash", "-c", \`${script}\`]
-                stdout: StdioCollector { id: out }
-                stderr: StdioCollector { id: err }
-                onExited: (code) => {
-                    storeRoot.installing = false;
-                    if (code !== 0) {
-                        console.log("Install error:", err.text);
-                    } else {
-                        console.log("Install success:", out.text);
-                        // Trigger a reload
-                        PluginLoader.reloadPlugins();
-                    }
-                    destroy();
-                }
-            }
-        `, storeRoot, "installPluginProcess_" + id);
-        proc.running = true;
+
+        let script = `set -e
+TMP_DIR=$(mktemp -d)
+cd "$TMP_DIR"
+git init -q
+git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
+git config core.sparseCheckout true
+echo "${repoPath}/*" >> .git/info/sparse-checkout
+git fetch -q --depth 1 origin "plugin/${id}"
+git reset --hard -q "origin/plugin/${id}"
+mkdir -p "$(dirname "${targetDir}")"
+rm -rf "${targetDir}"
+mv "${repoPath}" "${targetDir}"
+rm -rf "$TMP_DIR"
+echo "DONE"`;
+
+        installProc.pendingId = id;
+        installProc.pendingTargetDir = targetDir;
+        installProc.command = ["bash", "-c", script];
+        installProc.running = true;
     }
 
-    // 3. Remove a user plugin
+    // ── 3. Remove a user plugin ───────────────────────────────────────────────
+
+    Process {
+        id: removeProc
+
+        property string pendingId: ""
+
+        onExited: (code) => {
+            storeRoot.restartRequired = true;
+            // Remove from predicted installed set
+            let ids = storeRoot.installedPluginIds.slice();
+            let idx = ids.indexOf(removeProc.pendingId);
+            if (idx !== -1) ids.splice(idx, 1);
+            storeRoot.installedPluginIds = ids;
+            console.log("PluginStore: removed", removeProc.pendingId, "installedPluginIds now:", JSON.stringify(ids));
+            // Also drop from the installed tab list model
+            PluginLoader.removePluginFromAvailable(removeProc.pendingId);
+        }
+    }
+
     function removePlugin(id) {
         let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
-        
-        let proc = Qt.createQmlObject(`
-            import Quickshell.Io
-            Process {
-                command: ["rm", "-rf", "${targetDir}"]
-                onExited: (code) => {
-                    PluginLoader.reloadPlugins();
-                    destroy();
-                }
-            }
-        `, storeRoot, "removePluginProcess_" + id);
-        proc.running = true;
+        removeProc.pendingId = id;
+        removeProc.command = ["rm", "-rf", targetDir];
+        removeProc.running = true;
     }
 }
