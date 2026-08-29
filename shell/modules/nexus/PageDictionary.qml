@@ -191,10 +191,10 @@ QtObject {
             label: qsTr("Plugins"),
             key: "plugins",
             icon: "extension",
-            description: qsTr("Plugin support is not available yet"),
+            description: qsTr("Personalized desktop experience"),
             category: "system",
             settings: [
-                { label: qsTr("Plugin support"), description: qsTr("Not available yet"), keywords: ["extensions", "addons", "plugins"] }
+                { label: qsTr("Plugin system"), description: qsTr("Personalized desktop experience"), keywords: ["extensions", "addons", "plugins"] }
             ]
         },
         {
