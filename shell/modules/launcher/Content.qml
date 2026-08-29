@@ -24,6 +24,9 @@ Item {
     readonly property bool isClipboardMode: search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}clipboard `)
     readonly property int footerSpacing: Tokens.spacing.small
 
+    implicitWidth: listWrapper.width + padding * 2
+    implicitHeight: listWrapper.height + sessionFooter.height + searchWrapper.height + listWrapper.anchors.bottomMargin + sessionFooter.anchors.bottomMargin + searchWrapper.anchors.bottomMargin
+
     function clearClipboardHistory(): void {
         Clipboard.clearHistory();
     }
@@ -46,10 +49,6 @@ Item {
             }
         }
     }
-
-    implicitWidth: listWrapper.width + padding * 2
-
-    implicitHeight: listWrapper.height + sessionFooter.height + searchWrapper.height + listWrapper.anchors.bottomMargin + sessionFooter.anchors.bottomMargin + searchWrapper.anchors.bottomMargin
 
     Item {
         id: listWrapper
