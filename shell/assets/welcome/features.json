@@ -38,7 +38,8 @@
       "id": "plugin_system#546",
       "title": "Plugin System",
       "description": "Caelestia now supports a plugin ecosystem for expanding the shell without touching core files. Browse community plugins, install them directly, and manage everything from the built-in plugin system to personalize your desktop experience.",
-      "icon": "extension"
+      "icon": "extension",
+      "media_url": "plugin_system_546.png"
     }
   ]
 }
