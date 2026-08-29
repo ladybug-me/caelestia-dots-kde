@@ -153,7 +153,12 @@ PageBase {
                     descriptionText: bundledDelegate.description
                     authorNameText: bundledDelegate.authorName
                     authorAvatarUrl: bundledDelegate.authorAvatar
-                    mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
+                    mediaUrl: {
+                        if (!mediaurl) return "";
+                        if (mediaurl.indexOf("http://") === 0 || mediaurl.indexOf("https://") === 0 || mediaurl.indexOf("file://") === 0) return mediaurl;
+                        if (mediaurl.indexOf("/") === 0) return "file://" + mediaurl;
+                        return "file://" + path + "/" + mediaurl;
+                    }
 
                     actionComponent: Component {
                         RowLayout {
@@ -215,7 +220,12 @@ PageBase {
                     descriptionText: userDelegate.description
                     authorNameText: userDelegate.authorName
                     authorAvatarUrl: userDelegate.authorAvatar
-                    mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
+                    mediaUrl: {
+                        if (!mediaurl) return "";
+                        if (mediaurl.indexOf("http://") === 0 || mediaurl.indexOf("https://") === 0 || mediaurl.indexOf("file://") === 0) return mediaurl;
+                        if (mediaurl.indexOf("/") === 0) return "file://" + mediaurl;
+                        return "file://" + path + "/" + mediaurl;
+                    }
 
                     actionComponent: Component {
                         RowLayout {
