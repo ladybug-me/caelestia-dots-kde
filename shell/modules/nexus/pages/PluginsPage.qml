@@ -141,7 +141,7 @@ PageBase {
                     required property bool enabled
                     required property var settings
                     required property string path
-                    property string mediaurl: ""
+                    required property string mediaurl
 
                     Layout.fillWidth: true
                     visible: bundledDelegate.source === "bundled"
@@ -149,12 +149,7 @@ PageBase {
                     titleText: bundledDelegate.name
                     versionText: bundledDelegate.version
                     descriptionText: bundledDelegate.description
-
-                    Component.onCompleted: {
-                        if (mediaurl) {
-                            mediaUrl = "file://" + path + "/" + mediaurl;
-                        }
-                    }
+                    mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
 
                     actionComponent: Component {
                         RowLayout {
@@ -204,7 +199,7 @@ PageBase {
                     required property bool enabled
                     required property var settings
                     required property string path
-                    property string mediaurl: ""
+                    required property string mediaurl
 
                     Layout.fillWidth: true
                     visible: userDelegate.source === "user"
@@ -212,12 +207,7 @@ PageBase {
                     titleText: userDelegate.name
                     versionText: userDelegate.version
                     descriptionText: userDelegate.description
-
-                    Component.onCompleted: {
-                        if (mediaurl) {
-                            mediaUrl = "file://" + path + "/" + mediaurl;
-                        }
-                    }
+                    mediaUrl: mediaurl ? ("file://" + path + "/" + mediaurl) : ""
 
                     actionComponent: Component {
                         RowLayout {
@@ -371,12 +361,7 @@ PageBase {
                     titleText: storeDelegate.name
                     versionText: storeDelegate.version
                     descriptionText: storeDelegate.description
-
-                    Component.onCompleted: {
-                        if (mediaurl) {
-                            mediaUrl = "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + path + "/" + mediaurl;
-                        }
-                    }
+                    mediaUrl: storeDelegate.mediaurl ? ("https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + root.storeBranch + "/" + storeDelegate.path + "/" + storeDelegate.mediaurl) : ""
 
                     actionComponent: Component {
                         TextButton {

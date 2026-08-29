@@ -36,7 +36,6 @@ Item {
             let obj = component.createObject(pluginLoader);
             if (obj !== null) {
                 pluginInstances[id] = obj;
-                console.log("Plugin loaded: " + mainFile);
             } else {
                 console.log("Plugin createObject failed: " + mainFile);
             }
@@ -103,7 +102,6 @@ Item {
                 loadPlugin(meta);
             }
         }
-        console.log("Plugins finalized! Discovered count: ", discovered.length);
         pluginsReloaded();
     }
 
@@ -120,7 +118,6 @@ Item {
                 stdout: StdioCollector { id: out }
                 stderr: StdioCollector { id: err }
                 onExited: (code) => {
-                    console.log("readMetadata cat exited with code:", code, "stdout:", out.text, "stderr:", err.text);
                     if (code === 0) {
                         try {
                             let meta = JSON.parse(out.text);
@@ -130,6 +127,7 @@ Item {
                             let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
                             meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
                             meta.settings = meta.settings || [];
+                            meta.mediaurl = meta.mediaurl || "";
 
                             pluginLoader.discovered.push(meta);
                         } catch(e) {
@@ -200,7 +198,8 @@ Item {
         let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
         meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
         meta.settings = meta.settings || [];
-        
+        meta.mediaurl = meta.mediaurl || "";
+
         CaelestiaApi.plugins.available.append(meta);
         pluginLoader.pluginsReloaded();
     }
@@ -235,8 +234,9 @@ Item {
                     let disabled = pluginLoader.pluginSettings.disabledPlugins || [];
                     meta.enabled = (disabled.indexOf(meta.id) === -1 && disabled.indexOf(meta.name) === -1);
                     meta.settings = meta.settings || [];
+                    meta.mediaurl = meta.mediaurl || "";
 
-                    console.log("addPluginToAvailable: adding", meta.id, "to available list");
+                    console.log("addPluginToAvailable: adding", meta.id, "to available list. mediaurl:", meta.mediaurl);
                     CaelestiaApi.plugins.available.append(meta);
                     pluginsReloaded();
                 } catch(e) {

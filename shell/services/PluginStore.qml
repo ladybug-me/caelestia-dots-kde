@@ -23,12 +23,74 @@ Item {
     property var installedPluginIds: []
     property bool baselineLoaded: false
 
-    signal indexFetched()
-    signal installedStateChanged()
-
     // Raw index from the server
     property var indexData: null
     property ListModel storePlugins: ListModel {}
+
+    signal indexFetched()
+    signal installedStateChanged()
+
+    function fetchIndex(branch) {
+        let fetchBranch = branch || "main";
+        loading = true;
+        error = false;
+        errorMessage = "";
+
+        // Seed installed IDs from disk baseline if not done yet
+        // (handles the race condition where fetchIndex resolves before PluginLoader's pluginsReloaded)
+        if (!baselineLoaded && CaelestiaApi.plugins.available.count > 0) {
+            baselineLoaded = true;
+            let ids = [];
+            let av = CaelestiaApi.plugins.available;
+            for (let i = 0; i < av.count; i++)
+                ids.push(av.get(i).id);
+            installedPluginIds = ids;
+            console.log("PluginStore: baseline seeded in fetchIndex:", JSON.stringify(ids));
+        }
+
+        fetchProc.command = ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + fetchBranch + "/index.json"];
+        fetchProc.running = true;
+    }
+
+    function installPlugin(id, repoPath, branch) {
+        if (!id) return;
+
+        let installBranch = branch || "main";
+
+        let actualRepoPath = repoPath || ("plugins/" + id);
+
+        installing = true;
+        installProgress = "Cloning plugin '" + id + "'...";
+
+        let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
+
+        let script = `set -e
+TMP_DIR=$(mktemp -d)
+cd "$TMP_DIR"
+git init -q
+git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
+git config core.sparseCheckout true
+echo "${actualRepoPath}/*" >> .git/info/sparse-checkout
+git fetch -q --depth 1 --filter=blob:none origin "${installBranch}"
+git reset --hard -q "origin/${installBranch}"
+mkdir -p "$(dirname "${targetDir}")"
+rm -rf "${targetDir}"
+mv "${actualRepoPath}" "${targetDir}"
+rm -rf "$TMP_DIR"
+echo "DONE"`;
+
+        installProc.pendingId = id;
+        installProc.pendingTargetDir = targetDir;
+        installProc.command = ["bash", "-c", script];
+        installProc.running = true;
+    }
+
+    function removePlugin(id) {
+        let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
+        removeProc.pendingId = id;
+        removeProc.command = ["rm", "-rf", targetDir];
+        removeProc.running = true;
+    }
 
     Connections {
         target: PluginLoader
@@ -70,6 +132,7 @@ Item {
                         // Rename 'id' to 'pluginId' to avoid clash with QML's reserved 'id' keyword
                         // in ComponentBehavior:Bound delegates
                         p.pluginId = p.id;
+                        p.mediaurl = p.mediaurl || "";
                         storeRoot.storePlugins.append(p);
                     }
                     storeRoot.indexFetched();
@@ -79,28 +142,6 @@ Item {
                 }
             }
         }
-    }
-
-    function fetchIndex(branch) {
-        let fetchBranch = branch || "main";
-        loading = true;
-        error = false;
-        errorMessage = "";
-
-        // Seed installed IDs from disk baseline if not done yet
-        // (handles the race condition where fetchIndex resolves before PluginLoader's pluginsReloaded)
-        if (!baselineLoaded && CaelestiaApi.plugins.available.count > 0) {
-            baselineLoaded = true;
-            let ids = [];
-            let av = CaelestiaApi.plugins.available;
-            for (let i = 0; i < av.count; i++)
-                ids.push(av.get(i).id);
-            installedPluginIds = ids;
-            console.log("PluginStore: baseline seeded in fetchIndex:", JSON.stringify(ids));
-        }
-
-        fetchProc.command = ["curl", "-sfL", "https://raw.githubusercontent.com/ladybug-me/caelestia-kde-plugins/" + fetchBranch + "/index.json"];
-        fetchProc.running = true;
     }
 
     // ── 2. Install a plugin ───────────────────────────────────────────────────
@@ -133,39 +174,6 @@ Item {
         }
     }
 
-    function installPlugin(id, repoPath, branch) {
-        if (!id) return;
-        
-        let installBranch = branch || "main";
-
-        let actualRepoPath = repoPath || ("plugins/" + id);
-
-        installing = true;
-        installProgress = "Cloning plugin '" + id + "'...";
-
-        let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
-
-        let script = `set -e
-TMP_DIR=$(mktemp -d)
-cd "$TMP_DIR"
-git init -q
-git remote add origin https://github.com/ladybug-me/caelestia-kde-plugins.git
-git config core.sparseCheckout true
-echo "${actualRepoPath}/*" >> .git/info/sparse-checkout
-git fetch -q --depth 1 --filter=blob:none origin "${installBranch}"
-git reset --hard -q "origin/${installBranch}"
-mkdir -p "$(dirname "${targetDir}")"
-rm -rf "${targetDir}"
-mv "${actualRepoPath}" "${targetDir}"
-rm -rf "$TMP_DIR"
-echo "DONE"`;
-
-        installProc.pendingId = id;
-        installProc.pendingTargetDir = targetDir;
-        installProc.command = ["bash", "-c", script];
-        installProc.running = true;
-    }
-
     // ── 3. Remove a user plugin ───────────────────────────────────────────────
 
     Process {
@@ -184,12 +192,5 @@ echo "DONE"`;
             // Also drop from the installed tab list model
             PluginLoader.removePluginFromAvailable(removeProc.pendingId);
         }
-    }
-
-    function removePlugin(id) {
-        let targetDir = (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/caelestia/plugins/" + id;
-        removeProc.pendingId = id;
-        removeProc.command = ["rm", "-rf", targetDir];
-        removeProc.running = true;
     }
 }

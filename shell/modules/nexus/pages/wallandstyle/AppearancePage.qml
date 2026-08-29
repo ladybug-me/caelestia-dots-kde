@@ -24,11 +24,11 @@ PageBase {
             type: TextButton.Filled
             scale: pressed ? 0.95 : 1.0
 
+            onClicked: restartProcess.running = true
+
             Behavior on scale {
                 Anim { type: Anim.DefaultEffects }
             }
-
-            onClicked: restartProcess.running = true
 
             Process {
                 id: restartProcess
@@ -135,18 +135,18 @@ PageBase {
                             fi
                         elif [ "$BLUR_MATCHING" = "false" ] && [ "$BLUR_NON_MATCHING" = "true" ]; then
                             if ! echo "$WINDOW_CLASSES" | grep -q '\\bquickshell\\b'; then
-                                if [ -z "$WINDOW_CLASSES" ]; then 
+                                if [ -z "$WINDOW_CLASSES" ]; then
                                     NEW_CLASSES="quickshell"
                                 elif echo "$WINDOW_CLASSES" | grep -q ','; then
                                     NEW_CLASSES="$WINDOW_CLASSES,quickshell"
-                                else 
+                                else
                                     NEW_CLASSES="$WINDOW_CLASSES"$'\n'"quickshell"
                                 fi
                                 kwriteconfig6 --file kwinrc --group Effect-better-blur-dx --key WindowClasses "$NEW_CLASSES"
                                 MODIFIED=true
                             fi
                         fi
-                        if [ "$MODIFIED" = "true" ]; then 
+                        if [ "$MODIFIED" = "true" ]; then
                             qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
                             qdbus6 org.kde.KWin /Effects reconfigureEffect better_blur_dx 2>/dev/null || true
                         fi

@@ -7,6 +7,7 @@ import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.components.images
 import qs.services
 import Quickshell
 
@@ -32,7 +33,13 @@ StyledRect {
         return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mkv");
     }
 
-    width: ListView.view ? ListView.view.width : parent.width
+    // Helper for transparent images (png, svg, gif)
+    function isTransparentMedia(url) {
+        if (!url) return false;
+        let lower = url.toString().toLowerCase();
+        return lower.endsWith(".png") || lower.endsWith(".svg") || lower.endsWith(".gif") || lower.endsWith(".webp");
+    }
+
     implicitHeight: contentColumn.implicitHeight + Tokens.padding.large * 2
     
     radius: Tokens.rounding.large
@@ -114,16 +121,6 @@ StyledRect {
                     }
                     Item { Layout.fillWidth: true } // spacer
                 }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: root.descriptionText
-                    font: Tokens.font.label.small
-                    color: Colours.palette.m3onSurfaceVariant
-                    elide: Text.ElideRight
-                    wrapMode: root.isExpanded ? Text.Wrap : Text.NoWrap
-                    maximumLineCount: root.isExpanded ? 10 : 1
-                }
             }
 
             // Action Item Loader
@@ -141,44 +138,57 @@ StyledRect {
             }
         }
 
-        // --- Expanded Content ---
+        // --- Expanded Content Row ---
         ColumnLayout {
+            id: expandedContent
             Layout.fillWidth: true
             spacing: Tokens.spacing.large
             visible: root.isExpanded
-            opacity: root.isExpanded ? 1 : 0
-            
-            Behavior on opacity { CAnim { duration: 250 } }
             
             Item {
+                id: mediaItem
                 Layout.fillWidth: true
-                Layout.preferredHeight: 220
-                visible: !!root.mediaUrl
+                Layout.preferredHeight: root.mediaUrl ? 220 : 0
+                visible: true
                 clip: true
 
                 StyledRect {
                     anchors.fill: parent
-                    radius: Tokens.rounding.medium
+                    radius: Tokens.rounding.small
                     color: Colours.palette.m3surface
+                    opacity: 0.5
+                    visible: !root.isTransparentMedia(root.mediaUrl)
                 }
 
                 AnimatedImage {
+                    id: pluginImage
                     anchors.fill: parent
-                    anchors.margins: Tokens.padding.extraSmall
+                    anchors.margins: Tokens.padding.small
                     source: root.mediaUrl
                     visible: !root.isVideo(root.mediaUrl)
-                    fillMode: Image.PreserveAspectCrop
-                    playing: visible && root.isExpanded
+                    fillMode: Image.PreserveAspectFit
+                    playing: visible
                 }
 
                 VideoOutput {
                     id: vidOut
                     anchors.fill: parent
-                    anchors.margins: Tokens.padding.extraSmall
+                    anchors.margins: Tokens.padding.small
                     visible: root.isVideo(root.mediaUrl)
-                    fillMode: VideoOutput.PreserveAspectCrop
+                    fillMode: VideoOutput.PreserveAspectFit
                 }
-                AudioOutput {
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                text: root.descriptionText
+                font: Tokens.font.body.small
+                color: Colours.palette.m3onSurfaceVariant
+                wrapMode: Text.Wrap
+                visible: root.descriptionText !== ""
+            }
+
+            AudioOutput {
                     id: aOut
                     muted: true
                 }
@@ -186,7 +196,7 @@ StyledRect {
                     id: mediaPlay
                     videoOutput: vidOut
                     audioOutput: aOut
-                    source: root.mediaUrl
+                    source: root.isVideo(root.mediaUrl) ? root.mediaUrl : ""
                     loops: MediaPlayer.Infinite
                     
                     onSourceChanged: {
@@ -194,7 +204,6 @@ StyledRect {
                         else pause()
                     }
                 }
-            }
         }
     }
     

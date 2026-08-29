@@ -3,6 +3,7 @@ blank-before-close-brace	modules/bar/popouts/Bluetooth.qml	no blank line expecte
 blank-before-close-brace	modules/bar/popouts/Github.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/bar/popouts/Network.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/launcher/WindowSwitcherList.qml	no blank line expected before closing brace
+blank-before-close-brace	modules/nexus/common/ExpandablePluginRow.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/nexus/pages/wallandstyle/KMYCSettings.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/screenshot/regionSelector/CircleSelectionDetails.qml	no blank line expected before closing brace
 blank-before-close-brace	modules/screenshot/regionSelector/RegionSelection.qml	no blank line expected before closing brace
@@ -10,13 +11,14 @@ blank-before-close-brace	modules/sidebar/AiAssistant.qml	no blank line expected 
 blank-before-close-brace	services/Audio.qml	no blank line expected before closing brace
 blank-before-close-brace	services/DiscordRPC.qml	no blank line expected before closing brace
 file-structure	modules/nexus/pages/PluginsPage.qml	only one blank line expected between imports and content
+import-order	modules/nexus/common/ExpandablePluginRow.qml	'Quickshell' should appear before 'qs.components.controls'
+missing-section-separator	modules/nexus/common/ExpandablePluginRow.qml	blank line expected between id and bindings
 missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between bindings and child objects
 missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between bindings and property declarations
 missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between id and bindings
 missing-section-separator	modules/nexus/pages/PluginSettingsPopup.qml	blank line expected between property declarations and bindings
 missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between child objects and bindings
 missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between child objects and property declarations
-missing-section-separator	modules/nexus/pages/PluginsPage.qml	blank line expected between id and bindings
 missing-section-separator	modules/nexus/pages/ShortcutManagerPage.qml	blank line expected between bindings and property declarations
 missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and property declarations
 missing-section-separator	modules/welcome/WelcomeWidget.qml	blank line expected between id and bindings
@@ -77,6 +79,7 @@ section-order	modules/nexus/PageRegistry.qml	functions should appear before bind
 section-order	modules/nexus/PageRegistry.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/nexus/PageRegistry.qml	property declarations should appear before functions (seen at line N)
 section-order	modules/nexus/common/DoubleStepperRow.qml	functions should appear before bindings (seen at line N)
+section-order	modules/nexus/common/ExpandablePluginRow.qml	functions should appear before bindings (seen at line N)
 section-order	modules/nexus/common/KeyCaptureDialog.qml	bindings should appear before child objects (seen at line N)
 section-order	modules/nexus/common/KeyCaptureDialog.qml	property declarations should appear before signal declarations (seen at line N)
 section-order	modules/nexus/common/ShortcutRow.qml	bindings should appear before child objects (seen at line N)
