@@ -1,6 +1,7 @@
 #include "Draw.hpp"
 #include "Globals.hpp"
 #include <iostream>
+#include <map>
 
 using namespace std;
 
@@ -9,8 +10,49 @@ namespace Draw {
     const string reset = esc + "0m";
     const string bold = esc + "1m";
     const string dim = esc + "2m";
-    
-    // Colors
+
+    string repeat(const string& s, int n) {
+        string out;
+        if (n <= 0) return out;
+        out.reserve(s.size() * static_cast<size_t>(n));
+        for (int i = 0; i < n; ++i) out += s;
+        return out;
+    }
+
+    string fit(const string& text, size_t max_len) {
+        if (max_len == 0) return string();
+        if (text.size() <= max_len) return text;
+        if (max_len <= 3) return text.substr(0, max_len);
+        return text.substr(0, max_len - 3) + "...";
+    }
+
+    string strip_ansi(const string& text) {
+        string out;
+        out.reserve(text.size());
+        for (size_t i = 0; i < text.size(); ++i) {
+            char c = text[i];
+            if (c == '\x1b') {
+                // Skip ESC [ ... final byte. Also skip OSC (ESC ] ... BEL/ST).
+                if (i + 1 < text.size() && text[i + 1] == '[') {
+                    i += 2;
+                    while (i < text.size()) {
+                        char f = text[i];
+                        if ((f >= 'A' && f <= 'Z') || (f >= 'a' && f <= 'z') || f == '~') break;
+                        ++i;
+                    }
+                } else if (i + 1 < text.size() && text[i + 1] == ']') {
+                    i += 2;
+                    while (i < text.size() && text[i] != '\x07') ++i;
+                } else if (i + 1 < text.size()) {
+                    ++i;
+                }
+                continue;
+            }
+            out += c;
+        }
+        return out;
+    }
+
     string color(const string& name) {
         if (name.empty()) {
             return "";
@@ -42,11 +84,42 @@ namespace Draw {
         // Use terminal default foreground so light/dark themes remain readable.
         return esc + "39m";
     }
-    
-    // Box chars
-    const string h_line = "-";
-    const string v_line = "|";
-    const string corner = "+";
+
+    string glyph(const string& name) {
+        if (!g_theme.is_null() && g_theme.contains("glyphs") &&
+            g_theme["glyphs"].is_object() && g_theme["glyphs"].contains(name) &&
+            g_theme["glyphs"][name].is_string()) {
+            return g_theme["glyphs"][name].get<string>();
+        }
+        // Hardcoded fallback keeps the UI working without a theme file.
+        static const map<string, string> fallback = {
+            {"pending", "[ ]"},     {"running", "[>]"},      {"ok", "[OK]"},
+            {"warn", "[WARN]"},     {"failed", "[ERR]"},     {"skipped", "[SKIP]"},
+            {"checkbox_on", "[x]"}, {"checkbox_off", "[ ]"},
+            {"select_left", "<"},   {"select_right", ">"},
+        };
+        auto it = fallback.find(name);
+        return it != fallback.end() ? it->second : "?";
+    }
+
+    string status_glyph(const string& status) {
+        if (status == "RUNNING") return glyph("running");
+        if (status == "OK") return glyph("ok");
+        if (status == "WARN") return glyph("warn");
+        if (status == "FAILED") return glyph("failed");
+        if (status == "SKIPPED") return glyph("skipped");
+        if (status == "IGNORED") return "[IGNORED]";
+        return glyph("pending");
+    }
+
+    string status_color(const string& status) {
+        if (status == "RUNNING") return "primary";
+        if (status == "OK") return "success";
+        if (status == "WARN") return "warning";
+        if (status == "FAILED") return "error";
+        if (status == "IGNORED") return "warning";
+        return "muted"; // PENDING, SKIPPED
+    }
 
     string to(int line, int col) {
         return esc + to_string(line) + ";" + to_string(col) + "H";
@@ -61,21 +134,22 @@ namespace Draw {
 
     void box(int x, int y, int w, int h, const string& title, const string& border_color, const string& title_color) {
         if (w < 2 || h < 2) return;
+        // Plain ASCII frame: + - + borders with | sides.
+        string tl = "+", tr = "+", bl = "+", br = "+", hz = "-", vt = "|";
         string c = color(border_color);
         string tc = title_color.empty() ? reset : color(title_color);
         string out = c;
-        
-        string h_str(w - 2, '-');
-        out += to(y, x) + corner + h_str + corner;
-        out += to(y + h - 1, x) + corner + h_str + corner;
-        
+
+        out += to(y, x) + tl + repeat(hz, w - 2) + tr;
+        out += to(y + h - 1, x) + bl + repeat(hz, w - 2) + br;
+
         for (int i = 1; i < h - 1; i++) {
-            out += to(y + i, x) + v_line;
-            out += to(y + i, x + w - 1) + v_line;
+            out += to(y + i, x) + vt;
+            out += to(y + i, x + w - 1) + vt;
         }
 
         if (!title.empty()) {
-            int pad = (w - title.length()) / 2;
+            int pad = (w - static_cast<int>(title.length()) - 2) / 2;
             if (pad > 0) {
                 out += to(y, x + pad) + bold + reset + c + "[" + reset + bold + tc + title + reset + c + "]" + reset;
             }
@@ -83,13 +157,14 @@ namespace Draw {
         cout << out << reset;
     }
 
-    void animated_box(int x, int y, int w, int h, const string& title, const string& border_color, const string& title_color) {
-        // Direct delegate — no animation, instant rendering
-        box(x, y, w, h, title, border_color, title_color);
-    }
-
     void text(int x, int y, const string& txt, const string& color_name) {
         string c = color_name.empty() ? "" : color(color_name);
         cout << to(y, x) << c << txt << reset;
+    }
+
+    void text_center(int y, const string& txt, const string& color_name) {
+        int x = (g_term_width - static_cast<int>(txt.length())) / 2;
+        if (x < 0) x = 0;
+        text(x, y, txt, color_name);
     }
 }

@@ -19,12 +19,27 @@ Item {
     property var cardItems: []
     property var activeInfoClient: null
     property var panels: null
+    /// The screen this overview belongs to. Everything below is scoped to it:
+    /// KWin gives each output its own current desktop, and each window lives on
+    /// one output, so an overview that ignores this shows the other monitor's
+    /// desktop and the other monitor's windows.
+    required property ShellScreen screen
     property var closingWindows: []
     property alias indicatorContainer: indicatorContainer
     readonly property real overviewBorderThickness: Math.min(width, height) * 0.15
     readonly property real indicatorSpace: indicatorContainer.height + Tokens.padding.large * 2
     readonly property real verticalOffset: indicatorSpace - overviewBorderThickness
-    readonly property int activeWsId: typeof KWinWorkspaceState !== "undefined" ? KWinWorkspaceState.activeId : 1
+    readonly property int activeWsId: {
+        if (typeof KWinWorkspaceState === "undefined")
+            return 1;
+        // activeId comes from D-Bus, which exposes a single current desktop and
+        // reports whichever output is focused. Per screen, only the tracker
+        // knows.
+        const perOutput = KWinWorkspaceState.activeByOutput[root.screen.name];
+        if (perOutput > 0)
+            return perOutput;
+        return KWinWorkspaceState.activeId > 0 ? KWinWorkspaceState.activeId : 1;
+    }
     property bool ignoreNextSwitch: false
     property bool _initialized: false
     property bool isDragging: false
@@ -37,17 +52,29 @@ Item {
         if (listView.currentIndex >= wsList.length)
             return [];
         const wsId = wsList[listView.currentIndex].index;
-        const all = typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.windowList : null;
-        const out = [];
-        if (all)
-            for (let i = 0; i < all.length; ++i)
-                if (all[i].workspace && (all[i].workspace.id === wsId || all[i].workspace.index === wsId))
-                    out.push(all[i]);
-        return out;
+        // windowsForWorkspace already scopes to the workspace; the overview is
+        // per-screen, so drop anything living on another output.
+        return typeof KWinActiveWindowBridge !== "undefined"
+            ? KWinActiveWindowBridge.windowsForWorkspace(wsId, false).filter(w => w.output === root.screen.name)
+            : [];
     }
 
     signal requestWindowInfo(var client)
     signal requestClose()
+
+    // Resolve an icon for a window card, mirroring the dock: prefer an icon
+    // extracted from the window's own _NET_WM_ICON (apps with no desktop
+    // entry, e.g. Steam games or Minecraft), then fall back to the themed
+    // desktop-entry icon lookup the overview already used.
+    function windowIconSource(client: var): string {
+        if (!client)
+            return "";
+        const wp = WinIcons.paths[WinIcons.keyFor(client.class, client.pid ?? 0)];
+        if (wp)
+            return "file://" + wp;
+        return client.iconName ? Icons.getAppIcon(client.iconName, "image-missing")
+                               : (client.class ? Icons.getAppIcon(client.class, "image-missing") : "");
+    }
 
     function cycleSelection(backwards: bool): void {
         const n = root.currentWindows.length;
@@ -68,7 +95,7 @@ Item {
         if (typeof KWinActiveWindowBridge !== "undefined")
             KWinActiveWindowBridge.focusWindow(addr);
         if (typeof KWinWorkspaceState !== "undefined" && listView.currentIndex >= 0)
-            KWinWorkspaceState.switchTo(KWinWorkspaceState.workspaces[listView.currentIndex].index);
+            KWinWorkspaceState.switchTo(KWinWorkspaceState.workspaces[listView.currentIndex].index, root.screen.name);
         root.requestClose();
     }
     function syncPage() {
@@ -214,12 +241,7 @@ Item {
 
                 let arr = [];
                 if (kwinList) {
-                    for (let i = 0; i < kwinList.length; ++i) {
-                        const w = kwinList[i];
-                        if (w.workspace && (w.workspace.id === wsId || w.workspace.index === wsId)) {
-                            arr.push(w);
-                        }
-                    }
+                    arr = KWinActiveWindowBridge.windowsForWorkspace(wsId, false).filter(w => w.output === root.screen.name);
                 } else if (hyprList) {
                     for (let i = 0; i < hyprList.length; ++i) {
                         const w = hyprList[i];
@@ -325,6 +347,9 @@ Item {
 
                             Component.onCompleted: {
                                 root.cardItems = [...root.cardItems, activeWin];
+                                if (modelData && !DesktopEntries.heuristicLookup(modelData.iconName || modelData.class || "")) {
+                                    WinIcons.request(modelData.class, modelData.title, modelData.pid ?? 0, modelData.address ? String(modelData.address) : "");
+                                }
                             }
                             Component.onDestruction: {
                                 root.cardItems = root.cardItems.filter(x => x !== activeWin);
@@ -441,7 +466,7 @@ Item {
                                             return (wAspect > containerAspect) ? thumb.height : thumb.width / wAspect;
                                         }
                                         anchors.centerIn: parent
-                                        fallbackIcon: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
+                                        fallbackIcon: root.windowIconSource(modelData)
                                         sourceAspect: activeWin.windowAspect
                                     }
 
@@ -470,7 +495,7 @@ Item {
                                     IconImage {
                                         implicitSize: Math.round(titleText.implicitHeight * 1.1)
                                         asynchronous: true
-                                        source: modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : ""
+                                        source: root.windowIconSource(modelData)
                                     }
                                     StyledText {
                                         id: titleText
@@ -498,11 +523,11 @@ Item {
                                             Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ window = "address:0x${modelData.address}" })` : `focuswindow address:0x${modelData.address}`);
                                         }
                                         if (typeof KWinWorkspaceState !== "undefined") {
-                                            KWinWorkspaceState.switchTo(page.wsId);
+                                            KWinWorkspaceState.switchTo(page.wsId, root.screen.name);
                                         }
                                     }
-                                    const v = typeof Visibilities !== "undefined" ? Visibilities.getForActive() : null;
-                                    if (v) v.overview = false;
+                                    if (typeof Visibilities !== "undefined")
+                                        Visibilities.setOverview(false);
                                 }
                             }
 
@@ -583,8 +608,13 @@ Item {
             onTriggered: {
                 if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces.length > listView.currentIndex) {
                     const wId = KWinWorkspaceState.workspaces[listView.currentIndex].index;
-                    if (KWinWorkspaceState.activeId !== wId) {
-                        KWinWorkspaceState.switchTo(wId);
+                    // Compared against this screen's desktop, not the global
+                    // activeId: with per-output desktops the global one belongs
+                    // to whichever screen is focused, so testing against it made
+                    // this fire on the screen that had not moved and stay quiet
+                    // on the one that had.
+                    if (root.activeWsId !== wId) {
+                        KWinWorkspaceState.switchTo(wId, root.screen.name);
                     }
                 }
             }
@@ -632,6 +662,7 @@ Item {
 
             anchors.centerIn: parent
             maxWidth: Math.max(200, root.width - 100)
+            screenName: root.screen.name
             count: listView.count
             currentIndex: listView.currentIndex
             closingWindows: root.closingWindows

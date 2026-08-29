@@ -3,7 +3,12 @@
 #include <KPluginFactory>
 #include <QStandardPaths>
 #include <QDir>
+#include <QDBusConnection>
+#include <QDBusError>
+#include <effect/effectwindow.h>
 #include <QDebug>
+#include <core/output.h>
+#include <cstring>
 #include <QStandardPaths>
 #include <QDir>
 
@@ -31,9 +36,49 @@ WorkspaceTrackerEffect::WorkspaceTrackerEffect()
 
     connect(m_socket, &QLocalSocket::connected, this, [this]() {
         qDebug() << "WorkspaceTracker: Socket connected!";
+        sendFullState();
     });
 
     connectSocket();
+
+    // Registered on the service KWin already owns; any session client may call
+    // it, and nothing extra has to be granted.
+    if (!QDBusConnection::sessionBus().registerObject(
+            QStringLiteral("/Caelestia/Workspaces"), this, QDBusConnection::ExportAllSlots)) {
+        qWarning() << "WorkspaceTracker: could not register /Caelestia/Workspaces:"
+                   << QDBusConnection::sessionBus().lastError().message();
+    }
+}
+
+KWin::LogicalOutput* WorkspaceTrackerEffect::findOutput(const QString& name)
+{
+    const auto outputs = KWin::effects->screens();
+    for (KWin::LogicalOutput* candidate : outputs) {
+        if (candidate && candidate->name() == name) {
+            return candidate;
+        }
+    }
+    return nullptr;
+}
+
+void WorkspaceTrackerEffect::SetDesktop(const QString& output, int desktop)
+{
+    if (desktop < 1) {
+        return;
+    }
+
+    KWin::LogicalOutput* target = findOutput(output);
+    if (!target) {
+        return;
+    }
+
+    const auto desktops = KWin::effects->desktops();
+    for (KWin::VirtualDesktop* candidate : desktops) {
+        if (candidate && static_cast<int>(candidate->x11DesktopNumber()) == desktop) {
+            KWin::effects->setCurrentDesktop(candidate, target);
+            return;
+        }
+    }
 }
 
 WorkspaceTrackerEffect::~WorkspaceTrackerEffect()
@@ -52,33 +97,59 @@ void WorkspaceTrackerEffect::connectSocket()
     }
 }
 
-void WorkspaceTrackerEffect::sendPayload(int desktop, float x, float y)
+void WorkspaceTrackerEffect::sendPayload(int desktop, float x, float y, KWin::LogicalOutput* output)
 {
-    if (m_socket->state() == QLocalSocket::ConnectedState) {
-        DesktopTransition payload{desktop, x, y};
-        m_socket->write(reinterpret_cast<const char*>(&payload), sizeof(payload));
+    if (m_socket->state() != QLocalSocket::ConnectedState) {
+        return;
+    }
+
+    DesktopReport payload;
+    payload.desktop = desktop;
+    payload.x = x;
+    payload.y = y;
+
+    // An unnamed output means "whichever screen is active", which is what the
+    // signals report when per-output desktops are switched off. The shell
+    // applies those to every screen.
+    const QByteArray name = output ? output->name().toUtf8() : QByteArray();
+    const int copied = qMin(name.size(), static_cast<qsizetype>(sizeof(payload.output) - 1));
+    std::memcpy(payload.output, name.constData(), copied);
+    payload.output[copied] = '\0';
+
+    m_socket->write(reinterpret_cast<const char*>(&payload), sizeof(payload));
+}
+
+void WorkspaceTrackerEffect::sendFullState()
+{
+    const auto outputs = KWin::effects->screens();
+    for (KWin::LogicalOutput* output : outputs) {
+        if (KWin::VirtualDesktop* desktop = KWin::effects->currentDesktop(output)) {
+            sendPayload(static_cast<int>(desktop->x11DesktopNumber()), 0.0f, 0.0f, output);
+        }
     }
 }
 
-void WorkspaceTrackerEffect::onDesktopChanging(KWin::VirtualDesktop* desktop, QPointF offset)
+void WorkspaceTrackerEffect::onDesktopChanging(
+    KWin::VirtualDesktop* desktop, QPointF offset, KWin::EffectWindow* with, KWin::LogicalOutput* output)
 {
+    Q_UNUSED(with)
     if (desktop && m_socket->state() == QLocalSocket::ConnectedState) {
-        qDebug() << "WorkspaceTracker: sending offset" << offset << "for desktop" << desktop->x11DesktopNumber();
-        sendPayload(desktop->x11DesktopNumber(), static_cast<float>(offset.x()), static_cast<float>(offset.y()));
-    } else {
-        qDebug() << "WorkspaceTracker: not connected or desktop is null. Socket state:" << m_socket->state();
+        sendPayload(desktop->x11DesktopNumber(), static_cast<float>(offset.x()), static_cast<float>(offset.y()), output);
     }
 }
 
 void WorkspaceTrackerEffect::onDesktopChangingCancelled()
 {
-    sendPayload(0, 0.0f, 0.0f);
+    sendPayload(0, 0.0f, 0.0f, nullptr);
 }
 
-void WorkspaceTrackerEffect::onDesktopChanged(KWin::VirtualDesktop* oldDesktop, KWin::VirtualDesktop* newDesktop)
+void WorkspaceTrackerEffect::onDesktopChanged(
+    KWin::VirtualDesktop* oldDesktop, KWin::VirtualDesktop* newDesktop, KWin::EffectWindow* with, KWin::LogicalOutput* output)
 {
+    Q_UNUSED(oldDesktop)
+    Q_UNUSED(with)
     if (newDesktop && m_socket->state() == QLocalSocket::ConnectedState) {
-        sendPayload(newDesktop->x11DesktopNumber(), 0.0f, 0.0f);
+        sendPayload(newDesktop->x11DesktopNumber(), 0.0f, 0.0f, output);
     }
 }
 

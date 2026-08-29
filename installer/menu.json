@@ -1,92 +1,157 @@
 {
+  "profiles": [
+    {
+      "id": "full",
+      "title": "Full",
+      "help": "All packages, theming, and optional apps.",
+      "sets": {
+        "INSTALL_FISH": true,
+        "INSTALL_PAPIRUS": true,
+        "INSTALL_DARKLY": true,
+        "INSTALL_KVANTUM": true,
+        "INSTALL_THUNAR": true,
+        "APPLY_DARKLY": true,
+        "APPLY_MATERIAL_YOU": true,
+        "APPLY_FONTS": true,
+        "APPLY_LOCKSCREEN": true,
+        "INSTALL_VSCODE": true,
+        "INSTALL_ZED": true,
+        "INSTALL_SPICETIFY": true,
+        "INSTALL_DISCORD": true,
+        "INSTALL_TODOIST": true,
+        "INSTALL_FIREFOX_THEME": true
+      }
+    },
+    {
+      "id": "standard",
+      "title": "Standard",
+      "help": "Packages and theming, with no optional apps.",
+      "sets": {}
+    },
+    {
+      "id": "minimal",
+      "title": "Minimal",
+      "help": "Shell and Darkly theme only. Quickest install, fewest changes.",
+      "sets": {
+        "INSTALL_FISH": true,
+        "INSTALL_PAPIRUS": false,
+        "INSTALL_DARKLY": true,
+        "INSTALL_KVANTUM": true,
+        "INSTALL_THUNAR": false,
+        "APPLY_DARKLY": true,
+        "APPLY_MATERIAL_YOU": false,
+        "APPLY_FONTS": false,
+        "APPLY_LOCKSCREEN": false
+      }
+    },
+    {
+      "id": "custom",
+      "title": "Custom",
+      "help": "Pick each option yourself.",
+      "sets": {}
+    }
+  ],
   "menu": [
     {
       "id": "menu_packages",
       "type": "submenu",
-      "title": "Package Installation",
+      "title": "Packages",
+      "help": "Packages installed from your distribution's repositories and the AUR.",
       "items": [
         {
           "id": "INSTALL_FISH",
           "type": "boolean",
           "title": "Fish shell",
+          "help": "Fish, with the Caelestia configuration.",
           "default": true
         },
         {
           "id": "INSTALL_PAPIRUS",
           "type": "boolean",
           "title": "Papirus icon theme",
+          "help": "The Papirus icon set.",
           "default": true
         },
         {
           "id": "INSTALL_DARKLY",
           "type": "boolean",
           "title": "Darkly theme package",
+          "help": "The Darkly Plasma and Qt theme packages.",
+          "default": true
+        },
+        {
+          "id": "INSTALL_KVANTUM",
+          "type": "boolean",
+          "title": "Kvantum theme engine",
+          "help": "Kvantum, the Qt style engine the Caelestia look is built on.",
           "default": true
         },
         {
           "id": "INSTALL_THUNAR",
           "type": "boolean",
           "title": "Thunar integration files",
+          "help": "Config files for the Thunar file manager.",
           "default": false
-        },
-        {
-          "id": "INSTALL_KVANTUM",
-          "type": "boolean",
-          "title": "Kvantum theme engine",
-          "default": true
         },
         {
           "id": "action_back",
           "type": "action",
-          "title": "Back to Main Menu"
+          "title": "Back"
         }
       ]
     },
     {
-      "id": "menu_theming",
+      "id": "menu_appearance",
       "type": "submenu",
-      "title": "Plasma Theming",
+      "title": "Appearance",
+      "help": "Desktop look and feel, applied during configuration.",
       "items": [
         {
           "id": "APPLY_DARKLY",
           "type": "boolean",
-          "title": "Apply Darkly theme (style, decorations, window borders)",
+          "title": "Apply Darkly theme",
+          "help": "Set the style, window decorations, and borders to Darkly.",
           "default": true
         },
         {
           "id": "APPLY_MATERIAL_YOU",
           "type": "boolean",
-          "title": "Enable Material You dynamic colors",
+          "title": "Material You dynamic colors",
+          "help": "Pick accent colors from your wallpaper with kde-material-you-colors.",
           "default": true
         },
         {
           "id": "APPLY_FONTS",
           "type": "boolean",
-          "title": "Apply custom fonts (Rubik, JetBrains Mono Nerd)",
+          "title": "Custom fonts",
+          "help": "Apply Rubik and JetBrains Mono Nerd Font across the system.",
           "default": true
         },
         {
           "id": "APPLY_LOCKSCREEN",
           "type": "boolean",
-          "title": "Enable custom lockscreen wallpaper plugin",
+          "title": "Custom lockscreen wallpaper",
+          "help": "Turn on the plasma-wallpaper-application lockscreen plugin.",
           "default": true
         },
         {
           "id": "action_back",
           "type": "action",
-          "title": "Back to Main Menu"
+          "title": "Back"
         }
       ]
     },
     {
       "id": "menu_shell",
       "type": "submenu",
-      "title": "Shell Preferences",
+      "title": "Shell",
+      "help": "The login shell, set during finalization.",
       "items": [
         {
           "id": "DEFAULT_SHELL",
           "type": "select",
           "title": "Default shell",
+          "help": "The login shell Caelestia sets up.",
           "default": "fish",
           "options": [
             "bash",
@@ -97,44 +162,97 @@
         {
           "id": "action_back",
           "type": "action",
-          "title": "Back to Main Menu"
+          "title": "Back"
         }
       ]
     },
     {
-      "id": "menu_installer",
+      "id": "menu_apps",
       "type": "submenu",
-      "title": "Installer Behavior",
+      "title": "Applications",
+      "help": "Theming for third-party apps. Only applies to the ones you turn on.",
       "items": [
         {
-          "id": "CONFIRM_ARG",
+          "id": "INSTALL_VSCODE",
           "type": "boolean",
-          "title": "Auto-confirm package installs (--noconfirm / -y)",
-          "default": true
-        },
-        {
-          "id": "REMOVE_CACHE",
-          "type": "boolean",
-          "title": "Remove build cache after install",
+          "title": "VSCode / VSCodium",
+          "help": "Settings, keybindings, and the Caelestia theme.",
           "default": false
         },
         {
-          "id": "SKIP_SYSTEM_UPDATE",
+          "id": "INSTALL_ZED",
           "type": "boolean",
-          "title": "Skip the full system update (pacman -Syu / dnf upgrade / apt upgrade)",
+          "title": "Zed",
+          "help": "Zed keymap and settings.",
+          "default": false
+        },
+        {
+          "id": "INSTALL_SPICETIFY",
+          "type": "boolean",
+          "title": "Spicetify",
+          "help": "Spotify theming through Spicetify.",
+          "default": false
+        },
+        {
+          "id": "INSTALL_DISCORD",
+          "type": "boolean",
+          "title": "Discord / Equibop",
+          "help": "The Caelestia look for Discord or Equibop.",
+          "default": false
+        },
+        {
+          "id": "INSTALL_TODOIST",
+          "type": "boolean",
+          "title": "Todoist",
+          "help": "The Todoist AppImage.",
+          "default": false
+        },
+        {
+          "id": "INSTALL_FIREFOX_THEME",
+          "type": "boolean",
+          "title": "Firefox theming",
+          "help": "userChrome.css and user.js theming for Firefox.",
           "default": false
         },
         {
           "id": "action_back",
           "type": "action",
-          "title": "Back to Main Menu"
+          "title": "Back"
         }
       ]
     },
     {
-      "id": "action_proceed",
+      "id": "menu_behavior",
+      "type": "submenu",
+      "title": "Installer options",
+      "help": "How the installer runs.",
+      "items": [
+        {
+          "id": "REMOVE_CACHE",
+          "type": "boolean",
+          "title": "Remove build cache after install",
+          "help": "Clear the Caelestia build cache when installation finishes.",
+          "default": false
+        },
+        {
+          "id": "SKIP_SYSTEM_UPDATE",
+          "type": "boolean",
+          "title": "Skip the full system update",
+          "help": "Skip the full system update (pacman -Syu / dnf upgrade / apt upgrade).",
+          "default": false
+        },
+        {
+          "id": "action_back",
+          "type": "action",
+          "title": "Back"
+        }
+      ]
+    },
+    {
+      "id": "action_review",
       "type": "action",
-      "title": "Begin Installation"
+      "title": "Review installation",
+      "help": "See every step, grouped by phase, before anything runs."
     }
   ]
 }

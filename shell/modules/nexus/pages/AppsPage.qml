@@ -98,7 +98,7 @@ PageBase {
             last: true
             icon: "apps"
             label: qsTr("All apps")
-            status: Strings.localizeEnglishSpelling(qsTr("Browse installed apps, set favourites and hidden"))
+            status: qsTr("Browse installed apps, set favorites and hidden")
             onClicked: root.nState.openSubPage(1)
         }
     }

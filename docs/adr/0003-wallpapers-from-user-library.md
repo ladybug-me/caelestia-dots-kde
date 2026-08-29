@@ -1,0 +1,3 @@
+# Wallpapers come from a user-owned library folder, not the app bundle
+
+Wallpapers previously lived in two places: a bundled set shipped in `shell/assets/wallpapers/` (used for the default and a hardcoded Featured grid) and a scanned user library at `~/Pictures/Wallpapers`. We made the library the single source of truth - drop a file in and it appears - and the bundle now ships only `Minimal-Paper.png` as an offline fallback. The dharmx `digital` pack is downloaded into the library at install time (`scripts/03a-wallpapers.sh`, best-effort and idempotent), because the source repo is large and the set changes independently of Caelestia releases.

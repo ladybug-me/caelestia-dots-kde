@@ -30,6 +30,13 @@ public:
     QVariantList windowList() const;
     QString pendingFocusAddress() const;
 
+    // Windows on one workspace (1-based desktop id, or desktop UUID), matching
+    // the workspace field's only real shape: {id: number, uuid: string}, with
+    // -1/"" meaning "on all workspaces". Empty/invalid target selects every
+    // window. `includeOnAllWorkspaces` folds all-workspace windows into the
+    // result the way the region selector wants; the overview grid passes false.
+    Q_INVOKABLE QVariantList windowsForWorkspace(const QVariant& workspace, bool includeOnAllWorkspaces = true) const;
+
     Q_INVOKABLE QString cursorOutputName() const;
     Q_INVOKABLE void focusWindow(const QString &address);
     Q_INVOKABLE void closeWindow(const QString &address);

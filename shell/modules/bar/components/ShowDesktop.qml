@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.services
 import qs.utils
@@ -20,7 +21,7 @@ Item {
         radius: Tokens.rounding.full
         Accessible.name: qsTr("Show desktop")
         Accessible.role: Accessible.Button
-        Accessible.description: qsTr("Minimise all windows to show the desktop")
+        Accessible.description: qsTr("Minimize all windows to show the desktop")
         onClicked: Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Show Desktop"])
     }
 
@@ -33,5 +34,14 @@ Item {
         text: "keyboard_double_arrow_down"
         color: Colours.palette.m3onSurfaceVariant
         fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
+
+        // Derived from KWin so the arrow stays in sync with the real "show
+        // desktop" state: toggling it any other way still flips the arrow, and
+        // a failed invocation never leaves it pointing the wrong way.
+        rotation: (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.showingDesktop) ? 180 : 0
+
+        Behavior on rotation {
+            Anim { type: Anim.FastSpatial }
+        }
     }
 }

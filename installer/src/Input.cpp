@@ -16,7 +16,10 @@ namespace Input {
     unordered_map<string, string> Key_escapes = {
         {"\x1b", "escape"}, {"\n", "enter"}, {"\r", "enter"},
         {"\x1b[A", "KEY_up"}, {"\x1b[B", "KEY_down"}, {"\x1b[C", "KEY_right"}, {"\x1b[D", "KEY_left"},
-        {"\x1b[Z", "KEY_shift_tab"}
+        {"\x1b[Z", "KEY_shift_tab"},
+        {"\x1b[5~", "KEY_page_up"}, {"\x1b[6~", "KEY_page_down"},
+        {"\x1b[H", "KEY_home"}, {"\x1b[1~", "KEY_home"}, {"\x1b[7~", "KEY_home"}, {"\x1bOH", "KEY_home"},
+        {"\x1b[F", "KEY_end"}, {"\x1b[4~", "KEY_end"}, {"\x1b[8~", "KEY_end"}, {"\x1bOF", "KEY_end"}
     };
 
     string get() {

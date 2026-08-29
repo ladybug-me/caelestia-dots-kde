@@ -57,6 +57,10 @@ double KWinWorkspaceState::swipeOffset() const {
     return m_swipeOffset;
 }
 
+bool KWinWorkspaceState::showingDesktop() const {
+    return m_showingDesktop;
+}
+
 KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
     : QObject(parent)
 {
@@ -77,6 +81,11 @@ KWinWorkspaceState::KWinWorkspaceState(QObject* parent)
                 this, SLOT(onCountChanged(uint)));
     bus.connect("org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager", "rowsChanged",
                 this, SLOT(onRowsChanged(uint)));
+
+    bus.connect("org.kde.KWin", "/KWin", "org.kde.KWin", "showingDesktopChanged",
+                this, SLOT(onShowingDesktopChanged(bool)));
+    bus.connect("org.kde.KWin", "/KWin", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                this, SLOT(onKWinPropertiesChanged(QString, QVariantMap, QStringList)));
 
     fetchInitialState();
     setupTrackerServer();
@@ -105,16 +114,57 @@ void KWinWorkspaceState::setupTrackerServer() {
             qDebug() << "KWinWorkspaceState: New connection to tracker server";
             QLocalSocket* clientSocket = m_trackerServer->nextPendingConnection();
             connect(clientSocket, &QLocalSocket::readyRead, this, [this, clientSocket]() {
-                while (clientSocket->bytesAvailable() >= 12) { // sizeof(DesktopTransition) = 12
-                    struct DesktopTransition {
-                        int desktop;
-                        float x;
-                        float y;
-                    } payload;
+                // Two record formats. The current one names the output the
+                // report is about; the older one, which a stale effect still
+                // sends, does not -- and a stale effect is normal after an
+                // update, because a rebuilt one only loads once the session
+                // restarts. They are told apart by the magic in the first
+                // field, which the old format used for a small desktop number
+                // and so can never produce.
+                constexpr quint32 kMagic = 0x43414557; // 'CAEW'
+                struct DesktopReport {
+                    quint32 magic;
+                    qint32 desktop;
+                    float x;
+                    float y;
+                    char output[64];
+                };
+                static_assert(sizeof(DesktopReport) == 80, "must match the effect's layout byte for byte");
 
-                    clientSocket->read(reinterpret_cast<char*>(&payload), sizeof(payload));
+                struct LegacyTransition {
+                    int desktop;
+                    float x;
+                    float y;
+                };
 
-                    double newOffset = static_cast<double>(payload.x);
+                while (clientSocket->bytesAvailable() >= static_cast<qint64>(sizeof(LegacyTransition))) {
+                    quint32 magic = 0;
+                    clientSocket->peek(reinterpret_cast<char*>(&magic), sizeof(magic));
+
+                    double newOffset = 0.0;
+
+                    if (magic == kMagic) {
+                        if (clientSocket->bytesAvailable() < static_cast<qint64>(sizeof(DesktopReport))) {
+                            break; // wait for the rest of the record
+                        }
+                        DesktopReport report;
+                        clientSocket->read(reinterpret_cast<char*>(&report), sizeof(report));
+                        report.output[sizeof(report.output) - 1] = '\0';
+
+                        const QString output = QString::fromUtf8(report.output);
+                        if (!output.isEmpty() && report.desktop > 0) {
+                            if (m_activeByOutput.value(output).toInt() != report.desktop) {
+                                m_activeByOutput.insert(output, report.desktop);
+                                emit activeByOutputChanged();
+                            }
+                        }
+                        newOffset = static_cast<double>(report.x);
+                    } else {
+                        LegacyTransition payload;
+                        clientSocket->read(reinterpret_cast<char*>(&payload), sizeof(payload));
+                        newOffset = static_cast<double>(payload.x);
+                    }
+
                     if (m_swipeOffset != newOffset) {
                         m_swipeOffset = newOffset;
                         emit swipeOffsetChanged();
@@ -161,7 +211,33 @@ void KWinWorkspaceState::fetchInitialState() {
         }
     }
 
+    QDBusMessage showingMsg = QDBusMessage::createMethodCall("org.kde.KWin", "/KWin", "org.freedesktop.DBus.Properties", "Get");
+    showingMsg << "org.kde.KWin" << "showingDesktop";
+    QDBusReply<QDBusVariant> showingReply = QDBusConnection::sessionBus().call(showingMsg);
+    if (showingReply.isValid()) {
+        updateShowingDesktop(showingReply.value().variant().toBool());
+    }
+
     updateActiveId();
+}
+
+void KWinWorkspaceState::onShowingDesktopChanged(bool showing) {
+    updateShowingDesktop(showing);
+}
+
+void KWinWorkspaceState::onKWinPropertiesChanged(const QString& interface, const QVariantMap& changedProps, const QStringList& invalidatedProps) {
+    Q_UNUSED(interface)
+    Q_UNUSED(invalidatedProps)
+    if (changedProps.contains(QStringLiteral("showingDesktop"))) {
+        updateShowingDesktop(changedProps.value(QStringLiteral("showingDesktop")).toBool());
+    }
+}
+
+void KWinWorkspaceState::updateShowingDesktop(bool showing) {
+    if (showing != m_showingDesktop) {
+        m_showingDesktop = showing;
+        emit showingDesktopChanged();
+    }
 }
 
 void KWinWorkspaceState::updateActiveId() {
@@ -185,6 +261,10 @@ void KWinWorkspaceState::updateActiveId() {
     emit workspacesChanged();
 }
 
+QVariantMap KWinWorkspaceState::activeByOutput() const {
+    return m_activeByOutput;
+}
+
 int KWinWorkspaceState::activeId() const {
     return m_activeId;
 }
@@ -205,7 +285,7 @@ QVariantList KWinWorkspaceState::workspaces() const {
     return list;
 }
 
-void KWinWorkspaceState::switchTo(const QString& id) {
+void KWinWorkspaceState::switchTo(const QString& id, const QString& output) {
     QString targetUuid;
     for (const auto& d : m_desktops) {
         if (d.id == id || QString::number(d.position + 1) == id || d.name == id) {
@@ -215,6 +295,38 @@ void KWinWorkspaceState::switchTo(const QString& id) {
     }
 
     if (!targetUuid.isEmpty()) {
+        // Naming the screen needs the workspace-tracker effect, which can target
+        // an output directly; D-Bus can only set the desktop of whichever output
+        // is active. The effect is installed system-wide and a rebuilt one does
+        // not load until the session restarts, so a shell update routinely runs
+        // against a version without this method -- and a fire-and-forget call to
+        // a method that is not there fails silently, which would leave switching
+        // workspaces doing nothing at all. Probed once, then remembered.
+        if (!output.isEmpty()) {
+            if (m_perOutputSwitchAvailable == -1) {
+                QDBusMessage probe = QDBusMessage::createMethodCall("org.kde.KWin",
+                    "/Caelestia/Workspaces", "org.freedesktop.DBus.Introspectable", "Introspect");
+                const QDBusMessage reply = QDBusConnection::sessionBus().call(probe, QDBus::Block, 1000);
+                m_perOutputSwitchAvailable = (reply.type() == QDBusMessage::ReplyMessage
+                                                 && reply.arguments().value(0).toString().contains(
+                                                     QStringLiteral("SetDesktop")))
+                    ? 1
+                    : 0;
+                if (!m_perOutputSwitchAvailable) {
+                    qWarning() << "KWinWorkspaceState: workspace-tracker effect has no SetDesktop; "
+                                  "falling back to switching the active output's desktop";
+                }
+            }
+
+            if (m_perOutputSwitchAvailable == 1) {
+                QDBusMessage msg = QDBusMessage::createMethodCall(
+                    "org.kde.KWin", "/Caelestia/Workspaces", "org.caelestia.Workspaces", "SetDesktop");
+                msg << output << indexForId(targetUuid);
+                QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);
+                return;
+            }
+        }
+
         QDBusMessage msg = QDBusMessage::createMethodCall("org.kde.KWin", "/VirtualDesktopManager", "org.freedesktop.DBus.Properties", "Set");
         msg << "org.kde.KWin.VirtualDesktopManager" << "current" << QVariant::fromValue(QDBusVariant(targetUuid));
         QDBusConnection::sessionBus().call(msg, QDBus::NoBlock);

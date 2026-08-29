@@ -3,8 +3,8 @@
 
 set -uo pipefail
 
-log()  { echo -e "\033[0;36m[INFO]\033[0m $*"; }
-err()  { echo -e "\033[0;31m[ERR]\033[0m  $*"; }
+log()  { printf '  [INFO]  %s\n' "$*"; }
+err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
 log "Installing Arch packages..."
 
@@ -31,7 +31,7 @@ PACKAGE_GROUP="${PACKAGE_GROUP:-all}"
 CORE_PACKAGES=(
     cmake ninja ccache
     wl-clipboard cliphist wl-clip-persist inotify-tools app2unit wireplumber trash-cli jq aubio lm_sensors
-    libpipewire glibc qt6-declarative gcc-libs qt6-base qt6-declarative qt6-wayland libqalculate kpipewire kglobalaccel kglobalacceld libsecret
+    libpipewire glibc qt6-declarative gcc-libs qt6-base qt6-declarative qt6-wayland libqalculate kpipewire kglobalaccel kglobalacceld libsecret ksshaskpass
     networkmanager-qt vulkan-headers
     ffmpeg
 )

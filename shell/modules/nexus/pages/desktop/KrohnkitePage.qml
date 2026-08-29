@@ -87,14 +87,14 @@ PageBase {
                         qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript "krohnkite" 2>/dev/null || true
                         if ! kpackagetool6 -t KWin/Script -s krohnkite >/dev/null 2>&1; then
                             if command -v kpackagetool6 >/dev/null 2>&1; then
-                                notify-send "Installing Krohnkite..." "Please stay connected to internet.."
+                                notify-send "Installing Krohnkite..." "Please stay connected to the internet..."
                                 tmpdir="$(mktemp -d)"
                                 kwinscript_url="$(curl -sL https://codeberg.org/api/v1/repos/anametologin/Krohnkite/releases/latest | grep -oP '"browser_download_url":\\s*"\\K[^"]+\\.kwinscript' | head -1)"
                                 if [[ -n "$kwinscript_url" ]] && curl -sL "$kwinscript_url" -o "$tmpdir/krohnkite.kwinscript"; then
                                     kpackagetool6 -t KWin/Script -i "$tmpdir/krohnkite.kwinscript" 2>/dev/null || true
-                                    notify-send "Installation Completed.." "Krohnkite has been installed successfully.."
+                                    notify-send "Installation Completed..." "Krohnkite has been installed successfully..."
                                 else
-                                    notify-send "Installation Failed.." "Krohnkite could not be downloaded. Please try again.."
+                                    notify-send "Installation Failed..." "Krohnkite could not be downloaded. Please try again..."
                                 fi
                                 rm -rf "$tmpdir"
                             fi

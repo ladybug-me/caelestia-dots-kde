@@ -174,7 +174,7 @@ PageBase {
 
             IconTextButton {
                 icon: "palette"
-                text: Strings.localizeEnglishSpelling(qsTr("Colours"))
+                text: qsTr("Colors")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -197,7 +197,7 @@ PageBase {
                 first: true
                 icon: "settings_suggest"
                 label: qsTr("Wallpaper Settings")
-                status: qsTr("Display, Recolour, Desktop Icons")
+                status: qsTr("Display, Recolor, Desktop Icons")
                 onClicked: root.nState.openSubPage(5)
             }
 

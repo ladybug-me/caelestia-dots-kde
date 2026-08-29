@@ -119,7 +119,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_setup_references_existing_step_scripts(self) -> None:
         runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        matches = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+"\}', runner_text)
+        matches = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         self.assertTrue(matches, "No installer steps found in Runner.cpp")
 
@@ -131,7 +131,7 @@ class InstallerTests(unittest.TestCase):
     def test_no_duplicate_step_names(self) -> None:
         """Runner.cpp must not define two steps with the same display name."""
         runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        names = re.findall(r'\{"([^"]+)",\s*"(scripts/[^"]+)",\s*"[^"]+"\}', runner_text)
+        names = re.findall(r'\{"([^"]+)",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
         display_names = [n[0] for n in names]
 
         seen: dict[str, int] = {}
@@ -152,7 +152,7 @@ class InstallerTests(unittest.TestCase):
         named with numbered prefixes should be consistent with it.
         """
         runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        scripts = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+"\}', runner_text)
+        scripts = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         prev_num = -1
         for script in scripts:
@@ -293,12 +293,11 @@ class ScriptNumberingTests(unittest.TestCase):
     def test_install_step_scripts_have_consistent_numbers(self) -> None:
         """Scripts in the scripts/ directory with 00- prefix must be consecutive.
 
-        Scripts: 00-backup-themes.sh, 00-banner.sh, 00a-system-update.sh,
-        01-ensure-prereqs.sh, 02-core-packages.sh, 02-packages.sh,
-        02-shell-packages.sh, 02-theme-packages.sh, 02-utility-packages.sh,
+        Scripts: 00-backup-themes.sh, 00a-system-update.sh,
+        01-ensure-prereqs.sh, 02-all-packages.sh, 02-packages.sh,
         02a-submodules.sh, 03-deploy-configs.sh, 04-deploy-kde.sh,
         06-services.sh, 07-kde-apps.sh, 08-build-shell.sh,
-        09-system-tweaks.sh, 10-autostart.sh
+        09-system-tweaks.sh, 10-autostart.sh, 11-optional-apps.sh
         """
         scripts_dir = ROOT / "scripts"
         if not scripts_dir.is_dir():

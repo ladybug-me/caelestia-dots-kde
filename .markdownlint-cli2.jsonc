@@ -1,12 +1,18 @@
+// markdownlint-cli2 reads this file as its own options object, so the rule
+// settings have to live under "config" - at the top level they are silently
+// ignored and every default rule (MD013 line length, ...) applies instead.
 {
-  "default": true,
-  "line-length": false,
-  "no-duplicate-heading": { "siblings_only": true },
-  "no-trailing-punctuation": false,
-  "no-inline-html": false,
-  "first-line-h1": false,
-  "no-emphasis-as-heading": false,
-  "no-trailing-spaces": { "br_spaces": 0 },
-  "ul-style": { "style": "dash" },
-  "ol-prefix": { "style": "ordered" }
+  "config": {
+    "default": true,
+    "line-length": false,
+    "no-duplicate-heading": { "siblings_only": true },
+    "no-trailing-punctuation": false,
+    "no-inline-html": false,
+    "first-line-h1": false,
+    "no-emphasis-as-heading": false,
+    "no-trailing-spaces": { "br_spaces": 0 },
+    "ul-style": { "style": "dash" },
+    "ol-prefix": { "style": "ordered" },
+    "table-column-style": { "style": "compact" }
+  }
 }

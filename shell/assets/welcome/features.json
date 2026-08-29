@@ -10,14 +10,14 @@
     {
       "id": "update_indicator_9b5fa56",
       "title": "Taskbar Update Indicator",
-      "description": "Caelesita can now be updated from system tray. Hover to show available options, Left click to open Update page and Right click to check for update. Can be enabled from Settings -> Panels -> Taskbar -> Toggle & rearrange -> Updates ",
+      "description": "Caelestia can now be updated from the system tray. Hover to show available options, left click to open the Update page and right click to check for updates. Can be enabled from Settings -> Panels -> Taskbar -> Toggle & rearrange -> Updates.",
       "icon": "system_update",
       "media_url": "update_indicator_9b5fa56.png"
     },
     {
       "id": "permanent_shell_#495",
       "title": "Integrated more than ever",
-      "description": "1. Alt+F4 no longer closes the shell. 2. Whenever you open and close any drawer, it will seamlessly return focus to the window you were previously using! 3. Kwin native protocols are used to interact with windows, creating much faster experience!",
+      "description": "1. Alt+F4 no longer closes the shell. 2. Whenever you open and close any drawer, it will seamlessly return focus to the window you were previously using! 3. KWin native protocols are used to interact with windows, creating a much faster experience!",
       "icon": "keyboard_return"
     },
     {
@@ -30,7 +30,7 @@
     {
       "id": "window_region_selector#516",
       "title": "Window Region Selector",
-      "description": "Capture specific application windows effortlessly. Toggle 'Window Selector' mode in the screenshot toolbar to automatically crop individual windows for screenshot / google search / text recognition. Hover over windows to preview them, then click to capture cleanly without manual cropping.",
+      "description": "Capture specific application windows effortlessly. Toggle 'Window Selector' mode in the screenshot toolbar to automatically crop individual windows for screenshots / Google Search / text recognition. Hover over windows to preview them, then click to capture cleanly without manual cropping.",
       "icon": "desktop_windows",
       "media_url": "window_region_selector_516.mp4"
     },

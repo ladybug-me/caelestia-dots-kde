@@ -92,7 +92,10 @@ echo -e "${BOLD}=== Strict Mode Check ===${RESET}"
 # are covered by syntax + shellcheck above but deliberately vary their `set`
 # flags (e.g. caelestia-check-updates relies on explicit exits), so they are
 # not forced to -euo here.
-for f in $(git ls-files 'scripts/*.sh' 2>/dev/null || true); do
+# scripts/lib/* are sourced helpers, not entry points: setting -e there would
+# silently impose it on every caller, including ones that deliberately run
+# without it.
+for f in $(git ls-files 'scripts/*.sh' 2>/dev/null | grep -v '^scripts/lib/' || true); do
     if ! grep -qE 'set\s+-euo\s+pipefail|set\s+-eu\s+-o\s+pipefail' "$f" 2>/dev/null; then
         log_err "$f is missing 'set -euo pipefail' (required for scripts in scripts/)"
     fi

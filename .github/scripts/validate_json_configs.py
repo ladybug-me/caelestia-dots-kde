@@ -42,25 +42,21 @@ def ok(msg: str) -> None:
 # ─── theme.json validation ───
 
 ANSI_SGR_RE = re.compile(r"^\d+(;\d+)*m$")
-
-REQUIRED_THEME_COLORS = {
-    "default", "cyan", "magenta", "green", "red", "yellow", "white",
-}
+HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 REQUIRED_THEME_SECTIONS = {
-    "colors",
+    "palette",
     "splash_screen",
-    "layout",
-    "strings",
+    "glyphs",
 }
 
-LAYOUT_BOXES = {
-    "progress_box", "step_list", "sudo_prompt",
-    "distro_select", "config_checklist", "summary_screen",
+KNOWN_GLYPHS = {
+    "pending", "running", "ok", "warn", "failed", "skipped",
+    "checkbox_on", "checkbox_off", "select_left", "select_right",
 }
 
-BOX_COLOR_KEYS = {"color", "title_color", "text_color"}
-BOX_OPTIONAL_KEYS = {"padding_x", "padding_y", "offset_x", "offset_y", "spacing_x", "prompt_color"}
+# Color names the TUI understands even when absent from the palette.
+SPECIAL_COLORS = {"default", "dim", "bold", "reset"}
 
 
 def validate_theme(filepath: Path) -> None:
@@ -77,52 +73,31 @@ def validate_theme(filepath: Path) -> None:
         if section not in data:
             error(f"theme.json: missing required section '{section}'")
 
-    # Validate colors
-    colors = data.get("colors", {})
-    if isinstance(colors, dict):
-        for name, code in colors.items():
-            if not isinstance(code, str) or not ANSI_SGR_RE.match(code):
-                error(f"theme.json: color '{name}' has invalid ANSI code: {code!r}")
+    # Palette: hex (#rrggbb) values, or legacy ANSI suffixes ("36m").
+    palette = data.get("palette")
+    colors = data.get("colors") if not isinstance(palette, dict) else None
+    color_section = palette if isinstance(palette, dict) else (colors if isinstance(colors, dict) else {})
+    for name, code in color_section.items():
+        if not isinstance(code, str):
+            error(f"theme.json: palette color '{name}' must be a string")
+            continue
+        if not (HEX_COLOR_RE.match(code) or ANSI_SGR_RE.match(code)):
+            error(f"theme.json: palette color '{name}' has invalid value: {code!r}")
 
-        # Check that referenced colors exist
-        defined_colors = set(colors.keys())
+    defined_colors = set(color_section.keys()) | SPECIAL_COLORS
 
-        def check_color_ref(value: str, context: str) -> None:
-            if isinstance(value, str) and value in ("default", "dim"):
-                return  # special values OK
-            if isinstance(value, str) and value not in defined_colors:
-                error(f"theme.json: {context} references undefined color '{value}'")
+    def check_color_ref(value: Any, context: str) -> None:
+        if not isinstance(value, str):
+            return
+        if value in SPECIAL_COLORS:
+            return
+        if value.startswith("bold_") and value[len("bold_"):] in defined_colors:
+            return
+        if value not in defined_colors:
+            error(f"theme.json: {context} references undefined color '{value}'")
 
-        # Check splash_screen art_color
-        splash = data.get("splash_screen", {})
-        if isinstance(splash, dict):
-            art_color = splash.get("art_color", "")
-            check_color_ref(art_color, "splash_screen.art_color")
-            loading_color = splash.get("loading_text_color", "")
-            if loading_color != "dim":
-                check_color_ref(loading_color, "splash_screen.loading_text_color")
-
-        # Check layout boxes
-        layout = data.get("layout", {})
-        if isinstance(layout, dict):
-            for box_name, box_config in layout.items():
-                if isinstance(box_config, dict):
-                    for color_key in BOX_COLOR_KEYS:
-                        if color_key in box_config:
-                            check_color_ref(
-                                box_config[color_key],
-                                f"layout.{box_name}.{color_key}",
-                            )
-
-        # Warn about extra colors that are never referenced
-        all_text = json.dumps(data)
-        for color_name in defined_colors:
-            # Count how many times the color name appears as a value (not as a key)
-            # Simple heuristic: count occurrences of "color_name" as a JSON string value
-            if all_text.count(f'"{color_name}"') <= 1:  # 1 = the definition itself
-                warn(f"theme.json: color '{color_name}' is defined but may be unused")
-
-    # Validate splash_screen
+    # splash_screen
+    splash = data.get("splash_screen", {})
     if isinstance(splash, dict):
         art = splash.get("art")
         if not isinstance(art, list) or len(art) == 0:
@@ -130,29 +105,18 @@ def validate_theme(filepath: Path) -> None:
         elif not all(isinstance(line, str) for line in art):
             error("theme.json: all splash_screen.art elements must be strings")
 
-        speed = splash.get("animation_speed_ms")
-        if not isinstance(speed, (int, float)):
-            warn("theme.json: splash_screen.animation_speed_ms should be a number")
+        check_color_ref(splash.get("art_color"), "splash_screen.art_color")
+        if "co_author" in splash and not isinstance(splash.get("co_author"), str):
+            error("theme.json: splash_screen.co_author must be a string")
 
-    # Validate strings section
-    strings = data.get("strings", {})
-    if isinstance(strings, dict):
-        valid_status_keys = {"status_pending", "status_running", "status_ok", "status_error"}
-        for key in strings:
-            if key not in valid_status_keys:
-                warn(f"theme.json: unrecognized string key '{key}'")
-
-    # Validate layout boxes
-    if isinstance(layout, dict):
-        for box_name, box_config in layout.items():
-            if not isinstance(box_config, dict):
-                error(f"theme.json: layout.{box_name} must be an object")
-                continue
-            if "title" not in box_config and box_name in LAYOUT_BOXES:
-                warn(f"theme.json: layout.{box_name} is missing 'title'")
-            for prop in BOX_COLOR_KEYS:
-                if prop in box_config and not isinstance(box_config[prop], str):
-                    error(f"theme.json: layout.{box_name}.{prop} must be a string")
+    # glyphs: every glyph is a non-empty string
+    glyphs = data.get("glyphs", {})
+    if isinstance(glyphs, dict):
+        for name, value in glyphs.items():
+            if name not in KNOWN_GLYPHS:
+                warn(f"theme.json: unrecognized glyph key '{name}'")
+            if not isinstance(value, str) or not value:
+                error(f"theme.json: glyph '{name}' must be a non-empty string")
 
     ok("theme.json passed validation")
 
@@ -160,7 +124,7 @@ def validate_theme(filepath: Path) -> None:
 # ─── menu.json validation ───
 
 VALID_MENU_TYPES = {"submenu", "boolean", "select", "text", "action"}
-VALID_ACTION_IDS = {"action_proceed", "action_back"}
+VALID_ACTION_IDS = {"action_review", "action_proceed", "action_back"}
 
 
 def validate_menu_items(items: list[Any], path: str = "menu", seen_ids: set[str] | None = None) -> None:
@@ -184,6 +148,10 @@ def validate_menu_items(items: list[Any], path: str = "menu", seen_ids: set[str]
         title = item.get("title")
         if not isinstance(title, str) or not title.strip():
             error(f"menu.json: {item_path} is missing a non-empty 'title'")
+
+        help_text = item.get("help")
+        if help_text is not None and not isinstance(help_text, str):
+            error(f"menu.json: {item_path} 'help' must be a string")
 
         item_id = item.get("id")
 
@@ -251,15 +219,45 @@ def validate_menu(filepath: Path) -> None:
         error("menu.json: 'menu' array is empty")
         return
 
-    # Check that root menu has at least one action_proceed
+    # Check that the root menu has at least one proceed action
     has_proceed = any(
-        isinstance(item, dict) and item.get("id") == "action_proceed"
+        isinstance(item, dict) and item.get("id") in ("action_review", "action_proceed")
         for item in menu_items
     )
     if not has_proceed:
-        error("menu.json: root menu must include an 'action_proceed' item")
+        error("menu.json: root menu must include an 'action_review' item")
 
     validate_menu_items(menu_items)
+
+    # Profiles are optional; each must have a unique id, a title, and a 'sets' object.
+    profiles = data.get("profiles")
+    if profiles is not None:
+        if not isinstance(profiles, list) or len(profiles) == 0:
+            error("menu.json: 'profiles' must be a non-empty array")
+        else:
+            profile_ids: set[str] = set()
+            for i, prof in enumerate(profiles):
+                prof_path = f"profiles[{i}]"
+                if not isinstance(prof, dict):
+                    error(f"menu.json: {prof_path} must be an object")
+                    continue
+                pid = prof.get("id")
+                if not isinstance(pid, str) or not pid.strip():
+                    error(f"menu.json: {prof_path} profile must have a non-empty string 'id'")
+                elif pid in profile_ids:
+                    error(f"menu.json: {prof_path} duplicate profile id '{pid}'")
+                else:
+                    profile_ids.add(pid)
+                title = prof.get("title")
+                if not isinstance(title, str) or not title.strip():
+                    error(f"menu.json: {prof_path} profile is missing a non-empty 'title'")
+                sets = prof.get("sets")
+                if not isinstance(sets, dict):
+                    error(f"menu.json: {prof_path} profile 'sets' must be an object")
+                else:
+                    for key, value in sets.items():
+                        if not isinstance(value, (bool, str)):
+                            error(f"menu.json: {prof_path} sets.{key} must be a boolean or string")
 
     if EXIT_CODE == 0:
         ok("menu.json passed validation")

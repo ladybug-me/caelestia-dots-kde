@@ -17,7 +17,7 @@ Scope {
         root.screenshotActive = false
     }
 
-    property var action: RegionSelection.SnipAction.Copy
+    property var action: ScreenshotAction.SnipAction.Copy
 
     property var selectionMode: RegionSelection.SelectionMode.RectCorners
 
@@ -51,29 +51,27 @@ Scope {
     }
 
     function screenshot() {
-        root.action = RegionSelection.SnipAction.Copy
+        root.action = ScreenshotAction.SnipAction.Copy
         root.selectionMode = RegionSelection.SelectionMode.RectCorners
         root.screenshotActive = true
     }
 
     function search() {
-        root.action = RegionSelection.SnipAction.Search
-        if (false) {
-            root.selectionMode = RegionSelection.SelectionMode.Circle
-        } else {
-            root.selectionMode = RegionSelection.SelectionMode.RectCorners
-        }
+        root.action = ScreenshotAction.SnipAction.Search
+        // Circle selection stays dormant: no UI path selects it yet, so
+        // rect-corners is the only entry point.
+        root.selectionMode = RegionSelection.SelectionMode.RectCorners
         root.screenshotActive = true
     }
 
     function ocr() {
-        root.action = RegionSelection.SnipAction.CharRecognition
+        root.action = ScreenshotAction.SnipAction.CharRecognition
         root.selectionMode = RegionSelection.SelectionMode.RectCorners
         root.screenshotActive = true
     }
 
     function record() {
-        root.action = RegionSelection.SnipAction.Record
+        root.action = ScreenshotAction.SnipAction.Record
         root.selectionMode = RegionSelection.SelectionMode.RectCorners
         // If already open then re-trigger to stop recording
         if (root.screenshotActive) root.screenshotActive = false
@@ -81,7 +79,7 @@ Scope {
     }
 
     function recordWithSound() {
-        root.action = RegionSelection.SnipAction.RecordWithSound
+        root.action = ScreenshotAction.SnipAction.RecordWithSound
         root.selectionMode = RegionSelection.SelectionMode.RectCorners
         // If already open then re-trigger to stop recording
         if (root.screenshotActive) root.screenshotActive = false

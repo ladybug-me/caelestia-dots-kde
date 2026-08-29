@@ -293,7 +293,7 @@ PageBase {
                             Layout.leftMargin: Math.round(Tokens.font.icon.large.pointSize * 1.5) + Tokens.spacing.medium
                             Layout.preferredHeight: 24
 
-                            placeholderText: qsTr("Custom label (optional) — use {class}, {title}")
+                            placeholderText: qsTr("Custom label (optional) - use {class}, {title}")
                             font: Tokens.font.label.small
                             verticalAlignment: TextInput.AlignVCenter
 

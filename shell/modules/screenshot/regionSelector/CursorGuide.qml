@@ -22,28 +22,28 @@ Item {
     }
 
     property string description: switch (root.action) {
-    case RegionSelection.SnipAction.Copy:
-    case RegionSelection.SnipAction.Edit:
+    case ScreenshotAction.SnipAction.Copy:
+    case ScreenshotAction.SnipAction.Edit:
         return qsTr("Copy region (LMB) or annotate (RMB)");
-    case RegionSelection.SnipAction.Search:
+    case ScreenshotAction.SnipAction.Search:
         return qsTr("Search with Google Lens");
-    case RegionSelection.SnipAction.CharRecognition:
+    case ScreenshotAction.SnipAction.CharRecognition:
         return qsTr("Recognize text");
-    case RegionSelection.SnipAction.Record:
-    case RegionSelection.SnipAction.RecordWithSound:
+    case ScreenshotAction.SnipAction.Record:
+    case ScreenshotAction.SnipAction.RecordWithSound:
         return qsTr("Record region");
     }
 
     property string materialSymbol: switch (root.action) {
-    case RegionSelection.SnipAction.Copy:
-    case RegionSelection.SnipAction.Edit:
+    case ScreenshotAction.SnipAction.Copy:
+    case ScreenshotAction.SnipAction.Edit:
         return "content_cut";
-    case RegionSelection.SnipAction.Search:
+    case ScreenshotAction.SnipAction.Search:
         return "image_search";
-    case RegionSelection.SnipAction.CharRecognition:
+    case ScreenshotAction.SnipAction.CharRecognition:
         return "document_scanner";
-    case RegionSelection.SnipAction.Record:
-    case RegionSelection.SnipAction.RecordWithSound:
+    case ScreenshotAction.SnipAction.Record:
+    case ScreenshotAction.SnipAction.RecordWithSound:
         return "videocam";
 
     default:

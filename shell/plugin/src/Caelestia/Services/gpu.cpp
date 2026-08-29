@@ -17,6 +17,7 @@ namespace {
 constexpr const char* kTypeDetectScript =
     "if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then echo NVIDIA;"
     " elif ls /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | grep -q .; then echo GENERIC;"
+    " elif ls /sys/class/drm/card*/gt/gt0/rps_cur_freq_mhz 2>/dev/null | grep -q .; then echo GENERIC;"
     " else echo NONE; fi";
 
 constexpr const char* kNameDetectScript = "nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null"
@@ -171,12 +172,15 @@ void Gpu::detectNameOnce() {
 }
 
 void Gpu::readGenericUsage() {
-    const QStringList paths =
+    const QStringList cards =
         QDir(QStringLiteral("/sys/class/drm"))
             .entryList(QStringList() << QStringLiteral("card*"), QDir::Dirs | QDir::NoDotAndDotDot);
+
     qreal sum = 0.0;
     int count = 0;
-    for (const QString& card : paths) {
+
+    // Pass 1: amdgpu (and some newer Xe) cards expose a direct busy percent.
+    for (const QString& card : cards) {
         QFile f(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card));
         if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
             continue;
@@ -189,6 +193,42 @@ void Gpu::readGenericUsage() {
             ++count;
         }
     }
+
+    // Pass 2: Intel iGPUs have no busy-percent node; approximate usage as the
+    // ratio of the current GPU frequency to its maximum.
+    if (count < cards.size()) {
+        for (const QString& card : cards) {
+            if (QFile::exists(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card)))
+                continue;
+            QFile cur(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_cur_freq_mhz").arg(card));
+            if (!cur.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                continue;
+            }
+            QFile max(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_max_freq_mhz").arg(card));
+            if (!max.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                cur.close();
+                continue;
+            }
+            bool curOk = false;
+            bool maxOk = false;
+            const qreal curV = cur.readAll().trimmed().toDouble(&curOk);
+            const qreal maxV = max.readAll().trimmed().toDouble(&maxOk);
+            cur.close();
+            max.close();
+            if (curOk && maxOk && maxV > 0.0) {
+                qreal ratio = curV / maxV;
+                if (ratio < 0.0) {
+                    ratio = 0.0;
+                }
+                if (ratio > 1.0) {
+                    ratio = 1.0;
+                }
+                sum += ratio * 100.0;
+                ++count;
+            }
+        }
+    }
+
     const qreal newPerc = count > 0 ? sum / count / 100.0 : 0.0;
     if (std::abs(newPerc - m_percentage) > 0.0001) {
         m_percentage = newPerc;

@@ -40,6 +40,7 @@ Item {
 
         Popout {
             name: "activewindow"
+            previewKey: "activeWindow"
             sourceComponent: ActiveWindow {
                 popouts: root.popouts
             }
@@ -57,6 +58,7 @@ Item {
 
         Popout {
             name: "ethernet"
+            previewKey: "network"
             sourceComponent: Network {
                 popouts: root.popouts
                 view: "ethernet"
@@ -67,6 +69,7 @@ Item {
             id: passwordPopout
 
             name: "wirelesspassword"
+            previewKey: "network"
             sourceComponent: WirelessPassword {
                 id: passwordComponent
 
@@ -74,41 +77,13 @@ Item {
                 network: (networkPopout.item as Network)?.passwordNetwork ?? null
             }
 
-            Connections {
-                function onCurrentNameChanged() {
-                    // Update network immediately when password popout becomes active
-                    if (root.popouts.currentName === "wirelesspassword") {
-                        // Set network immediately if available
-                        if ((networkPopout.item as Network)?.passwordNetwork) {
-                            if (passwordPopout.item) {
-                                (passwordPopout.item as WirelessPassword).network = (networkPopout.item as Network).passwordNetwork;
-                            }
-                        }
-                        // Also try after a short delay in case networkPopout.item wasn't ready
-                        Qt.callLater(() => {
-                            if (passwordPopout.item && (networkPopout.item as Network)?.passwordNetwork) {
-                                (passwordPopout.item as WirelessPassword).network = (networkPopout.item as Network).passwordNetwork;
-                            }
-                        }, 100);
-                    }
-                }
-
-                target: root.popouts
-            }
-
-            Connections {
-                function onItemChanged() {
-                    // When network popout loads, update password popout if it's active
-                    if (root.popouts.currentName === "wirelesspassword" && passwordPopout.item) {
-                        Qt.callLater(() => {
-                            if ((networkPopout.item as Network)?.passwordNetwork) {
-                                (passwordPopout.item as WirelessPassword).network = (networkPopout.item as Network).passwordNetwork;
-                            }
-                        });
-                    }
-                }
-
-                target: networkPopout
+            // Keep the loaded dialog's network fresh — one live binding instead
+            // of three hand-written assignments with a timing workaround.
+            Binding {
+                when: passwordPopout.item !== null
+                target: passwordPopout.item
+                property: "network"
+                value: (networkPopout.item as Network)?.passwordNetwork ?? null
             }
         }
 
@@ -148,6 +123,9 @@ Item {
 
         Popout {
             name: "audio"
+            // Audio controls need a readable minimum size even when bar
+            // preview scaling is configured for compact indicators.
+            minScale: 0.9
             sourceComponent: Audio {
                 popouts: root.popouts
             }
@@ -169,6 +147,7 @@ Item {
 
         Popout {
             name: "lockstatus"
+            previewKey: "lockStatus"
             sourceComponent: LockStatus {
                 popouts: root.popouts
             }
@@ -183,6 +162,7 @@ Item {
 
         Popout {
             name: "dockhover"
+            previewKey: "dock"
             sourceComponent: DockHover {
                 popouts: root.popouts
             }
@@ -190,6 +170,7 @@ Item {
 
         Popout {
             name: "dockcontext"
+            previewKey: "dock"
             sourceComponent: DockContext {
                 popouts: root.popouts
             }
@@ -207,6 +188,7 @@ Item {
                 required property int index
 
                 name: `traymenu${index}`
+                previewKey: "trayMenu"
                 sourceComponent: trayMenuComp
 
                 Connections {
@@ -237,7 +219,22 @@ Item {
         id: popout
 
         required property string name
+        // Key into GlobalConfig.bar.previewScales/previewFontScales. Defaults to
+        // the popout name; a missing key degrades to 0.0, matching the old
+        // hardcoded per-popout preambles.
+        property string previewKey: name
+        // Per-popout minimum scale clamp. Audio needs a readable minimum even
+        // when bar preview scaling is configured for compact indicators.
+        property real minScale: 0.1
         readonly property bool shouldBeActive: root.popouts.currentName === name
+
+        readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
+        readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales[previewKey]) ? GlobalConfig.bar.previewScales[previewKey] : 0.0) : 0.0
+        readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
+        readonly property real scaleOffset: Math.max(minScale, (masterScale + elementOffset) * barScaleOffset)
+        readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales[previewKey]) ? GlobalConfig.bar.previewFontScales[previewKey] : 0.0) : 0.0
+        readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+        readonly property bool sidebarOpen: root.popouts.sidebarOpen && root.popouts.isHorizontal
 
         anchors.centerIn: parent
 
@@ -284,5 +281,26 @@ Item {
                 }
             }
         ]
+
+        Binding {
+            when: popout.item !== null
+            target: popout.item
+            property: "scaleOffset"
+            value: popout.scaleOffset
+        }
+
+        Binding {
+            when: popout.item !== null
+            target: popout.item
+            property: "fontScale"
+            value: popout.fontScale
+        }
+
+        Binding {
+            when: popout.item !== null
+            target: popout.item
+            property: "_isSidebarOpen"
+            value: popout.sidebarOpen
+        }
     }
 }

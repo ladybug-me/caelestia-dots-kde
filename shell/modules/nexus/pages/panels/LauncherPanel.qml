@@ -180,7 +180,7 @@ PageBase {
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: qsTr("Behavior")
         }
 
         ToggleRow {

@@ -240,7 +240,7 @@ StyledWindow {
             visibilities.sidebar = false;
             visibilities.dashboard = false;
             visibilities.utilities = false;
-            visibilities.overview = false;
+            Visibilities.setOverview(false);
             panels.popouts.hasCurrent = false;
             panels.popouts.detachedMode = "";
             bar.closeTray();
@@ -647,7 +647,7 @@ StyledWindow {
         MouseArea {
             anchors.fill: parent
             visible: visibilities.overview
-            onClicked: visibilities.overview = false
+            onClicked: Visibilities.setOverview(false)
         }
         Panels {
             id: panels

@@ -229,7 +229,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: Strings.localizeEnglishSpelling(qsTr("Smart colour scheme"))
+            text: qsTr("Smart color scheme")
             subtext: qsTr("Derive theme mode and variant from the wallpaper")
             checked: GlobalConfig.services.smartScheme
             onToggled: GlobalConfig.services.smartScheme = checked

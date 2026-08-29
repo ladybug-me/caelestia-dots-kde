@@ -36,6 +36,9 @@ StyledRect {
             },
             {
                 id: "nightlight"
+            },
+            {
+                id: "easyeffects"
             }
         ].filter(t => !disabledIds.has(t.id));
 
@@ -49,6 +52,12 @@ StyledRect {
 
             if (item.id === "vpn") {
                 return GlobalConfig.utilities.vpn.provider.some(p => typeof p === "object" ? (p.enabled === true) : false);
+            }
+
+            // Nothing to toggle if it is not installed, and a dead button is
+            // worse than no button.
+            if (item.id === "easyeffects") {
+                return EasyEffects.available;
             }
 
             return true;
@@ -238,6 +247,33 @@ StyledRect {
                         onClicked: {
                             const newVal = !GlobalConfig.background.videoWallpaperPaused;
                             GlobalConfig.background.videoWallpaperPaused = newVal;
+                        }
+                    }
+                }
+                DelegateChoice {
+                    roleValue: "easyeffects"
+                    delegate: Toggle {
+                        checked: EasyEffects.active
+                        icon: "graphic_eq"
+                        onClicked: EasyEffects.toggle()
+
+                        // Right-click opens the application itself. Toggling the
+                        // service on is only half of what people want from
+                        // EasyEffects -- the other half is changing what it does,
+                        // and that lives in its own window.
+                        //
+                        // Only the right button is accepted here, so the left one
+                        // falls through to the button underneath and keeps working
+                        // as the toggle. Adding a second signal to ButtonBase would
+                        // have reached every button in the shell for the sake of
+                        // one.
+                        MouseArea {
+                            acceptedButtons: Qt.RightButton
+                            anchors.fill: parent
+                            onClicked: {
+                                EasyEffects.open();
+                                root.visibilities.utilities = false;
+                            }
                         }
                     }
                 }

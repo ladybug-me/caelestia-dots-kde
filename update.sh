@@ -6,10 +6,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 set -uo pipefail
 
-die()  { echo "[FATAL] $*" >&2; exit 1; }
-info() { echo "[INFO]  $*"; }
-ok()   { echo "[OK]    $*"; }
-warn() { echo "[WARN]  $*"; }
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
 
 section() {
     local title="$1"
@@ -117,58 +115,24 @@ if [ ! -f "$BUNDLE_DIR/scripts/03-deploy-configs.sh" ] || [ ! -f "$BUNDLE_DIR/sc
     die "Critical internal scripts are missing from $BUNDLE_DIR/scripts/"
 fi
 
-# Cache sudo credentials once now so sub-scripts don't each re-prompt.
-# The keepalive loop refreshes the timestamp with -nv (non-interactive
-# extend) so it never expires, even during long CMake builds.
-#
-# When running without a terminal (e.g. launched from the shell UI), we
-# use ksshaskpass or pkexec for the initial prompt and export
-# SUDO_ASKPASS for every child process.
-
-if [ "$EUID" -ne 0 ]; then
-    # Determine the best interactive helper for the initial prompt.
-    if [ -t 1 ]; then
-        sudo -v || die "Failed to obtain sudo privileges."
-    elif command -v ksshaskpass &> /dev/null; then
-        export SUDO_ASKPASS="$(command -v ksshaskpass)"
-        sudo -A -v || die "Failed to obtain sudo privileges."
-    elif command -v pkexec &> /dev/null; then
-        info "Requesting administrator privileges via pkexec..."
-        pkexec true || die "Failed to obtain administrator privileges."
-    else
-        die "Cannot elevate privileges — no terminal, ksshaskpass, or pkexec available."
-    fi
-
-    # Background keepalive: refresh the sudo timestamp every 30 seconds.
-    # Using -nv instead of -v means it quietly extends the timestamp
-    # without ever re-prompting.
-    (
-        while kill -0 "$$" 2>/dev/null; do
-            sleep 30
-            sudo -nv 2>/dev/null || true
-        done
-    ) &
-    SUDO_KEEPER_PID=$!
-    trap 'kill "$SUDO_KEEPER_PID" 2>/dev/null || true' EXIT
+# Restore the install-time menu choices (default shell, lockscreen plugin,
+# fish config, ...) that setup.sh persisted to install.env. A fresh update
+# process has none of these set, so the deploy/tweak scripts would otherwise
+# fall back to hardcoded defaults and silently revert the user's explicit
+# install-time decisions.
+if [ -f "$HOME/.config/caelestia-kde/install.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "$HOME/.config/caelestia-kde/install.env"
+    set +a
 fi
 
-# Determine the best escalation helper for GUI environments.
-# Tries cached credentials first (-n) before falling back to prompting.
-run_elevated() {
-    if [ "$EUID" -eq 0 ]; then
-        "$@"
-    elif sudo -n true 2>/dev/null; then
-        sudo -n "$@"
-    elif [ -t 1 ]; then
-        sudo "$@"
-    elif [ -n "${SUDO_ASKPASS:-}" ]; then
-        sudo -A "$@"
-    elif command -v pkexec &> /dev/null; then
-        pkexec "$@"
-    else
-        die "Cannot elevate privileges. Please install ksshaskpass, pkexec, or run from a terminal."
-    fi
-}
+# Root credentials are no longer requested up front. Every step that can need
+# them now checks first, so an update with nothing to install asks for nothing;
+# the first step that does need root prompts once, and the helper keeps that
+# credential warm for the rest of the run - including GUI launches with no
+# terminal, through an askpass helper.
+trap 'caelestia_stop_sudo_keepalive' EXIT
 
 # Apply config updates and rebuild the shell UI.  The native C++ plugin
 # backend talks directly to KWin/Wayland — no Python daemon or mock
@@ -183,10 +147,7 @@ bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 info "Re-applying system tweaks..."
 bash "$BUNDLE_DIR/scripts/09-system-tweaks.sh" || warn "System tweaks step reported errors (non-fatal)."
 
-# Kill the keepalive background process now that sudo is no longer needed
-if [ -n "${SUDO_KEEPER_PID:-}" ] && kill -0 "$SUDO_KEEPER_PID" 2>/dev/null; then
-    kill "$SUDO_KEEPER_PID" 2>/dev/null || true
-fi
+caelestia_stop_sudo_keepalive
 
 section "Update Completed Successfully"
 echo

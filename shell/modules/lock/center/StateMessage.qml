@@ -44,20 +44,20 @@ Item {
     readonly property string stateMsg: {
         if (Hypr.kbLayout !== Hypr.defaultKbLayout) {
             if (Hypr.capsLock && Hypr.numLock)
-                return qsTr("Caps lock and Num lock are ON.\nKeyboard layout: %1").arg(Hypr.kbLayoutFull);
+                return qsTr("Caps Lock and Num Lock are ON.\nKeyboard layout: %1").arg(Hypr.kbLayoutFull);
             if (Hypr.capsLock)
-                return qsTr("Caps lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
+                return qsTr("Caps Lock is ON. Keyboard layout: %1").arg(Hypr.kbLayoutFull);
             if (Hypr.numLock)
-                return qsTr("Num lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
+                return qsTr("Num Lock is ON. Keyboard layout: %1").arg(Hypr.kbLayoutFull);
             return qsTr("Keyboard layout: %1").arg(Hypr.kbLayoutFull);
         }
 
         if (Hypr.capsLock && Hypr.numLock)
-            return qsTr("Caps lock and Num lock are ON.");
+            return qsTr("Caps Lock and Num Lock are ON.");
         if (Hypr.capsLock)
-            return qsTr("Caps lock is ON.");
+            return qsTr("Caps Lock is ON.");
         if (Hypr.numLock)
-            return qsTr("Num lock is ON.");
+            return qsTr("Num Lock is ON.");
 
         return "";
     }

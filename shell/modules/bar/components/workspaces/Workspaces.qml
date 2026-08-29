@@ -33,9 +33,20 @@ Item {
             return Config.bar.workspaces.shown;
         }
         property int activeWsId: {
-            if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.activeId > 0) {
+            if (typeof KWinWorkspaceState === "undefined")
+                return 1;
+            // With KWin's per-output virtual desktops each screen has its own
+            // current desktop, and activeId -- which comes from D-Bus -- only
+            // ever reports the focused screen's. Reading it here showed that one
+            // on every bar, and made all of them appear to switch whenever the
+            // pointer crossed to another monitor.
+            const perOutput = KWinWorkspaceState.activeByOutput[root.screen.name];
+            if (perOutput > 0)
+                return perOutput;
+            // Nothing from the tracker yet, or per-output desktops are off, in
+            // which case one current desktop is the truth for every screen.
+            if (KWinWorkspaceState.activeId > 0)
                 return KWinWorkspaceState.activeId;
-            }
             return 1;
         }
         readonly property var occupied: {
@@ -48,6 +59,14 @@ Item {
             if (kwinList) {
                 for (let i = 0; i < kwinList.length; ++i) {
                     const w = kwinList[i];
+                    // KDE's virtual desktops span every screen, so a desktop is
+                    // "occupied" globally the moment anything is on it anywhere.
+                    // This bar belongs to one screen, and saying a desktop is
+                    // busy because of a window the user cannot see from here is
+                    // not useful -- it reports a full desktop as full and an
+                    // empty one as full too.
+                    if (w.output !== root.screen.name)
+                        continue;
                     if (w.workspace && typeof w.workspace.id === "number") {
                         occ[w.workspace.id] = true;
                     }
@@ -121,8 +140,9 @@ Item {
 
                     Workspace {
                         activeWsId: container.activeWsId
-                        occupied: container.occupied
                         groupOffset: container.groupOffset
+                        occupied: container.occupied
+                        screenName: root.screen.name
                     }
                 }
             }

@@ -1,164 +1,521 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Services.Pipewire
 import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.utils
 
 ColumnLayout {
     id: root
 
     required property PopoutState popouts
 
-    property bool _isSidebarOpen: popouts.sidebarOpen && popouts.isHorizontal
+    // Injected by Content.qml's Popout, which computes preview scaling once.
+    property real scaleOffset: 1.0
+    property real fontScale: 1.0
+    property bool _isSidebarOpen: false
+    property bool _outputsOpen: false
+    property int _streamCount: 0
 
-    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
-    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.audio) ? GlobalConfig.bar.previewScales.audio : 0.0) : 0.0
-    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
-    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
-    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.audio) ? GlobalConfig.bar.previewFontScales.audio : 0.0) : 0.0
-    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+    readonly property bool hasOutputChoice: Audio.sinks.length > 1
+    readonly property bool hasSources: Audio.sources.length > 0
+    readonly property bool hasStreams: Audio.appStreams.length > 0
 
-    implicitWidth: Math.max(300 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
-    spacing: Tokens.spacing.medium * scaleOffset
-
-    ButtonGroup {
-        id: sinks
+    function outputIcon(node: PwNode): string {
+        if (!node)
+            return "speaker";
+        const name = (node.description || node.name || "").toLowerCase();
+        if (name.includes("headset") || name.includes("headphone") || name.includes("earbud") || name.includes("earphone"))
+            return "headphones";
+        return "speaker";
     }
 
-    ButtonGroup {
-        id: sources
+    function sourceIcon(node: PwNode): string {
+        if (!node)
+            return "mic";
+        const name = (node.description || node.name || "").toLowerCase();
+        if (name.includes("headset"))
+            return "headset_mic";
+        return "mic";
     }
 
-    StyledText {
-        Layout.topMargin: Tokens.padding.medium * root.scaleOffset
+    function syncStreamsSection(): void {
+        if (hasStreams && _streamCount === 0)
+            appsSection.expanded = true;
+        else if (!hasStreams)
+            appsSection.expanded = false;
+        _streamCount = Audio.appStreams.length;
+    }
+
+    width: Math.max(440 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
+    implicitWidth: width
+    spacing: Tokens.spacing.small * scaleOffset
+
+    Component.onCompleted: {
+        _streamCount = Audio.appStreams.length;
+        appsSection.expanded = _streamCount > 0;
+    }
+
+    Connections {
+        function onStreamsChanged(): void {
+            root.syncStreamsSection();
+        }
+
+        target: Audio
+    }
+
+    RowLayout {
+        Layout.topMargin: Tokens.padding.small * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Audio")
-        font.weight: 500
-        font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
+        Layout.rightMargin: Tokens.padding.small * root.scaleOffset
+        Layout.fillWidth: true
+        spacing: Tokens.spacing.small * root.scaleOffset
+
+        StyledText {
+            Layout.fillWidth: true
+            text: qsTr("Audio")
+            font.weight: 500
+            font.pointSize: Tokens.font.title.small.pointSize * root.fontScale
+        }
+
+        IconButton {
+            icon: "settings"
+            font: Tokens.font.icon.medium
+            type: IconButton.Tonal
+            isRound: true
+            inactiveColour: Colours.tPalette.m3surfaceContainerHigh
+            inactiveOnColour: Colours.palette.m3onSurfaceVariant
+            onClicked: root.popouts.detachRequested("audio")
+        }
     }
 
     StyledRect {
+        id: hero
+
         Layout.fillWidth: true
-        implicitWidth: outputLayout.implicitWidth + Tokens.padding.medium * 2 * root.scaleOffset
-        implicitHeight: outputLayout.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset
-        radius: Tokens.rounding.medium * root.scaleOffset
+        implicitHeight: heroLayout.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset
+        radius: Tokens.rounding.large * root.scaleOffset
         color: Colours.tPalette.m3surfaceContainer
         clip: true
 
         ColumnLayout {
-            id: outputLayout
+            id: heroLayout
 
             width: parent.width - Tokens.padding.medium * 2 * root.scaleOffset
             x: Tokens.padding.medium * root.scaleOffset
             y: Tokens.padding.medium * root.scaleOffset
             spacing: Tokens.spacing.medium * root.scaleOffset
 
-            StyledText {
-                text: qsTr("Output device")
-                font.weight: Font.Medium
-                font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
+            Item {
+                id: outputSummary
+
+                Layout.fillWidth: true
+                Layout.preferredHeight: 52 * root.scaleOffset
+
+                RowLayout {
+                    id: summaryRow
+
+                    anchors.fill: parent
+                    anchors.leftMargin: Tokens.padding.extraSmall * root.scaleOffset
+                    anchors.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
+                    spacing: Tokens.spacing.medium * root.scaleOffset
+
+                    StyledRect {
+                        implicitWidth: 40 * root.scaleOffset
+                        implicitHeight: 40 * root.scaleOffset
+                        radius: Tokens.rounding.full * root.scaleOffset
+                        color: Colours.palette.m3primaryContainer
+
+                        MaterialIcon {
+                            anchors.centerIn: parent
+                            text: root.outputIcon(Audio.sink)
+                            color: Colours.palette.m3onPrimaryContainer
+                            fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        StyledText {
+                            text: qsTr("Output device")
+                            color: Colours.palette.m3onSurfaceVariant
+                            font.pointSize: Tokens.font.label.small.pointSize * root.fontScale
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Audio.sink ? (Audio.sink.description || Audio.sink.name) : qsTr("No output device")
+                            elide: Text.ElideRight
+                            font.pointSize: Tokens.font.title.small.pointSize * root.fontScale
+                            font.weight: Font.Medium
+                        }
+                    }
+
+                    MaterialIcon {
+                        visible: root.hasOutputChoice
+                        text: "expand_more"
+                        rotation: root._outputsOpen ? 180 : 0
+                        color: Colours.palette.m3onSurfaceVariant
+                        fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
+
+                        Behavior on rotation {
+                            Anim {
+                                type: Anim.StandardSmall
+                            }
+                        }
+                    }
+                }
+
+                StateLayer {
+                    anchors.fill: parent
+                    radius: Tokens.rounding.medium * root.scaleOffset
+                    disabled: !root.hasOutputChoice
+                    onClicked: root._outputsOpen = !root._outputsOpen
+                }
             }
 
-            Repeater {
-                model: Audio.sinks
+            Item {
+                id: outputList
 
-                StyledRadioButton {
-                    id: outputControl
+                Layout.fillWidth: true
+                Layout.preferredHeight: root._outputsOpen ? (outputColumn.implicitHeight + Tokens.spacing.extraSmall * root.scaleOffset) : 0
+                visible: root.hasOutputChoice
+                clip: true
 
-                    required property PwNode modelData
+                Behavior on Layout.preferredHeight {
+                    Anim {}
+                }
 
-                    ButtonGroup.group: sinks
-                    checked: Audio.sink?.id === modelData.id
-                    onClicked: Audio.setAudioSink(modelData)
-                    text: modelData.description
-                    font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+                ColumnLayout {
+                    id: outputColumn
+
+                    width: parent.width
+                    y: Tokens.spacing.extraSmall * root.scaleOffset
+                    spacing: Tokens.spacing.extraSmall * root.scaleOffset
+
+                    Repeater {
+                        model: Audio.sinks
+
+                        AudioDevice {
+                            required property PwNode modelData
+
+                            active: Audio.sink?.id === modelData.id
+                            onSelected: {
+                                Audio.setAudioSink(modelData);
+                                root._outputsOpen = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            StyledRect {
+                id: cavaStrip
+
+                Layout.fillWidth: true
+                Layout.preferredHeight: 28 * root.scaleOffset
+                visible: !!Audio.cava && root.hasStreams
+                radius: Tokens.rounding.small * root.scaleOffset
+                color: Colours.tPalette.m3surfaceContainerHigh
+
+                Row {
+                    id: barsRow
+
+                    anchors.fill: parent
+                    anchors.leftMargin: Tokens.padding.small * root.scaleOffset
+                    anchors.rightMargin: Tokens.padding.small * root.scaleOffset
+                    anchors.topMargin: Tokens.padding.extraSmall * root.scaleOffset
+                    anchors.bottomMargin: Tokens.padding.extraSmall * root.scaleOffset
+                    spacing: Math.max(2, Tokens.spacing.extraSmall / 2 * root.scaleOffset)
+
+                    Repeater {
+                        model: 24
+
+                        Item {
+                            width: (barsRow.width - 23 * barsRow.spacing) / 24
+                            height: barsRow.height
+
+                            StyledRect {
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                radius: Tokens.rounding.full * root.scaleOffset
+                                color: Colours.palette.m3primary
+
+                                height: Math.max(4 * root.scaleOffset, parent.height * Math.min(1, Math.max(0, Audio.cava?.values?.[Math.floor(index * GlobalConfig.services.visualiserBars / 24)] ?? 0)))
+
+                                Behavior on height {
+                                    Anim {
+                                        type: Anim.FastSpatial
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Tokens.spacing.medium * root.scaleOffset
+
+                IconButton {
+                    id: muteButton
+
+                    icon: Icons.getVolumeIcon(Audio.volume, Audio.muted)
+                    type: IconButton.Tonal
+                    isRound: true
+                    onClicked: {
+                        if (Audio.sink?.ready && Audio.sink?.audio)
+                            Audio.sink.audio.muted = !Audio.sink.audio.muted;
+                    }
+                }
+
+                CustomMouseArea {
+                    function onWheel(event: WheelEvent): void {
+                        if (event.angleDelta.y > 0)
+                            Audio.incrementVolume();
+                        else if (event.angleDelta.y < 0)
+                            Audio.decrementVolume();
+                    }
+
+                    Layout.fillWidth: true
+                    implicitHeight: 18 * root.scaleOffset
+
+                    StyledSlider {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitHeight: 18 * root.scaleOffset
+                        radius: Tokens.rounding.full * root.scaleOffset
+                        value: Audio.volume
+                        fgColour: Colours.palette.m3primary
+                        bgColour: Colours.tPalette.m3surfaceContainerHigh
+                        onInteraction: v => Audio.setVolume(v)
+                        onReleased: v => Audio.playEffectTick()
+                    }
+                }
+
+                StyledText {
+                    Layout.preferredWidth: 72 * root.scaleOffset
+                    text: Audio.muted ? qsTr("Muted") : Math.round(Audio.volume * 100) + "%"
+                    color: Audio.muted ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3onSurface
+                    font.pointSize: Tokens.font.title.medium.pointSize * root.fontScale
+                    font.weight: Font.Medium
+                    horizontalAlignment: Text.AlignRight
                 }
             }
         }
     }
 
-    StyledRect {
+    Section {
         Layout.fillWidth: true
-        implicitWidth: inputLayout.implicitWidth + Tokens.padding.medium * 2 * root.scaleOffset
-        implicitHeight: inputLayout.implicitHeight + Tokens.padding.medium * 2 * root.scaleOffset
-        radius: Tokens.rounding.medium * root.scaleOffset
-        color: Colours.tPalette.m3surfaceContainer
-        clip: true
+        title: qsTr("Input")
 
-        ColumnLayout {
-            id: inputLayout
+        StyledText {
+            Layout.fillWidth: true
+            visible: !root.hasSources
+            text: qsTr("No input device")
+            color: Colours.palette.m3onSurfaceVariant
+            font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+        }
 
-            width: parent.width - Tokens.padding.medium * 2 * root.scaleOffset
-            x: Tokens.padding.medium * root.scaleOffset
-            y: Tokens.padding.medium * root.scaleOffset
-            spacing: Tokens.spacing.medium * root.scaleOffset
+        Repeater {
+            model: Audio.sources
 
-            StyledText {
-                text: qsTr("Input device")
-                font.weight: Font.Medium
-                font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
+            AudioDevice {
+                required property PwNode modelData
+
+                isInput: true
+                active: Audio.source?.id === modelData.id
+                onSelected: Audio.setAudioSource(modelData)
+            }
+        }
+
+        SliderRow {
+            Layout.fillWidth: true
+            first: true
+            last: true
+            iconClickable: true
+            icon: Icons.getMicVolumeIcon(Audio.sourceVolume, Audio.sourceMuted)
+            label: qsTr("Input volume")
+            valueLabel: Audio.sourceMuted ? qsTr("Muted") : Math.round(Audio.sourceVolume * 100) + "%"
+            value: Audio.sourceVolume
+            onIconClicked: {
+                if (Audio.source?.ready && Audio.source?.audio)
+                    Audio.source.audio.muted = !Audio.source.audio.muted;
+            }
+            onMoved: v => Audio.setSourceVolume(v)
+        }
+    }
+
+    Section {
+        id: appsSection
+
+        Layout.fillWidth: true
+        title: qsTr("Now playing")
+
+        StyledText {
+            Layout.fillWidth: true
+            visible: !root.hasStreams
+            text: qsTr("No apps playing audio")
+            color: Colours.palette.m3onSurfaceVariant
+            font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+        }
+
+        Repeater {
+            model: Audio.appStreams
+
+            AppStreamRow {
+                required property PwNode modelData
+                required property int index
+
+                node: modelData
+                muteOnIconClick: true
+                first: index === 0
+                last: index === Audio.appStreams.length - 1
+            }
+        }
+    }
+
+    component Section: ColumnLayout {
+        id: section
+
+        required property string title
+        property bool expanded: false
+        default property alias content: contentColumn.data
+
+        Layout.fillWidth: true
+        spacing: Tokens.spacing.extraSmall * root.scaleOffset
+
+        Item {
+            id: sectionHeader
+
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.max(titleRow.implicitHeight + Tokens.padding.small * 2 * root.scaleOffset, 40 * root.scaleOffset)
+
+            RowLayout {
+                id: titleRow
+
+                anchors.fill: parent
+                anchors.leftMargin: Tokens.padding.small * root.scaleOffset
+                anchors.rightMargin: Tokens.padding.small * root.scaleOffset
+                spacing: Tokens.spacing.small * root.scaleOffset
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: section.title
+                    font.weight: Font.Medium
+                    font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
+                }
+
+                MaterialIcon {
+                    text: "expand_more"
+                    rotation: section.expanded ? 180 : 0
+                    color: Colours.palette.m3onSurfaceVariant
+                    fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
+
+                    Behavior on rotation {
+                        Anim {
+                            type: Anim.StandardSmall
+                        }
+                    }
+                }
             }
 
-            Repeater {
-                model: Audio.sources
+            StateLayer {
+                anchors.fill: parent
+                radius: Tokens.rounding.medium * root.scaleOffset
+                showHoverBackground: false
+                onClicked: section.expanded = !section.expanded
+            }
+        }
 
-                StyledRadioButton {
-                    id: inputControl
+        Item {
+            id: contentWrapper
 
-                    required property PwNode modelData
+            Layout.fillWidth: true
+            Layout.preferredHeight: section.expanded ? (contentColumn.implicitHeight + Tokens.spacing.extraSmall * root.scaleOffset) : 0
+            clip: true
 
-                    ButtonGroup.group: sources
-                    checked: Audio.source?.id === modelData.id
-                    onClicked: Audio.setAudioSource(modelData)
-                    text: modelData.description
-                    font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+            Behavior on Layout.preferredHeight {
+                Anim {}
+            }
+
+            ColumnLayout {
+                id: contentColumn
+
+                width: parent.width
+                y: Tokens.spacing.extraSmall * root.scaleOffset
+                spacing: Tokens.spacing.extraSmall * root.scaleOffset
+                opacity: section.expanded ? 1.0 : 0.0
+
+                Behavior on opacity {
+                    Anim {
+                        type: Anim.DefaultEffects
+                    }
                 }
             }
         }
     }
 
-    StyledText {
-        Layout.topMargin: Tokens.spacing.medium * root.scaleOffset
-        text: qsTr("Volume (%1)").arg(Audio.muted ? qsTr("Muted") : `${Math.round(Audio.volume * 100)}%`)
-        font.weight: Font.Medium
-        font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
-    }
+    component AudioDevice: StyledRect {
+        id: device
 
-    CustomMouseArea {
+        required property PwNode modelData
+        property bool isInput: false
+        property bool active: false
+
+        signal selected
+
         Layout.fillWidth: true
-        implicitHeight: Tokens.padding.medium * 3 * root.scaleOffset
+        Layout.preferredWidth: 0
+        implicitHeight: row.implicitHeight + Tokens.padding.small * 2 * root.scaleOffset
+        radius: Tokens.rounding.small * root.scaleOffset
+        color: device.active ? Colours.tPalette.m3surfaceContainerHigh : "transparent"
 
-        onWheel: event => {
-            if (event.angleDelta.y > 0)
-                Audio.incrementVolume();
-            else if (event.angleDelta.y < 0)
-                Audio.decrementVolume();
-        }
+        RowLayout {
+            id: row
 
-        StyledSlider {
             anchors.left: parent.left
             anchors.right: parent.right
-            implicitHeight: parent.implicitHeight
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: Tokens.padding.medium * root.scaleOffset
+            anchors.rightMargin: Tokens.padding.medium * root.scaleOffset
+            spacing: Tokens.spacing.small * root.scaleOffset
 
-            value: Audio.volume
-            onInteraction: v => Audio.setVolume(v)
-            onReleased: v => Audio.playEffectTick()
+            MaterialIcon {
+                text: device.isInput ? root.sourceIcon(device.modelData) : root.outputIcon(device.modelData)
+                color: device.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 0
+                elide: Text.ElideRight
+                text: device.modelData.description
+                color: device.active ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
+                font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
+            }
+
+            MaterialIcon {
+                text: device.active ? "check_circle" : "radio_button_unchecked"
+                color: device.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
+            }
+        }
+
+        StateLayer {
+            anchors.fill: parent
+            radius: device.radius
+            onClicked: device.selected()
         }
     }
-
-    IconTextButton {
-        Layout.fillWidth: true
-        inactiveColour: Colours.palette.m3primaryContainer
-        inactiveOnColour: Colours.palette.m3onPrimaryContainer
-        verticalPadding: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Open settings")
-        icon: "settings"
-
-        onClicked: root.popouts.detachRequested("audio")
-    }
 }
+

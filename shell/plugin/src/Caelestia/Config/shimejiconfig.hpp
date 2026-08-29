@@ -10,7 +10,7 @@ class ShimejiConfig : public ConfigObject {
     Q_OBJECT
     QML_ANONYMOUS
 
-    CONFIG_PROPERTY(bool, enabled, true)
+    CONFIG_PROPERTY(bool, enabled, false)
     CONFIG_PROPERTY(bool, autoHide, true)
     CONFIG_PROPERTY(bool, hideOnAllMonitors, false)
     CONFIG_PROPERTY(QString, path, QStringLiteral("root:/assets/shimeji/pusheen/"))

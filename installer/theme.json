@@ -1,12 +1,17 @@
 {
-  "colors": {
-    "default": "39m",
-    "cyan": "36m",
-    "magenta": "35m",
-    "green": "32m",
-    "red": "31m",
-    "yellow": "33m",
-    "white": "1;37m"
+  "palette": {
+    "primary": "#ffb0ca",
+    "accent": "#ff4c8a",
+    "seed": "#a8627b",
+    "container": "#6f334a",
+    "surface": "#191114",
+    "on_surface": "#efdfe2",
+    "secondary": "#e2bdc7",
+    "tertiary": "#f0bc95",
+    "muted": "#8e6f78",
+    "success": "#9cd1a3",
+    "warning": "#e8c87a",
+    "error": "#ff7b8f"
   },
   "splash_screen": {
     "art": [
@@ -18,62 +23,19 @@
       "  \\_____\\__,_|\\___/|_|\\___||___/\\__|_|\\__,_|"
     ],
     "author": "By @ladybug-me",
-    "animation_speed_ms": 3,
-    "art_color": "magenta",
-    "loading_text_color": "dim",
-    "loading_texts": [
-      "Initializing installer",
-      "Target platform: KDE Plasma 6",
-      "Original Hyprland dots: caelestia-dots",
-      "Co-maintainer: 0xSolanaceae"
-    ]
+    "co_author": "Co-maintainer: 0xSolanaceae",
+    "art_color": "accent"
   },
-  "layout": {
-    "progress_box": {
-      "title": "INSTALLATION PROGRESS",
-      "color": "cyan",
-      "title_color": "default",
-      "text_color": "cyan",
-      "padding_x": 4,
-      "padding_y": 2
-    },
-    "step_list": {
-      "title": "STEPS",
-      "color": "cyan",
-      "title_color": "default",
-      "offset_y": 3,
-      "offset_x": 2,
-      "spacing_x": 10
-    },
-    "sudo_prompt": {
-      "title": "PRIVILEGE ESCALATION",
-      "color": "cyan",
-      "title_color": "default",
-      "text_color": "default",
-      "prompt_color": "cyan"
-    },
-    "distro_select": {
-      "title": "DETECTED OS",
-      "color": "cyan",
-      "title_color": "default",
-      "text_color": "default"
-    },
-    "config_checklist": {
-      "title": "CONFIGURATION",
-      "color": "cyan",
-      "title_color": "default",
-      "text_color": "default"
-    },
-    "summary_screen": {
-      "title": "CAELESTIA INSTALLATION SUMMARY",
-      "color": "green",
-      "title_color": "default"
-    }
-  },
-  "strings": {
-    "status_ok": "[OK]",
-    "status_running": "[*]",
-    "status_pending": "[ ]",
-    "status_error": "[ERR]"
+  "glyphs": {
+    "pending": "[ ]",
+    "running": "[>]",
+    "ok": "[OK]",
+    "warn": "[WARN]",
+    "failed": "[ERR]",
+    "skipped": "[SKIP]",
+    "checkbox_on": "[x]",
+    "checkbox_off": "[ ]",
+    "select_left": "<",
+    "select_right": ">"
   }
 }

@@ -55,7 +55,7 @@ Controls.Menu {
                     GlobalConfig.save();
                 } else if (entry.action === "OpenRightClickMenu") {
                     WindowFactory.create(null, {
-                        initialPageIdx: 1, // Desktop
+                        initialPageIdx: PageRegistry.indexForKey("desktop"), // Desktop
                         initialSubPageIdx: 2 // Right Click Menu is index 2
                     });
                 } else if (entry.action === "OpenTerminal") {

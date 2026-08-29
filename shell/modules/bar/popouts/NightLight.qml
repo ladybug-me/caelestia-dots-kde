@@ -12,14 +12,11 @@ ColumnLayout {
 
     required property PopoutState popouts
 
-    property bool _isSidebarOpen: popouts.sidebarOpen && popouts.isHorizontal
+    property bool _isSidebarOpen: false
 
-    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
-    readonly property real elementOffset: 0.0
-    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
-    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
-    readonly property real elementFontOffset: 0.0
-    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+    // Injected by Content.qml's Popout.
+    property real scaleOffset: 1.0
+    property real fontScale: 1.0
 
     implicitWidth: Math.max(300 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
     spacing: Tokens.spacing.medium * scaleOffset

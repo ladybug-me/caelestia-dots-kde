@@ -11,8 +11,25 @@ import qs.modules.nexus
 Singleton {
     id: root
 
+    // The one detached Nexus window, if open. Reused so repeated detach /
+    // "Open Updates" clicks navigate the existing window instead of stacking.
+    property var openWindow: null
+
     function create(parent: Item, props: var): var {
-        return nexusComp.createObject(parent ?? dummy, props);
+        props = props || {};
+        if (root.openWindow) {
+            const win = root.openWindow;
+            if (props.initialPageIdx !== undefined)
+                win.nexus.nState.currentPageIdx = props.initialPageIdx;
+            if (props.initialSubPageIdx !== undefined && props.initialSubPageIdx !== -1)
+                win.nexus.nState.openSubPage(props.initialSubPageIdx);
+            win.visible = true;
+            win.raise();
+            return win;
+        }
+        const win = nexusComp.createObject(parent ?? dummy, props);
+        root.openWindow = win;
+        return win;
     }
 
     QtObject {
@@ -29,6 +46,11 @@ Singleton {
             
             property int initialPageIdx: 0
             property int initialSubPageIdx: -1
+
+            Component.onDestruction: {
+                if (root.openWindow === win)
+                    root.openWindow = null;
+            }
 
             color: Colours.tPalette.m3surface
             // Commented because nexus bg depends on the above
@@ -64,7 +86,7 @@ Singleton {
             contentItem.Config.screen: screen.name
             contentItem.Tokens.screen: screen.name
 
-            title: qsTr("Nexus — %1").arg(PageRegistry.pages[nexus.nState.currentPageIdx].label)
+            title: qsTr("%1").arg(PageRegistry.pages[nexus.nState.currentPageIdx].label)
 
             Nexus {
                 id: nexus

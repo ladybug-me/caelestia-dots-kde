@@ -13,9 +13,7 @@ KONSAVE_VENV_DIR="$CACHE_DIR/konsave-venv"
 KONSAVE_BIN=""
 HAD_USER_KONSAVE_CONF=false
 
-info() { echo "  [INFO]  $*"; }
-ok() { echo "  [OK]    $*"; }
-die() { echo "  [ERR]   $*"; exit 1; }
+source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 
 ensure_konsave() {
     if command -v konsave >/dev/null 2>&1; then
@@ -60,7 +58,7 @@ if [[ -f "$USER_KONSAVE_CONF" ]]; then
 fi
 
 trap restore_user_konsave_conf EXIT
-echo "  Backing up current KDE configuration with konsave..."
+info "Backing up current KDE configuration with konsave..."
 
 mkdir -p "$CACHE_DIR"
 BACKUP_DIR="$BUNDLE_DIR/backups/$(date +%Y%m%d_%H%M%S)"

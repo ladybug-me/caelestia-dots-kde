@@ -47,11 +47,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp installer/build/caelestia-install "caelestia-install-${{ matrix.arch }}"
+          VERSION="$(tr -d '[:space:]' < installer/tui.version)"
+          cp installer/build/caelestia-install "caelestia-install-${{ matrix.arch }}-v${VERSION}"
           gh release create "$REPO_TAG" --latest=false --prerelease \
             --title "Prebuilt artifacts" \
-            --notes "Prebuilt installer binaries and the binary package repo consumed by setup.sh and installDP.sh." >/dev/null 2>&1 || true
-          gh release upload "$REPO_TAG" "caelestia-install-${{ matrix.arch }}" --clobber
+            --notes "Prebuilt installer binaries." >/dev/null 2>&1 || true
+          gh release upload "$REPO_TAG" "caelestia-install-${{ matrix.arch }}-v${VERSION}" --clobber
 
   # ═══════════════════════════════════════════════════════════
   # Binary pacman repo with the last source-built AUR packages (libcava,

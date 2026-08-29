@@ -16,6 +16,8 @@ StyledRect {
 
     required property int index
     required property int activeWsId
+    /// Screen this overview belongs to; window icons are limited to it.
+    required property string screenName
     required property var occupied
     required property int groupOffset
     readonly property bool isWorkspace: true
@@ -47,6 +49,18 @@ StyledRect {
 
     signal selected()
     signal reselected()
+
+    // Prefer an icon extracted from the window's own _NET_WM_ICON, then fall
+    // back to the themed desktop-entry lookup (same as the overview cards).
+    function windowIconSource(client: var): string {
+        if (!client)
+            return "";
+        const wp = WinIcons.paths[WinIcons.keyFor(client.class, client.pid ?? 0)];
+        if (wp)
+            return "file://" + wp;
+        return client.iconName ? Icons.getAppIcon(client.iconName, "image-missing")
+                               : (client.class ? Icons.getAppIcon(client.class, "image-missing") : "");
+    }
 
     implicitWidth: Math.floor(baseWidth * scaleFactor)
     implicitHeight: indicatorSize
@@ -122,7 +136,7 @@ StyledRect {
             } else {
                 if (typeof KWinWorkspaceState !== "undefined") {
                     const wId = KWinWorkspaceState.workspaces[root.ws - 1]?.id || root.ws.toString();
-                    KWinWorkspaceState.switchTo(wId);
+                    KWinWorkspaceState.switchTo(wId, root.screenName);
                 } else {
                     const isKWin = typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.windowList;
                     if (isKWin) {
@@ -210,10 +224,14 @@ StyledRect {
                     let windows = [];
                     const kwinList = root.kwinWindowList; 
                     if (typeof KWinActiveWindowBridge !== "undefined" && kwinList) {
-                        const wins = kwinList;
+                        const wins = KWinActiveWindowBridge.windowsForWorkspace(wsId, false);
                         for (let i = 0; i < wins.length; ++i) {
                             const w = wins[i];
-                            if (w.workspace && (w.workspace.id === wsId || w.workspace.index === wsId) && w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
+                            // windowsForWorkspace already filtered by workspace;
+                            // this strip only shows its own screen.
+                            if (w.output !== root.screenName)
+                                continue;
+                            if (w["class"] !== "quickshell" && w["class"] !== "plasmashell") {
                                 windows.push(w);
                             }
                         }
@@ -247,6 +265,11 @@ StyledRect {
                         if (root.closingWindows[i] === modelData.address) return true;
                     }
                     return false;
+                }
+
+                Component.onCompleted: {
+                    if (modelData && !DesktopEntries.heuristicLookup(modelData.iconName || modelData.class || ""))
+                        WinIcons.request(modelData.class, modelData.title, modelData.pid ?? 0, modelData.address ? String(modelData.address) : "");
                 }
 
                 radius: Tokens.rounding.small
@@ -311,7 +334,7 @@ StyledRect {
                     anchors.centerIn: parent
                     implicitSize: Math.min(parent.width, parent.height) * 0.6
                     asynchronous: true
-                    source: modelData.iconName ? Icons.getAppIcon(modelData.iconName, "image-missing") : (modelData.class ? Icons.getAppIcon(modelData.class, "image-missing") : "")
+                    source: root.windowIconSource(modelData)
                 }
                 StateLayer {
                     anchors.fill: parent

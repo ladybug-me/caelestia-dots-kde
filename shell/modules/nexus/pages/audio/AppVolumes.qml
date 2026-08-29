@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Services.Pipewire
 import Caelestia.Config
 import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -44,10 +45,10 @@ PageBase {
             list.spacing: Tokens.spacing.extraSmall / 2
 
             model: ScriptModel {
-                values: [...Audio.streams]
+                values: [...Audio.appStreams]
             }
 
-            delegate: SliderRow {
+            delegate: AppStreamRow {
                 id: stream
 
                 required property PwNode modelData
@@ -58,12 +59,7 @@ PageBase {
                 first: index === 0
                 last: index === streamList.list.count - 1
 
-                icon: Icons.getVolumeIcon(stream.modelData?.audio?.volume ?? 0, stream.modelData?.audio?.muted ?? false)
-                label: Audio.getStreamName(stream.modelData)
-                valueLabel: Math.round(value * 100) + "%"
-                value: stream.modelData?.audio?.volume ?? 0
-                enabled: !stream.modelData?.audio?.muted
-                onMoved: v => Audio.setStreamVolume(stream.modelData, v)
+                node: stream.modelData
             }
         }
     }

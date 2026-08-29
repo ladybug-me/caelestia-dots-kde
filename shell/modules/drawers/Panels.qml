@@ -87,6 +87,24 @@ Item {
         }
     }
 
+    readonly property bool popoutIntersectsSidebar: {
+        if (!popoutsWrapper.visible || popoutsWrapper.offsetScale >= 1) return false;
+        if (!sidebar.visible) return false;
+        if (Config.bar.position === "top" || Config.bar.position === "bottom") {
+            const sideLeft = sidebar.x;
+            const sideRight = sideLeft + sidebar.width;
+            const popLeft = popoutsWrapper.x;
+            const popRight = popoutsWrapper.x + popoutsWrapper.content.nonAnimWidth;
+            return popLeft < sideRight && popRight > sideLeft;
+        } else {
+            const sideTop = sidebar.y;
+            const sideBottom = sideTop + sidebar.height;
+            const popTop = popoutsWrapper.y;
+            const popBottom = popoutsWrapper.y + popoutsWrapper.content.nonAnimHeight;
+            return popTop < sideBottom && popBottom > sideTop;
+        }
+    }
+
     anchors.fill: parent
     anchors.leftMargin: (Config.bar.position === "left" ? bar.implicitWidth + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge * 2 : 0) : borderThickness + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0))
     anchors.rightMargin: (Config.bar.position === "right" ? bar.implicitWidth + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge * 2 : 0) : borderThickness + (GlobalConfig.appearance.islands ? Tokens.spacing.extraLarge : 0))
@@ -156,7 +174,8 @@ Item {
             PropertyChanges {
                 target: sidebar
                 anchors.topMargin: -4
-                anchors.bottomMargin: root.notifAtBottom ? root.notifReservedHeight : 0
+                anchors.bottomMargin: (root.notifAtBottom ? root.notifReservedHeight : 0)
+                    + (sidebar.shouldPush ? popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge : 0)
             }
         }
     ]
@@ -227,8 +246,13 @@ Item {
             const len = Notifs.popupCount;
             // Only act on 0 → 1 transition (fresh batch arrival)
             if (len > 0 && root._prevPopupCount === 0 && GlobalConfig.notifs.position === "auto") {
-                const defV = Config.bar.position === "bottom" ? "bottom" : "top";
-                const defH = Config.bar.position === "left" ? "left" : "right";
+                // Taken from notifAutoPosition rather than worked out again:
+                // the second copy had drifted (it flipped on "left" where the
+                // first flips on "right"), so with a side bar the avoidance
+                // watched the corner opposite the one notifications were in.
+                const defParts = root.notifAutoPosition.split("-");
+                const defV = defParts[0];
+                const defH = defParts[1];
                 const notifW = Tokens.sizes.notifs.width;
                 const notifH = Math.min(root.height / 2, 600);
                 // Corner bounds in Panels-relative coordinates
@@ -332,7 +356,7 @@ Item {
 
         property string vAnchor: "bottom"
         property string hAnchor: Config.bar.position === "right" ? "left" : "right"
-        property bool shouldPush: root.popoutIntersectsRight && !popoutsWrapper.content.isDockPopout
+        property bool shouldPush: root.popoutIntersectsSidebar && !popoutsWrapper.content.isDockPopout
 
         visibilities: root.visibilities
         popouts: popoutsWrapper.content

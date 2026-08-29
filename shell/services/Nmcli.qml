@@ -197,12 +197,6 @@ Singleton {
             callback({ success: false, output: "", error: "executeShellCommand removed - use NmQt", exitCode: -1 });
     }
 
-    function getDeviceStatus(callback: var): void { if (callback && typeof callback === "function") callback(""); }
-    function getWirelessInterfaces(callback: var): void { root.wirelessInterfaces = []; if (callback && typeof callback === "function") callback([]); }
-    function getEthernetInterfaces(callback: var): void { root.ethernetInterfaces = []; if (callback && typeof callback === "function") callback([]); }
-    function getAllInterfaces(callback: var): void { if (callback && typeof callback === "function") callback([]); }
-    function isInterfaceConnected(interfaceName: string, callback: var): void { if (callback && typeof callback === "function") callback(false); }
-
     function connectEthernet(connectionName: string, interfaceName: string, callback: var): void {
         NmQt.connectEthernet(connectionName, interfaceName, callback);
     }
@@ -278,8 +272,6 @@ Singleton {
         if (callback && typeof callback === "function") callback(root.savedConnectionSsids);
     }
 
-    function parseNameTypeOutput(output: string): list<var> { return []; }
-
     function isVpnConnectionType(type: string): bool {
         const normalized = (type || "").toLowerCase().trim();
         return normalized === root.connectionTypeVpn || normalized === root.connectionTypeWireGuard;
@@ -294,7 +286,6 @@ Singleton {
         if (callback && typeof callback === "function") callback(root.savedConnectionSsids);
     }
 
-    function processSsidOutput(output: string): void { } // no-op
     function hasSavedProfile(ssid: string): bool { return NmQt.hasSavedProfile(ssid); }
     function forgetNetwork(ssid: string, callback: var): void { NmQt.forgetNetwork(ssid, callback); }
 
@@ -304,10 +295,6 @@ Singleton {
     }
 
     function disconnectFromNetwork(): void { NmQt.disconnectFromNetwork(); }
-
-    function getDeviceDetails(interfaceName: string, callback: var): void {
-        if (callback && typeof callback === "function") callback("");
-    }
 
     function refreshStatus(callback: var): void {
         if (callback && typeof callback === "function") {
@@ -360,10 +347,6 @@ Singleton {
 
     function getEthernetDeviceDetails(interfaceName: string, callback: var): void {
         NmQt.getEthernetDeviceDetails(interfaceName, callback);
-    }
-
-    function parseDeviceDetails(output: string, isEthernet: bool): var {
-        return { ipAddress: "", gateway: "", dns: [], subnet: "", macAddress: "", speed: "" };
     }
 
     function refreshOnConnectionChange(): void {

@@ -41,6 +41,42 @@ QVariantList KWinActiveWindowBridge::windowList() const {
     return m_windowList;
 }
 
+QVariantList KWinActiveWindowBridge::windowsForWorkspace(const QVariant& workspace, bool includeOnAllWorkspaces) const {
+    const bool hasNumberTarget = workspace.type() == QVariant::Int && workspace.toInt() > 0;
+    const bool hasStringTarget = workspace.type() == QVariant::String && !workspace.toString().isEmpty();
+
+    QVariantList out;
+    for (const QVariant& v : m_windowList) {
+        const QVariantMap window = v.toMap();
+        const QVariantMap ws = window.value("workspace").toMap();
+        if (ws.isEmpty()) { // No workspace info: can't rule it out.
+            out.push_back(v);
+            continue;
+        }
+        const QVariant id = ws.value("id");
+        const QString uuid = ws.value("uuid").toString();
+        const bool onAll = (id.type() == QVariant::Int && id.toInt() == -1) || uuid.isEmpty();
+        if (onAll) {
+            if (includeOnAllWorkspaces)
+                out.push_back(v);
+            continue;
+        }
+        if (!hasNumberTarget && !hasStringTarget) {
+            out.push_back(v);
+            continue;
+        }
+        if (hasNumberTarget && id.type() == QVariant::Int && id.toInt() == workspace.toInt()) {
+            out.push_back(v);
+            continue;
+        }
+        if (hasStringTarget && uuid == workspace.toString()) {
+            out.push_back(v);
+            continue;
+        }
+    }
+    return out;
+}
+
 QString KWinActiveWindowBridge::pendingFocusAddress() const {
     return m_pendingFocusAddress;
 }

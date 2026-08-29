@@ -44,7 +44,7 @@ PageBase {
         // Behaviour
         SectionHeader {
             first: true
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: qsTr("Behavior")
         }
 
         ToggleRow {
@@ -105,7 +105,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Scaling"))
+            text: qsTr("Scaling")
         }
 
         StepperRow {

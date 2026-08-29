@@ -15,14 +15,10 @@ ColumnLayout {
 
     required property PopoutState popouts
 
-    property bool _isSidebarOpen: popouts.sidebarOpen && popouts.isHorizontal
-
-    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
-    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.bluetooth) ? GlobalConfig.bar.previewScales.bluetooth : 0.0) : 0.0
-    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
-    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
-    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.bluetooth) ? GlobalConfig.bar.previewFontScales.bluetooth : 0.0) : 0.0
-    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+    // Injected by Content.qml's Popout.
+    property real scaleOffset: 1.0
+    property real fontScale: 1.0
+    property bool _isSidebarOpen: false
 
     width: Math.max(300 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
     spacing: Tokens.spacing.small * scaleOffset
@@ -91,33 +87,13 @@ ColumnLayout {
             values: [...Bluetooth.devices.values].sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name)).slice(0, 5) // qmllint disable unresolved-type
         }
 
-        RowLayout {
+        ListRow {
             id: device
 
             required property BluetoothDevice modelData
             readonly property bool loading: modelData.state === BluetoothDeviceState.Connecting || modelData.state === BluetoothDeviceState.Disconnecting // qmllint disable unresolved-type
 
-            Layout.fillWidth: true
-            Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
-            spacing: Tokens.spacing.small * root.scaleOffset
-
-            opacity: 0
-            scale: 0.7
-
-            Component.onCompleted: {
-                opacity = 1;
-                scale = 1;
-            }
-
-            Behavior on opacity {
-                Anim {
-                    type: Anim.DefaultEffects
-                }
-            }
-
-            Behavior on scale {
-                Anim {}
-            }
+            rowScale: root.scaleOffset
 
             MaterialIcon {
                 text: Icons.getBluetoothIcon(device.modelData.icon)
@@ -151,43 +127,14 @@ ColumnLayout {
                 }
             }
 
-            StyledRect {
+            ConnectButton {
                 id: connectBtn
 
-                implicitWidth: implicitHeight
-                implicitHeight: connectIcon.implicitHeight + Tokens.padding.extraSmall * root.scaleOffset
+                iconScale: root.fontScale
+                active: device.modelData.state === BluetoothDeviceState.Connected // qmllint disable unresolved-type
+                loading: device.loading
 
-                radius: Tokens.rounding.full * root.scaleOffset
-                color: Qt.alpha(Colours.palette.m3primary, device.modelData.state === BluetoothDeviceState.Connected ? 1 : 0) // qmllint disable unresolved-type
-
-                CircularIndicator {
-                    anchors.fill: parent
-                    running: device.loading
-                }
-
-                StateLayer {
-                    color: device.modelData.state === BluetoothDeviceState.Connected ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface // qmllint disable unresolved-type
-                    disabled: device.loading
-                    onClicked: device.modelData.connected = !device.modelData.connected
-                }
-
-                MaterialIcon {
-                    id: connectIcon
-
-                    anchors.centerIn: parent
-                    animate: true
-                    text: device.modelData.connected ? "link_off" : "link"
-                    color: device.modelData.state === BluetoothDeviceState.Connected ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface // qmllint disable unresolved-type
-                    fontStyle.pointSize: Tokens.font.icon.medium.pointSize * root.fontScale
-
-                    opacity: device.loading ? 0 : 1
-
-                    Behavior on opacity {
-                        Anim {
-                            type: Anim.DefaultEffects
-                        }
-                    }
-                }
+                onClicked: device.modelData.connected = !device.modelData.connected
             }
 
             Loader {

@@ -22,6 +22,8 @@ Item {
     property alias radius: imgWrapper.radius
     property alias imgHeight: imgWrapper.implicitHeight
     property bool fillLabel: true
+    property bool isFolder: false
+    property int folderCount: 0
 
     signal clicked
 
@@ -88,6 +90,37 @@ Item {
                 Behavior on opacity {
                     Anim {
                         type: Anim.SlowEffects
+                    }
+                }
+            }
+
+            StyledRect {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: Tokens.padding.small
+                radius: Tokens.rounding.full
+                color: Colours.palette.m3secondaryContainer
+                visible: root.isFolder
+                width: folderBadge.implicitWidth + Tokens.padding.medium * 2
+                height: folderBadge.implicitHeight + Tokens.padding.small * 2
+
+                RowLayout {
+                    id: folderBadge
+
+                    anchors.centerIn: parent
+                    spacing: Tokens.spacing.small
+
+                    MaterialIcon {
+                        text: "folder"
+                        color: Colours.palette.m3onSecondaryContainer
+                        fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
+                    }
+
+                    StyledText {
+                        text: root.folderCount > 0 ? String(root.folderCount) : ""
+                        visible: root.folderCount > 0
+                        color: Colours.palette.m3onSecondaryContainer
+                        font: Tokens.font.label.builders.small.weight(Font.Medium).build()
                     }
                 }
             }

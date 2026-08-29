@@ -92,7 +92,7 @@ PageBase {
     readonly property bool branchDataLoading: root.pendingBranch !== "" && UpdateChecker.checkingUpdates
 
     readonly property int updatesPageIdx: {
-        const idx = PageRegistry.pages.findIndex(page => page.icon === "update");
+        const idx = PageRegistry.indexForKey("updates");
         if (idx >= 0) return idx;
         return PageRegistry.pages.length > 0 ? Math.min(Math.max(nState.currentPageIdx, 0), PageRegistry.pages.length - 1) : 0;
     }

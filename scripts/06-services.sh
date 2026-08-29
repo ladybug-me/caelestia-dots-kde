@@ -3,9 +3,12 @@
 
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
+
 echo
 echo ""
-echo "  Step 6/11  Services & KWin"
+info "Configuring services and KWin"
 echo ""
 
 if systemctl --user is-enabled --quiet qs-kwin-bridge.service 2>/dev/null || \
@@ -38,8 +41,25 @@ fi
 #  ydotoold (on-screen keyboard key injection)
 # ydotoold needs access to /dev/uinput. Add a udev rule to allow the 'input'
 # group to access it, then add the user to that group.
+# Everything below needs root, and all of it is one-time setup. Check the
+# end state first so a routine update never asks for a password.
+system_setup_needed() {
+    systemctl is-enabled --quiet keyd.service 2>/dev/null && return 0
+    systemctl is-active --quiet keyd.service 2>/dev/null && return 0
+    [[ -f /etc/udev/rules.d/80-uinput.rules ]] || return 0
+    groups "$USER" | grep -q '\binput\b' || return 0
+    if [[ -e /dev/uinput ]]; then
+        [[ "$(stat -c '%a' /dev/uinput 2>/dev/null)" == *660 ]] || return 0
+        [[ "$(stat -c '%G' /dev/uinput 2>/dev/null)" == "input" ]] || return 0
+    fi
+    return 1
+}
+
+if ! system_setup_needed; then
+    skip "System-level configuration already in place."
+else
 echo "  Applying system-level configurations (requires root)..."
-sudo bash -s -- "$USER" << 'EOF'
+caelestia_sudo bash -s -- "$USER" << 'EOF'
 TARGET_USER="$1"
 
 if systemctl is-enabled --quiet keyd.service 2>/dev/null || \
@@ -54,14 +74,14 @@ if [[ ! -f /etc/udev/rules.d/80-uinput.rules ]]; then
     echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' > /etc/udev/rules.d/80-uinput.rules
     udevadm control --reload-rules 2>/dev/null || true
     udevadm trigger 2>/dev/null || true
-    echo "  [OK]  udev rule for uinput created."
+    ok "udev rule for uinput created."
 fi
 
 if ! groups "$TARGET_USER" | grep -q '\binput\b'; then
     usermod -aG input "$TARGET_USER"
-    echo "  [OK]  Added $TARGET_USER to 'input' group (takes effect on next login)."
+    ok "Added $TARGET_USER to 'input' group (takes effect on next login)."
 else
-    echo "  [OK]  $TARGET_USER already in 'input' group."
+    ok "$TARGET_USER already in 'input' group."
 fi
 
 if [[ -e /dev/uinput ]]; then
@@ -73,6 +93,7 @@ if [[ -e /dev/uinput ]]; then
     fi
 fi
 EOF
+fi
 
 # Deploy ydotoold-wrapper script to ~/.local/bin
 mkdir -p "$HOME/.local/bin"
@@ -88,7 +109,7 @@ exec /usr/bin/ydotoold \
     --socket-perm=0660
 WRAPPER
 chmod +x "$HOME/.local/bin/ydotoold-wrapper"
-echo "  [OK]  ydotoold-wrapper deployed to ~/.local/bin."
+ok "ydotoold-wrapper deployed to ~/.local/bin."
 
 # Deploy and enable ydotoold systemd user service
 mkdir -p "$HOME/.config/systemd/user"
@@ -110,7 +131,7 @@ UNIT
 systemctl --user daemon-reload
 systemctl --user enable ydotoold.service 2>/dev/null || true
 systemctl --user start ydotoold.service 2>/dev/null || \
-    echo "  [INFO] ydotoold will start on next login."
-echo "  [OK]  ydotoold service configured."
+    info "ydotoold will start on next login."
+ok "ydotoold service configured."
 
-echo "[OK]  Services configured."
+ok "Services configured."

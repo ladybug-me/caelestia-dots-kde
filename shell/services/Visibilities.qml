@@ -38,4 +38,16 @@ Singleton {
         const monitor = Hypr.monitors[KWinActiveWindowBridge.cursorOutputName()] || Hypr.focusedMonitor;
         return screens.get(monitor) || screens.values().next().value;
     }
+    /**
+     * Opens or closes the overview on every screen at once.
+     *
+     * With per-output desktops each screen shows its own workspace, so opening
+     * the overview on the focused screen alone reads as broken on a
+     * multi-monitor setup -- one screen goes to the overview and the other
+     * carries on as if nothing happened.
+     */
+    function setOverview(visible: bool): void {
+        for (const visibilities of screens.values())
+            visibilities.overview = visible;
+    }
 }

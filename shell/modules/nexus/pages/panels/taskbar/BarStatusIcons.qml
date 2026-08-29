@@ -87,14 +87,14 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             last: true
-            text: qsTr("Caps lock")
+            text: qsTr("Caps Lock")
             checked: Config.bar.status.showLockStatus
             onToggled: GlobalConfig.bar.status.showLockStatus = checked
         }
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: qsTr("Behavior")
         }
 
         ToggleRow {

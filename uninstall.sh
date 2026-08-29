@@ -10,29 +10,16 @@ set -uo pipefail
 
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# -- Colors -------------------------------------------------------------------
-RST="\033[0m"
-BOLD="\033[1m"
-PURPLE="\033[38;5;135m"
-BLUE="\033[38;5;75m"
-CYAN="\033[38;5;87m"
-GREEN="\033[38;5;84m"
-RED="\033[38;5;196m"
-YELLOW="\033[38;5;220m"
-DIM="\033[2m"
-
-die()  { echo -e "${RED}   [FATAL] $*${RST}" >&2; exit 1; }
-info() { echo -e "${BLUE}  [INFO]  $*${RST}"; }
-ok()   { echo -e "${GREEN}  [OK]    $*${RST}"; }
-warn() { echo -e "${YELLOW}   [WARN]  $*${RST}"; }
-skip() { echo -e "${DIM}  [SKIP]  $*${RST}"; }
+# Shared log helpers: canonical [INFO]/[OK]/[WARN]/[SKIP]/[ERR] markers,
+# matching the installer TUI and every step script.
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 
 section() {
     local title="$1"
     echo
-    echo -e "${CYAN}-------------------------------------------------------------${RST}"
-    echo -e "${CYAN}  $title${RST}"
-    echo -e "${CYAN}-------------------------------------------------------------${RST}"
+    echo "-------------------------------------------------------------"
+    echo "  $title"
+    echo "-------------------------------------------------------------"
 }
 
 # -- OS detection ---------------------------------------------------------------
@@ -54,7 +41,7 @@ else
 fi
 
 if [[ "$BASE_DISTRO" == "unknown" ]]; then
-    echo -e "${YELLOW}Could not detect distribution. Select base:${RST}"
+    echo "Could not detect distribution. Select base:"
     echo "  1) Arch-based   2) Fedora-based   3) Debian-based   4) Exit"
     read -r -p "Choice [1-4]: " _dc
     case "$_dc" in
@@ -65,7 +52,6 @@ if [[ "$BASE_DISTRO" == "unknown" ]]; then
     esac
 fi
 
-echo -e "${PURPLE}${BOLD}"
 cat << 'EOF'
   _    _       _           _        _ _ 
  | |  | |     (_)         | |      | | |
@@ -74,13 +60,12 @@ cat << 'EOF'
  | |__| | | | | | | | \__ \ || (_| | | |
   \____/|_| |_|_|_| |_|___/\__\__,_|_|_|
 EOF
-echo -e "${RST}"
-echo -e "${CYAN}+------------------------------------------------------------------+${RST}"
-echo -e "${CYAN}|${RST} ${BOLD}${PURPLE}CAELESTIA KDE UNINSTALLER${RST}                                       ${CYAN}|${RST}"
-echo -e "${CYAN}+------------------------------------------------------------------+${RST}"
+echo "+------------------------------------------------------------------+"
+echo "|                     CAELESTIA KDE UNINSTALLER                     |"
+echo "+------------------------------------------------------------------+"
 echo
-echo -e " ${YELLOW}This will remove Caelestia KDE shell files and configs.${RST}"
-echo -e " ${BLUE}Backups in $BUNDLE_DIR/backups/ can be restored during uninstall.${RST}"
+echo " This will remove Caelestia KDE shell files and configs."
+echo " Backups in $BUNDLE_DIR/backups/ can be restored during uninstall."
 echo
 
 # -- Sudo setup ----------------------------------------------------------------
@@ -93,15 +78,13 @@ trap 'kill $_SUDO_LOOP 2>/dev/null; true' EXIT
 
 # -- Confirmation ---------------------------------------------------------------
 echo
-echo -e "${RED}Are you sure you want to uninstall Caelestia KDE? [y/N]:${RST} "
-read -r _confirm
+read -r -p "Are you sure you want to uninstall Caelestia KDE? [y/N]: " _confirm
 [[ "${_confirm,,}" == "y" || "${_confirm,,}" == "yes" ]] || die "Uninstall cancelled."
 
 echo
-echo -e "${YELLOW}Remove installed packages as well? This will uninstall${RST}"
-echo -e "${YELLOW}tools like fish, foot, btop, fastfetch, and others.${RST}"
-echo -e "Remove packages? [y/N]: "
-read -r _remove_pkgs
+echo "Remove installed packages as well? This will uninstall"
+echo "tools like fish, foot, btop, fastfetch, and others."
+read -r -p "Remove packages? [y/N]: " _remove_pkgs
 REMOVE_PACKAGES=false
 [[ "${_remove_pkgs,,}" == "y" || "${_remove_pkgs,,}" == "yes" ]] && REMOVE_PACKAGES=true
 
@@ -117,7 +100,7 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
     mapfile -t backups < <(find "$BUNDLE_DIR/backups" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*_[0-9]*' | sort -r)
     if [[ ${#backups[@]} -gt 0 ]]; then
         echo
-        echo -e "${CYAN}Available backups to restore from:${RST}"
+        echo "Available backups to restore from:"
         for i in "${!backups[@]}"; do
             bdir="${backups[$i]}"
             bname="$(basename "$bdir")"
@@ -126,16 +109,16 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
             tag=""
             knsv_file="$(find "$bdir" -maxdepth 1 -type f -name '*.knsv' | head -n 1)"
             if [[ -n "$knsv_file" ]]; then
-                tag="${CYAN} [konsave]${RST}"
+                tag=" [konsave]"
             fi
 
             if [[ -f "$bdir/previous_shell.txt" ]]; then
                 prev_shell="$(cat "$bdir/previous_shell.txt")"
                 prev_shell_name="$(basename "$prev_shell")"
-                tag="${tag}${CYAN} [Shell: ${prev_shell_name}]${RST}"
+                tag="${tag} [Shell: ${prev_shell_name}]"
             fi
 
-            echo -e "  $((i+1))) $formatted_date$tag"
+            echo "  $((i+1))) $formatted_date$tag"
         done
         echo "  0) None (Do not restore from backup)"
 
@@ -155,17 +138,17 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
                 if [[ -f "$SELECTED_BACKUP/.config/quickshell/caelestia/shell.qml" ]]; then
                     echo
                     warn "The selected backup contains Caelestia configurations."
-                    echo -e "${YELLOW}   Restoring this backup will NOT revert to a clean KDE desktop!${RST}"
-                    echo -e "${YELLOW}    Instead, it will restore a previous Caelestia state.${RST}"
+                    echo "   Restoring this backup will NOT revert to a clean KDE desktop!"
+                    echo "    Instead, it will restore a previous Caelestia state."
                     read -r -p "Are you sure you want to restore this backup? [y/N]: " _cwarn
                     if [[ "${_cwarn,,}" != "y" && "${_cwarn,,}" != "yes" ]]; then
-                        echo -e "${DIM}  Backup selection cancelled. Please select again.${RST}"
+                        echo "  Backup selection cancelled. Please select again."
                         continue
                     fi
                 fi
                 break
             else
-                echo -e "${RED}Invalid selection.${RST}"
+                echo "Invalid selection."
             fi
         done
     fi
@@ -740,8 +723,7 @@ done
 # Installer cache
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"
 if [[ -d "$CACHE_DIR" ]]; then
-    echo -e "${YELLOW}Remove installer cache at $CACHE_DIR? [y/N]:${RST} "
-    read -r _cache_confirm
+    read -r -p "Remove installer cache at $CACHE_DIR? [y/N]: " _cache_confirm
     if [[ "${_cache_confirm,,}" == "y" || "${_cache_confirm,,}" == "yes" ]]; then
         rm -rf "$CACHE_DIR"
         ok "Removed installer cache"
@@ -772,11 +754,11 @@ ok "KDE reloaded"
 
 section "Uninstall Complete"
 echo
-echo -e "${GREEN}  Caelestia KDE has been uninstalled.${RST}"
+ok "Caelestia KDE has been uninstalled."
 echo
-echo -e "  Backups of your original configs are in:  ${BOLD}$BUNDLE_DIR/backups/${RST}"
+echo "  Backups of your original configs are in:  $BUNDLE_DIR/backups/"
 echo
-echo -e "${YELLOW}  Please log out and back in to fully apply all changes.${RST}"
+warn "Please log out and back in to fully apply all changes."
 echo
 
 # Prompt user for immediate logout (same behavior as setup finalizer)

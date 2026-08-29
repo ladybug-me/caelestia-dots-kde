@@ -32,6 +32,7 @@ Item {
         active: root.shouldBeActive || root.visible
         sourceComponent: Component {
             Content {
+                screen: root.screen
                 visibilities: root.visibilities
                 panels: root.panels
                 animConfig: root.animConfig

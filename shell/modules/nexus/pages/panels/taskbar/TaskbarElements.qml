@@ -60,7 +60,7 @@ PageBase {
         NavRow {
             icon: "dock"
             label: qsTr("Dock")
-            status: Strings.localizeEnglishSpelling(qsTr("Positioning, recolouring"))
+            status: qsTr("Positioning, recoloring")
             onClicked: root.nState.openSubPage(12)
         }
 

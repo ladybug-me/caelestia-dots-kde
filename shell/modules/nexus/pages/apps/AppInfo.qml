@@ -81,8 +81,8 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: Strings.localizeEnglishSpelling(qsTr("Favourite"))
-            subtext: root.favouriteByRegex ? Strings.localizeEnglishSpelling(qsTr("Matched by a regex in favouriteApps — edit the config file to change")) : qsTr("Pin to the top of the launcher")
+            text: qsTr("Favorite")
+            subtext: root.favouriteByRegex ? qsTr("Matched by a regex in favouriteApps - edit the config file to change") : qsTr("Pin to the top of the launcher")
             enabled: !root.favouriteByRegex
             checked: root.app && Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.app.id)
             onToggled: {
@@ -94,7 +94,7 @@ PageBase {
         ToggleRow {
             last: true
             text: qsTr("Hidden")
-            subtext: root.hiddenByRegex ? qsTr("Matched by a regex in hiddenApps — edit the config file to change") : qsTr("Hide from the launcher")
+            subtext: root.hiddenByRegex ? qsTr("Matched by a regex in hiddenApps - edit the config file to change") : qsTr("Hide from the launcher")
             enabled: !root.hiddenByRegex
             checked: root.app && Strings.testRegexList(GlobalConfig.launcher.hiddenApps, root.app.id)
             onToggled: {

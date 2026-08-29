@@ -6,6 +6,8 @@
 #include <fstream>
 #include <csignal>
 #include <cstdlib>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -37,27 +39,59 @@ void check_signals() {
     }
 }
 
+// Hands the terminal to an interactive external script (update.sh or
+// uninstall.sh) and then exits. Those scripts drive the terminal themselves
+// (prompts, sudo, and a background shell restart), so re-entering the TUI's
+// raw/alternate screen afterward corrupts the terminal and leaves the
+// installer stuck. The installer is the single entry point: run it again for
+// the next action.
+void run_external(const std::string& script_path) {
+    Term::restore();
+    pid_t child = fork();
+    if (child == 0) {
+        execlp("bash", "bash", script_path.c_str(), static_cast<char*>(nullptr));
+        _exit(127);
+    }
+    int status = 1;
+    if (child > 0)
+        waitpid(child, &status, 0);
+    int rc = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+    std::cout << "\n"
+              << (rc == 0 ? "Finished." : "Finished with errors.")
+              << std::endl;
+    exit(rc == 0 ? 0 : 1);
+}
+
 int main(int argc, char** argv) {
-    // Detect bundle dir from arg or exe path
+    // Detect bundle dir from the executable. A non-action first argument can
+    // override it, while "--update"/"--uninstall" preselect the action.
+    char buf[1024];
+    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf)-1);
+    if (len != -1) {
+        buf[len] = '\0';
+        string path(buf);
+        size_t pos = path.find_last_of('/');
+        if (pos != string::npos) {
+            g_bundle_dir = path.substr(0, pos);
+        }
+    }
+
+    std::string preset_action;
     if (argc > 1) {
-        g_bundle_dir = argv[1];
-    } else {
-        char buf[1024];
-        ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf)-1);
-        if (len != -1) {
-            buf[len] = '\0';
-            string path(buf);
-            size_t pos = path.find_last_of('/');
-            if (pos != string::npos) {
-                g_bundle_dir = path.substr(0, pos);
-            }
+        std::string first = argv[1];
+        if (first == "--update") {
+            preset_action = "update";
+        } else if (first == "--uninstall") {
+            preset_action = "uninstall";
+        } else {
+            g_bundle_dir = first;
         }
     }
 
     // Early diagnostic: print bundle dir to stderr so setup.sh can capture it
     std::cerr << "[installer] bundle dir: " << g_bundle_dir << std::endl;
 
-    // Hide cursor immediately to prevent flashing in tmux
+    // Hide cursor immediately so the TUI never flashes it
     std::cout << "\x1b[?25l" << std::flush;
     Term::init();
 
@@ -82,52 +116,170 @@ int main(int argc, char** argv) {
     signal(SIGINT, handle_sigint);
     signal(SIGTERM, handle_sigterm);
 
-    // Phase 1: Splash
-    std::cerr << "[installer] phase 1: splash_screen" << std::endl;
-    UI::splash_screen();
-    check_signals();
-
-    // Phase 2: Sudo Auth
-    std::cerr << "[installer] phase 2: sudo_prompt" << std::endl;
-    if (!UI::sudo_prompt()) {
-        std::cerr << "[installer] user cancelled at sudo prompt" << std::endl;
-        Term::restore();
-        return 0;
-    }
-    check_signals();
-
-    // Phase 3 & 4: Dynamic Menu
-    if (!g_menu.is_null() && g_menu.contains("menu")) {
-        std::cerr << "[installer] phase 3: render_menu" << std::endl;
-        if (!UI::render_menu(g_menu["menu"], "CONFIGURATION MENU")) {
-            std::cerr << "[installer] user backed out of menu" << std::endl;
-            Term::restore();
-            return 0; // User backed out or exited
-        }
-        
-        // Export all answers as environment variables for the bash scripts
-        for (const auto& pair : g_answers) {
-            setenv(pair.first.c_str(), pair.second.c_str(), 1);
-        }
-    } else {
-        std::cerr << "[installer] phase 3: skipped (no menu loaded)" << std::endl;
-    }
-
-    // Fallback distro logic if somehow not set
+    // Distro detection happens in setup.sh and arrives via BASE_DISTRO.
     const char* env_distro = getenv("BASE_DISTRO");
     if (env_distro && string(env_distro) != "") {
         g_base_distro = env_distro;
     }
 
+    // Phase 1: Welcome (splash merged into the frame)
+    if (preset_action.empty()) {
+        std::cerr << "[installer] phase 1: welcome_screen" << std::endl;
+        UI::welcome_screen();
+        check_signals();
+
+        // Esc on the welcome screen sets g_quit. Honor it with a clean exit
+        // (same terminal restore the other cancel paths use).
+        if (g_quit) {
+            std::cerr << "[installer] user quit at welcome screen" << std::endl;
+            Term::restore();
+            std::cout << "\n\n\nExiting installer.\n";
+            return 0;
+        }
+    }
+
+    // Phase 1.5: Action select. Update and uninstall hand off to their
+    // scripts on the real terminal; install continues into the wizard.
+    std::string action = preset_action;
+    while (true) {
+        if (action.empty()) {
+            std::cerr << "[installer] phase 1.5: action_select" << std::endl;
+            action = UI::action_select();
+        }
+        if (action == "exit") {
+            Term::restore();
+            return 0;
+        }
+        if (action == "update" || action == "uninstall") {
+            std::cerr << "[installer] action: " << action << std::endl;
+            std::string script = g_bundle_dir + (action == "update" ? "/update.sh" : "/uninstall.sh");
+            run_external(script); // exits; does not return
+        }
+        break; // install
+    }
+
+    // Phase 2: Sudo Auth
+    std::cerr << "[installer] phase 2: sudo_prompt" << std::endl;
+    if (!UI::sudo_prompt()) {
+        std::cerr << "[installer] user canceled at sudo prompt" << std::endl;
+        Term::restore();
+        return 0;
+    }
     check_signals();
-    // Phase 5: Execute
-    std::cerr << "[installer] phase 5: execute (" << Runner::steps.size() << " steps)" << std::endl;
+
+    // Phase 3: Profile -> Configure -> Review (review happens before any
+    // step runs; Back from the menu returns to the profile picker).
+    if (!g_menu.is_null() && g_menu.contains("menu")) {
+        std::cerr << "[installer] phase 3: profile + configure + review" << std::endl;
+        UI::init_menu_defaults(g_menu["menu"]);
+
+        bool has_profiles = g_menu.contains("profiles") && g_menu["profiles"].is_array() &&
+                            !g_menu["profiles"].empty();
+        std::string profile_id = "custom";
+        if (has_profiles) {
+            profile_id = UI::profile_select();
+            if (profile_id.empty()) {
+                std::cerr << "[installer] user canceled at profile select" << std::endl;
+                Term::restore();
+                return 0;
+            }
+            UI::apply_profile(profile_id);
+        }
+        std::string profile_title = UI::profile_title(profile_id);
+
+        bool begin = false;
+        while (!begin && !g_quit) {
+            if (!UI::render_menu(g_menu["menu"], "CONFIGURATION", profile_title)) {
+                if (has_profiles) {
+                    profile_id = UI::profile_select();
+                    if (profile_id.empty()) {
+                        std::cerr << "[installer] user canceled at profile select" << std::endl;
+                        Term::restore();
+                        return 0;
+                    }
+                    UI::apply_profile(profile_id);
+                    profile_title = UI::profile_title(profile_id);
+                    continue;
+                }
+                std::cerr << "[installer] user backed out of menu" << std::endl;
+                Term::restore();
+                return 0;
+            }
+            if (UI::review_screen()) {
+                begin = true;
+            }
+        }
+        if (g_quit) {
+            Term::restore();
+            return 0;
+        }
+
+        // Export all answers as environment variables for the bash scripts
+        for (const auto& pair : g_answers) {
+            setenv(pair.first.c_str(), pair.second.c_str(), 1);
+        }
+
+        // Persist the install-time menu choices so update.sh can restore them.
+        // A fresh update process runs 03-deploy-configs.sh / 08-build-shell.sh /
+        // 09-system-tweaks.sh with none of these env vars set, so every script
+        // gate (${DEFAULT_SHELL:-fish}, ${INSTALL_FISH:-true}, ...) falls back
+        // to its hardcoded default and silently reverts the user's explicit
+        // choice (forces the login shell back to fish, re-enables the
+        // lockscreen plugin, overwrites ~/.config/fish).
+        if (const char* home = getenv("HOME")) {
+            string cfg_dir = string(home) + "/.config/caelestia-kde";
+            std::string safe_dir = cfg_dir;
+            for (size_t pos = 0; (pos = safe_dir.find('\'', pos)) != std::string::npos; pos += 4)
+                safe_dir.replace(pos, 1, "'\\\''");
+            system(("mkdir -p '" + safe_dir + "'").c_str());
+            ofstream env_file(cfg_dir + "/install.env", ios::out | ios::trunc);
+            if (env_file.is_open()) {
+                for (const auto& pair : g_answers) {
+                    // Only persist entries that are valid shell env names.
+                    if (pair.first.empty())
+                        continue;
+                    bool valid = (pair.first[0] == '_') ||
+                                 (pair.first[0] >= 'a' && pair.first[0] <= 'z') ||
+                                 (pair.first[0] >= 'A' && pair.first[0] <= 'Z');
+                    if (!valid)
+                        continue;
+                    for (char c : pair.first) {
+                        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                              (c >= '0' && c <= '9') || c == '_')) {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    if (!valid)
+                        continue;
+
+                    // Single-quote the value so the file stays parseable even
+                    // if a value ever contains shell metacharacters.
+                    env_file << pair.first << "='";
+                    for (char c : pair.second) {
+                        if (c == '\'')
+                            env_file << "'\\''";
+                        else
+                            env_file << c;
+                    }
+                    env_file << "'\n";
+                }
+                env_file.close();
+            }
+        }
+    } else {
+        std::cerr << "[installer] phase 3: skipped (no menu loaded)" << std::endl;
+    }
+
+    check_signals();
+    // Phase 4: Execute
+    std::cerr << "[installer] phase 4: execute (" << Runner::steps.size() << " steps)" << std::endl;
     Runner::execute();
 
     check_signals();
-    // Phase 6: Finalize
-    std::cerr << "[installer] phase 6: summary_screen" << std::endl;
-    UI::summary_screen();
+    // Phase 5: Complete
+    std::cerr << "[installer] phase 5: complete_screen" << std::endl;
+    UI::complete_screen();
     Term::restore();
 
     if (g_answers["REMOVE_CACHE"] == "true") {

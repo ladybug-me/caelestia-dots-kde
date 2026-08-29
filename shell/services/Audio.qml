@@ -19,6 +19,14 @@ Singleton {
     property list<PwNode> sources: []
     property list<PwNode> streams: []
 
+    // One representative stream per application, so no app ever appears twice
+    // in the "Now playing" lists even when it opens multiple PipeWire streams.
+    property list<PwNode> appStreams: []
+
+    // The shell's own audio is already represented by the system volume, so it
+    // must never show up as a separate app in the "Now playing" lists.
+    readonly property string selfAppName: "caelestia-shell"
+
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property PwNode source: Pipewire.defaultAudioSource
 
@@ -109,6 +117,57 @@ Singleton {
         return stream.properties["application.name"] || stream.description || stream.name || qsTr("Unknown Application");
     }
 
+    // App-level controls operate on every stream sharing the same app name, so a
+    // single "caelestia-shell" row adjusts all of its streams together.
+    function getAppVolume(stream: PwNode): real {
+        if (!stream)
+            return 0;
+
+        const name = getStreamName(stream);
+        let volume = 0;
+        for (const s of root.streams) {
+            if (getStreamName(s) === name && s?.audio)
+                volume = Math.max(volume, s.audio.volume ?? 0);
+        }
+        return volume;
+    }
+
+    function getAppMuted(stream: PwNode): bool {
+        if (!stream)
+            return true;
+
+        const name = getStreamName(stream);
+        let hasStream = false;
+        let allMuted = true;
+        for (const s of root.streams) {
+            if (getStreamName(s) !== name || !s?.audio)
+                continue;
+            hasStream = true;
+            if (!s.audio.muted)
+                allMuted = false;
+        }
+        return hasStream && allMuted;
+    }
+
+    function setAppVolume(stream: PwNode, newVolume: real): void {
+        const name = getStreamName(stream);
+        const clamped = Math.max(0, Math.min(GlobalConfig.services.maxVolume, newVolume));
+        for (const s of root.streams) {
+            if (getStreamName(s) === name && s?.ready && s?.audio) {
+                s.audio.muted = false;
+                s.audio.volume = clamped;
+            }
+        }
+    }
+
+    function setAppMuted(stream: PwNode, muted: bool): void {
+        const name = getStreamName(stream);
+        for (const s of root.streams) {
+            if (getStreamName(s) === name && s?.ready && s?.audio)
+                s.audio.muted = muted;
+        }
+    }
+
     Component {
         id: sfxComponent
 
@@ -171,6 +230,8 @@ Singleton {
         const newSinks = [];
         const newSources = [];
         const newStreams = [];
+        const newAppStreams = [];
+        const seenApps = new Set();
 
         for (const node of Pipewire.nodes.values) {
             if (!node.isStream) {
@@ -180,9 +241,20 @@ Singleton {
                     newSources.push(node);
             } else if (node.audio) {
                 newStreams.push(node);
+
+                const name = getStreamName(node);
+                if (name === root.selfAppName)
+                    continue;
+                if (!seenApps.has(name)) {
+                    seenApps.add(name);
+                    newAppStreams.push(node);
+                }
             }
         }
 
+        // Assign appStreams before streams so listeners of streamsChanged already
+        // observe the deduplicated app list.
+        root.appStreams = newAppStreams;
         root.sinks = newSinks;
         root.sources = newSources;
         root.streams = newStreams;

@@ -4,14 +4,13 @@
 
 # C A E L E S T I A
 
-### A KDE Plasma port of the caelestia shell
+<h3>A KDE Plasma port of the caelestia shell</h3>
 
 [![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793d1?logo=arch-linux&logoColor=white&style=flat-square)](https://archlinux.org)
 [![Fedora](https://img.shields.io/badge/Fedora-51A2DA?logo=fedora&logoColor=white&style=flat-square)](https://fedoraproject.org)
 [![Debian](https://img.shields.io/badge/Debian-A81D33?logo=debian&logoColor=white&style=flat-square)](https://debian.org)
 [![KDE Plasma](https://img.shields.io/badge/Plasma_6-1D99F3?logo=kde&logoColor=white&style=flat-square)](https://kde.org/plasma-desktop)
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-86dbce?style=flat-square)](LICENSE)
-
 
 </div>
 
@@ -31,6 +30,7 @@ curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-dots-kde/main/
 
 ### Updating
 
+- **Installer TUI:** run the installer and choose *Update*
 - **GUI:** Shell Settings -> Updates -> select branch -> Install Updates
 - **CLI:** `bash update.sh` and choose `main` (stable) or `dev` (bleeding edge)
 
@@ -38,16 +38,19 @@ Shell settings are preserved across updates.
 
 ### Uninstalling
 
+Choose *Uninstall* from the installer TUI, or run:
+
 ```bash
 bash ./uninstall.sh
 ```
 
 ## Screenshots
 
+<!-- markdownlint-disable-next-line MD034 -- a bare URL is what GitHub turns into an inline video player -->
 https://github.com/user-attachments/assets/4c3e20c9-5050-4cc8-8e9c-32fd0594ac8b
 
 | Shell | Theming |
-|:---:|:---:|
+| :---: | :---: |
 | <img width="460" alt="shell" src="assets/shell-screenshot.png" /> | <img width="460" alt="theming" src="assets/theming-screenshot.png" /> |
 
 ## Keybinds
@@ -66,16 +69,6 @@ https://github.com/user-attachments/assets/4c3e20c9-5050-4cc8-8e9c-32fd0594ac8b
 | `Super + Ctrl + S` | Screen recorder |
 | `Super + Shift + C` | Color picker |
 | `Super + Shift + V` | Emoji selector |
-
-## Tech Stack
-
-| Component | Role |
-| --- | --- |
-| [KDE Plasma 6](https://kde.org/plasma-desktop) | Desktop environment |
-| [Quickshell](https://quickshell.outfoxxed.me/) | Widget system |
-| [Darkly](https://github.com/vinceliuice/Darkly) | Plasma style & window decoration |
-| [Kvantum](https://github.com/tsujan/Kvantum) | Qt application theming |
-| [Krohnkite](https://github.com/esjeon/krohnkite) | Optional tiling |
 
 ## Customization
 
@@ -152,6 +145,16 @@ For detailed debug logs, enable Debug Mode in Nexus -> About -> Advanced, then r
 </tr></table>
 
 <!-- contributors-end -->
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=ladybug-me%2Fcaelestia-dots-kde&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=ladybug-me/caelestia-dots-kde&type=date&theme=dark&legend=top-left&sealed_token=NFI4jXcoZAI26MlGX2jEasHMRd1PIS09clm_CVDS7SFGajH3wiHlN72P8WzuOQT2k2F71ZOCGl_xoy8eVpWlWtA0ACY3koK0NIS1-vLecN0vbvYgrZDN9kp8sQn7NT2xPNeilgrmzYWTzgdQYgskaDMGophAKmy6r6LUfQj8iFjy-Gunuqnte3EY14fX" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=ladybug-me/caelestia-dots-kde&type=date&legend=top-left&sealed_token=NFI4jXcoZAI26MlGX2jEasHMRd1PIS09clm_CVDS7SFGajH3wiHlN72P8WzuOQT2k2F71ZOCGl_xoy8eVpWlWtA0ACY3koK0NIS1-vLecN0vbvYgrZDN9kp8sQn7NT2xPNeilgrmzYWTzgdQYgskaDMGophAKmy6r6LUfQj8iFjy-Gunuqnte3EY14fX" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=ladybug-me/caelestia-dots-kde&type=date&legend=top-left&sealed_token=NFI4jXcoZAI26MlGX2jEasHMRd1PIS09clm_CVDS7SFGajH3wiHlN72P8WzuOQT2k2F71ZOCGl_xoy8eVpWlWtA0ACY3koK0NIS1-vLecN0vbvYgrZDN9kp8sQn7NT2xPNeilgrmzYWTzgdQYgskaDMGophAKmy6r6LUfQj8iFjy-Gunuqnte3EY14fX" />
+ </picture>
+</a>
 
 ## Credits
 

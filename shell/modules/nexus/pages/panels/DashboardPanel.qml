@@ -248,8 +248,8 @@ PageBase {
 
         ToggleRow {
             Layout.fillWidth: true
-            text: Strings.localizeEnglishSpelling(qsTr("Recolour media GIF"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Apply system theme colours to the media GIF"))
+            text: qsTr("Recolor media GIF")
+            subtext: qsTr("Apply system theme colors to the media GIF")
             checked: Config.dashboard.colorizeMediaGif
             onToggled: GlobalConfig.dashboard.colorizeMediaGif = checked
         }
@@ -264,8 +264,8 @@ PageBase {
 
         ToggleRow {
             Layout.fillWidth: true
-            text: Strings.localizeEnglishSpelling(qsTr("Randomize shape colours"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Randomly shift shape colours while morphing"))
+            text: qsTr("Randomize shape colors")
+            subtext: qsTr("Randomly shift shape colors while morphing")
             checked: Config.dashboard.randomizeMediaShapeColors
             onToggled: GlobalConfig.dashboard.randomizeMediaShapeColors = checked
         }
@@ -333,7 +333,7 @@ PageBase {
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: qsTr("Behavior")
         }
 
         StepperRow {

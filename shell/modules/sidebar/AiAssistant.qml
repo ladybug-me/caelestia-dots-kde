@@ -142,7 +142,7 @@ Item {
                 chatHistory.setProperty(ei, "isFinished", true);
                 if (!em.text)
                     chatHistory.setProperty(ei, "text",
-                        "⚠️ Network error — check your connection and try again.");
+                        "⚠️ Network error - check your connection and try again.");
                 break;
             }
         }
@@ -786,7 +786,7 @@ Item {
         onTriggered: {
             root.rateLimitSecondsLeft--;
             if (root.rateLimitSecondsLeft > 0) {
-                root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                root.currentActionText = qsTr("Rate limited - retrying in %1s…").arg(root.rateLimitSecondsLeft);
                 return;
             }
             stop();
@@ -906,7 +906,7 @@ Item {
         } else if (type === "screenshot_encode") {
             var b64 = stdout.replace(/\n/g, "").trim();
             accumulatedToolImage = b64;
-            accumulatedToolResults += "Result of take_screenshot:\nScreenshot taken. Analyse the attached image.\n\n";
+            accumulatedToolResults += "Result of take_screenshot:\nScreenshot taken. Analyze the attached image.\n\n";
             runningToolsCount--;
             checkToolsFinished();
         } else if (type.startsWith("exec_")) {
@@ -2138,7 +2138,7 @@ Item {
                             const waitMs = root.rateLimitDelayMs(xhr);
                             root.rateLimitRetries++;
                             root.rateLimitSecondsLeft = Math.max(1, Math.round(waitMs / 1000));
-                            root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                            root.currentActionText = qsTr("Rate limited - retrying in %1s…").arg(root.rateLimitSecondsLeft);
                             root.isTyping = true;
                             root.isThinking = true;
                             rateLimitRetryTimer.forChat = root.currentChatId;
@@ -2150,12 +2150,12 @@ Item {
 
                         var hint = "";
                         if (xhr.status === 429 && perDayQuota)
-                            hint = " This model's daily free quota is used up — it resets tomorrow. Pick another model, or use Claude Code, which is not on this quota.";
+                            hint = " This model's daily free quota is used up - it resets tomorrow. Pick another model, or use Claude Code, which is not on this quota.";
                         else if (xhr.status === 429)
-                            hint = " Rate limit reached and still limited after " + root.maxRateLimitRetries + " retries — wait a minute and try again.";
+                            hint = " Rate limit reached and still limited after " + root.maxRateLimitRetries + " retries - wait a minute and try again.";
                         else if (root.needsApiKey && (xhr.status === 401 || xhr.status === 403))
                             hint = " Check your API key.";
-                        var errMsg = (xhr.status === 0) ? "Generation cancelled" : (providerName + " request failed (status " + xhr.status + ")." + hint + apiDetail);
+                        var errMsg = (xhr.status === 0) ? "Generation canceled" : (providerName + " request failed (status " + xhr.status + ")." + hint + apiDetail);
                         var currentText = chatHistory.get(chatHistory.count - 1).text;
                         if (currentText.trim() === "") {
                             chatHistory.setProperty(chatHistory.count - 1, "text", errMsg);

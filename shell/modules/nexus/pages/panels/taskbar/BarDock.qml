@@ -67,8 +67,8 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             last: true
-            text: Strings.localizeEnglishSpelling(qsTr("Recolour icons"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Recolour application icons using the system theme"))
+            text: qsTr("Recolor icons")
+            subtext: qsTr("Recolor application icons using the system theme")
             checked: Config.bar.dock.recolourIcons
             onToggled: GlobalConfig.bar.dock.recolourIcons = checked
         }

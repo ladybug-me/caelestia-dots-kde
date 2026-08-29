@@ -3,8 +3,8 @@
 
 set -uo pipefail
 
-log()  { echo -e "\033[0;36m[INFO]\033[0m $*"; }
-err()  { echo -e "\033[0;31m[ERR]\033[0m  $*"; }
+log()  { printf '  [INFO]  %s\n' "$*"; }
+err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
 log "Installing Fedora packages..."
 
@@ -18,7 +18,7 @@ PACKAGE_GROUP="${PACKAGE_GROUP:-all}"
 CORE_PACKAGES=(
     cmake ninja-build ccache
     wl-clipboard cliphist wl-clip-persist inotify-tools wireplumber trash-cli jq aubio lm_sensors lm_sensors-devel
-    pipewire-devel glibc qt6-qtdeclarative qt6-qtdeclarative-devel qt6-qtwayland qt6-qtwayland-devel kf6-kglobalaccel-devel qt6-qtbase-private-devel qt6-qtsvg qt6-qtsvg-devel qt6-qtshadertools-devel libgcc qt6-qtbase libqalculate libqalculate-devel aubio-devel kf6-kpipewire kf6-kpipewire-devel kf6-kwindowsystem-devel kf6-networkmanager-qt-devel libsecret vulkan-headers
+    pipewire-devel glibc qt6-qtdeclarative qt6-qtdeclarative-devel qt6-qtwayland qt6-qtwayland-devel kf6-kglobalaccel-devel qt6-qtbase-private-devel qt6-qtsvg qt6-qtsvg-devel qt6-qtshadertools-devel libgcc qt6-qtbase libqalculate libqalculate-devel aubio-devel kf6-kpipewire kf6-kpipewire-devel kf6-kwindowsystem-devel kf6-networkmanager-qt-devel libsecret vulkan-headers ksshaskpass
 )
 
 SHELL_PACKAGES=(

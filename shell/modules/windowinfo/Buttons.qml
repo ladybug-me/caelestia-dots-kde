@@ -50,7 +50,7 @@ ColumnLayout {
                             KWinWorkspaceState.switchTo(wsId);
                         }
                     }
-                    Visibilities.getForActive().overview = false;
+                    Visibilities.setOverview(false);
                 }
                 color: isCurrent ? Colours.tPalette.m3surfaceContainerHighest : Colours.palette.m3tertiaryContainer
                 onColor: isCurrent ? Colours.palette.m3onSurface : Colours.palette.m3onTertiaryContainer
@@ -78,7 +78,7 @@ ColumnLayout {
                 } else {
                     console.log("KWinActiveWindowBridge is undefined");
                 }
-                Visibilities.getForActive().overview = false;
+                Visibilities.setOverview(false);
             }
         }
         Loader {
@@ -96,7 +96,7 @@ ColumnLayout {
                             KWinActiveWindowBridge.minimizeWindow(root.client?.address);
                         }
                     }
-                    Visibilities.getForActive().overview = false;
+                    Visibilities.setOverview(false);
                 }
             }
             Layout.fillWidth: active
@@ -113,7 +113,7 @@ ColumnLayout {
                     console.log("Calling KWinActiveWindowBridge.closeWindow");
                     KWinActiveWindowBridge.closeWindow(root.client?.address);
                 }
-                Visibilities.getForActive().overview = false;
+                Visibilities.setOverview(false);
             }
         }
         Layout.fillWidth: true
@@ -140,8 +140,8 @@ ColumnLayout {
             onClicked: {
                 parent.clicked()
                 root.closeRequested()
-                const v = typeof Visibilities !== "undefined" ? Visibilities.getForActive() : null;
-                if (v) v.overview = false;
+                if (typeof Visibilities !== "undefined")
+                    Visibilities.setOverview(false);
             }
         }
         StyledText {

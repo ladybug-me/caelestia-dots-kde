@@ -22,12 +22,10 @@ StyledRect {
         if (!model) return null;
         return Players.list.find(p => p.identity.toLowerCase().includes(model.appClass.toLowerCase()) || (model.id && p.identity.toLowerCase().includes(model.id.toLowerCase().replace(".desktop", "")))) || null;
     }
-    readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
-    readonly property real elementOffset: GlobalConfig.bar.perElementPreviewScale ? (!isNaN(GlobalConfig.bar.previewScales.dock) ? GlobalConfig.bar.previewScales.dock : 0.0) : 0.0
-    readonly property real barScaleOffset: GlobalConfig.bar.previewScaleWithBar ? (!isNaN(GlobalConfig.bar.scale) ? GlobalConfig.bar.scale : 1.0) : 1.0
-    readonly property real scaleOffset: Math.max(0.1, (masterScale + elementOffset) * barScaleOffset)
-    readonly property real elementFontOffset: GlobalConfig.bar.perElementFontScale ? (!isNaN(GlobalConfig.bar.previewFontScales.dock) ? GlobalConfig.bar.previewFontScales.dock : 0.0) : 0.0
-    readonly property real fontScale: Math.max(0.1, scaleOffset + (!isNaN(GlobalConfig.bar.fontScaleOffset) ? GlobalConfig.bar.fontScaleOffset : 0.0) + elementFontOffset)
+    // Injected by Content.qml's Popout.
+    property real scaleOffset: 1.0
+    property real fontScale: 1.0
+    property bool _isSidebarOpen: false
     readonly property int previewWidth: Math.round(Tokens.sizes.bar.windowPreviewSize * scaleOffset)
     readonly property int cardWidth: (root.model && root.model.toplevels && root.model.toplevels.length > 1) ? Math.round(previewWidth * 0.55) : previewWidth
     // root.model is a snapshot taken when the popout opened, not a live binding, so

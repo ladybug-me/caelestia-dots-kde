@@ -201,4 +201,11 @@ QtObject {
     }
 
     readonly property list<var> pages: PageDictionary.pages
+
+    function indexForKey(key: string): int {
+        for (let i = 0; i < pages.length; i++) {
+            if (pages[i].key === key) return i;
+        }
+        return -1;
+    }
 }

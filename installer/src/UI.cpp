@@ -5,14 +5,19 @@
 #include "Input.hpp"
 #include "Draw.hpp"
 #include "Runner.hpp"
-#include <iostream>
-#include <fstream>
-#include <thread>
 #include <chrono>
-#include <unordered_map>
-#include <vector>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <fcntl.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <sys/wait.h>
+#include <thread>
+#include <unordered_map>
 #include <unistd.h>
+#include <vector>
 
 using namespace std;
 
@@ -59,23 +64,67 @@ void setup_sudo_environment(const string& pw) {
     system("qdbus6 org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.Inhibit \"Caelestia Installer\" \"Installation in progress\" > /tmp/caelestia_kde_inhibit.cookie 2>/dev/null");
 }
 
+// Human-readable distro label shown on the welcome screen.
+string distro_label(const string& id) {
+    if (id == "arch") return "Arch-based Linux";
+    if (id == "fedora") return "Fedora";
+    if (id == "debian") return "Debian-based Linux";
+    return id.empty() ? "unknown" : id;
+}
+
+const char* navigate_hint() {
+    return "Up/Down navigate  Enter select  Left/Esc back";
+}
+
+// True when the given step name appears in the failed-steps file.
+bool check_failed(const string& file, const string& target) {
+    ifstream f(file);
+    string line;
+    while (getline(f, line)) {
+        if (line.find(target) != string::npos) return true;
+    }
+    return false;
+}
+
+// True when the caelestia command (the shell wrapper installed by the
+// installer) exists. Update and Uninstall are only offered once it does.
+bool is_caelestia_installed() {
+    auto executable = [](const string& p) {
+        return access(p.c_str(), X_OK) == 0;
+    };
+
+    const char* home = getenv("HOME");
+    if (home && executable(string(home) + "/.local/bin/caelestia"))
+        return true;
+    if (executable("/usr/local/bin/caelestia"))
+        return true;
+    if (executable("/usr/bin/caelestia"))
+        return true;
+
+    // Fall back to a PATH search for installs in other prefixes.
+    const char* path = getenv("PATH");
+    if (path) {
+        string paths(path);
+        size_t start = 0;
+        while (start <= paths.size()) {
+            size_t end = paths.find(':', start);
+            if (end == string::npos)
+                end = paths.size();
+            string dir = paths.substr(start, end - start);
+            if (!dir.empty() && executable(dir + "/caelestia"))
+                return true;
+            start = end + 1;
+        }
+    }
+    return false;
+}
+
 } // anonymous namespace
 
 namespace UI {
-    bool loading_text(int x, int y, const string& text, const string& color_name) {
-        cout << Draw::to(y, x) << Draw::color(color_name) << text << "..." << flush;
-        // Brief check for key press to allow skipping
-        for (int j = 0; j < 10; ++j) {
-            if (!Input::get().empty()) return true;
-            this_thread::sleep_for(chrono::milliseconds(10));
-        }
-        return false;
-    }
-
-    void splash_screen() {
-        // Drain any buffered stdin before animating — tmux / terminal setup
-        // often leaves escape sequences in the input buffer that would otherwise
-        // trigger the skip-early-return below and make the splash vanish instantly.
+    void welcome_screen() {
+        // Drain buffered input left over from terminal setup, so stale
+        // escape sequences cannot skip the screen instantly.
         for (int drain = 0; drain < 10 && !Input::get().empty(); ++drain) { }
 
         vector<string> art;
@@ -84,153 +133,302 @@ namespace UI {
                 art.push_back(line.get<string>());
             }
         }
-        if (art.empty()) art.push_back("Caelestia Installer"); // fallback
+        if (art.empty()) art.push_back("Caelestia Installer");
 
         int art_width = 0;
         for (const auto& line : art) {
-            if (line.length() > art_width) art_width = line.length();
+            if ((int)line.length() > art_width) art_width = (int)line.length();
         }
-        int art_height = art.size();
-        
-        cout << Draw::clear();
+        int art_height = (int)art.size();
 
-        int left = (g_term_width - art_width) / 2;
-        if (left < 1) left = 1;
-        int top = (g_term_height - 18) / 2;
-        if (top < 1) top = 1;
-        
-        // Animate art character by character
-        string art_color_name = "magenta";
-        int speed_ms = 3;
-        if (!g_theme.is_null() && g_theme.contains("splash_screen")) {
-            if (g_theme["splash_screen"].contains("art_color")) art_color_name = g_theme["splash_screen"]["art_color"].get<string>();
-            if (g_theme["splash_screen"].contains("animation_speed_ms")) speed_ms = g_theme["splash_screen"]["animation_speed_ms"].get<int>();
-        }
-
-        cout << Draw::color(art_color_name) << Draw::bold;
-        for (size_t i = 0; i < art.size(); ++i) {
-            cout << Draw::to(top + i, left);
-            cout << art[i] << flush;
-            if (!Input::get().empty()) return;
-        }
-        cout << Draw::reset;
-
-        int text_top = top + art_height + 2;
-        int text_left = left + 4;
-
+        string art_color = "accent";
         string author = "By @ladybug-me";
-        string loading_color = "dim";
+        string co_author = "Co-maintainer: 0xSolanaceae";
         if (!g_theme.is_null() && g_theme.contains("splash_screen")) {
-            if (g_theme["splash_screen"].contains("author")) author = g_theme["splash_screen"]["author"].get<string>();
-            if (g_theme["splash_screen"].contains("loading_text_color")) loading_color = g_theme["splash_screen"]["loading_text_color"].get<string>();
+            if (g_theme["splash_screen"].contains("art_color"))
+                art_color = g_theme["splash_screen"]["art_color"].get<string>();
+            if (g_theme["splash_screen"].contains("author"))
+                author = g_theme["splash_screen"]["author"].get<string>();
+            if (g_theme["splash_screen"].contains("co_author"))
+                co_author = g_theme["splash_screen"]["co_author"].get<string>();
         }
 
-        vector<string> init_texts = { "Initializing installer" };
-        if (!g_theme.is_null() && g_theme.contains("splash_screen") && g_theme["splash_screen"].contains("loading_texts")) {
-            init_texts.clear();
-            for (auto& text : g_theme["splash_screen"]["loading_texts"]) {
-                init_texts.push_back(text.get<string>());
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
+
+            cout << Draw::sync_start() << Draw::clear();
+
+            int x = 1, y = 1;
+            int w = g_term_width - 2;
+            int h = g_term_height - 2;
+
+            if (w < 30 || h < 12) {
+                Draw::text_center(g_term_height / 2 - 1, "Caelestia Installer", "primary");
+                Draw::text_center(g_term_height / 2, "Press Enter to continue (Esc to quit)...", "muted");
+                cout << Draw::sync_end() << flush;
+                string key = Input::wait_key();
+                if (key == "enter" || key == " ") return;
+                if (key == "escape") { g_quit = true; return; }
+                continue;
+            }
+
+            Draw::box(x, y, w, h, "", "primary", "primary");
+
+            int left = x + (w - art_width) / 2;
+            if (left < x + 1) left = x + 1;
+            int top = y + 2;
+
+            cout << Draw::color(art_color) << Draw::bold;
+            for (int i = 0; i < art_height; ++i) {
+                cout << Draw::to(top + i, left);
+                cout << art[i] << flush;
+            }
+            cout << Draw::reset;
+
+            int ty = top + art_height + 1;
+            Draw::text_center(ty, author, "muted");
+            Draw::text_center(ty + 1, co_author, "muted");
+            Draw::text_center(ty + 3, "Caelestia KDE installer", "primary");
+            Draw::text_center(ty + 6, "Detected distribution: " + distro_label(g_base_distro), "secondary");
+            Draw::text_center(y + h - 2, "Press Enter to continue (Esc to quit)...", "muted");
+
+            cout << Draw::sync_end() << flush;
+
+            string key = Input::wait_key();
+            if (key == "enter" || key == " ") return;
+            if (key == "escape") { g_quit = true; return; }
+        }
+    }
+
+    std::string action_select() {
+        struct Action {
+            string id;
+            string title;
+            string help;
+        };
+        vector<Action> actions;
+        actions.push_back({"install", "Install Caelestia", "Install the shell, packages, themes, and configs."});
+        if (is_caelestia_installed()) {
+            actions.push_back({"update", "Update Caelestia", "Pull the latest code and rebuild the shell."});
+            actions.push_back({"uninstall", "Uninstall Caelestia", "Remove the shell and restore backups where available."});
+        }
+        actions.push_back({"exit", "Exit", "Leave without changing anything."});
+
+        int selected = 0;
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
+            cout << Draw::sync_start() << Draw::clear();
+
+            int x = 1, y = 1;
+            int w = g_term_width - 2;
+            int h = g_term_height - 2;
+            if (w < 30 || h < 12) {
+                cout << Draw::sync_end() << flush;
+                return "install";
+            }
+
+            Draw::box(x, y, w, h, "CAELESTIA SETUP", "primary", "on_surface");
+            Draw::text(x + 2, y + 2, navigate_hint(), "muted");
+
+            for (size_t i = 0; i < actions.size(); ++i) {
+                string col = (int)i == selected ? "bold_primary" : "muted";
+                Draw::text(x + 4, y + 4 + (int)i,
+                           ((int)i == selected ? "> " : "  ") + actions[i].title, col);
+            }
+
+            int help_y = y + 5 + (int)actions.size();
+            if (help_y < y + h - 2)
+                Draw::text(x + 4, help_y, Draw::fit(actions[selected].help, (size_t)(w - 8)), "secondary");
+
+            Draw::text(x + 2, y + h - 2, Draw::fit("Esc - Exit", (size_t)(w - 4)), "muted");
+
+            cout << Draw::sync_end() << flush;
+
+            string key = Input::wait_key();
+            if (key == "KEY_up") {
+                if (selected > 0) selected--;
+            } else if (key == "KEY_down") {
+                if (selected < (int)actions.size() - 1) selected++;
+            } else if (key == "enter" || key == " ") {
+                return actions[selected].id;
+            } else if (key == "escape") {
+                return "exit";
             }
         }
-        
-        cout << Draw::to(text_top, text_left + 10) << author;
-        cout << Draw::sync_end() << flush;
-        
-        for (size_t i = 0; i < init_texts.size(); ++i) {
-            if (loading_text(text_left, text_top + i + 1, init_texts[i], loading_color)) return;
+        return "exit";
+    }
+
+    std::string profile_select() {
+        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array() ||
+            g_menu["profiles"].empty()) {
+            return "custom";
         }
 
-// Wait for user confirmation before proceeding to sudo prompt
-int prompt_y = text_top + init_texts.size() + 2;
-string enter_msg = "Press Enter to continue (Esc to quit)...";
-cout << Draw::to(prompt_y, (g_term_width - enter_msg.length()) / 2)
-     << Draw::color("dim") << enter_msg << Draw::reset << flush;
-while (!g_quit) {
-    string key = Input::wait_key();
-    if (key == "enter" || key == " ") break;
-    if (key == "escape") { g_quit = true; return; }
-}
+        vector<string> ids, titles, helps;
+        for (auto& p : g_menu["profiles"]) {
+            ids.push_back(p.contains("id") && p["id"].is_string() ? p["id"].get<string>() : "");
+            titles.push_back(p.contains("title") && p["title"].is_string() ? p["title"].get<string>() : ids.back());
+            helps.push_back(p.contains("help") && p["help"].is_string() ? p["help"].get<string>() : "");
+        }
+
+        int selected = 0;
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
+            cout << Draw::sync_start() << Draw::clear();
+
+            int x = 1, y = 1;
+            int w = g_term_width - 2;
+            int h = g_term_height - 2;
+            if (w < 30 || h < 12) {
+                cout << Draw::sync_end() << flush;
+                return "custom";
+            }
+
+            Draw::box(x, y, w, h, "INSTALLATION PROFILE", "primary", "on_surface");
+            Draw::text(x + 2, y + 2, navigate_hint(), "muted");
+
+            for (size_t i = 0; i < titles.size(); ++i) {
+                string col = (int)i == selected ? "bold_primary" : "muted";
+                Draw::text(x + 4, y + 4 + (int)i,
+                           ((int)i == selected ? "> " : "  ") + titles[i], col);
+            }
+
+            int help_y = y + 5 + (int)titles.size();
+            if (help_y < y + h - 2)
+                Draw::text(x + 4, help_y, Draw::fit(helps[selected], (size_t)(w - 8)), "secondary");
+
+            Draw::text(x + 2, y + h - 2, Draw::fit("Esc - Cancel installation", (size_t)(w - 4)), "muted");
+
+            cout << Draw::sync_end() << flush;
+
+            string key = Input::wait_key();
+            if (key == "KEY_up") {
+                if (selected > 0) selected--;
+            } else if (key == "KEY_down") {
+                if (selected < (int)titles.size() - 1) selected++;
+            } else if (key == "enter" || key == " ") {
+                return ids[selected];
+            } else if (key == "escape") {
+                return "";
+            }
+        }
+        return "";
+    }
+
+    void init_menu_defaults(const json& items);
+
+    void apply_profile(const std::string& profile_id) {
+        g_answers.clear();
+        if (!g_menu.is_null() && g_menu.contains("menu") && g_menu["menu"].is_array())
+            init_menu_defaults(g_menu["menu"]);
+        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array()) return;
+        for (auto& p : g_menu["profiles"]) {
+            if (!p.contains("id") || !p["id"].is_string() || p["id"].get<string>() != profile_id) continue;
+            if (!p.contains("sets") || !p["sets"].is_object()) return;
+            for (auto it = p["sets"].begin(); it != p["sets"].end(); ++it) {
+                if (it.value().is_boolean())
+                    g_answers[it.key()] = it.value().get<bool>() ? "true" : "false";
+                else if (it.value().is_string())
+                    g_answers[it.key()] = it.value().get<string>();
+            }
+            return;
+        }
+    }
+
+    std::string profile_title(const std::string& profile_id) {
+        if (!g_menu.is_null() && g_menu.contains("profiles") && g_menu["profiles"].is_array()) {
+            for (auto& p : g_menu["profiles"]) {
+                if (p.contains("id") && p["id"].is_string() && p["id"].get<string>() == profile_id &&
+                    p.contains("title") && p["title"].is_string()) {
+                    return p["title"].get<string>();
+                }
+            }
+        }
+        return "Custom";
+    }
+
+    void init_menu_defaults(const json& items) {
+        std::function<void(const json&)> walk = [&](const json& arr) {
+            for (size_t i = 0; i < arr.size(); ++i) {
+                auto& item = arr[i];
+                if (item.contains("type") && item["type"] == "submenu" && item.contains("items")) {
+                    walk(item["items"]);
+                } else if (item.contains("id") && item.contains("default") &&
+                           g_answers.find(item["id"].get<string>()) == g_answers.end()) {
+                    if (item["default"].is_boolean())
+                        g_answers[item["id"].get<string>()] = item["default"].get<bool>() ? "true" : "false";
+                    else if (item["default"].is_string())
+                        g_answers[item["id"].get<string>()] = item["default"].get<string>();
+                }
+            }
+        };
+        walk(items);
     }
 
     bool sudo_prompt() {
-        int box_width = 54;
-        int box_height = 7;
         string pw = "";
         string error_msg = "";
         int attempts = 0;
+        int box_width = 56;
+        int box_height = 8;
 
-        bool animated_once = false;
-
-        while (true) {
-            if (g_resized) { Term::get_size(); g_resized = false; animated_once = false; }
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
             cout << Draw::sync_start() << Draw::clear();
-            
+
             int left = (g_term_width - box_width) / 2;
             if (left < 1) left = 1;
             int top = (g_term_height - box_height) / 2;
             if (top < 1) top = 1;
 
-            string box_title = "PRIVILEGE ESCALATION";
-            string box_color = "magenta";
-            string title_color = "default";
-            string text_color = "default";
-            string prompt_color = "cyan";
-            if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("sudo_prompt")) {
-                auto& l = g_theme["layout"]["sudo_prompt"];
-                if (l.contains("title")) box_title = l["title"].get<string>();
-                if (l.contains("color")) box_color = l["color"].get<string>();
-                if (l.contains("title_color")) title_color = l["title_color"].get<string>();
-                if (l.contains("text_color")) text_color = l["text_color"].get<string>();
-                if (l.contains("prompt_color")) prompt_color = l["prompt_color"].get<string>();
-            }
-            if (!animated_once) {
-                Draw::animated_box(left, top, box_width, box_height, box_title, box_color, title_color);
-                animated_once = true;
-            } else {
-                Draw::box(left, top, box_width, box_height, box_title, box_color, title_color);
-            }
-            Draw::text(left + 2, top + 2, "Root privileges are required to install packages.", text_color);
-            Draw::text(left + 2, top + 3, "Password: ", Draw::bold + Draw::color(prompt_color));
-            
+            Draw::box(left, top, box_width, box_height, "PRIVILEGE ESCALATION", "accent", "on_surface");
+            Draw::text(left + 2, top + 2, "Root privileges are required to install packages.", "on_surface");
+            Draw::text(left + 2, top + 3, "Password: ", Draw::bold + Draw::color("primary"));
+
             // Draw masked password
             string masked(pw.length(), '*');
             masked.resize(30, ' ');
             Draw::text(left + 12, top + 3, masked, Draw::reset);
 
             if (!error_msg.empty()) {
-                Draw::text(left + 2, top + 5, error_msg, Draw::color("red"));
+                Draw::text(left + 2, top + 5, error_msg, "error");
             }
-            
+
+            Draw::text(left + 2, top + box_height - 2, "Esc - Cancel", "muted");
+
             cout << Draw::sync_end() << flush;
 
             string key = Input::wait_key();
-            if (key == "enter") {
-                if (pw.empty()) continue;
-                
-                // Show verifying...
+
+            auto submit = [&](const string& candidate) -> bool {
                 cout << Draw::sync_start();
-                Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::color("yellow"));
+                Draw::text(left + 2, top + 5, "Verifying...                                 ", "warning");
                 cout << Draw::sync_end() << flush;
-                
+
                 FILE* pipe = popen("sudo -S true 2>/dev/null", "w");
                 if (pipe) {
-                    fprintf(pipe, "%s\n", pw.c_str());
+                    fprintf(pipe, "%s\n", candidate.c_str());
                     fflush(pipe);
                     int status = pclose(pipe);
                     if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-                        setup_sudo_environment(pw);
+                        setup_sudo_environment(candidate);
                         return true;
-                    } else {
-                        attempts++;
-                        if (attempts >= 3) {
-                            Term::restore();
-                            cout << "Too many incorrect password attempts.\n";
-                            exit(1);
-                        }
-                        error_msg = "Incorrect password, please try again. (" + to_string(attempts) + "/3)";
-                        pw.clear();
                     }
                 }
+                attempts++;
+                if (attempts >= 3) {
+                    Term::restore();
+                    cout << "Too many incorrect password attempts.\n";
+                    exit(1);
+                }
+                error_msg = "Incorrect password, please try again. (" + to_string(attempts) + "/3)";
+                pw.clear();
+                return false;
+            };
+
+            if (key == "enter") {
+                if (pw.empty()) continue;
+                if (submit(pw)) return true;
             } else if (key == "backspace" || (key.length() == 1 && (key[0] == '\x7f' || key[0] == '\x08'))) { // Backspace
                 if (!pw.empty()) pw.pop_back();
                 error_msg.clear();
@@ -238,145 +436,265 @@ while (!g_quit) {
                 return false;
             } else if (key.find("KEY_") == 0) {
                 // ignore internal named keys like KEY_up
-            } else {
-                // Handle normal printable chars (including pasted text with multiple chars and UTF-8)
+            } else if (!key.empty()) {
+                // Normal printable chars, including pasted multi-char/UTF-8 text.
                 bool all_printable = true;
                 for (char c : key) {
                     if ((unsigned char)c < 32 || c == 127) all_printable = false;
                 }
-                if (all_printable && !key.empty()) {
+                if (all_printable) {
                     pw += key;
                     error_msg.clear();
                 } else if (key.find('\n') != string::npos || key.find('\r') != string::npos) {
-                    // Pasted text contained an enter/newline character
+                    // Pasted text with a trailing newline: strip and submit.
                     string cleaned = "";
                     for (char c : key) {
                         if ((unsigned char)c >= 32 && c != 127) cleaned += c;
                     }
                     pw += cleaned;
-                    // Trigger enter behavior
-                    if (!pw.empty()) {
-                        cout << Draw::sync_start();
-                        Draw::text(left + 2, top + 5, "Verifying...                             ", Draw::color("yellow"));
-                        cout << Draw::sync_end() << flush;
-                        FILE* pipe = popen("sudo -S true 2>/dev/null", "w");
-                        if (pipe) {
-                            fprintf(pipe, "%s\n", pw.c_str());
-                            fflush(pipe);
-                            int status = pclose(pipe);
-                            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-                                setup_sudo_environment(pw);
-                                return true;
-                            } else {
-                                attempts++;
-                                if (attempts >= 3) {
-                                    Term::restore();
-                                    cout << "Too many incorrect password attempts.\n";
-                                    exit(1);
-                                }
-                                error_msg = "Incorrect password, please try again. (" + to_string(attempts) + "/3)";
-                                pw.clear();
-                            }
-                        }
-                    }
+                    if (!pw.empty() && submit(pw)) return true;
                 }
             }
-        }
-    }
-
-    string distro_select() {
-        vector<string> options = {"Arch-based", "Fedora", "Debian-based", "Exit"};
-        int selected = 0;
-        int box_width = 63;
-        int box_height = 13;
-
-        bool animated_once = false;
-
-        while (true) {
-            if (g_resized) { Term::get_size(); g_resized = false; animated_once = false; }
-            cout << Draw::sync_start() << Draw::clear();
-            
-            int left = (g_term_width - box_width) / 2;
-            if (left < 1) left = 1;
-            int top = (g_term_height - box_height) / 2;
-            if (top < 1) top = 1;
-
-            if (!animated_once) {
-                Draw::animated_box(left, top, box_width, box_height, "SELECT DISTRIBUTION");
-                animated_once = true;
-            } else {
-                Draw::box(left, top, box_width, box_height, "SELECT DISTRIBUTION");
-            }
-            Draw::text(left + 2, top + 2, "Use UP/DOWN to navigate, ENTER to select.");
-
-            for (size_t i = 0; i < options.size(); i++) {
-                int opt_y = top + 4 + i;
-                if (i == selected) {
-                    Draw::text(left + 2, opt_y, " > " + options[i], Draw::color("green"));
-                } else {
-                    Draw::text(left + 2, opt_y, "   " + options[i]);
-                }
-            }
-            cout << Draw::sync_end() << flush;
-
-            string key = Input::wait_key();
-            if (key == "KEY_up") { if (selected > 0) selected--; }
-            else if (key == "KEY_down") { if (selected < options.size() - 1) selected++; }
-            else if (key == "enter") {
-                if (options[selected] == "Arch-based") return "arch";
-                if (options[selected] == "Fedora") return "fedora";
-                if (options[selected] == "Debian-based") return "debian";
-                return "exit";
-            }
-        }
-    }
-
-
-    bool check_failed(const string& file, const string& target) {
-        ifstream f(file);
-        string line;
-        while (getline(f, line)) {
-            if (line.find(target) != string::npos) return true;
         }
         return false;
     }
 
-    void summary_screen() {
+    bool review_screen() {
+        size_t scroll = 0;
+
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; }
+            cout << Draw::sync_start() << Draw::clear();
+
+            int x = 1, y = 1;
+            int w = g_term_width - 2;
+            int h = g_term_height - 2;
+            if (w < 30 || h < 10) {
+                cout << Draw::sync_end() << flush;
+                return false;
+            }
+
+            Draw::box(x, y, w, h, "REVIEW INSTALLATION", "primary", "on_surface");
+
+            // Build lines grouped by phase.
+            struct Line { string text; string color; };
+            vector<Line> lines;
+            for (const auto& ph : Runner::phases) {
+                lines.push_back({ph.name, "bold_primary"});
+                for (const auto& st : Runner::steps) {
+                    if (st.phase != ph.id) continue;
+                    if (Runner::step_is_skipped(st)) {
+                        lines.push_back({"  " + Draw::glyph("skipped") + " " + st.name + " (skipped)", "muted"});
+                    } else {
+                        lines.push_back({"  " + Draw::glyph("pending") + " " + st.name, "on_surface"});
+                    }
+                }
+                lines.push_back({"", ""});
+            }
+
+            int max_rows = h - 5;
+            if (max_rows < 1) max_rows = 1;
+            if (lines.size() > (size_t)max_rows) {
+                if (scroll > lines.size() - (size_t)max_rows) scroll = lines.size() - (size_t)max_rows;
+            } else {
+                scroll = 0;
+            }
+
+            for (int r = 0; r < max_rows && (scroll + (size_t)r) < lines.size(); ++r) {
+                const Line& ln = lines[scroll + (size_t)r];
+                if (ln.text.empty()) continue;
+                Draw::text(x + 2, y + 2 + r, Draw::fit(ln.text, (size_t)(w - 4)), ln.color);
+            }
+
+            Draw::text_center(y + h - 3, "Press Enter to begin installation",
+                              Draw::bold + Draw::color("primary"));
+            Draw::text_center(y + h - 2, "Esc - go back to configuration", "muted");
+
+            cout << Draw::sync_end() << flush;
+
+            string key = Input::wait_key();
+            if (key == "enter") return true;
+            if (key == "escape" || key == "KEY_left") return false;
+            if (key == "KEY_up") {
+                if (scroll >= 3) scroll -= 3; else scroll = 0;
+            } else if (key == "KEY_down") {
+                size_t max_scroll = lines.size() > (size_t)max_rows ? lines.size() - (size_t)max_rows : 0;
+                if (scroll + 3 <= max_scroll) scroll += 3;
+            }
+        }
+        return false;
+    }
+
+    void log_view(const std::string& log_path) {
+        bool redraw = true;
+        string last_content;
+        vector<string> lines;
+        vector<size_t> issues; // indices of lines with [WARN] or [ERR]
+        long view_top = 0;     // index of the first visible line
+        bool follow = true;    // auto-scroll to the newest line
+
+        while (!g_quit) {
+            if (g_resized) { Term::get_size(); g_resized = false; redraw = true; }
+
+            string content;
+            {
+                ifstream in(log_path, ios::binary);
+                if (in) {
+                    in.seekg(0, ios::end);
+                    streamoff len = in.tellg();
+                    const streamoff kMax = 1024 * 1024; // tail at most 1 MiB
+                    if (len > kMax)
+                        in.seekg(len - kMax, ios::beg);
+                    else
+                        in.seekg(0, ios::beg);
+                    stringstream ss;
+                    ss << in.rdbuf();
+                    content = ss.str();
+                }
+            }
+            if (content != last_content) {
+                last_content = content;
+                lines.clear();
+                issues.clear();
+                string line;
+                for (char ch : content) {
+                    if (ch == '\n') {
+                        if (line.find("[WARN]") != string::npos || line.find("[ERR]") != string::npos)
+                            issues.push_back(lines.size());
+                        lines.push_back(Draw::strip_ansi(line));
+                        line.clear();
+                    } else {
+                        line += ch;
+                    }
+                }
+                if (!line.empty()) {
+                    if (line.find("[WARN]") != string::npos || line.find("[ERR]") != string::npos)
+                        issues.push_back(lines.size());
+                    lines.push_back(Draw::strip_ansi(line));
+                }
+                redraw = true;
+            }
+
+            // Clamp the viewport and derive paging from the current size.
+            int show = g_term_height - 6;
+            if (show < 1) show = 1;
+            int page = show > 1 ? show - 1 : 1;
+            long max_scroll = (long)lines.size() - show;
+            if (max_scroll < 0) max_scroll = 0;
+            if (follow) {
+                view_top = max_scroll;
+            } else {
+                if (view_top > max_scroll) view_top = max_scroll;
+                if (view_top < 0) view_top = 0;
+            }
+
+            if (redraw) {
+                redraw = false;
+                cout << Draw::sync_start() << Draw::clear();
+
+                int x = 1, y = 1;
+                int w = g_term_width - 2;
+                int h = g_term_height - 2;
+                if (w < 20 || h < 6) { cout << Draw::sync_end() << flush; return; }
+
+                Draw::box(x, y, w, h, "INSTALL LOG", "primary", "on_surface");
+
+                for (int i = 0; i < show && (view_top + (long)i) < (long)lines.size(); ++i) {
+                    long idx = view_top + (long)i;
+                    string color;
+                    if (lines[idx].find("[ERR]") != string::npos)
+                        color = "error";
+                    else if (lines[idx].find("[WARN]") != string::npos)
+                        color = "warning";
+                    Draw::text(x + 2, y + 2 + i, Draw::fit(lines[idx], (size_t)(w - 4)), color);
+                }
+
+                string status = follow ? "Following" : "Paused";
+                string help = "Up/Down/PgUp/PgDn scroll   n/p - next issue   L - back";
+                Draw::text(x + 2, y + h - 2,
+                           Draw::fit(status + "    " + help, (size_t)(w - 4)), "muted");
+                cout << Draw::sync_end() << flush;
+            }
+
+            string key = Input::wait_key(100);
+            if (key == "l" || key == "L" || key == "KEY_shift_tab" || key == "escape") return;
+            if (key == "signal_interrupt") return;
+
+            if (key == "KEY_up") {
+                follow = false;
+                if (view_top > 0) { view_top--; redraw = true; }
+            } else if (key == "KEY_down") {
+                if (!follow) {
+                    if (view_top < max_scroll) { view_top++; redraw = true; }
+                    if (view_top >= max_scroll) follow = true;
+                }
+            } else if (key == "KEY_page_up") {
+                follow = false;
+                long before = view_top;
+                view_top -= page;
+                if (view_top < 0) view_top = 0;
+                if (view_top != before) redraw = true;
+            } else if (key == "KEY_page_down") {
+                if (!follow) {
+                    long before = view_top;
+                    view_top += page;
+                    if (view_top > max_scroll) view_top = max_scroll;
+                    if (view_top >= max_scroll) follow = true;
+                    if (view_top != before) redraw = true;
+                }
+            } else if (key == "KEY_home") {
+                follow = false;
+                if (view_top != 0) { view_top = 0; redraw = true; }
+            } else if (key == "KEY_end") {
+                if (!follow || view_top != max_scroll) { follow = true; view_top = max_scroll; redraw = true; }
+            } else if (key == "n" || key == "N") {
+                long target = -1;
+                for (size_t idx : issues) {
+                    if ((long)idx > view_top) { target = (long)idx; break; }
+                }
+                if (target == -1 && !issues.empty()) target = (long)issues[0];
+                if (target != -1) {
+                    follow = false;
+                    view_top = target - show / 2;
+                    if (view_top < 0) view_top = 0;
+                    redraw = true;
+                }
+            } else if (key == "p" || key == "P") {
+                long target = -1;
+                for (size_t i = issues.size(); i-- > 0;) {
+                    if ((long)issues[i] < view_top) { target = (long)issues[i]; break; }
+                }
+                if (target == -1 && !issues.empty()) target = (long)issues.back();
+                if (target != -1) {
+                    follow = false;
+                    view_top = target - show / 2;
+                    if (view_top < 0) view_top = 0;
+                    redraw = true;
+                }
+            }
+        }
+    }
+
+    void complete_screen() {
         string cache_dir = string(getenv("XDG_CACHE_HOME") ? getenv("XDG_CACHE_HOME") : (string(getenv("HOME")) + "/.cache")) + "/caelestia-kde";
         string steps_file = cache_dir + "/failed_steps.txt";
         string pkgs_file = cache_dir + "/failed_packages.txt";
         string patches_file = cache_dir + "/failed_patches.txt";
-
-        auto fit_line = [](const string& text, size_t max_len) {
-            if (max_len == 0) return string();
-            if (text.size() <= max_len) return text;
-            if (max_len <= 3) return text.substr(0, max_len);
-            return text.substr(0, max_len - 3) + "...";
-        };
+        string log_path = cache_dir + "/install.log";
 
         while (true) {
             if (g_resized) { Term::get_size(); g_resized = false; }
             cout << Draw::sync_start() << Draw::clear();
-            
-            int w = g_term_width - 4;
+
+            int w = g_term_width - 2;
             if (w > 80) w = 80;
             int h = g_term_height - 2;
             int left = (g_term_width - w) / 2;
             int top = 1;
             const size_t content_width = w > 4 ? static_cast<size_t>(w - 4) : 0;
-            
-            string box_title = "CAELESTIA INSTALLATION SUMMARY";
-            string box_color = "green";
-            string title_color = "default";
-            if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("summary_screen")) {
-                auto& l = g_theme["layout"]["summary_screen"];
-                if (l.contains("title")) box_title = l["title"].get<string>();
-                if (l.contains("color")) box_color = l["color"].get<string>();
-                if (l.contains("title_color")) title_color = l["title_color"].get<string>();
-            }
 
-            Draw::box(left, top, w, h, box_title, box_color, title_color);
-            
+            Draw::box(left, top, w, h, "INSTALLATION COMPLETE", "success", "on_surface");
+
             int y = top + 2;
 
             const char* start_epoch_str = getenv("INSTALL_START_EPOCH");
@@ -387,52 +705,52 @@ while (!g_quit) {
                 long secs = elapsed % 60;
                 char buf[64];
                 snprintf(buf, sizeof(buf), "Total time: %ldh %ldm %lds", hours, mins, secs);
-                Draw::text(left + 2, y++, fit_line(string("[OK] ") + buf, content_width), Draw::color("green"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("ok") + " " + buf, content_width), "success");
             }
 
             auto print_step = [&](const string& name, const string& desc) {
-                if (y >= top + h - 2) return;
+                if (y >= top + h - 4) return;
                 bool failed = check_failed(steps_file, name);
-                string mark = failed ? "[X]" : "[OK]";
-                string color = failed ? Draw::color("red") : Draw::color("green");
-                Draw::text(left + 2, y++, color + fit_line(mark + " " + desc, content_width) + Draw::reset);
+                string mark = failed ? Draw::glyph("failed") : Draw::glyph("ok");
+                string color = failed ? "error" : "success";
+                Draw::text(left + 2, y++, Draw::fit(mark + " " + desc, content_width), color);
             };
 
             auto print_patch = [&](const string& name, const string& desc) {
-                if (y >= top + h - 2) return;
+                if (y >= top + h - 4) return;
                 bool failed = check_failed(patches_file, name);
-                string mark = failed ? "[X]" : "[OK]";
-                string color = failed ? Draw::color("red") : Draw::color("green");
-                Draw::text(left + 2, y++, color + fit_line(mark + " " + desc, content_width) + Draw::reset);
+                string mark = failed ? Draw::glyph("failed") : Draw::glyph("ok");
+                string color = failed ? "error" : "success";
+                Draw::text(left + 2, y++, Draw::fit(mark + " " + desc, content_width), color);
             };
 
             const char* skip_update = getenv("SKIP_SYSTEM_UPDATE");
             if (skip_update && std::string(skip_update) == "true") {
-                Draw::text(left + 2, y++, fit_line("[SKIP] System update skipped by user choice", content_width), Draw::color("yellow"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("skipped") + " System update skipped by user choice", content_width), "warning");
             } else if (g_base_distro == "arch") {
-                Draw::text(left + 2, y++, fit_line("[OK] System updated (pacman -Syu)", content_width), Draw::color("green"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("ok") + " System updated (pacman -Syu)", content_width), "success");
             } else if (g_base_distro == "fedora") {
-                Draw::text(left + 2, y++, fit_line("[OK] System updated (dnf upgrade)", content_width), Draw::color("green"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("ok") + " System updated (dnf upgrade)", content_width), "success");
             } else if (g_base_distro == "debian") {
-                Draw::text(left + 2, y++, fit_line("[OK] System updated (apt-get upgrade)", content_width), Draw::color("green"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("ok") + " System updated (apt-get upgrade)", content_width), "success");
             } else {
-                Draw::text(left + 2, y++, fit_line("[OK] System updated", content_width), Draw::color("green"));
+                Draw::text(left + 2, y++, Draw::fit(Draw::glyph("ok") + " System updated", content_width), "success");
             }
 
-            print_step("Package installation", fit_line("Packages installed (PKGBUILDs + fonts + deps)", content_width));
-            print_step("Config deployment", fit_line("Configs (repo-base + KDE overrides, clean deploy)", content_width));
-            print_step("KDE settings", fit_line("Darkly theme + Kvantum + default wallpaper", content_width));
-            print_step("System tweaks", fit_line("5 virtual desktops + KDE OSDs disabled", content_width));
-            print_step("Keyboard shortcuts", fit_line("Keyboard shortcuts (KDE native + keyd)", content_width));
-            print_step("Autostart", fit_line("Quickshell + kde-material-you-colors autostart", content_width));
-            print_step("Build Caelestia Shell", fit_line("Caelestia shell built and installed", content_width));
+            print_step("Package installation", "Packages installed (PKGBUILDs + fonts + deps)");
+            print_step("Config deployment", "Configs (repo-base + KDE overrides, clean deploy)");
+            print_step("KDE settings", "Darkly theme + Kvantum + default wallpaper");
+            print_step("System tweaks", "5 virtual desktops + KDE OSDs disabled");
+            print_step("Keyboard shortcuts", "Keyboard shortcuts (KDE native + keyd)");
+            print_step("Autostart", "Quickshell + kde-material-you-colors autostart");
+            print_step("Build Caelestia Shell", "Caelestia shell built and installed");
 
             y++;
-            if (y < top + h - 2) {
-                Draw::text(left + 2, y++, "PATCH STATUS", Draw::bold + Draw::color("cyan"));
-                print_patch("Caelestia CLI Hyprctl Mock Patch", fit_line("Caelestia CLI Hyprctl mock patch", content_width));
-                print_patch("Caelestia CLI Record/Dolphin Patch", fit_line("Caelestia CLI record/dolphin patch", content_width));
-                print_patch("Caelestia CLI Theme Sequence Patch", fit_line("Caelestia CLI theme sequence patch", content_width));
+            if (y < top + h - 4) {
+                Draw::text(left + 2, y++, "PATCH STATUS", Draw::bold + Draw::color("primary"));
+                print_patch("Caelestia CLI Hyprctl Mock Patch", "Caelestia CLI Hyprctl mock patch");
+                print_patch("Caelestia CLI Record/Dolphin Patch", "Caelestia CLI record/dolphin patch");
+                print_patch("Caelestia CLI Theme Sequence Patch", "Caelestia CLI theme sequence patch");
             }
 
             ifstream pf(pkgs_file);
@@ -443,84 +761,64 @@ while (!g_quit) {
             }
             if (!failed_pkgs.empty() && y < top + h - 4) {
                 y++;
-                Draw::text(left + 2, y++, "FAILED PACKAGES", Draw::bold + Draw::color("red"));
+                Draw::text(left + 2, y++, "FAILED PACKAGES", Draw::bold + Draw::color("error"));
                 for (const auto& p : failed_pkgs) {
-                    if (y >= top + h - 2) break;
-                    Draw::text(left + 2, y++, fit_line("- " + p, content_width), Draw::color("red"));
+                    if (y >= top + h - 4) break;
+                    Draw::text(left + 2, y++, Draw::fit("- " + p, content_width), "error");
                 }
             }
 
-            if (check_failed(steps_file, "Build Caelestia Shell") && y < top + h - 4) {
+            if (check_failed(steps_file, "Build Caelestia Shell") && y < top + h - 6) {
                 y++;
-                Draw::text(left + 2, y++, "SHELL BUILD FAILED", Draw::bold + Draw::color("red"));
-                Draw::text(left + 2, y++, fit_line("Review logs, install missing dependencies, and re-run setup.sh.", content_width), Draw::color("red"));
+                Draw::text(left + 2, y++, "SHELL BUILD FAILED", Draw::bold + Draw::color("error"));
+                Draw::text(left + 2, y++, Draw::fit("Review the log, install missing dependencies, and re-run setup.sh.", content_width), "error");
             }
 
             y++;
-            if (y < top + h - 6) {
-                Draw::text(left + 2, y++, "Next steps:", Draw::bold + Draw::color("yellow"));
-                Draw::text(left + 2, y++, fit_line("1) Log out now, then log back in.", content_width));
-                Draw::text(left + 2, y++, fit_line("2) If a kernel update occurred, reboot immediately.", content_width));
-                Draw::text(left + 2, y++, fit_line("3) Remove KDE panels after login (Super+D -> panel config).", content_width));
-                Draw::text(left + 2, y++, fit_line("4) Desktop edit mode later: Super+D -> right click desktop.", content_width));
+            if (y < top + h - 8) {
+                Draw::text(left + 2, y++, "Next steps:", Draw::bold + Draw::color("warning"));
+                Draw::text(left + 2, y++, Draw::fit("- Log out and log back in.", content_width));
+                Draw::text(left + 2, y++, Draw::fit("- Reboot if the kernel was updated.", content_width));
+                Draw::text(left + 2, y++, Draw::fit("- Remove the old KDE panels (Super+D).", content_width));
+                Draw::text(left + 2, y++, Draw::fit("- Full log: " + cache_dir + "/install.log", content_width));
             }
 
-            Draw::text(left + 2, top + h - 2, fit_line("Would you like to log out now? (y/N): ", content_width), Draw::bold + Draw::color("default"));
+            Draw::text(left + 2, top + h - 3, Draw::fit("Press L to view the full log", content_width), "muted");
+            Draw::text(left + 2, top + h - 2, Draw::fit("Log out now? (Y/n): ", content_width), Draw::bold + Draw::color("on_surface"));
             cout << Draw::sync_end() << flush;
-            
+
             string key = Input::wait_key();
-            if (key == "y" || key == "Y") {
+            if (key == "y" || key == "Y" || key == "enter") {
                 g_logout = true;
                 break;
-            } else if (key == "n" || key == "N" || key == "enter" || key == "escape") {
+            } else if (key == "n" || key == "N" || key == "escape") {
                 g_logout = false;
                 break;
+            } else if (key == "l" || key == "L") {
+                log_view(log_path);
+                // The loop redraws the summary after returning from the log.
             }
         }
     }
 }
 
 namespace UI {
-    bool render_menu(const json& menu_items, const std::string& title) {
+    bool render_menu(const json& menu_items, const std::string& title, const std::string& profile_title) {
         struct MenuItemMeta {
             string type;
             string title;
             string id;
+            string help;
             vector<string> options;
             unordered_map<string, int> option_index;
         };
 
         int selected = 0;
-        int num_items = menu_items.size();
+        int num_items = static_cast<int>(menu_items.size());
         if (num_items == 0) return true;
 
-        string box_title = title;
-        string box_color = "cyan";
-        string title_color = "default";
-        string text_color = "default";
-        if (!g_theme.is_null() && g_theme.contains("layout") && g_theme["layout"].contains("config_checklist")) {
-            auto& l = g_theme["layout"]["config_checklist"];
-            if (l.contains("color")) box_color = l["color"].get<string>();
-            if (l.contains("title_color")) title_color = l["title_color"].get<string>();
-            if (l.contains("text_color")) text_color = l["text_color"].get<string>();
-        }
-
-        // Initialize defaults recursively in g_answers
-        std::function<void(const json&)> init_defaults = [&](const json& items) {
-            for (size_t i = 0; i < items.size(); ++i) {
-                auto& item = items[i];
-                if (item.contains("type") && item["type"] == "submenu" && item.contains("items")) {
-                    init_defaults(item["items"]);
-                } else if (item.contains("id") && item.contains("default") && g_answers.find(item["id"].get<string>()) == g_answers.end()) {
-                    if (item["default"].is_boolean()) {
-                        g_answers[item["id"].get<string>()] = item["default"].get<bool>() ? "true" : "false";
-                    } else if (item["default"].is_string()) {
-                        g_answers[item["id"].get<string>()] = item["default"].get<string>();
-                    }
-                }
-            }
-        };
-        init_defaults(menu_items);
+        // Seed defaults for this (sub)menu (idempotent: only fills gaps).
+        init_menu_defaults(menu_items);
 
         vector<MenuItemMeta> meta;
         meta.reserve(static_cast<size_t>(num_items));
@@ -530,6 +828,7 @@ namespace UI {
             m.type = item.contains("type") ? item["type"].get<string>() : "action";
             m.title = item.contains("title") ? item["title"].get<string>() : "Unknown";
             m.id = item.contains("id") ? item["id"].get<string>() : "";
+            m.help = item.contains("help") ? item["help"].get<string>() : "";
 
             if (m.type == "select" && item.contains("options") && item["options"].is_array()) {
                 auto& opts = item["options"];
@@ -547,168 +846,91 @@ namespace UI {
             meta.push_back(std::move(m));
         }
 
-        bool typing_mode = false;
-        bool needs_full_redraw = true;
-        int last_selected = selected;
-        bool last_typing_mode = false;
-        int last_left = -1;
-        int last_top = -1;
-        int last_w = -1;
-        int last_h = -1;
-
-        auto build_display = [&](int index, int max_len) {
+        auto build_display = [&](int index) {
             const auto& m = meta[index];
-            string display = m.title;
-
+            string display;
             if (m.type == "submenu") {
-                display += " ->";
+                display = m.title + " >";
             } else if (m.type == "boolean") {
                 bool val = (g_answers[m.id] == "true");
-                display = (val ? "[x] " : "[ ] ") + m.title;
+                display = (val ? Draw::glyph("checkbox_on") : Draw::glyph("checkbox_off")) + " " + m.title;
             } else if (m.type == "select") {
-                display = m.title + ": < " + g_answers[m.id] + " >";
-            } else if (m.type == "text") {
-                display = m.title + ": [" + g_answers[m.id];
-                if (typing_mode && index == selected) display += "_";
-                display += "]";
+                display = m.title + ": " + Draw::glyph("select_left") + " " + g_answers[m.id] + " " + Draw::glyph("select_right");
+            } else {
+                display = m.title;
             }
-
-            if (static_cast<int>(display.length()) > max_len && max_len >= 3) {
-                display = display.substr(0, static_cast<size_t>(max_len - 3)) + "...";
-            }
-
-            string line = (index == selected ? "> " : "  ") + display;
-            if (static_cast<int>(line.length()) < max_len + 2) {
-                line.append(static_cast<size_t>(max_len + 2 - static_cast<int>(line.length())), ' ');
-            }
-            return line;
-        };
-
-        auto draw_row = [&](int index, int left, int start_y, int top, int h, int max_len, const string& box_color, const string& text_color) {
-            if (index < 0 || index >= num_items) return;
-            if (start_y + index >= top + h - 1) return;
-            string color_name = (index == selected) ? ("bold_" + box_color) : text_color;
-            Draw::text(left + 4, start_y + index, build_display(index, max_len), color_name);
+            return display;
         };
 
         while (!g_quit) {
             if (g_resized) { Term::get_size(); g_resized = false; }
-            
-            int w = 60;
+
+            int w = 64;
             for (int i = 0; i < num_items; ++i) {
-                const auto& m = meta[i];
-                int len = static_cast<int>(m.title.length());
-                if (m.type == "submenu") {
-                    len += 3;
-                } else if (m.type == "boolean") {
-                    len += 6;
-                } else if (m.type == "select") {
-                    len += 5 + static_cast<int>(g_answers[m.id].length());
-                } else if (m.type == "text") {
-                    len += 3 + static_cast<int>(g_answers[m.id].length()) + 2;
-                }
+                int len = static_cast<int>(build_display(i).length());
                 if (len + 8 > w) w = len + 8;
             }
             if (w > g_term_width - 4) w = g_term_width - 4;
 
-            int h = num_items + 6;
+            int h = num_items + 7;
             if (h > g_term_height - 4) h = g_term_height - 4;
             int left = (g_term_width - w) / 2;
             int top = (g_term_height - h) / 2;
             int start_y = top + 4;
             int max_len = w - 8;
 
-            bool geometry_changed = left != last_left || top != last_top || w != last_w || h != last_h;
-            bool mode_changed = typing_mode != last_typing_mode;
+            cout << Draw::sync_start() << Draw::clear();
 
-            cout << Draw::sync_start();
-            if (needs_full_redraw || geometry_changed || mode_changed) {
-                cout << Draw::clear();
-                Draw::box(left, top, w, h, box_title, box_color, title_color);
+            Draw::box(left, top, w, h, title, "primary", "on_surface");
 
-                string inst = "Arrow keys to navigate, Enter/Space to select/toggle";
-                if (static_cast<int>(inst.length()) > w - 4) {
-                    inst = inst.substr(0, static_cast<size_t>(w - 7)) + "...";
+            Draw::text(left + 2, top + 2, Draw::fit(navigate_hint(), (size_t)(w - 4)), "muted");
+
+            if (!profile_title.empty()) {
+                Draw::text(left + 2, top + 3, Draw::fit("Profile: " + profile_title, (size_t)(w - 4)), "accent");
+            }
+
+            for (int i = 0; i < num_items; ++i) {
+                if (start_y + i >= top + h - 1) break;
+                string display = Draw::fit(build_display(i), (size_t)max_len);
+                string line = (i == selected ? "> " : "  ") + display;
+                if (static_cast<int>(line.length()) < max_len + 2) {
+                    line.append(static_cast<size_t>(max_len + 2 - static_cast<int>(line.length())), ' ');
                 }
-                Draw::text(left + 2, top + 2, inst, text_color);
+                string color_name = (i == selected) ? "bold_primary" : "on_surface";
+                Draw::text(left + 4, start_y + i, line, color_name);
+            }
 
-                for (int i = 0; i < num_items; ++i) {
-                    draw_row(i, left, start_y, top, h, max_len, box_color, text_color);
-                }
-            } else if (selected != last_selected) {
-                draw_row(last_selected, left, start_y, top, h, max_len, box_color, text_color);
-                draw_row(selected, left, start_y, top, h, max_len, box_color, text_color);
+            // Help text for the selected item.
+            const string& help = meta[selected].help;
+            if (!help.empty()) {
+                Draw::text(left + 2, top + h - 2, Draw::fit(help, (size_t)(w - 4)), "muted");
             }
 
             cout << Draw::sync_end() << flush;
 
-            last_selected = selected;
-            last_typing_mode = typing_mode;
-            last_left = left;
-            last_top = top;
-            last_w = w;
-            last_h = h;
-            
             string key = Input::wait_key();
             auto& item = menu_items[selected];
             auto& selected_meta = meta[selected];
             string type = selected_meta.type;
             string id = selected_meta.id;
-            string item_title = selected_meta.title;
-
-            bool selection_changed = false;
-            bool content_changed = false;
-            bool typing_mode_changed = false;
-
-            if (typing_mode) {
-                if (key == "enter" || key == "escape") {
-                    typing_mode = false;
-                    typing_mode_changed = true;
-                } else if (key == "backspace" || (key.length() == 1 && (key[0] == '\x7f' || key[0] == '\x08'))) {
-                    if (!g_answers[id].empty()) {
-                        g_answers[id].pop_back();
-                        content_changed = true;
-                    }
-                } else if (key.find("KEY_") != 0) {
-                    // printable char
-                    bool all_printable = true;
-                    for (char c : key) {
-                        if ((unsigned char)c < 32 || c == 127) all_printable = false;
-                    }
-                    if (all_printable && !key.empty()) {
-                        g_answers[id] += key;
-                        content_changed = true;
-                    }
-                }
-
-                needs_full_redraw = content_changed || typing_mode_changed;
-                continue;
-            }
 
             if (key == "KEY_up") {
-                if (selected > 0) {
-                    selected--;
-                    selection_changed = true;
-                }
+                if (selected > 0) selected--;
             }
             else if (key == "KEY_down") {
-                if (selected < num_items - 1) {
-                    selected++;
-                    selection_changed = true;
-                }
+                if (selected < num_items - 1) selected++;
             }
             else if (key == "KEY_right" || key == "enter" || key == " ") {
                 if (type == "action") {
                     if (id == "action_back") return false;
-                    if (id == "action_proceed") return true;
+                    if (id == "action_review" || id == "action_proceed") return true;
                 } else if (type == "submenu") {
                     if (item.contains("items")) {
-                        bool proceed = render_menu(item["items"], item_title);
-                        if (proceed) return true; // If they clicked proceed from deep inside, bubble up!
+                        bool proceed = render_menu(item["items"], selected_meta.title, profile_title);
+                        if (proceed) return true; // review chosen from a submenu bubbles up
                     }
                 } else if (type == "boolean") {
                     g_answers[id] = (g_answers[id] == "true") ? "false" : "true";
-                    content_changed = true;
                 } else if (type == "select") {
                     if (!selected_meta.options.empty()) {
                         int current_idx = 0;
@@ -716,11 +938,7 @@ namespace UI {
                         if (it != selected_meta.option_index.end()) current_idx = it->second;
                         current_idx = (current_idx + 1) % static_cast<int>(selected_meta.options.size());
                         g_answers[id] = selected_meta.options[static_cast<size_t>(current_idx)];
-                        content_changed = true;
                     }
-                } else if (type == "text") {
-                    typing_mode = true;
-                    typing_mode_changed = true;
                 }
             } else if (key == "KEY_left") {
                 if (type == "select") {
@@ -730,18 +948,14 @@ namespace UI {
                         if (it != selected_meta.option_index.end()) current_idx = it->second;
                         current_idx = (current_idx - 1 + static_cast<int>(selected_meta.options.size())) % static_cast<int>(selected_meta.options.size());
                         g_answers[id] = selected_meta.options[static_cast<size_t>(current_idx)];
-                        content_changed = true;
                     }
                 } else {
-                    return false; // Back out of submenu
+                    return false; // back out of submenu
                 }
             } else if (key == "escape") {
                 return false;
             }
-
-            needs_full_redraw = content_changed || typing_mode_changed || !selection_changed;
         }
         return false;
     }
-
 }

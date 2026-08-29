@@ -25,7 +25,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: Strings.localizeEnglishSpelling(qsTr("Recolour icons"))
+            text: qsTr("Recolor icons")
             checked: Config.bar.tray.recolour
             onToggled: GlobalConfig.bar.tray.recolour = checked
         }

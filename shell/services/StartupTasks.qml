@@ -15,7 +15,6 @@ Item {
             
             TASKS_DIR="$HOME/.config/quickshell/caelestia/services/startuptasks"
             MODIFIED=false
-            RAN_TASKS=""
             
             TASKS=(
                 "01-magic-lamp"
@@ -32,17 +31,12 @@ Item {
                             MODIFIED=true
                         fi
                         echo "$script_name" >> "$STATE_FILE"
-                        RAN_TASKS="$RAN_TASKS\\n- $script_name"
                     fi
                 fi
             done
             
             if [[ "$MODIFIED" == "true" ]]; then
                 qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
-            fi
-
-            if [[ -n "$RAN_TASKS" ]]; then
-                notify-send "Caelestia Startup Tasks" "Executed the following initialization tasks:$RAN_TASKS" -i dialog-information
             fi
         `]);
     }

@@ -15,7 +15,7 @@ class SessionIcons : public ConfigObject {
 
     CONFIG_PROPERTY(QString, logout, u"logout"_s)
     CONFIG_PROPERTY(QString, shutdown, u"power_settings_new"_s)
-    CONFIG_PROPERTY(QString, hibernate, u"downloading"_s)
+    CONFIG_PROPERTY(QString, hibernate, u"bedtime"_s)
     CONFIG_PROPERTY(QString, reboot, u"cached"_s)
 
 public:

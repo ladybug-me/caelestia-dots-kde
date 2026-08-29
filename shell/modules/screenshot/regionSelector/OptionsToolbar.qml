@@ -50,12 +50,12 @@ Toolbar {
             {"icon": "image_search", "name": qsTr("Google Lens")},
             {"icon": "text_fields", "name": qsTr("Text Recognition")}
         ]
-        currentIndex: root.action === RegionSelection.SnipAction.Search ? 1 : (root.action === RegionSelection.SnipAction.CharRecognition ? 2 : 0)
+        currentIndex: root.action === ScreenshotAction.SnipAction.Search ? 1 : (root.action === ScreenshotAction.SnipAction.CharRecognition ? 2 : 0)
         onCurrentIndexChanged: {
             let newAction;
-            if (currentIndex === 0) newAction = RegionSelection.SnipAction.Copy;
-            else if (currentIndex === 1) newAction = RegionSelection.SnipAction.Search;
-            else if (currentIndex === 2) newAction = RegionSelection.SnipAction.CharRecognition;
+            if (currentIndex === 0) newAction = ScreenshotAction.SnipAction.Copy;
+            else if (currentIndex === 1) newAction = ScreenshotAction.SnipAction.Search;
+            else if (currentIndex === 2) newAction = ScreenshotAction.SnipAction.CharRecognition;
             else return;
 
             if (root.action !== newAction) {

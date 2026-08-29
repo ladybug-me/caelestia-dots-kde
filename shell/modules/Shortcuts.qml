@@ -56,14 +56,14 @@ Scope {
         onPressed: {
             const visibilities = Visibilities.getForActive();
             if (visibilities.overview) {
-                visibilities.overview = false;
+                Visibilities.setOverview(false);
             } else {
                 if (typeof KWinActiveWindowBridge !== "undefined" && KWinActiveWindowBridge.activeWindow && KWinActiveWindowBridge.activeWindow.address) {
                     Visibilities.preOverviewActiveWindowAddress = KWinActiveWindowBridge.activeWindow.address;
                 } else {
                     Visibilities.preOverviewActiveWindowAddress = "";
                 }
-                visibilities.overview = true;
+                Visibilities.setOverview(true);
             }
         }
     }
@@ -378,7 +378,11 @@ Scope {
                 if (root.hasFullscreen && ["launcher", "session", "dashboard"].includes(drawer))
                     return;
                 const visibilities = Visibilities.getForActive();
-                visibilities[drawer] = !visibilities[drawer];
+                // The overview spans every screen; see Visibilities.setOverview.
+                if (drawer === "overview")
+                    Visibilities.setOverview(!visibilities.overview);
+                else
+                    visibilities[drawer] = !visibilities[drawer];
             } else {
                 console.warn(lc, `Drawer "${drawer}" does not exist`);
             }
@@ -394,7 +398,10 @@ Scope {
                     return;
                 }
                 const visibilities = Visibilities.getForActive();
-                visibilities[drawer] = !visibilities[drawer];
+                if (drawer === "overview")
+                    Visibilities.setOverview(!visibilities.overview);
+                else
+                    visibilities[drawer] = !visibilities[drawer];
             } else {
                 console.warn(lc, `Drawer "${drawer}" does not exist`);
             }

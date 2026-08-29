@@ -4,6 +4,7 @@ import Quickshell
 import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.services
 import qs.modules.bar as Bar
 import qs.modules.bar.popouts as BarPopouts
 
@@ -372,12 +373,12 @@ CustomMouseArea {
         if (Config.overview.enabled && !visibilities.overview) {
             if (Config.overview.showOnHover) {
                 if (inOverviewCorner(x, y) !== "") {
-                    visibilities.overview = true;
+                    Visibilities.setOverview(true);
                 }
             } else if (pressed) {
                 if (inOverviewCorner(dragStart.x, dragStart.y) !== "") {
                     if (Math.hypot(dragX, dragY) > Config.overview.dragThreshold) {
-                        visibilities.overview = true;
+                        Visibilities.setOverview(true);
                     }
                 }
             }

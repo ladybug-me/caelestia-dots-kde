@@ -11,7 +11,10 @@ import qs.utils
 Singleton {
     id: root
 
-    enum Action {
+    // The single snip-action enum. Lives next to the command builder so the
+    // switch and its values can't drift apart. UI files reference it via
+    // ScreenshotAction.SnipAction.
+    enum SnipAction {
         Copy,
         Edit,
         Search,
@@ -28,8 +31,8 @@ Singleton {
         return str.replace(/'/g, "'\\''");
     }
 
-    function getCommand(x, y, width, height, screenshotPath, action, saveDir = "") {
-        // Set command for action
+    function getScript(x, y, width, height, screenshotPath, action, saveDir = "") {
+        // Build the action script for the given region.
         const rx = Math.round(x);
         const ry = Math.round(y);
         const rw = Math.round(width);
@@ -47,11 +50,9 @@ Singleton {
         const rawSaveDir = saveDir;
 
         switch (action) {
-            case ScreenshotAction.Action.Copy: {
+            case ScreenshotAction.SnipAction.Copy: {
                 let saveDir = rawSaveDir === "" ? "~/Pictures/Screenshots" : rawSaveDir;
-                return [
-                    "bash", "-c",
-                    `set -euo pipefail; ` +
+                return `set -euo pipefail; ` +
                     `SAVE_DIR='${escapeShellStr(saveDir)}'; ` +
                     `SAVE_DIR="\${SAVE_DIR/#\\~/$HOME}"; ` +
                     `mkdir -p "$SAVE_DIR" && ` +
@@ -61,13 +62,11 @@ Singleton {
                     `ACTION=$(notify-send "Screenshot Captured" "Saved to $saveFile" -i "$saveFile" -a "Screenshot" --action="open=Open" --action="folder=Open Folder" || true); ` +
                     `if [ "$ACTION" = "open" ]; then xdg-open "$saveFile"; elif [ "$ACTION" = "folder" ]; then xdg-open "$SAVE_DIR"; fi; ` +
                     `${cleanup}`
-                ]
             }
 
-            case ScreenshotAction.Action.Edit: {
+            case ScreenshotAction.SnipAction.Edit: {
                 let saveDir = rawSaveDir === "" ? "~/Pictures/Screenshots" : rawSaveDir;
-                return ["bash", "-c",
-                    `set -euo pipefail; ` +
+                return `set -euo pipefail; ` +
                     `SAVE_DIR='${escapeShellStr(saveDir)}'; ` +
                     `SAVE_DIR="\${SAVE_DIR/#\\~/$HOME}"; ` +
                     `mkdir -p "$SAVE_DIR" && ` +
@@ -92,22 +91,18 @@ Singleton {
                         `if [ "$ACTION" = "open" ]; then xdg-open "$saveFile"; elif [ "$ACTION" = "folder" ]; then xdg-open "$SAVE_DIR"; fi; ` +
                     `fi; ` +
                     `rm -f "$TMPF"; ${cleanup}`
-                ]
             }
 
-            case ScreenshotAction.Action.Search: {
+            case ScreenshotAction.SnipAction.Search: {
                 const tmpFile = Paths.runtimeTemp("snip-search.png")
-                return ["bash", "-c",
-                    `set -euo pipefail; ` +
+                return `set -euo pipefail; ` +
                     `${cropToFile(tmpFile)} && ` +
                     `xdg-open "${root.imageSearchEngineBaseUrl}$(${uploadAndGetUrl(tmpFile)})"; ` +
                     `rm -f '${tmpFile}'; ${cleanup}`
-                ]
             }
 
-            case ScreenshotAction.Action.CharRecognition:
-                return ["bash", "-c",
-                    `set -euo pipefail; TMPF=$(mktemp /tmp/qs-snip-XXXXXX.png); ` +
+            case ScreenshotAction.SnipAction.CharRecognition:
+                return `set -euo pipefail; TMPF=$(mktemp /tmp/qs-snip-XXXXXX.png); ` +
                     // Crop and heavily preprocess the image for Tesseract (upscale and grayscale for better accuracy)
                     `${cropBase} -colorspace gray -type grayscale -contrast-stretch 0 -resize 300% "$TMPF" && ` +
                     `LANGS=$(tesseract --list-langs 2>/dev/null | awk 'NR>1 && $1!="osd" {print $1}' | tr '\\n' '+' | sed 's/\\+$//'); ` +
@@ -119,17 +114,21 @@ Singleton {
                     `printf "%s" "$TEXT" | wl-copy; ` +
                     `notify-send "Text Recognized" "$TEXT" -a "Screenshot" || true; ` +
                     `rm -f "$TMPF"; ${cleanup}`
-                ]
 
-            case ScreenshotAction.Action.Record:
-                return ["bash", "-c", `spectacle -R r`]
+            case ScreenshotAction.SnipAction.Record:
+                return `spectacle -R r`
 
-            case ScreenshotAction.Action.RecordWithSound:
-                return ["bash", "-c", `spectacle -R r`]
+            case ScreenshotAction.SnipAction.RecordWithSound:
+                return `spectacle -R r`
 
             default:
                 console.warn("[Region Selector] Unknown snip action, skipping snip.");
                 return;
         }
+    }
+
+    function getCommand(x, y, width, height, screenshotPath, action, saveDir = "") {
+        const script = root.getScript(x, y, width, height, screenshotPath, action, saveDir);
+        return script ? ["bash", "-c", script] : undefined;
     }
 }

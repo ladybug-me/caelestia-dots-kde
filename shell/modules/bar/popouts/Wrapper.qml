@@ -47,15 +47,9 @@ Item {
             detachedMode = mode;
             focus = true;
         } else {
-            // Map mode strings to Nexus page indices (matching PageCompRegistry order)
-            const pageMap = {
-                "appearance": 0,
-                "network": 3,
-                "bluetooth": 4,
-                "audio": 5
-            };
-            const pageIdx = pageMap[mode] ?? 0;
-            WindowFactory.create(null, { initialPageIdx: pageIdx });
+            // The mode string is a page key; the registry owns the position.
+            const pageIdx = PageRegistry.indexForKey(mode);
+            WindowFactory.create(null, { initialPageIdx: pageIdx >= 0 ? pageIdx : 0 });
             close();
         }
         setAnims(false);
