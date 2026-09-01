@@ -42,6 +42,12 @@ PageBase {
             onToggled: Audio.setStreamMuted(Audio.sink, checked)
         }
 
+        ToggleRow {
+            text: qsTr("Show Inactive Devices")
+            checked: Audio.showInactiveDevices
+            onToggled: Audio.showInactiveDevices = checked
+        }
+
         AudioDeviceList {
             nodes: Audio.sinks
             currentId: Audio.sink?.id ?? -1

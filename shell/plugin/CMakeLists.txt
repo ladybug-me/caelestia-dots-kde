@@ -14,6 +14,7 @@ find_package(Qt6 REQUIRED COMPONENTS ShaderTools Core Qml Gui Quick QuickControl
 find_package(KF6WindowSystem REQUIRED)
 find_package(KF6GuiAddons REQUIRED)
 find_package(KF6NetworkManagerQt REQUIRED)
+find_package(KF6PulseAudioQt REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(Qalculate IMPORTED_TARGET libqalculate REQUIRED)
 pkg_check_modules(Pipewire IMPORTED_TARGET libpipewire-0.3 REQUIRED)

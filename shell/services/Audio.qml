@@ -12,6 +12,9 @@ import Caelestia.Services
 Singleton {
     id: root
 
+    property bool showInactiveDevices: false
+    onShowInactiveDevicesChanged: refreshNodes()
+
     property string previousSinkName: ""
     property string previousSourceName: ""
 
@@ -235,10 +238,14 @@ Singleton {
 
         for (const node of Pipewire.nodes.values) {
             if (!node.isStream) {
-                if (node.isSink)
-                    newSinks.push(node);
-                else if (node.audio)
-                    newSources.push(node);
+                if (node.isSink) {
+                    if (root.showInactiveDevices || !AudioBackend.isSinkInactive(node.name))
+                        newSinks.push(node);
+                }
+                else if (node.audio) {
+                    if (root.showInactiveDevices || !AudioBackend.isSourceInactive(node.name))
+                        newSources.push(node);
+                }
             } else if (node.audio) {
                 newStreams.push(node);
 

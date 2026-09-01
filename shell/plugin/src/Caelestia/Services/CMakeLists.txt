@@ -22,6 +22,8 @@ qml_module(caelestia-services
         beattracker.cpp
         audiocollector.cpp
         audioprovider.cpp
+        audiodevicebackend.cpp
+        audiodevicebackend.hpp
         ${CAVA_SOURCES}
         tickingservice.cpp
         sensorslib.cpp
@@ -100,6 +102,7 @@ qml_module(caelestia-services
         ${CAVA_LIBRARIES}
         Sensors::Sensors
         KF6::NetworkManagerQt
+        KF6::PulseAudioQt
         caelestia-core
         caelestia-config
 )
