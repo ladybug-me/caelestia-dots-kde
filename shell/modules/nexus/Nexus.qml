@@ -167,7 +167,7 @@ Item {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Update in progress")
+                        text: I18n.tr("Update in progress")
                         font: Tokens.font.title.small
                         color: Colours.palette.m3onSurface
                     }
@@ -175,7 +175,7 @@ Item {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Closing now will let the update keep running in the background, or you can cancel it first.")
+                    text: I18n.tr("Closing now will let the update keep running in the background, or you can cancel it first.")
                     wrapMode: Text.Wrap
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
@@ -189,7 +189,7 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     IconTextButton {
-                        text: qsTr("Cancel Update")
+                        text: I18n.tr("Cancel Update")
                         icon: "stop"
                         type: TextButton.Tonal
                         onClicked: {
@@ -200,7 +200,7 @@ Item {
                     }
 
                     IconTextButton {
-                        text: qsTr("Keep Running")
+                        text: I18n.tr("Keep Running")
                         icon: "close"
                         type: TextButton.Filled
                         onClicked: {

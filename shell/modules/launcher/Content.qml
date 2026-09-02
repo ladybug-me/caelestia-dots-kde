@@ -40,9 +40,9 @@ Item {
         function onClearHistoryFinished(success: bool): void {
             if (success) {
                 if (GlobalConfig.utilities.toasts.clipboardChanged)
-                    Toaster.toast(qsTr("Clipboard history cleared"), "", "delete");
+                    Toaster.toast(I18n.tr("Clipboard history cleared"), "", "delete");
             } else {
-                Toaster.toast(qsTr("Failed to clear clipboard history"), "", "error");
+                Toaster.toast(I18n.tr("Failed to clear clipboard history"), "", "error");
             }
         }
     }
@@ -100,7 +100,7 @@ Item {
 
             // StyledText {
             //     Layout.fillWidth: true
-            //     text: qsTr("Quick session controls")
+            //     text: I18n.tr("Quick session controls")
             //     color: Colours.palette.m3onSurfaceVariant
             //     font: Tokens.font.label.large
             // }
@@ -113,7 +113,7 @@ Item {
                     Layout.fillWidth: true
                     type: TextButton.Tonal
                     icon: "logout"
-                    text: qsTr("Log Out")
+                    text: I18n.tr("Log Out")
                     onClicked: root.triggerSessionCommand(["sh", "-c", "qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null"])
                 }
 
@@ -121,7 +121,7 @@ Item {
                     Layout.fillWidth: true
                     type: TextButton.Tonal
                     icon: "bedtime"
-                    text: qsTr("Sleep")
+                    text: I18n.tr("Sleep")
                     onClicked: root.triggerSessionCommand(["suspendThenHibernate"])
                 }
 
@@ -129,7 +129,7 @@ Item {
                     Layout.fillWidth: true
                     type: TextButton.Tonal
                     icon: "restart_alt"
-                    text: qsTr("Restart")
+                    text: I18n.tr("Restart")
                     inactiveColour: Colours.palette.m3secondaryContainer
                     inactiveOnColour: Colours.palette.m3onSecondaryContainer
                     onClicked: root.triggerSessionCommand(Config.session.commands.reboot)
@@ -139,7 +139,7 @@ Item {
                     Layout.fillWidth: true
                     type: TextButton.Tonal
                     icon: "power_settings_new"
-                    text: qsTr("Shut Down")
+                    text: I18n.tr("Shut Down")
                     inactiveColour: Colours.palette.m3errorContainer
                     inactiveOnColour: Colours.palette.m3onErrorContainer
                     onClicked: root.triggerSessionCommand(Config.session.commands.shutdown)
@@ -184,7 +184,7 @@ Item {
             topPadding: Tokens.padding.medium
             bottomPadding: Tokens.padding.medium
 
-            placeholderText: qsTr("Type \"%1\" for commands").arg(GlobalConfig.launcher.actionPrefix)
+            placeholderText: I18n.tr("Type \"%1\" for commands").arg(GlobalConfig.launcher.actionPrefix)
 
             onAccepted: {
                 const currentItem = list.currentList?.currentItem;
@@ -388,12 +388,12 @@ Item {
             spacing: Tokens.spacing.medium
 
             StyledText {
-                text: qsTr("Clear clipboard history?")
+                text: I18n.tr("Clear clipboard history?")
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
             }
 
             StyledText {
-                text: qsTr("This removes all clipboard entries.")
+                text: I18n.tr("This removes all clipboard entries.")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.small
             }
@@ -402,12 +402,12 @@ Item {
                 spacing: Tokens.spacing.small
 
                 TextButton {
-                    text: qsTr("Cancel")
+                    text: I18n.tr("Cancel")
                     onClicked: clearClipboardConfirmPopup.close()
                 }
 
                 TextButton {
-                    text: qsTr("Clear")
+                    text: I18n.tr("Clear")
                     type: TextButton.Filled
                     onClicked: {
                         clearClipboardConfirmPopup.close();

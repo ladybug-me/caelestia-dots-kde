@@ -91,7 +91,7 @@ Item {
                 if (xhr.status === 200) {
                     parseNews(xhr.responseText);
                 } else {
-                    errorMessage = qsTr("Failed to fetch news (Status: %1)").arg(xhr.status);
+                    errorMessage = I18n.tr("Failed to fetch news (Status: %1)").arg(xhr.status);
                 }
             }
         };
@@ -133,7 +133,7 @@ Item {
         }
         
         if (newsModel.count === 0) {
-            errorMessage = qsTr("No news articles found.");
+            errorMessage = I18n.tr("No news articles found.");
         }
     }
 
@@ -153,7 +153,7 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: qsTr("Arch Linux News")
+                text: I18n.tr("Arch Linux News")
                 font: Tokens.font.title.medium
                 color: root.cOnSurface
             }
@@ -181,7 +181,7 @@ Item {
 
             StyledText {
                 anchors.centerIn: parent
-                text: qsTr("Fetching latest news...")
+                text: I18n.tr("Fetching latest news...")
                 color: root.cOnSurfaceVariant
             }
         }

@@ -104,7 +104,7 @@ Variants {
 
                     BigRecorderButton {
                         materialSymbol: "screenshot_region"
-                        name: qsTr("Screenshot region")
+                        name: I18n.tr("Screenshot region")
                         onClicked: {
                             Visibilities.getForActive().screenshot = false;
                             Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "region", "screenshot"]);
@@ -113,7 +113,7 @@ Variants {
 
                     BigRecorderButton {
                         materialSymbol: "photo_camera"
-                        name: qsTr("Screenshot")
+                        name: I18n.tr("Screenshot")
                         onClicked: {
                             Visibilities.getForActive().screenshot = false;
                             Quickshell.execDetached(["bash", "-c", "spectacle -b -n -f -c 2>/dev/null || " +
@@ -123,7 +123,7 @@ Variants {
 
                     BigRecorderButton {
                         materialSymbol: "screen_record"
-                        name: qsTr("Record region")
+                        name: I18n.tr("Record region")
                         onClicked: {
                             Visibilities.getForActive().screenshot = false;
                             Quickshell.execDetached(["spectacle", "-R", "r"]);
@@ -132,7 +132,7 @@ Variants {
                     
                     BigRecorderButton {
                         materialSymbol: "capture"
-                        name: qsTr("Record screen")
+                        name: I18n.tr("Record screen")
                         onClicked: {
                             Visibilities.getForActive().screenshot = false;
                             Quickshell.execDetached(["spectacle", "-R", "s"]);
@@ -144,7 +144,7 @@ Variants {
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                     type: ButtonBase.Tonal
                     icon: "animated_images"
-                    text: qsTr("Open recordings folder")
+                    text: I18n.tr("Open recordings folder")
                     
                     inactiveColour: Colours.palette.m3surfaceContainerHigh
                     activeColour: Colours.palette.m3surfaceContainerHighest

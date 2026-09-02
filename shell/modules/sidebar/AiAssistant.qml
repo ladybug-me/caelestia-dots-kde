@@ -786,7 +786,7 @@ Item {
         onTriggered: {
             root.rateLimitSecondsLeft--;
             if (root.rateLimitSecondsLeft > 0) {
-                root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                root.currentActionText = I18n.tr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
                 return;
             }
             stop();
@@ -2138,7 +2138,7 @@ Item {
                             const waitMs = root.rateLimitDelayMs(xhr);
                             root.rateLimitRetries++;
                             root.rateLimitSecondsLeft = Math.max(1, Math.round(waitMs / 1000));
-                            root.currentActionText = qsTr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
+                            root.currentActionText = I18n.tr("Rate limited — retrying in %1s…").arg(root.rateLimitSecondsLeft);
                             root.isTyping = true;
                             root.isThinking = true;
                             rateLimitRetryTimer.forChat = root.currentChatId;
@@ -2430,7 +2430,7 @@ Item {
                  menuItems: providerVariants.instances
 
                  fallbackIcon: "cloud"
-                 fallbackText: qsTr("Provider")
+                 fallbackText: I18n.tr("Provider")
                  stateLayer.disabled: true
 
                  Variants {
@@ -2471,7 +2471,7 @@ Item {
                  menuItems: modelVariants.instances
 
                  fallbackIcon: "smart_toy"
-                 fallbackText: qsTr("Select Model")
+                 fallbackText: I18n.tr("Select Model")
                  stateLayer.disabled: true
 
                  Variants {
@@ -2511,7 +2511,7 @@ Item {
                  menuItems: effortVariants.instances
 
                  fallbackIcon: "neurology"
-                 fallbackText: qsTr("Effort")
+                 fallbackText: I18n.tr("Effort")
                  stateLayer.disabled: true
 
                  Variants {
@@ -2543,7 +2543,7 @@ Item {
                  menuItems: accountVariants.instances
 
                  fallbackIcon: "person"
-                 fallbackText: qsTr("Account")
+                 fallbackText: I18n.tr("Account")
                  stateLayer.disabled: true
 
                  Variants {
@@ -3088,7 +3088,7 @@ Item {
 
                          StyledText {
                              Layout.fillWidth: true
-                             text: qsTr("Suggestions")
+                             text: I18n.tr("Suggestions")
                              color: Colours.palette.m3onSurfaceVariant
                              font: Tokens.font.label.small
                          }
@@ -3212,7 +3212,7 @@ Item {
                                  id: inputArea
 
                                  verticalAlignment: TextInput.AlignVCenter
-                                 placeholderText: qsTr("Ask assistant...")
+                                 placeholderText: I18n.tr("Ask assistant...")
                                  color: Colours.palette.m3onSurface
                                  placeholderTextColor: Colours.palette.m3outline
                                  font: Tokens.font.body.small

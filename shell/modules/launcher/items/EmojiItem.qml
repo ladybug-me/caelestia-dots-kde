@@ -19,7 +19,7 @@ Item {
         Quickshell.execDetached(["wl-copy", root.modelData.ch]);
         Emojis.recordUsage(root.modelData.ch);
         if (GlobalConfig.utilities.toasts.clipboardChanged)
-            Toaster.toast(qsTr("Copied to clipboard"), root.modelData.ch + " " + root.modelData.name, "emoji_emotions");
+            Toaster.toast(I18n.tr("Copied to clipboard"), root.modelData.ch + " " + root.modelData.name, "emoji_emotions");
     }
 
     implicitHeight: Tokens.sizes.launcher.itemHeight

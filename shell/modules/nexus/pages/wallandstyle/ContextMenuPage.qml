@@ -14,7 +14,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Right Click Menu")
+    title: I18n.tr("Right Click Menu")
     isSubPage: true
     scrollable: true
 
@@ -37,12 +37,12 @@ PageBase {
     readonly property real emptyZoneHeight: Math.max(root.height - 120, 72)
 
     property var componentMeta: ({
-        "toggle_desktop_icons": { icon: "desktop_windows", name: qsTr("Desktop Icons") },
-        "wallpaper_style": { icon: "wallpaper", name: qsTr("Wallpaper & style") },
-        "next_wallpaper": { icon: "skip_next", name: qsTr("Next Wallpaper") },
-        "system_settings": { icon: "settings", name: qsTr("System Settings") },
-        "open_terminal": { icon: "terminal", name: qsTr("Open Terminal") },
-        "add_shortcut": { icon: "add", name: qsTr("Add Shortcut...") }
+        "toggle_desktop_icons": { icon: "desktop_windows", name: I18n.tr("Desktop Icons") },
+        "wallpaper_style": { icon: "wallpaper", name: I18n.tr("Wallpaper & style") },
+        "next_wallpaper": { icon: "skip_next", name: I18n.tr("Next Wallpaper") },
+        "system_settings": { icon: "settings", name: I18n.tr("System Settings") },
+        "open_terminal": { icon: "terminal", name: I18n.tr("Open Terminal") },
+        "add_shortcut": { icon: "add", name: I18n.tr("Add Shortcut...") }
     })
 
     function getModel(name) {
@@ -180,13 +180,13 @@ PageBase {
             spacing: Tokens.spacing.medium
 
             Text {
-                text: qsTr("Active menu items")
+                text: I18n.tr("Active menu items")
                 font: Tokens.font.title.small
                 color: Colours.palette.m3onSurface
             }
 
             Text {
-                text: qsTr("Drag to rearrange or disable")
+                text: I18n.tr("Drag to rearrange or disable")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
@@ -198,7 +198,7 @@ PageBase {
                 radius: Tokens.rounding.large
                 
                 Text {
-                    text: qsTr("Empty Menu")
+                    text: I18n.tr("Empty Menu")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -258,13 +258,13 @@ PageBase {
                     spacing: 0
                     
                     Text {
-                        text: qsTr("Library")
+                        text: I18n.tr("Library")
                         font: Tokens.font.title.small
                         color: Colours.palette.m3onSurface
                     }
 
                     Text {
-                        text: qsTr("Disabled items")
+                        text: I18n.tr("Disabled items")
                         font: Tokens.font.body.small
                         color: Colours.palette.m3onSurfaceVariant
                     }
@@ -275,9 +275,9 @@ PageBase {
                 TextButton {
                     id: addShortcutBtn
 
-                    text: qsTr("Add Shortcut...")
+                    text: I18n.tr("Add Shortcut...")
                     type: TextButton.Filled
-                    ToolTip.text: qsTr("Create a custom shortcut entry")
+                    ToolTip.text: I18n.tr("Create a custom shortcut entry")
                     ToolTip.visible: hovered
                     onClicked: {
                         addShortcutDialog.targetItem = addShortcutBtn;
@@ -292,7 +292,7 @@ PageBase {
                 color: "transparent"
                 
                 Text {
-                    text: qsTr("Empty")
+                    text: I18n.tr("Empty")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -483,7 +483,7 @@ PageBase {
                     
                     TextButton {
                         visible: raw.type === "custom"
-                        text: qsTr("Delete")
+                        text: I18n.tr("Delete")
                         type: TextButton.Filled
                         z: 100
                         onClicked: {

@@ -33,14 +33,14 @@ Item {
             StyledText {
                 Layout.topMargin: -Tokens.spacing.small
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("No widgets enabled")
+                text: I18n.tr("No widgets enabled")
                 font: Tokens.font.title.large
                 color: Colours.palette.m3onSurface
             }
 
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
-                text: qsTr("Enable widgets in the dashboard settings")
+                text: I18n.tr("Enable widgets in the dashboard settings")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
@@ -72,7 +72,7 @@ Item {
 
                     sourceComponent: HeroCard {
                         icon: "memory"
-                        label: qsTr("CPU")
+                        label: I18n.tr("CPU")
                         subLabel: Cpu.name
                         usage: Cpu.percentage
                         temperature: Cpu.temperature
@@ -91,7 +91,7 @@ Item {
 
                     sourceComponent: HeroCard {
                         icon: "desktop_windows"
-                        label: qsTr("GPU")
+                        label: I18n.tr("GPU")
                         subLabel: Gpu.name
                         usage: Gpu.percentage
                         temperature: Gpu.temperature

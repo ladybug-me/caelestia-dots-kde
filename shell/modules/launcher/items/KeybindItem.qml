@@ -65,7 +65,7 @@ Item {
             spacing: 0
 
             StyledText {
-                text: (modelData && modelData.bind) ? modelData.bind.replace(/\b[a-z]/g, l => l.toUpperCase()) : qsTr("No keybinds")
+                text: (modelData && modelData.bind) ? modelData.bind.replace(/\b[a-z]/g, l => l.toUpperCase()) : I18n.tr("No keybinds")
                 font: Tokens.font.body.medium
                 color: Colours.palette.m3onSurface
                 elide: Text.ElideRight

@@ -3,11 +3,12 @@ pragma ComponentBehavior: Bound
 import QtQuick.Layouts
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Taskbar Elements")
+    title: I18n.tr("Taskbar Elements")
     isSubPage: true
 
     ColumnLayout {
@@ -18,64 +19,64 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Main sections")
+            text: I18n.tr("Main sections")
         }
 
         NavRow {
             first: true
             icon: "workspaces"
-            label: qsTr("Workspaces")
-            status: qsTr("Indicators, window icons")
+            label: I18n.tr("Workspaces")
+            status: I18n.tr("Indicators, window icons")
             onClicked: root.nState.openSubPage(7)
         }
 
         NavRow {
             icon: "web_asset"
-            label: qsTr("Active window")
-            status: qsTr("Title display, popout")
+            label: I18n.tr("Active window")
+            status: I18n.tr("Title display, popout")
             onClicked: root.nState.openSubPage(8)
         }
 
         NavRow {
             icon: "widgets"
-            label: qsTr("Tray")
-            status: qsTr("System tray icons")
+            label: I18n.tr("Tray")
+            status: I18n.tr("System tray icons")
             onClicked: root.nState.openSubPage(9)
         }
 
         NavRow {
             icon: "signal_cellular_alt"
-            label: qsTr("Status icons")
-            status: qsTr("Visible indicators")
+            label: I18n.tr("Status icons")
+            status: I18n.tr("Visible indicators")
             onClicked: root.nState.openSubPage(10)
         }
 
         NavRow {
             icon: "schedule"
-            label: qsTr("Clock")
-            status: qsTr("Date, icon, background")
+            label: I18n.tr("Clock")
+            status: I18n.tr("Date, icon, background")
             onClicked: root.nState.openSubPage(11)
         }
 
         NavRow {
             icon: "dock"
-            label: qsTr("Dock")
-            status: Strings.localizeEnglishSpelling(qsTr("Positioning, recolouring"))
+            label: I18n.tr("Dock")
+            status: Strings.localizeEnglishSpelling(I18n.tr("Positioning, recolouring"))
             onClicked: root.nState.openSubPage(12)
         }
 
         NavRow {
             icon: "code"
-            label: qsTr("GitHub")
-            status: qsTr("Contributions, token setup")
+            label: I18n.tr("GitHub")
+            status: I18n.tr("Contributions, token setup")
             onClicked: root.nState.openSubPage(13)
         }
 
         NavRow {
             last: true
             icon: "update"
-            label: qsTr("Updates")
-            status: qsTr("Indicator visibility, automatic checks")
+            label: I18n.tr("Updates")
+            status: I18n.tr("Indicator visibility, automatic checks")
             onClicked: root.nState.openSubPage(17)
         }
     }

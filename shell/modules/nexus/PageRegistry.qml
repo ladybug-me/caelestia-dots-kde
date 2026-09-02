@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import qs.utils
+import qs.services
 
 QtObject {
     id: root
@@ -50,7 +51,7 @@ QtObject {
         let content = xhr.responseText;
         if (!content) return {};
         
-        let regex = /(?:text|label|title):\s*qsTr\(['"]([^'"]+)['"]\)/g;
+        let regex = /(?:text|label|title):\s*(?:qsTr|I18n\.tr)\(['"]([^'"]+)['"]\)/g;
         let match;
         let ngrams = {};
         while ((match = regex.exec(content)) !== null) {
@@ -73,7 +74,7 @@ QtObject {
                 settingDescription: page.description || "",
                 pageIdx: pageIdx,
                 subPageIdx: -1,
-                pageLabel: qsTr("Main Page"),
+                pageLabel: I18n.tr("Main Page"),
                 pageIcon: page.icon,
                 
                 labelVector: getNGrams(page.label, 3),

@@ -13,30 +13,30 @@ Item {
 
     readonly property string msg: {
         if (pam.fprintState === "error")
-            return qsTr("FP ERROR: %1").arg(pam.fprint.message);
+            return I18n.tr("FP ERROR: %1").arg(pam.fprint.message);
         if (pam.state === "error")
-            return qsTr("PW ERROR: %1").arg(pam.passwd.message);
+            return I18n.tr("PW ERROR: %1").arg(pam.passwd.message);
 
         if (pam.lockMessage)
             return pam.lockMessage;
 
         if (pam.state === "max" && pam.fprintState === "max")
-            return qsTr("Maximum password and fingerprint attempts reached.");
+            return I18n.tr("Maximum password and fingerprint attempts reached.");
         if (pam.state === "max") {
             if (pam.fprint.available)
-                return qsTr("Maximum password attempts reached. Please use fingerprint.");
-            return qsTr("Maximum password attempts reached.");
+                return I18n.tr("Maximum password attempts reached. Please use fingerprint.");
+            return I18n.tr("Maximum password attempts reached.");
         }
         if (pam.fprintState === "max")
-            return qsTr("Maximum fingerprint attempts reached. Please use password.");
+            return I18n.tr("Maximum fingerprint attempts reached. Please use password.");
 
         if (pam.state === "fail") {
             if (pam.fprint.available)
-                return qsTr("Incorrect password. Please try again or use fingerprint.");
-            return qsTr("Incorrect password. Please try again.");
+                return I18n.tr("Incorrect password. Please try again or use fingerprint.");
+            return I18n.tr("Incorrect password. Please try again.");
         }
         if (pam.fprintState === "fail")
-            return qsTr("Fingerprint not recognized (%1/%2). Please try again or use password.").arg(pam.fprint.tries).arg(Config.lock.maxFprintTries);
+            return I18n.tr("Fingerprint not recognized (%1/%2). Please try again or use password.").arg(pam.fprint.tries).arg(Config.lock.maxFprintTries);
 
         return "";
     }
@@ -44,20 +44,20 @@ Item {
     readonly property string stateMsg: {
         if (Hypr.kbLayout !== Hypr.defaultKbLayout) {
             if (Hypr.capsLock && Hypr.numLock)
-                return qsTr("Caps lock and Num lock are ON.\nKeyboard layout: %1").arg(Hypr.kbLayoutFull);
+                return I18n.tr("Caps lock and Num lock are ON.\nKeyboard layout: %1").arg(Hypr.kbLayoutFull);
             if (Hypr.capsLock)
-                return qsTr("Caps lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
+                return I18n.tr("Caps lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
             if (Hypr.numLock)
-                return qsTr("Num lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
-            return qsTr("Keyboard layout: %1").arg(Hypr.kbLayoutFull);
+                return I18n.tr("Num lock is ON. Kb layout: %1").arg(Hypr.kbLayoutFull);
+            return I18n.tr("Keyboard layout: %1").arg(Hypr.kbLayoutFull);
         }
 
         if (Hypr.capsLock && Hypr.numLock)
-            return qsTr("Caps lock and Num lock are ON.");
+            return I18n.tr("Caps lock and Num lock are ON.");
         if (Hypr.capsLock)
-            return qsTr("Caps lock is ON.");
+            return I18n.tr("Caps lock is ON.");
         if (Hypr.numLock)
-            return qsTr("Num lock is ON.");
+            return I18n.tr("Num lock is ON.");
 
         return "";
     }

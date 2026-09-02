@@ -24,14 +24,14 @@ Item {
     property string description: switch (root.action) {
     case RegionSelection.SnipAction.Copy:
     case RegionSelection.SnipAction.Edit:
-        return qsTr("Copy region (LMB) or annotate (RMB)");
+        return I18n.tr("Copy region (LMB) or annotate (RMB)");
     case RegionSelection.SnipAction.Search:
-        return qsTr("Search with Google Lens");
+        return I18n.tr("Search with Google Lens");
     case RegionSelection.SnipAction.CharRecognition:
-        return qsTr("Recognize text");
+        return I18n.tr("Recognize text");
     case RegionSelection.SnipAction.Record:
     case RegionSelection.SnipAction.RecordWithSound:
-        return qsTr("Record region");
+        return I18n.tr("Record region");
     }
 
     property string materialSymbol: switch (root.action) {

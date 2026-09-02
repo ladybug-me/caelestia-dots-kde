@@ -17,7 +17,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Select wallpaper")
+    title: I18n.tr("Select wallpaper")
 
     property color sortColor: "transparent"
 
@@ -86,7 +86,7 @@ PageBase {
 
             IconTextButton {
                 icon: "photo_library"
-                text: qsTr("Browse")
+                text: I18n.tr("Browse")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -97,8 +97,8 @@ PageBase {
                 FileDialog {
                     id: browseDialog
 
-                    title: qsTr("Select an image")
-                    filterLabel: qsTr("Image files")
+                    title: I18n.tr("Select an image")
+                    filterLabel: I18n.tr("Image files")
                     filters: Images.validImageExtensions
                     onAccepted: path => {
                         Wallpapers.setWallpaper(path);
@@ -108,7 +108,7 @@ PageBase {
 
             IconTextButton {
                 icon: "shuffle"
-                text: qsTr("Random")
+                text: I18n.tr("Random")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -124,7 +124,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.medium
-            text: qsTr("Featured wallpapers")
+            text: I18n.tr("Featured wallpapers")
             font: Tokens.font.title.small
         }
 
@@ -347,14 +347,14 @@ PageBase {
 
                 type: SplitButton.Tonal
                 fallbackIcon: "collections"
-                fallbackText: qsTr("All")
+                fallbackText: I18n.tr("All")
                 minLeftWidth: 100
 
                 menuItems: [
                     MenuItem {
                         property string filterValue: "all"
 
-                        text: qsTr("All")
+                        text: I18n.tr("All")
                         icon: "collections"
                         onClicked: {
                             if (root.nState) root.nState.wallpaperFilterType = "all"
@@ -363,7 +363,7 @@ PageBase {
                     MenuItem {
                         property string filterValue: "image"
 
-                        text: qsTr("Images")
+                        text: I18n.tr("Images")
                         icon: "image"
                         onClicked: {
                             if (root.nState) root.nState.wallpaperFilterType = "image"
@@ -372,7 +372,7 @@ PageBase {
                     MenuItem {
                         property string filterValue: "gif"
 
-                        text: qsTr("GIFs")
+                        text: I18n.tr("GIFs")
                         icon: "gif"
                         onClicked: {
                             if (root.nState) root.nState.wallpaperFilterType = "gif"
@@ -381,7 +381,7 @@ PageBase {
                     MenuItem {
                         property string filterValue: "video"
 
-                        text: qsTr("Videos")
+                        text: I18n.tr("Videos")
                         icon: "movie"
                         onClicked: {
                             if (root.nState) root.nState.wallpaperFilterType = "video"
@@ -398,7 +398,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.large
-            text: qsTr("Local wallpapers")
+            text: I18n.tr("Local wallpapers")
             font: Tokens.font.title.small
         }
 
@@ -550,7 +550,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("No local wallpapers found")
+                        text: I18n.tr("No local wallpapers found")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.title.small
                     }

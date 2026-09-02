@@ -13,7 +13,7 @@ PageBase {
     id: root
 
     isSubPage: true
-    title: qsTr("Desktop Addons")
+    title: I18n.tr("Desktop Addons")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -33,7 +33,7 @@ PageBase {
             ToggleRow {
                 Layout.fillWidth: true
                 first: true
-                text: qsTr("Desktop clock")
+                text: I18n.tr("Desktop clock")
                 checked: Config.background.desktopClock.enabled
                 onToggled: GlobalConfig.background.desktopClock.enabled = checked
             }
@@ -41,7 +41,7 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Desktop lyrics")
+                text: I18n.tr("Desktop lyrics")
                 checked: Config.background.desktopLyrics.enabled
                 onToggled: {
                     GlobalConfig.background.desktopLyrics.enabled = checked;
@@ -53,8 +53,8 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Auto-hide lyrics")
-                subtext: qsTr("Hide lyrics when a window is open")
+                text: I18n.tr("Auto-hide lyrics")
+                subtext: I18n.tr("Hide lyrics when a window is open")
                 checked: Config.background.desktopLyrics.autoHide
                 onToggled: GlobalConfig.background.desktopLyrics.autoHide = checked
                 enabled: Config.background.desktopLyrics.enabled || Config.background.desktopLyrics.autoHide
@@ -63,8 +63,8 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Background visualiser")
-                subtext: qsTr("Show music visualiser on wallpaper (May consume more power)")
+                text: I18n.tr("Background visualiser")
+                subtext: I18n.tr("Show music visualiser on wallpaper (May consume more power)")
                 checked: Config.background.visualiser.enabled
                 onToggled: {
                     GlobalConfig.background.visualiser.enabled = checked;
@@ -76,8 +76,8 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Auto-hide visualiser")
-                subtext: qsTr("Hide visualiser when a window is fullscreen")
+                text: I18n.tr("Auto-hide visualiser")
+                subtext: I18n.tr("Hide visualiser when a window is fullscreen")
                 checked: Config.background.visualiser.autoHide
                 onToggled: GlobalConfig.background.visualiser.autoHide = checked
                 enabled: Config.background.visualiser.enabled || Config.background.visualiser.autoHide
@@ -86,8 +86,8 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: qsTr("Hide on all monitors")
-                subtext: qsTr("Also hide on all other monitors if disabled by a window")
+                text: I18n.tr("Hide on all monitors")
+                subtext: I18n.tr("Also hide on all other monitors if disabled by a window")
                 checked: Config.background.visualiser.hideOnAllMonitors
                 onToggled: GlobalConfig.background.visualiser.hideOnAllMonitors = checked
                 enabled: Config.background.visualiser.enabled && Config.background.visualiser.autoHide
@@ -97,7 +97,7 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 last: true
-                text: qsTr("Shimeji characters")
+                text: I18n.tr("Shimeji characters")
                 checked: Config.shimeji.enabled
                 onToggled: GlobalConfig.shimeji.enabled = checked
             }

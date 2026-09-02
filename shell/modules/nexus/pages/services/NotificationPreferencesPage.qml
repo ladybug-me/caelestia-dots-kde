@@ -3,54 +3,55 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.components.controls
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
     readonly property list<MenuItem> fullscreenItems: [
         MenuItem {
-            text: qsTr("Off")
+            text: I18n.tr("Off")
             icon: "notifications_off"
         },
         MenuItem {
-            text: qsTr("On")
+            text: I18n.tr("On")
             icon: "notifications"
         }
     ]
     readonly property list<string> fullscreenValues: ["off", "on"]
     readonly property list<MenuItem> positionItems: [
         MenuItem {
-            text: qsTr("Auto")
+            text: I18n.tr("Auto")
             icon: "auto_awesome"
         },
         MenuItem {
-            text: qsTr("Top Left")
+            text: I18n.tr("Top Left")
             icon: "north_west"
         },
         MenuItem {
-            text: qsTr("Top Center")
+            text: I18n.tr("Top Center")
             icon: "north"
         },
         MenuItem {
-            text: qsTr("Top Right")
+            text: I18n.tr("Top Right")
             icon: "north_east"
         },
         MenuItem {
-            text: qsTr("Bottom Left")
+            text: I18n.tr("Bottom Left")
             icon: "south_west"
         },
         MenuItem {
-            text: qsTr("Bottom Center")
+            text: I18n.tr("Bottom Center")
             icon: "south"
         },
         MenuItem {
-            text: qsTr("Bottom Right")
+            text: I18n.tr("Bottom Right")
             icon: "south_east"
         }
     ]
     readonly property list<string> positionValues: ["auto", "top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"]
 
-    title: qsTr("Notifications")
+    title: I18n.tr("Notifications")
     isSubPage: true
 
     ColumnLayout {
@@ -61,43 +62,43 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Display")
+            text: I18n.tr("Display")
         }
 
         SelectRow {
             first: true
-            label: qsTr("Show in fullscreen")
-            subtext: qsTr("Allow notifications over fullscreen apps")
+            label: I18n.tr("Show in fullscreen")
+            subtext: I18n.tr("Allow notifications over fullscreen apps")
             menuItems: root.fullscreenItems
             active: root.fullscreenItems[Math.max(0, root.fullscreenValues.indexOf(GlobalConfig.notifs.fullscreen))]
             onSelected: item => GlobalConfig.notifs.fullscreen = root.fullscreenValues[root.fullscreenItems.indexOf(item)]
         }
 
         SelectRow {
-            label: qsTr("Position")
-            subtext: qsTr("Where notification popups appear")
+            label: I18n.tr("Position")
+            subtext: I18n.tr("Where notification popups appear")
             menuItems: root.positionItems
             active: root.positionItems[Math.max(0, root.positionValues.indexOf(GlobalConfig.notifs.position))]
             onSelected: item => GlobalConfig.notifs.position = root.positionValues[root.positionItems.indexOf(item)]
         }
 
         ToggleRow {
-            text: qsTr("Expire automatically")
-            subtext: qsTr("Dismiss notifications after their timeout")
+            text: I18n.tr("Expire automatically")
+            subtext: I18n.tr("Dismiss notifications after their timeout")
             checked: GlobalConfig.notifs.expire
             onToggled: GlobalConfig.notifs.expire = checked
         }
 
         ToggleRow {
-            text: qsTr("Open expanded")
-            subtext: qsTr("Show notifications expanded by default")
+            text: I18n.tr("Open expanded")
+            subtext: I18n.tr("Show notifications expanded by default")
             checked: GlobalConfig.notifs.openExpanded
             onToggled: GlobalConfig.notifs.openExpanded = checked
         }
 
         StepperRow {
-            label: qsTr("Default timeout")
-            subtext: qsTr("Seconds before a notification dismisses")
+            label: I18n.tr("Default timeout")
+            subtext: I18n.tr("Seconds before a notification dismisses")
             value: GlobalConfig.notifs.defaultExpireTimeout / 1000
             from: 1
             to: 60
@@ -106,8 +107,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Group preview count")
-            subtext: qsTr("Notifications shown before a group collapses")
+            label: I18n.tr("Group preview count")
+            subtext: I18n.tr("Notifications shown before a group collapses")
             value: GlobalConfig.notifs.groupPreviewNum
             from: 1
             to: 10
@@ -116,8 +117,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Max popup notifications")
-            subtext: qsTr("Only the newest popups are shown; the rest stay in the sidebar")
+            label: I18n.tr("Max popup notifications")
+            subtext: I18n.tr("Only the newest popups are shown; the rest stay in the sidebar")
             value: GlobalConfig.notifs.maxPopups
             from: 0
             to: 30
@@ -127,8 +128,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Max stored notifications")
-            subtext: qsTr("Older notifications are dropped when the limit is reached")
+            label: I18n.tr("Max stored notifications")
+            subtext: I18n.tr("Older notifications are dropped when the limit is reached")
             value: GlobalConfig.notifs.maxNotifs
             from: 20
             to: 2000
@@ -137,14 +138,14 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Taskbar")
+            text: I18n.tr("Taskbar")
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Show notification icon")
-            subtext: qsTr("Show notifications in taskbar status icons")
+            text: I18n.tr("Show notification icon")
+            subtext: I18n.tr("Show notifications in taskbar status icons")
             checked: Config.bar.status.showNotifications
             onToggled: GlobalConfig.bar.status.showNotifications = checked
         }

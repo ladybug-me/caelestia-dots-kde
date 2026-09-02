@@ -19,12 +19,12 @@ VerticalFadeFlickable {
 
     function categoryLabel(category: string): string {
         switch (category) {
-        case "personalization": return qsTr("Personalization");
-        case "connectivity": return qsTr("Connectivity");
-        case "controls": return qsTr("Controls");
-        case "shell": return qsTr("Caelestia");
-        case "system": return qsTr("System");
-        case "assistant": return qsTr("AI Assistant");
+        case "personalization": return I18n.tr("Personalization");
+        case "connectivity": return I18n.tr("Connectivity");
+        case "controls": return I18n.tr("Controls");
+        case "shell": return I18n.tr("Caelestia");
+        case "system": return I18n.tr("System");
+        case "assistant": return I18n.tr("AI Assistant");
         default: return category;
         }
     }

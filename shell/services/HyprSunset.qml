@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Caelestia
 import Caelestia.Services
+import qs.services
 
 Singleton {
     id: root
@@ -17,7 +18,7 @@ Singleton {
 
     function nightLightToast(message: string): void {
         if (GlobalConfig.utilities.toasts.nightLightChanged)
-            Toaster.toast(qsTr("Night Light"), qsTr(message), "dark_mode");
+            Toaster.toast(I18n.tr("Night Light"), I18n.tr(message), "dark_mode");
     }
 
     function setDayTemperature(temp): void {

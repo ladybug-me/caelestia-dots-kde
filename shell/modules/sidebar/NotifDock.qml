@@ -65,7 +65,7 @@ Item {
             anchors.right: parent.right
             anchors.leftMargin: Tokens.spacing.extraSmall
 
-            text: root.notifCount > 0 ? qsTr("notification%1").arg(root.notifCount === 1 ? "" : "s") : qsTr("Notifications")
+            text: root.notifCount > 0 ? I18n.tr("notification%1").arg(root.notifCount === 1 ? "" : "s") : I18n.tr("Notifications")
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.label.large
             elide: Text.ElideRight

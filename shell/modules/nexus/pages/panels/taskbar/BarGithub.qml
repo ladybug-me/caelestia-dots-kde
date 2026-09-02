@@ -14,7 +14,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("GitHub")
+    title: I18n.tr("GitHub")
     isSubPage: true
 
     function saveToken(token: string): void {
@@ -56,14 +56,14 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Configuration")
+            text: I18n.tr("Configuration")
         }
 
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Component background")
-            subtext: qsTr("Render a solid background behind the GitHub activity widget")
+            text: I18n.tr("Component background")
+            subtext: I18n.tr("Render a solid background behind the GitHub activity widget")
             checked: Config.bar.github.background
             onToggled: GlobalConfig.bar.github.background = checked
         }
@@ -94,13 +94,13 @@ PageBase {
                     spacing: 0
 
                     StyledText {
-                        text: qsTr("Personal Access Token")
+                        text: I18n.tr("Personal Access Token")
                         font: Tokens.font.body.small
                         elide: Text.ElideRight
                     }
 
                     StyledText {
-                        text: qsTr("Used to fetch your contribution graph (read:user)")
+                        text: I18n.tr("Used to fetch your contribution graph (read:user)")
                         font: Tokens.font.label.small
                         color: Colours.palette.m3onSurfaceVariant
                         elide: Text.ElideRight

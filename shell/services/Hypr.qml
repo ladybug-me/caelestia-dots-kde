@@ -396,9 +396,9 @@ Singleton {
             return;
 
         if (capsLock)
-            Toaster.toast(qsTr("Caps lock enabled"), qsTr("Caps lock is currently enabled"), "keyboard_capslock_badge");
+            Toaster.toast(I18n.tr("Caps lock enabled"), I18n.tr("Caps lock is currently enabled"), "keyboard_capslock_badge");
         else
-            Toaster.toast(qsTr("Caps lock disabled"), qsTr("Caps lock is currently disabled"), "keyboard_capslock");
+            Toaster.toast(I18n.tr("Caps lock disabled"), I18n.tr("Caps lock is currently disabled"), "keyboard_capslock");
     }
 
     onNumLockChanged: {
@@ -406,14 +406,14 @@ Singleton {
             return;
 
         if (numLock)
-            Toaster.toast(qsTr("Num lock enabled"), qsTr("Num lock is currently enabled"), "looks_one");
+            Toaster.toast(I18n.tr("Num lock enabled"), I18n.tr("Num lock is currently enabled"), "looks_one");
         else
-            Toaster.toast(qsTr("Num lock disabled"), qsTr("Num lock is currently disabled"), "timer_1");
+            Toaster.toast(I18n.tr("Num lock disabled"), I18n.tr("Num lock is currently disabled"), "timer_1");
     }
 
     onKbLayoutFullChanged: {
         if (hadKeyboard && GlobalConfig.utilities.toasts.kbLayoutChanged)
-            Toaster.toast(qsTr("Keyboard layout changed"), qsTr("Layout changed to: %1").arg(kbLayoutFull), "keyboard");
+            Toaster.toast(I18n.tr("Keyboard layout changed"), I18n.tr("Layout changed to: %1").arg(kbLayoutFull), "keyboard");
 
         hadKeyboard = kbLayoutFull.length > 0;
     }

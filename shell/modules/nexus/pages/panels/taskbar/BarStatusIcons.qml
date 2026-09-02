@@ -4,11 +4,12 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Status icons")
+    title: I18n.tr("Status icons")
     isSubPage: true
 
     ColumnLayout {
@@ -20,66 +21,66 @@ PageBase {
         // Visible icons
         SectionHeader {
             first: true
-            text: qsTr("Visible icons")
+            text: I18n.tr("Visible icons")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Speakers")
+            text: I18n.tr("Speakers")
             checked: Config.bar.status.showAudio
             onToggled: GlobalConfig.bar.status.showAudio = checked
         }
 
         ToggleRow {
-            text: qsTr("Microphone")
+            text: I18n.tr("Microphone")
             checked: Config.bar.status.showMicrophone
             onToggled: GlobalConfig.bar.status.showMicrophone = checked
         }
 
         ToggleRow {
-            text: qsTr("Keyboard layout")
+            text: I18n.tr("Keyboard layout")
             checked: Config.bar.status.showKbLayout
             onToggled: GlobalConfig.bar.status.showKbLayout = checked
         }
 
         ToggleRow {
-            text: qsTr("Network")
+            text: I18n.tr("Network")
             checked: Config.bar.status.showNetwork
             onToggled: GlobalConfig.bar.status.showNetwork = checked
         }
 
         ToggleRow {
-            text: qsTr("Wi-Fi")
+            text: I18n.tr("Wi-Fi")
             checked: Config.bar.status.showWifi
             onToggled: GlobalConfig.bar.status.showWifi = checked
         }
 
         ToggleRow {
-            text: qsTr("Bluetooth")
+            text: I18n.tr("Bluetooth")
             checked: Config.bar.status.showBluetooth
             onToggled: GlobalConfig.bar.status.showBluetooth = checked
         }
 
         ToggleRow {
-            text: qsTr("Night Light")
+            text: I18n.tr("Night Light")
             checked: Config.bar.status.showNightLight
             onToggled: GlobalConfig.bar.status.showNightLight = checked
         }
 
         ToggleRow {
-            text: qsTr("Battery")
+            text: I18n.tr("Battery")
             checked: Config.bar.status.showBattery
             onToggled: GlobalConfig.bar.status.showBattery = checked
         }
 
         ToggleRow {
-            text: qsTr("Peripheral Battery")
+            text: I18n.tr("Peripheral Battery")
             checked: Config.bar.status.showPeripheralBattery
             onToggled: GlobalConfig.bar.status.showPeripheralBattery = checked
         }
 
         ToggleRow {
-            text: qsTr("Notifications")
+            text: I18n.tr("Notifications")
             checked: Config.bar.status.showNotifications
             onToggled: GlobalConfig.bar.status.showNotifications = checked
         }
@@ -87,21 +88,21 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             last: true
-            text: qsTr("Caps lock")
+            text: I18n.tr("Caps lock")
             checked: Config.bar.status.showLockStatus
             onToggled: GlobalConfig.bar.status.showLockStatus = checked
         }
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Behaviour"))
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Popout on hover")
-            subtext: qsTr("Show a details popout when hovering the status icons")
+            text: I18n.tr("Popout on hover")
+            subtext: I18n.tr("Show a details popout when hovering the status icons")
             checked: Config.bar.popouts.statusIcons
             onToggled: GlobalConfig.bar.popouts.statusIcons = checked
         }

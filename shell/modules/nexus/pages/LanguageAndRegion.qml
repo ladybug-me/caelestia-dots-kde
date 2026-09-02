@@ -50,14 +50,27 @@ PageBase {
     // Clock format (index 0 = 24-hour, 1 = 12-hour — matches Time.useTwelveHourClock)
     readonly property list<MenuItem> clockItems: [
         MenuItem {
-            text: qsTr("24-hour")
+            text: I18n.tr("24-hour")
         },
         MenuItem {
-            text: qsTr("12-hour")
+            text: I18n.tr("12-hour")
         }
     ]
 
-    title: qsTr("Language & region")
+    // UI language options — index matches I18n.languages order.
+    readonly property list<MenuItem> languageItems: [
+        MenuItem {
+            text: I18n.nameFor("system")
+        },
+        MenuItem {
+            text: I18n.nameFor("en")
+        },
+        MenuItem {
+            text: I18n.nameFor("tr")
+        }
+    ]
+
+    title: I18n.tr("Language & region")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -68,56 +81,27 @@ PageBase {
         // Language
         SectionHeader {
             first: true
-            text: qsTr("Language")
+            text: I18n.tr("Language")
         }
 
-        // Read-only: the shell follows the system locale (no in-shell translations yet)
-        ConnectedRect {
-            Layout.fillWidth: true
+        // UI language selector — switches in-shell translations live.
+        SelectRow {
             first: true
             last: true
-            implicitHeight: localeLayout.implicitHeight + localeLayout.anchors.margins * 2
-
-            RowLayout {
-                id: localeLayout
-
-                anchors.fill: parent
-                anchors.margins: Tokens.padding.medium
-                anchors.leftMargin: Tokens.padding.largeIncreased
-                anchors.rightMargin: Tokens.padding.largeIncreased
-                spacing: Tokens.spacing.medium
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: qsTr("System language")
-                        font: Tokens.font.body.small
-                        elide: Text.ElideRight
-                    }
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: qsTr("Follows your system locale (%1)").arg(Qt.locale().name)
-                        color: Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.label.small
-                        elide: Text.ElideRight
-                    }
-                }
-
-                StyledText {
-                    text: Qt.locale().nativeLanguageName || Qt.locale().name
-                    color: Colours.palette.m3onSurfaceVariant
-                    font: Tokens.font.body.small
-                }
+            label: I18n.tr("Interface language")
+            subtext: I18n.tr("Language used across the shell interface")
+            menuItems: root.languageItems
+            active: root.languageItems[Math.max(0, I18n.languages.findIndex(l => l.code === I18n.language))]
+            onSelected: item => {
+                const idx = root.languageItems.indexOf(item);
+                if (idx >= 0 && idx < I18n.languages.length)
+                    I18n.setLanguage(I18n.languages[idx].code);
             }
         }
 
         // Weather
         SectionHeader {
-            text: qsTr("Weather")
+            text: I18n.tr("Weather")
         }
 
         ConnectedRect {
@@ -149,7 +133,7 @@ PageBase {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: Weather.city || qsTr("Using auto-detected location")
+                            text: Weather.city || I18n.tr("Using auto-detected location")
                             font: Tokens.font.body.builders.small.weight(Font.DemiBold).build()
                             elide: Text.ElideRight
                         }
@@ -157,8 +141,8 @@ PageBase {
                         StyledText {
                             Layout.fillWidth: true
                             text: GlobalConfig.services.weatherLocation
-                                ? qsTr("Saved weather coordinates: %1").arg(GlobalConfig.services.weatherLocation)
-                                : qsTr("No fixed location saved")
+                                ? I18n.tr("Saved weather coordinates: %1").arg(GlobalConfig.services.weatherLocation)
+                                : I18n.tr("No fixed location saved")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight
@@ -195,7 +179,7 @@ PageBase {
                             id: locationField
 
                             Layout.fillWidth: true
-                            placeholderText: qsTr("Search city or region")
+                            placeholderText: I18n.tr("Search city or region")
                             text: Weather.locationSearchQuery
 
                             onTextChanged: {
@@ -270,7 +254,7 @@ PageBase {
                         StyledText {
                             Layout.fillWidth: true
                             visible: !Weather.locationSearchError && locationField.text.length >= 2 && Weather.locationSearchResults.length === 0
-                            text: qsTr("No matching locations")
+                            text: I18n.tr("No matching locations")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                         }
@@ -338,14 +322,14 @@ PageBase {
 
                         TextButton {
                             type: TextButton.Filled
-                            text: qsTr("Apply location")
+                            text: I18n.tr("Apply location")
                             disabled: !root.pendingLocation
                             onClicked: root.applyPendingLocation()
                         }
 
                         TextButton {
                             type: TextButton.Tonal
-                            text: qsTr("Use auto-detect")
+                            text: I18n.tr("Use auto-detect")
                             onClicked: {
                                 root.pendingLocation = null;
                                 root.highlightedLocationIdx = -1;
@@ -359,7 +343,7 @@ PageBase {
 
                         StyledText {
                             width: root.compactWeatherPicker ? Math.max(120, actionFlow.width - Tokens.padding.extraLarge * 2) : 260
-                            text: root.pendingLocation ? (root.pendingLocation.label || root.pendingLocation.name) : qsTr("No location selected")
+                            text: root.pendingLocation ? (root.pendingLocation.label || root.pendingLocation.name) : I18n.tr("No location selected")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight
@@ -378,13 +362,13 @@ PageBase {
 
         // Units
         SectionHeader {
-            text: qsTr("Units")
+            text: I18n.tr("Units")
         }
 
         SelectRow {
             first: true
-            label: qsTr("Temperature")
-            subtext: qsTr("Units for weather temperatures")
+            label: I18n.tr("Temperature")
+            subtext: I18n.tr("Units for weather temperatures")
             menuItems: root.tempItems
             active: root.tempItems[GlobalConfig.services.useFahrenheit ? 1 : 0]
             onSelected: item => GlobalConfig.services.useFahrenheit = root.tempItems.indexOf(item) === 1
@@ -392,8 +376,8 @@ PageBase {
 
         SelectRow {
             last: true
-            label: qsTr("System temperatures")
-            subtext: qsTr("Units for CPU and GPU temperatures")
+            label: I18n.tr("System temperatures")
+            subtext: I18n.tr("Units for CPU and GPU temperatures")
             menuItems: root.tempItems
             active: root.tempItems[GlobalConfig.services.useFahrenheitPerformance ? 1 : 0]
             onSelected: item => GlobalConfig.services.useFahrenheitPerformance = root.tempItems.indexOf(item) === 1
@@ -401,14 +385,14 @@ PageBase {
 
         // Time & date
         SectionHeader {
-            text: qsTr("Time & date")
+            text: I18n.tr("Time & date")
         }
 
         SelectRow {
             first: true
             last: true
-            label: qsTr("Clock format")
-            subtext: qsTr("How times are shown across the shell")
+            label: I18n.tr("Clock format")
+            subtext: I18n.tr("How times are shown across the shell")
             menuItems: root.clockItems
             active: root.clockItems[GlobalConfig.services.useTwelveHourClock ? 1 : 0]
             onSelected: item => GlobalConfig.services.useTwelveHourClock = root.clockItems.indexOf(item) === 1

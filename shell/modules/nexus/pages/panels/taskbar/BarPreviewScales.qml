@@ -8,11 +8,12 @@ import qs.components
 import qs.components.controls
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Per Element Scaling Offset")
+    title: I18n.tr("Per Element Scaling Offset")
     isSubPage: true
 
     ColumnLayout {
@@ -24,8 +25,8 @@ PageBase {
         ToggleRow {
             first: true
             last: !GlobalConfig.bar.perElementPreviewScale && !GlobalConfig.bar.perElementFontScale
-            text: qsTr("Enable per-element offsets")
-            subtext: qsTr("Customize preview scale and font for each popout type")
+            text: I18n.tr("Enable per-element offsets")
+            subtext: I18n.tr("Customize preview scale and font for each popout type")
             checked: GlobalConfig.bar.perElementPreviewScale || GlobalConfig.bar.perElementFontScale
             onToggled: {
                 GlobalConfig.bar.perElementPreviewScale = checked;
@@ -48,9 +49,9 @@ PageBase {
                 spacing: Tokens.spacing.medium
 
                 TextButton {
-                    text: qsTr("RESET ALL")
+                    text: I18n.tr("RESET ALL")
                     type: TextButton.Filled
-                    ToolTip.text: qsTr("Reset all to 0")
+                    ToolTip.text: I18n.tr("Reset all to 0")
                     ToolTip.visible: hovered
                     onClicked: {
                         const keys = ["activeWindow", "audio", "battery", "bluetooth", "dock", "github", "lockStatus", "network", "notifications", "peripheralBattery", "trayMenu", "wirelessPassword"];
@@ -64,14 +65,14 @@ PageBase {
                 Item { Layout.fillWidth: true } // Spacer to push headers to the right
 
                 StyledText {
-                    text: qsTr("Scale")
+                    text: I18n.tr("Scale")
                     font: Tokens.font.label.large
                     Layout.preferredWidth: 156 // Matches CustomSpinBox width
                     horizontalAlignment: Text.AlignHCenter
                 }
 
                 StyledText {
-                    text: qsTr("Font")
+                    text: I18n.tr("Font")
                     font: Tokens.font.label.large
                     Layout.preferredWidth: 156 // Matches CustomSpinBox width
                     horizontalAlignment: Text.AlignHCenter
@@ -81,7 +82,7 @@ PageBase {
             DoubleStepperRow {
                 first: true
                 last: false
-                label: qsTr("Active window")
+                label: I18n.tr("Active window")
                 
                 scaleValue: GlobalConfig.bar.previewScales.activeWindow
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -94,7 +95,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Audio")
+                label: I18n.tr("Audio")
                 
                 scaleValue: GlobalConfig.bar.previewScales.audio
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -107,7 +108,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Battery")
+                label: I18n.tr("Battery")
                 
                 scaleValue: GlobalConfig.bar.previewScales.battery
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -120,7 +121,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Bluetooth")
+                label: I18n.tr("Bluetooth")
                 
                 scaleValue: GlobalConfig.bar.previewScales.bluetooth
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -133,7 +134,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Dock")
+                label: I18n.tr("Dock")
                 
                 scaleValue: GlobalConfig.bar.previewScales.dock
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -146,7 +147,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("GitHub")
+                label: I18n.tr("GitHub")
                 
                 scaleValue: GlobalConfig.bar.previewScales.github
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -159,7 +160,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Lock status")
+                label: I18n.tr("Lock status")
                 
                 scaleValue: GlobalConfig.bar.previewScales.lockStatus
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -172,7 +173,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Network")
+                label: I18n.tr("Network")
                 
                 scaleValue: GlobalConfig.bar.previewScales.network
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -185,7 +186,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Notifications")
+                label: I18n.tr("Notifications")
                 
                 scaleValue: GlobalConfig.bar.previewScales.notifications
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -198,7 +199,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Peripheral battery")
+                label: I18n.tr("Peripheral battery")
                 
                 scaleValue: GlobalConfig.bar.previewScales.peripheralBattery
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -211,7 +212,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: false
-                label: qsTr("Tray menu")
+                label: I18n.tr("Tray menu")
                 
                 scaleValue: GlobalConfig.bar.previewScales.trayMenu
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
@@ -224,7 +225,7 @@ PageBase {
             DoubleStepperRow {
                 first: false
                 last: true
-                label: qsTr("Wireless password")
+                label: I18n.tr("Wireless password")
                 
                 scaleValue: GlobalConfig.bar.previewScales.wirelessPassword
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05

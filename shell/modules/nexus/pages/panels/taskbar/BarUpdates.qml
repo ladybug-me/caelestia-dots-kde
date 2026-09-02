@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
@@ -16,7 +17,7 @@ PageBase {
         return false;
     }
 
-    title: qsTr("Updates")
+    title: I18n.tr("Updates")
     isSubPage: true
 
     ColumnLayout {
@@ -27,8 +28,8 @@ PageBase {
 
         ToggleRow {
             first: true
-            text: qsTr("Show update indicator")
-            subtext: qsTr("Always-visible icon in the taskbar that changes when a Caelestia update is available")
+            text: I18n.tr("Show update indicator")
+            subtext: I18n.tr("Always-visible icon in the taskbar that changes when a Caelestia update is available")
             checked: root.indicatorEnabled
             onToggled: {
                 const entries = GlobalConfig.bar.entries ? [...GlobalConfig.bar.entries] : [];
@@ -43,8 +44,8 @@ PageBase {
 
         ToggleRow {
             last: true
-            text: qsTr("Enable update checking")
-            subtext: qsTr("Enables the update indicator and periodic checks (every 30 minutes)")
+            text: I18n.tr("Enable update checking")
+            subtext: I18n.tr("Enables the update indicator and periodic checks (every 30 minutes)")
             checked: GlobalConfig.general.checkUpdates
             onToggled: GlobalConfig.general.checkUpdates = checked
         }

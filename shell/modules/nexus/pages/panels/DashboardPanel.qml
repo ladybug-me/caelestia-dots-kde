@@ -9,73 +9,74 @@ import qs.components
 import qs.components.controls
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Dashboard")
+    title: I18n.tr("Dashboard")
     isSubPage: true
 
     readonly property list<MenuItem> dashboardShapeItems: [
         MenuItem {
             property int value: MaterialShape.Circle
 
-            text: qsTr("Circle")
+            text: I18n.tr("Circle")
         },
         MenuItem {
             property int value: MaterialShape.Square
 
-            text: qsTr("Square")
+            text: I18n.tr("Square")
         },
         MenuItem {
             property int value: MaterialShape.Pill
 
-            text: qsTr("Pill")
+            text: I18n.tr("Pill")
         },
         MenuItem {
             property int value: MaterialShape.Diamond
 
-            text: qsTr("Diamond")
+            text: I18n.tr("Diamond")
         },
         MenuItem {
             property int value: MaterialShape.ClamShell
 
-            text: qsTr("Clam Shell")
+            text: I18n.tr("Clam Shell")
         },
         MenuItem {
             property int value: MaterialShape.Pentagon
 
-            text: qsTr("Pentagon")
+            text: I18n.tr("Pentagon")
         },
         MenuItem {
             property int value: MaterialShape.Gem
 
-            text: qsTr("Gem")
+            text: I18n.tr("Gem")
         },
         MenuItem {
             property int value: MaterialShape.Cookie4Sided
 
-            text: qsTr("Cookie 4-Sided")
+            text: I18n.tr("Cookie 4-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie6Sided
 
-            text: qsTr("Cookie 6-Sided")
+            text: I18n.tr("Cookie 6-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie7Sided
 
-            text: qsTr("Cookie 7-Sided")
+            text: I18n.tr("Cookie 7-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie9Sided
 
-            text: qsTr("Cookie 9-Sided")
+            text: I18n.tr("Cookie 9-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie12Sided
 
-            text: qsTr("Cookie 12-Sided")
+            text: I18n.tr("Cookie 12-Sided")
         }
     ]
 
@@ -83,62 +84,62 @@ PageBase {
         MenuItem {
             property int value: MaterialShape.Circle
 
-            text: qsTr("Circle")
+            text: I18n.tr("Circle")
         },
         MenuItem {
             property int value: MaterialShape.Square
 
-            text: qsTr("Square")
+            text: I18n.tr("Square")
         },
         MenuItem {
             property int value: MaterialShape.Pill
 
-            text: qsTr("Pill")
+            text: I18n.tr("Pill")
         },
         MenuItem {
             property int value: MaterialShape.Diamond
 
-            text: qsTr("Diamond")
+            text: I18n.tr("Diamond")
         },
         MenuItem {
             property int value: MaterialShape.ClamShell
 
-            text: qsTr("Clam Shell")
+            text: I18n.tr("Clam Shell")
         },
         MenuItem {
             property int value: MaterialShape.Pentagon
 
-            text: qsTr("Pentagon")
+            text: I18n.tr("Pentagon")
         },
         MenuItem {
             property int value: MaterialShape.Gem
 
-            text: qsTr("Gem")
+            text: I18n.tr("Gem")
         },
         MenuItem {
             property int value: MaterialShape.Cookie4Sided
 
-            text: qsTr("Cookie 4-Sided")
+            text: I18n.tr("Cookie 4-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie6Sided
 
-            text: qsTr("Cookie 6-Sided")
+            text: I18n.tr("Cookie 6-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie7Sided
 
-            text: qsTr("Cookie 7-Sided")
+            text: I18n.tr("Cookie 7-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie9Sided
 
-            text: qsTr("Cookie 9-Sided")
+            text: I18n.tr("Cookie 9-Sided")
         },
         MenuItem {
             property int value: MaterialShape.Cookie12Sided
 
-            text: qsTr("Cookie 12-Sided")
+            text: I18n.tr("Cookie 12-Sided")
         }
     ]
 
@@ -151,30 +152,30 @@ PageBase {
         // General
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: I18n.tr("General")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Enabled")
+            text: I18n.tr("Enabled")
             checked: Config.dashboard.enabled
             onToggled: GlobalConfig.dashboard.enabled = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Show on hover")
-            subtext: qsTr("Reveal when the cursor reaches the screen edge")
+            text: I18n.tr("Show on hover")
+            subtext: I18n.tr("Reveal when the cursor reaches the screen edge")
             checked: Config.dashboard.showOnHover
             onToggled: GlobalConfig.dashboard.showOnHover = checked
         }
 
         SelectRow {
             Layout.fillWidth: true
-            label: qsTr("Dashboard profile picture shape")
-            subtext: qsTr("Choose the shape of the profile picture on the dashboard")
+            label: I18n.tr("Dashboard profile picture shape")
+            subtext: I18n.tr("Choose the shape of the profile picture on the dashboard")
             fallbackIcon: "person"
-            fallbackText: qsTr("Pill")
+            fallbackText: I18n.tr("Pill")
             active: {
                 for (let i = 0; i < dashboardShapeItems.length; i++) {
                     if (dashboardShapeItems[i].value === GlobalConfig.dashboard.profilePicShape)
@@ -191,10 +192,10 @@ PageBase {
         SelectRow {
             Layout.fillWidth: true
             last: true
-            label: qsTr("Lock screen profile picture shape")
-            subtext: qsTr("Choose the shape of the profile picture on the lock screen")
+            label: I18n.tr("Lock screen profile picture shape")
+            subtext: I18n.tr("Choose the shape of the profile picture on the lock screen")
             fallbackIcon: "lock"
-            fallbackText: qsTr("Clam Shell")
+            fallbackText: I18n.tr("Clam Shell")
             active: {
                 for (let i = 0; i < lockShapeItems.length; i++) {
                     if (lockShapeItems[i].value === GlobalConfig.lock.profilePicShape)
@@ -210,70 +211,70 @@ PageBase {
 
         // Tabs
         SectionHeader {
-            text: qsTr("Tabs")
+            text: I18n.tr("Tabs")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Dashboard")
+            text: I18n.tr("Dashboard")
             checked: Config.dashboard.showDashboard
             onToggled: GlobalConfig.dashboard.showDashboard = checked
         }
 
         ToggleRow {
-            text: qsTr("Media")
+            text: I18n.tr("Media")
             checked: Config.dashboard.showMedia
             onToggled: GlobalConfig.dashboard.showMedia = checked
         }
 
         ToggleRow {
-            text: qsTr("Performance")
+            text: I18n.tr("Performance")
             checked: Config.dashboard.showPerformance
             onToggled: GlobalConfig.dashboard.showPerformance = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Weather")
+            text: I18n.tr("Weather")
             checked: Config.dashboard.showWeather
             onToggled: GlobalConfig.dashboard.showWeather = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Terminal")
+            text: I18n.tr("Terminal")
             checked: Config.dashboard.showTerminal
             onToggled: GlobalConfig.dashboard.showTerminal = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: Strings.localizeEnglishSpelling(qsTr("Recolour media GIF"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Apply system theme colours to the media GIF"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Recolour media GIF"))
+            subtext: Strings.localizeEnglishSpelling(I18n.tr("Apply system theme colours to the media GIF"))
             checked: Config.dashboard.colorizeMediaGif
             onToggled: GlobalConfig.dashboard.colorizeMediaGif = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Use material shapes")
-            subtext: qsTr("Replace the media GIF with audio-reactive material shapes")
+            text: I18n.tr("Use material shapes")
+            subtext: I18n.tr("Replace the media GIF with audio-reactive material shapes")
             checked: Config.dashboard.useMediaShapes
             onToggled: GlobalConfig.dashboard.useMediaShapes = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: Strings.localizeEnglishSpelling(qsTr("Randomize shape colours"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Randomly shift shape colours while morphing"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Randomize shape colours"))
+            subtext: Strings.localizeEnglishSpelling(I18n.tr("Randomly shift shape colours while morphing"))
             checked: Config.dashboard.randomizeMediaShapeColors
             onToggled: GlobalConfig.dashboard.randomizeMediaShapeColors = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Sync with music")
-            subtext: qsTr("Randomly pick shapes to the beat instead of bass level")
+            text: I18n.tr("Sync with music")
+            subtext: I18n.tr("Randomly pick shapes to the beat instead of bass level")
             checked: Config.dashboard.syncMediaShapesToBeat
             onToggled: GlobalConfig.dashboard.syncMediaShapesToBeat = checked
         }
@@ -281,65 +282,65 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             last: true
-            text: qsTr("Welcome splash")
+            text: I18n.tr("Welcome splash")
             visible: typeof KWinActiveWindowBridge === "undefined"
-            subtext: qsTr("Show a welcome message on the dashboard")
+            subtext: I18n.tr("Show a welcome message on the dashboard")
             checked: Config.dashboard.showHyprlandSplash
             onToggled: GlobalConfig.dashboard.showHyprlandSplash = checked
         }
 
         // Performance widgets
         SectionHeader {
-            text: qsTr("Performance widgets")
+            text: I18n.tr("Performance widgets")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Battery")
+            text: I18n.tr("Battery")
             checked: Config.dashboard.performance.showBattery
             onToggled: GlobalConfig.dashboard.performance.showBattery = checked
         }
 
         ToggleRow {
-            text: qsTr("GPU")
+            text: I18n.tr("GPU")
             checked: Config.dashboard.performance.showGpu
             onToggled: GlobalConfig.dashboard.performance.showGpu = checked
         }
 
         ToggleRow {
-            text: qsTr("CPU")
+            text: I18n.tr("CPU")
             checked: Config.dashboard.performance.showCpu
             onToggled: GlobalConfig.dashboard.performance.showCpu = checked
         }
 
         ToggleRow {
-            text: qsTr("Memory")
+            text: I18n.tr("Memory")
             checked: Config.dashboard.performance.showMemory
             onToggled: GlobalConfig.dashboard.performance.showMemory = checked
         }
 
         ToggleRow {
-            text: qsTr("Storage")
+            text: I18n.tr("Storage")
             checked: Config.dashboard.performance.showStorage
             onToggled: GlobalConfig.dashboard.performance.showStorage = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Network")
+            text: I18n.tr("Network")
             checked: Config.dashboard.performance.showNetwork
             onToggled: GlobalConfig.dashboard.performance.showNetwork = checked
         }
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Behaviour"))
         }
 
         StepperRow {
             first: true
-            label: qsTr("Hover trigger depth")
-            subtext: qsTr("Distance in from the screen edge that opens the dashboard")
+            label: I18n.tr("Hover trigger depth")
+            subtext: I18n.tr("Distance in from the screen edge that opens the dashboard")
             value: Config.dashboard.hoverThickness
             from: 1
             to: 100
@@ -348,8 +349,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Hover trigger width")
-            subtext: qsTr("How much of the top edge opens the dashboard, as a percentage of its width")
+            label: I18n.tr("Hover trigger width")
+            subtext: I18n.tr("How much of the top edge opens the dashboard, as a percentage of its width")
             value: Config.dashboard.hoverWidth
             from: 10
             to: 100
@@ -359,8 +360,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the dashboard opens")
+            label: I18n.tr("Drag threshold")
+            subtext: I18n.tr("Pixels dragged before the dashboard opens")
             value: Config.dashboard.dragThreshold
             from: 0
             to: 200

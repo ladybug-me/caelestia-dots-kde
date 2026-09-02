@@ -103,13 +103,13 @@ Item {
                             Layout.alignment: Qt.AlignHCenter
                         }
                         StyledText {
-                            text: qsTr("No active client")
+                            text: I18n.tr("No active client")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.body.builders.large.size(28).weight(Font.Medium).build()
                             Layout.alignment: Qt.AlignHCenter
                         }
                         StyledText {
-                            text: qsTr("Try switching to a window")
+                            text: I18n.tr("Try switching to a window")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.body.large
                             Layout.alignment: Qt.AlignHCenter

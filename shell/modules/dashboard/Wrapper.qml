@@ -7,6 +7,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.filedialog
 import qs.utils
+import qs.services
 
 Item {
     id: root
@@ -16,8 +17,8 @@ Item {
         reloadableId: "dashboardState"
     }
     readonly property FileDialog facePicker: FileDialog {
-        title: qsTr("Select a profile picture")
-        filterLabel: qsTr("Image files")
+        title: I18n.tr("Select a profile picture")
+        filterLabel: I18n.tr("Image files")
         filters: Images.validImageExtensions
         onAccepted: path => {
             if (CUtils.copyFile(Qt.resolvedUrl(path), Qt.resolvedUrl(`${Paths.home}/.face`)))

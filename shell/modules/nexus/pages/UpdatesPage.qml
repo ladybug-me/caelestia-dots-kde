@@ -19,7 +19,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Updates")
+    title: I18n.tr("Updates")
 
     // ── Branch menu items ──────────────────────────────────────────────────
     readonly property list<MenuItem> branchItems: branchVariants.instances
@@ -244,19 +244,19 @@ PageBase {
                     maximumLineCount: 2
                     elide: Text.ElideRight
                     text: {
-                        if (root.updateProgress === 1.0) return qsTr("Update complete - log out to apply");
-                        if (root.updateRunning) return root.updateStatus || qsTr("Updating…");
-                        if (root.selectionIsRevert) return qsTr("Restore to %1?").arg(root.selectedVersionId);
+                        if (root.updateProgress === 1.0) return I18n.tr("Update complete - log out to apply");
+                        if (root.updateRunning) return root.updateStatus || I18n.tr("Updating…");
+                        if (root.selectionIsRevert) return I18n.tr("Restore to %1?").arg(root.selectedVersionId);
                         if (root.selectionIsFuture && root.selectedVersionId !== "")
-                            return qsTr("Install %1?").arg(root.selectedVersionId);
+                            return I18n.tr("Install %1?").arg(root.selectedVersionId);
                         if (UpdateChecker.hasUpdate) {
                             return UpdateChecker.versionSummaryMode
-                                ? qsTr("New version available on %1").arg(UpdateChecker.currentBranch)
-                                : qsTr("%1 new commits on %2").arg(UpdateChecker.pendingCount).arg(UpdateChecker.currentBranch);
+                                ? I18n.tr("New version available on %1").arg(UpdateChecker.currentBranch)
+                                : I18n.tr("%1 new commits on %2").arg(UpdateChecker.pendingCount).arg(UpdateChecker.currentBranch);
                         }
                         if (UpdateChecker.currentVersion === "unknown")
-                            return qsTr("Installed version unknown");
-                        return qsTr("You're up to date");
+                            return I18n.tr("Installed version unknown");
+                        return I18n.tr("You're up to date");
                     }
                 }
 
@@ -264,8 +264,8 @@ PageBase {
                     Layout.alignment: Qt.AlignHCenter
                     visible: UpdateChecker.currentVersion !== "unknown" && !root.updateRunning && root.updateProgress !== 1.0 && root.selectedVersionId === ""
                     text: UpdateChecker.versionSummaryMode
-                        ? qsTr("Installed: %1").arg(UpdateChecker.currentVersion)
-                        : qsTr("Channel: %1").arg(UpdateChecker.currentBranch)
+                        ? I18n.tr("Installed: %1").arg(UpdateChecker.currentVersion)
+                        : I18n.tr("Channel: %1").arg(UpdateChecker.currentBranch)
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.label.medium
                 }
@@ -291,11 +291,11 @@ PageBase {
                         Layout.fillWidth: true
                         visible: root.primaryActionVisible
                         text: {
-                            if (root.updateProgress === 1.0) return qsTr("Log Out");
-                            if (root.selectionIsRevert) return qsTr("Restore");
+                            if (root.updateProgress === 1.0) return I18n.tr("Log Out");
+                            if (root.selectionIsRevert) return I18n.tr("Restore");
                             if (root.selectionIsFuture && root.selectedVersionId !== "")
-                                return qsTr("Install %1").arg(root.selectedVersionId);
-                            return qsTr("Install Update");
+                                return I18n.tr("Install %1").arg(root.selectedVersionId);
+                            return I18n.tr("Install Update");
                         }
                         type: TextButton.Filled
                         font: Tokens.font.body.medium
@@ -338,10 +338,10 @@ PageBase {
                         visible: root.updateProgress !== 1.0
                         disabled: isChecking
                         text: {
-                            if (root.updateRunning) return qsTr("Stop");
-                            if (root.selectedVersionId !== "") return qsTr("Cancel");
-                            if (isChecking) return qsTr("Checking…");
-                            return qsTr("Check");
+                            if (root.updateRunning) return I18n.tr("Stop");
+                            if (root.selectedVersionId !== "") return I18n.tr("Cancel");
+                            if (isChecking) return I18n.tr("Checking…");
+                            return I18n.tr("Check");
                         }
                         type: TextButton.Tonal
                         font: Tokens.font.body.medium
@@ -376,15 +376,15 @@ PageBase {
         }
 
         // 2 ── CHANNEL SELECTOR ────────────────────────────────────────────
-        SectionHeader { text: qsTr("General") }
+        SectionHeader { text: I18n.tr("General") }
 
         SelectRow {
             first: true
             enabled: !root.branchDataLoading
-            label: qsTr("Update channel")
+            label: I18n.tr("Update channel")
             subtext: UpdateChecker.currentBranch === "main"
-                ? qsTr("Stable releases")
-                : qsTr("Development builds - may be unstable")
+                ? I18n.tr("Stable releases")
+                : I18n.tr("Development builds - may be unstable")
             menuItems: root.branchItems
             active: root.activeBranchItem
             fallbackText: UpdateChecker.currentBranch
@@ -398,8 +398,8 @@ PageBase {
 
         ToggleRow {
             visible: !root.branchDataLoading
-            text: qsTr("Show Update Indicator")
-            subtext: qsTr("Show a notification icon in the taskbar when updates are available")
+            text: I18n.tr("Show Update Indicator")
+            subtext: I18n.tr("Show a notification icon in the taskbar when updates are available")
             checked: {
                 const entries = GlobalConfig.bar.entries;
                 for (let i = 0; i < entries.length; i++) {
@@ -466,7 +466,7 @@ PageBase {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Customize Installation")
+                    text: I18n.tr("Customize Installation")
                     font: Tokens.font.body.small
                 }
 
@@ -481,8 +481,8 @@ PageBase {
         NavRow {
             visible: !root.branchDataLoading && root.installOptionsExpanded
             icon: "folder"
-            label: qsTr("Open Backup Folder")
-            status: qsTr("View your previously backed-up configuration files")
+            label: I18n.tr("Open Backup Folder")
+            status: I18n.tr("View your previously backed-up configuration files")
             onClicked: {
                 backupFolderProcess.running = true;
             }
@@ -490,8 +490,8 @@ PageBase {
 
         ToggleRow {
             visible: !root.branchDataLoading && root.installOptionsExpanded
-            text: qsTr("Deploy Configurations")
-            subtext: qsTr("Update your custom dotfiles in ~/.config")
+            text: I18n.tr("Deploy Configurations")
+            subtext: I18n.tr("Update your custom dotfiles in ~/.config")
             checked: UpdateChecker.deployConfigs
             onToggled: UpdateChecker.deployConfigs = checked
         }
@@ -499,8 +499,8 @@ PageBase {
         ToggleRow {
             visible: !root.branchDataLoading && root.installOptionsExpanded
             last: true
-            text: qsTr("Build Shell UI")
-            subtext: qsTr("Compile and install Quickshell UI updates")
+            text: I18n.tr("Build Shell UI")
+            subtext: I18n.tr("Compile and install Quickshell UI updates")
             checked: UpdateChecker.buildShell
             onToggled: UpdateChecker.buildShell = checked
         }
@@ -533,7 +533,7 @@ PageBase {
                     horizontalAlignment: Text.AlignHCenter
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
-                    text: qsTr("Switching to %1…").arg(root.pendingBranch)
+                    text: I18n.tr("Switching to %1…").arg(root.pendingBranch)
                 }
             }
         }
@@ -541,7 +541,7 @@ PageBase {
         // 3 ── VERSION TIMELINE (focus of the page) ────────────────────────
         SectionHeader {
             visible: !root.branchDataLoading
-            text: UpdateChecker.versionSummaryMode ? qsTr("Version History") : qsTr("Commit History")
+            text: UpdateChecker.versionSummaryMode ? I18n.tr("Version History") : I18n.tr("Commit History")
         }
 
         ConnectedRect {
@@ -603,7 +603,7 @@ PageBase {
             visible: !root.branchDataLoading
                 && !UpdateChecker.versionSummaryMode
                 && UpdateChecker.hasMoreCommits
-            text: UpdateChecker.loadingMoreCommits ? qsTr("Loading…") : qsTr("Load 10 More")
+            text: UpdateChecker.loadingMoreCommits ? I18n.tr("Loading…") : I18n.tr("Load 10 More")
             type: TextButton.Tonal
             font: Tokens.font.body.medium
             horizontalPadding: Tokens.padding.large
@@ -615,7 +615,7 @@ PageBase {
         // 5 ── UPDATE LOG (appears after update runs) ──────────────────────
         SectionHeader {
             visible: !root.branchDataLoading && (root.updateRunning || root.updateLogs !== "")
-            text: qsTr("Update Log")
+            text: I18n.tr("Update Log")
         }
 
         ConnectedRect {

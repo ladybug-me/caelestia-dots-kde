@@ -28,7 +28,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.padding.medium * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Notifications")
+        text: I18n.tr("Notifications")
         font.weight: 500
         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
     }
@@ -50,13 +50,13 @@ ColumnLayout {
             spacing: Tokens.spacing.medium * root.scaleOffset
 
             Toggle {
-                label: qsTr("Do not disturb")
+                label: I18n.tr("Do not disturb")
                 checked: Notifs.dnd
                 toggle.onToggled: Notifs.dnd = checked
             }
 
             StyledText {
-                text: Notifs.dnd ? qsTr("Notifications off") : qsTr("%1 unread").arg(Notifs.openCount)
+                text: Notifs.dnd ? I18n.tr("Notifications off") : I18n.tr("%1 unread").arg(Notifs.openCount)
                 color: Colours.palette.m3onSurfaceVariant
                 font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
             }
@@ -68,7 +68,7 @@ ColumnLayout {
         inactiveColour: Colours.palette.m3primaryContainer
         inactiveOnColour: Colours.palette.m3onPrimaryContainer
         verticalPadding: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Clear all")
+        text: I18n.tr("Clear all")
         icon: "clear_all"
 
         onClicked: Notifs.clear()

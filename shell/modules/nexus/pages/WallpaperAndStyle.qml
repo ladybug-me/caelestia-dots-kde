@@ -15,7 +15,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Appearance")
+    title: I18n.tr("Appearance")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -57,7 +57,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("Wallpaper disabled")
+                        text: I18n.tr("Wallpaper disabled")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.large
                     }
@@ -148,7 +148,7 @@ PageBase {
 
             IconTextButton {
                 icon: "wallpaper"
-                text: qsTr("Wallpapers")
+                text: I18n.tr("Wallpapers")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -161,7 +161,7 @@ PageBase {
 
             IconTextButton {
                 icon: "image_search"
-                text: qsTr("Wallhaven")
+                text: I18n.tr("Wallhaven")
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -174,7 +174,7 @@ PageBase {
 
             IconTextButton {
                 icon: "palette"
-                text: Strings.localizeEnglishSpelling(qsTr("Colours"))
+                text: Strings.localizeEnglishSpelling(I18n.tr("Colours"))
                 font: Tokens.font.body.large
                 isRound: true
                 shapeMorph: true
@@ -186,7 +186,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Settings")
+            text: I18n.tr("Settings")
         }
 
         ColumnLayout {
@@ -196,30 +196,30 @@ PageBase {
             NavRow {
                 first: true
                 icon: "settings_suggest"
-                label: qsTr("Wallpaper Settings")
-                status: qsTr("Display, Recolour, Desktop Icons")
+                label: I18n.tr("Wallpaper Settings")
+                status: I18n.tr("Display, Recolour, Desktop Icons")
                 onClicked: root.nState.openSubPage(5)
             }
 
             NavRow {
                 icon: "slideshow"
-                label: qsTr("Slideshow & Order")
-                status: qsTr("Slideshow interval and randomization")
+                label: I18n.tr("Slideshow & Order")
+                status: I18n.tr("Slideshow interval and randomization")
                 onClicked: root.nState.openSubPage(6)
             }
 
             NavRow {
                 icon: "movie"
-                label: qsTr("Video Wallpapers")
-                status: qsTr("Audio and pausing behavior")
+                label: I18n.tr("Video Wallpapers")
+                status: I18n.tr("Audio and pausing behavior")
                 onClicked: root.nState.openSubPage(7)
             }
 
             NavRow {
                 last: true
                 icon: "style"
-                label: qsTr("Theme & Effects")
-                status: qsTr("Islands, Pitch Black, Transparency, Dark Theme")
+                label: I18n.tr("Theme & Effects")
+                status: I18n.tr("Islands, Pitch Black, Transparency, Dark Theme")
                 onClicked: root.nState.openSubPage(8)
             }
         }

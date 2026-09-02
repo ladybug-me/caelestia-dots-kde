@@ -18,9 +18,9 @@ Item {
         implicitWidth: implicitHeight
         implicitHeight: icon.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
-        Accessible.name: qsTr("Show desktop")
+        Accessible.name: I18n.tr("Show desktop")
         Accessible.role: Accessible.Button
-        Accessible.description: qsTr("Minimise all windows to show the desktop")
+        Accessible.description: I18n.tr("Minimise all windows to show the desktop")
         onClicked: Quickshell.execDetached(["qdbus6", "org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component.invokeShortcut", "Show Desktop"])
     }
 

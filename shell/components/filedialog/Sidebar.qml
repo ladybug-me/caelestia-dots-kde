@@ -30,7 +30,7 @@ StyledRect {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: Tokens.padding.extraSmall / 2
             Layout.bottomMargin: Tokens.spacing.medium
-            text: qsTr("Files")
+            text: I18n.tr("Files")
             color: Colours.palette.m3onSurface
             font: Tokens.font.body.builders.large.weight(Font.Bold).build()
         }

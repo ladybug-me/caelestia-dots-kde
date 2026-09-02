@@ -33,7 +33,7 @@ FloatingWindow {
 
     color: Colours.tPalette.m3surface
     surfaceFormat.opaque: false
-    title: qsTr("What's New in Caelestia")
+    title: I18n.tr("What's New in Caelestia")
 
     visible: loaded && unseenFeatures.length > 0
 

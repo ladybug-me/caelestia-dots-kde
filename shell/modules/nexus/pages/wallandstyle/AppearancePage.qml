@@ -16,10 +16,10 @@ PageBase {
     id: root
 
     isSubPage: true
-    title: qsTr("Theme & Effects")
+    title: I18n.tr("Theme & Effects")
     headerActions: [
         IconTextButton {
-            text: qsTr("Restart Shell")
+            text: I18n.tr("Restart Shell")
             icon: "restart_alt"
             type: TextButton.Filled
             onClicked: restartProcess.running = true
@@ -49,23 +49,23 @@ PageBase {
 
             ToggleRow {
                 first: true
-                text: qsTr("Bezel mode (Pitch black)")
-                subtext: qsTr("Make the shell pitch black to blend with display bezels")
+                text: I18n.tr("Bezel mode (Pitch black)")
+                subtext: I18n.tr("Make the shell pitch black to blend with display bezels")
                 checked: GlobalConfig.appearance.pitchBlack
                 onToggled: GlobalConfig.appearance.pitchBlack = checked
                 Layout.fillWidth: true
             }
             ToggleRow {
-                text: qsTr("Islands")
-                subtext: qsTr("Everything appears as its own floating widget (Very Experimental)")
+                text: I18n.tr("Islands")
+                subtext: I18n.tr("Everything appears as its own floating widget (Very Experimental)")
                 checked: GlobalConfig.appearance.islands
                 onToggled: GlobalConfig.appearance.islands = checked
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
             }
             StepperRow {
-                label: qsTr("Border thickness")
-                subtext: qsTr("Thickness of the shell border in pixels. Set to 0 for a borderless look")
+                label: I18n.tr("Border thickness")
+                subtext: I18n.tr("Thickness of the shell border in pixels. Set to 0 for a borderless look")
                 value: GlobalConfig.border.thickness
                 from: 0
                 to: 50
@@ -74,8 +74,8 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             }
             ToggleRow {
-                text: qsTr("Transparency")
-                subtext: qsTr("Enable transparency across the shell")
+                text: I18n.tr("Transparency")
+                subtext: I18n.tr("Enable transparency across the shell")
                 checked: GlobalConfig.appearance.transparency.enabled
                 onToggled: {
                     GlobalConfig.appearance.transparency.enabled = checked
@@ -87,7 +87,7 @@ PageBase {
                 Layout.fillWidth: true
             }
             SliderRow {
-                label: qsTr("Base opacity")
+                label: I18n.tr("Base opacity")
                 valueLabel: Math.round(value * 100) + "%"
                 value: GlobalConfig.appearance.transparency.base
                 enabled: GlobalConfig.appearance.transparency.enabled
@@ -95,8 +95,8 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             }
             SliderRow {
-                label: qsTr("Layers opacity")
-                subtext: qsTr("Requires shell restart")
+                label: I18n.tr("Layers opacity")
+                subtext: I18n.tr("Requires shell restart")
                 valueLabel: Math.round(value * 100) + "%"
                 value: GlobalConfig.appearance.transparency.layers
                 enabled: GlobalConfig.appearance.transparency.enabled
@@ -148,8 +148,8 @@ PageBase {
                 `]
             }
             ToggleRow {
-                text: qsTr("Background Blur")
-                subtext: parent.isBbdxEnabled ? qsTr("Disabling has no effect if Better Blur dx is enabled") : qsTr("Enable a frosted glass effect by blurring the background")
+                text: I18n.tr("Background Blur")
+                subtext: parent.isBbdxEnabled ? I18n.tr("Disabling has no effect if Better Blur dx is enabled") : I18n.tr("Enable a frosted glass effect by blurring the background")
                 checked: parent.isBbdxEnabled ? true : GlobalConfig.appearance.blur
                 enabled: GlobalConfig.appearance.transparency.enabled && !parent.isBbdxEnabled
                 onToggled: {
@@ -172,8 +172,8 @@ PageBase {
                 Layout.fillWidth: true
             }
             ToggleRow {
-                text: qsTr("High Quality Blur Masks")
-                subtext: qsTr("Disable this to use high performance Wayland/KWin blur")
+                text: I18n.tr("High Quality Blur Masks")
+                subtext: I18n.tr("Disable this to use high performance Wayland/KWin blur")
                 checked: GlobalConfig.appearance.blurMask
                 enabled: GlobalConfig.appearance.transparency.enabled && GlobalConfig.appearance.blur
                 onToggled: GlobalConfig.appearance.blurMask = checked
@@ -189,8 +189,8 @@ PageBase {
             }
             StepperRow {
                 last: true
-                label: qsTr("Blur Corner Quality")
-                subtext: qsTr("Increasing this can cause lags! Requires shell restart")
+                label: I18n.tr("Blur Corner Quality")
+                subtext: I18n.tr("Increasing this can cause lags! Requires shell restart")
                 value: blurSettings.blurQuality
                 enabled: GlobalConfig.appearance.transparency.enabled && GlobalConfig.appearance.blur
                 from: 1

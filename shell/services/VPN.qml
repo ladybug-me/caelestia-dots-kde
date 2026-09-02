@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
+import qs.services
 
 Singleton {
     id: root
@@ -297,19 +298,19 @@ Singleton {
 
         switch (statusObj.state) {
         case "connected":
-            Toaster.toast(qsTr("VPN connected"), qsTr("Connected to %1").arg(displayName), "vpn_key");
+            Toaster.toast(I18n.tr("VPN connected"), I18n.tr("Connected to %1").arg(displayName), "vpn_key");
             break;
         case "disconnected":
-            Toaster.toast(qsTr("VPN disconnected"), qsTr("Disconnected from %1").arg(displayName), "vpn_key_off");
+            Toaster.toast(I18n.tr("VPN disconnected"), I18n.tr("Disconnected from %1").arg(displayName), "vpn_key_off");
             break;
         case "needs-auth":
             const authMsg = statusObj.reason || "Authentication required";
-            Toaster.toast(qsTr("VPN authentication required"), qsTr("%1: %2").arg(displayName).arg(authMsg), "vpn_lock");
+            Toaster.toast(I18n.tr("VPN authentication required"), I18n.tr("%1: %2").arg(displayName).arg(authMsg), "vpn_lock");
             break;
         case "error":
             if (status.state === "connected" || status.state === "connecting" || status.state === "needs-auth") {
                 const errMsg = statusObj.reason || "Unknown error";
-                Toaster.toast(qsTr("VPN error"), qsTr("%1: %2").arg(displayName).arg(errMsg), "error");
+                Toaster.toast(I18n.tr("VPN error"), I18n.tr("%1: %2").arg(displayName).arg(errMsg), "error");
             }
             break;
         }

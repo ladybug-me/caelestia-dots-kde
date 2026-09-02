@@ -14,7 +14,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: Strings.localizeEnglishSpelling(qsTr("Colours"))
+    title: Strings.localizeEnglishSpelling(I18n.tr("Colours"))
     isSubPage: true
 
     Component.onCompleted: {
@@ -81,7 +81,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.small
-            text: qsTr("Color Theme")
+            text: I18n.tr("Color Theme")
             font: Tokens.font.title.medium
         }
 
@@ -94,14 +94,14 @@ PageBase {
             Repeater {
                 model: [
                     {
-                        name: qsTr("Dark"),
-                        description: qsTr("Dark theme mode"),
+                        name: I18n.tr("Dark"),
+                        description: I18n.tr("Dark theme mode"),
                         icon: "dark_mode",
                         mode: "dark"
                     },
                     {
-                        name: qsTr("Light"),
-                        description: qsTr("Light theme mode"),
+                        name: I18n.tr("Light"),
+                        description: I18n.tr("Light theme mode"),
                         icon: "light_mode",
                         mode: "light"
                     }
@@ -169,7 +169,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.large
-            text: qsTr("Schemes")
+            text: I18n.tr("Schemes")
             font: Tokens.font.title.medium
         }
 
@@ -272,7 +272,7 @@ PageBase {
 
         StyledText {
             Layout.topMargin: Tokens.spacing.large
-            text: qsTr("Variants")
+            text: I18n.tr("Variants")
             font: Tokens.font.title.medium
         }
 

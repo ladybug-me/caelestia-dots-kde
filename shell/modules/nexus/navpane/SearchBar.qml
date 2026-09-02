@@ -53,7 +53,7 @@ StyledRect {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            placeholderText: qsTr("Search settings")
+            placeholderText: I18n.tr("Search settings")
             placeholderTextColor: Colours.palette.m3onSurfaceVariant
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.body.large

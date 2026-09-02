@@ -13,7 +13,7 @@ PageBase {
     id: root
 
     isSubPage: true
-    title: qsTr("Slideshow & Order")
+    title: I18n.tr("Slideshow & Order")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -33,8 +33,8 @@ PageBase {
             ToggleRow {
                 Layout.fillWidth: true
                 first: true
-                text: qsTr("Wallpaper slideshow")
-                subtext: qsTr("Automatically change wallpaper on a timer")
+                text: I18n.tr("Wallpaper slideshow")
+                subtext: I18n.tr("Automatically change wallpaper on a timer")
                 checked: Config.background.slideshowEnabled
                 onToggled: GlobalConfig.background.slideshowEnabled = checked
                 enabled: Config.background.wallpaperEnabled
@@ -44,7 +44,7 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 icon: ""
-                label: qsTr("Slideshow interval")
+                label: I18n.tr("Slideshow interval")
                 valueLabel: Math.max(1, Math.round(value * 60)) + " min"
                 value: Config.background.slideshowInterval
                 enabled: Config.background.slideshowEnabled && Config.background.wallpaperEnabled
@@ -55,8 +55,8 @@ PageBase {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 last: true
-                text: qsTr("Random order")
-                subtext: qsTr("Affects slideshow and the 'Next Wallpaper' right-click menu option")
+                text: I18n.tr("Random order")
+                subtext: I18n.tr("Affects slideshow and the 'Next Wallpaper' right-click menu option")
                 checked: Config.background.slideshowRandom
                 onToggled: GlobalConfig.background.slideshowRandom = checked
                 enabled: Config.background.wallpaperEnabled

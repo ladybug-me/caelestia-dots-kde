@@ -290,7 +290,7 @@ Item {
                 }
 
                 StyledText {
-                    text: qsTr("Loading lyrics...")
+                    text: I18n.tr("Loading lyrics...")
                     color: root.safeSecondary
                     font.pointSize: Tokens.font.title.medium.pointSize * root.lyricsScale
                     font.family: Tokens.font.title.medium.family

@@ -353,7 +353,7 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
             const pText = progressMatch[1].trim();
             if (pText.startsWith("done")) {
                 root.updateProgress = 1.0;
-                root.updateStatus = qsTr("Done!");
+                root.updateStatus = I18n.tr("Done!");
                 return;
             }
 
@@ -372,7 +372,7 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
         // Fallback: mark deploy stage as finished when deploy script confirms completion.
         if (line.indexOf("Config deployment complete") !== -1 && root.updateProgress < 0.8) {
             root.updateProgress = 0.7;
-            root.updateStatus = qsTr("Preparing shell build...");
+            root.updateStatus = I18n.tr("Preparing shell build...");
         }
     }
 
@@ -403,7 +403,7 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
         root.updateCancelled = false;
         root.updateLogs = "";
         root.updateProgress = 0.0;
-        root.updateStatus = qsTr("Starting…");
+        root.updateStatus = I18n.tr("Starting…");
         root.updateRunning = true;
         root.lastUpdateOutputMs = Date.now();
         root.stallNoticeShown = false;
@@ -418,7 +418,7 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
         root.updateCancelled = true;
         updateProcess.running = false;
         root.updateRunning = false;
-        root.updateStatus = qsTr("Cancelled");
+        root.updateStatus = I18n.tr("Cancelled");
         root.updateLogs += "\n[Cancelled by user]";
     }
 
@@ -505,9 +505,9 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
                                     continue;
 
                                 parsedCommits.push({
-                                    hash: qsTr("Release"),
+                                    hash: I18n.tr("Release"),
                                     subject: tag,
-                                    author: qsTr("GitHub release"),
+                                    author: I18n.tr("GitHub release"),
                                     date: published ? new Date(published).toLocaleString(Qt.locale(), Locale.ShortFormat) : "",
                                     details: body
                                 });
@@ -527,9 +527,9 @@ git -C "$REPO" log --format="COMMIT%x1f%H%x1f%h%x1f%s%x1f%an%x1f%cI%x1f%P" --ski
 
                             // Fallback path when release JSON parsing is unavailable.
                             parsedCommits.push({
-                                hash: qsTr("Release"),
+                                hash: I18n.tr("Release"),
                                 subject: tag,
-                                author: qsTr("Tag"),
+                                author: I18n.tr("Tag"),
                                 date: created ? new Date(created).toLocaleString(Qt.locale(), Locale.ShortFormat) : "",
                                 details: ""
                             });
@@ -815,15 +815,15 @@ echo "$INSTALLED|$LATEST"
             root.lastUpdateOutputMs = 0;
             if (root.updateCancelled) {
                 root.updateCancelled = false;
-                root.updateStatus = qsTr("Cancelled");
+                root.updateStatus = I18n.tr("Cancelled");
                 return;
             }
             if (code === 0) {
-                Toaster.toast(qsTr("Update Successful"), qsTr("The update is complete. Please log out to apply changes."), "done");
+                Toaster.toast(I18n.tr("Update Successful"), I18n.tr("The update is complete. Please log out to apply changes."), "done");
                 root.reload();
             } else {
-                root.updateStatus = qsTr("Update failed (exit code %1)").arg(code);
-                Toaster.toast(qsTr("Update Failed"), qsTr("The update script returned error code %1").arg(code), "error");
+                root.updateStatus = I18n.tr("Update failed (exit code %1)").arg(code);
+                Toaster.toast(I18n.tr("Update Failed"), I18n.tr("The update script returned error code %1").arg(code), "error");
             }
         }
     }

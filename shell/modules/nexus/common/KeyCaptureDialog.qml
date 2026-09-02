@@ -103,7 +103,7 @@ Popup {
         spacing: 16
 
         StyledText {
-            text: qsTr("Record Keybind")
+            text: I18n.tr("Record Keybind")
             font: Tokens.font.title.medium
             color: Colours.palette.m3onSurface
             Layout.fillWidth: true
@@ -123,7 +123,7 @@ Popup {
 
                 StyledText {
                     anchors.centerIn: parent
-                    text: root.capturedKey === "" ? qsTr("Press keys now...") : root.capturedKey
+                    text: root.capturedKey === "" ? I18n.tr("Press keys now...") : root.capturedKey
                     font: Tokens.font.body.large
                     color: focusScope.activeFocus ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurfaceVariant
                 }
@@ -183,14 +183,14 @@ Popup {
             Layout.topMargin: 8
 
             Controls.TextButton {
-                text: qsTr("Cancel")
+                text: I18n.tr("Cancel")
                 onClicked: root.close()
             }
 
             Item { Layout.fillWidth: true }
 
             Controls.TextButton {
-                text: qsTr("Confirm")
+                text: I18n.tr("Confirm")
                 enabled: root.capturedKey !== ""
                 onClicked: {
                     let finalKey = root.capturedKey

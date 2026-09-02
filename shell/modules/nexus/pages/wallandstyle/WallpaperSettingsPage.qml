@@ -15,12 +15,12 @@ PageBase {
     id: root
 
     isSubPage: true
-    title: qsTr("Wallpaper Settings")
+    title: I18n.tr("Wallpaper Settings")
 
     readonly property list<MenuItem> scalingItems: [
-        MenuItem { text: qsTr("Crop") },
-        MenuItem { text: qsTr("Fit") },
-        MenuItem { text: qsTr("Stretch") }
+        MenuItem { text: I18n.tr("Crop") },
+        MenuItem { text: I18n.tr("Fit") },
+        MenuItem { text: I18n.tr("Stretch") }
     ]
 
     readonly property list<int> scalingValues: [Image.PreserveAspectCrop, Image.PreserveAspectFit, Image.Stretch]
@@ -50,8 +50,8 @@ PageBase {
                 first: true
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                label: qsTr("Wallpaper scaling")
-                subtext: qsTr("How the wallpaper image fits the screen")
+                label: I18n.tr("Wallpaper scaling")
+                subtext: I18n.tr("How the wallpaper image fits the screen")
                 menuItems: root.scalingItems
                 active: root.scalingItems[root.scaleKeyToIndex(Config.background.wallpaperFillMode)]
                 onSelected: item => {
@@ -68,8 +68,8 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
-                text: Strings.localizeEnglishSpelling(qsTr("Recolour wallpaper"))
-                subtext: Strings.localizeEnglishSpelling(qsTr("Tint the wallpaper to match static colour schemes"))
+                text: Strings.localizeEnglishSpelling(I18n.tr("Recolour wallpaper"))
+                subtext: Strings.localizeEnglishSpelling(I18n.tr("Tint the wallpaper to match static colour schemes"))
                 checked: Config.background.wallpaperRecolor
                 onToggled: { 
                     GlobalConfig.background.wallpaperRecolor = checked; 
@@ -87,7 +87,7 @@ PageBase {
                 Layout.fillWidth: true
                 last: true
                 icon: ""
-                label: Strings.localizeEnglishSpelling(qsTr("Recolour strength"))
+                label: Strings.localizeEnglishSpelling(I18n.tr("Recolour strength"))
                 valueLabel: Math.round(value * 100) + "%"
                 value: Config.background.wallpaperRecolorStrength
                 enabled: Config.background.wallpaperRecolor && Config.background.wallpaperEnabled

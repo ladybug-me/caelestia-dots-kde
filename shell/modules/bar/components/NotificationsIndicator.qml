@@ -36,9 +36,9 @@ StyledRect {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        Accessible.name: qsTr("Notifications and sidebar toggle")
+        Accessible.name: I18n.tr("Notifications and sidebar toggle")
         Accessible.role: Accessible.Button
-        Accessible.description: qsTr("Left-click to open the sidebar. Right-click to toggle Do Not Disturb")
+        Accessible.description: I18n.tr("Left-click to open the sidebar. Right-click to toggle Do Not Disturb")
         onClicked: mouse => {
             if (mouse.button === Qt.RightButton) {
                 Notifs.dnd = !Notifs.dnd;

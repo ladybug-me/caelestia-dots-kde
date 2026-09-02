@@ -2,11 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Utilities panel")
+    title: I18n.tr("Utilities panel")
     isSubPage: true
 
     ColumnLayout {
@@ -17,28 +18,28 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Visible cards")
+            text: I18n.tr("Visible cards")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Keep Awake")
-            subtext: qsTr("Show the Keep Awake card")
+            text: I18n.tr("Keep Awake")
+            subtext: I18n.tr("Show the Keep Awake card")
             checked: Config.utilities.showKeepAwake
             onToggled: GlobalConfig.utilities.showKeepAwake = checked
         }
 
         ToggleRow {
-            text: qsTr("Screen Recorder")
-            subtext: qsTr("Show the Screen Recorder card")
+            text: I18n.tr("Screen Recorder")
+            subtext: I18n.tr("Show the Screen Recorder card")
             checked: Config.utilities.showScreenRecorder
             onToggled: GlobalConfig.utilities.showScreenRecorder = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Quick Toggles")
-            subtext: qsTr("Show the Quick Toggles card")
+            text: I18n.tr("Quick Toggles")
+            subtext: I18n.tr("Show the Quick Toggles card")
             checked: Config.utilities.showQuickToggles
             onToggled: GlobalConfig.utilities.showQuickToggles = checked
         }

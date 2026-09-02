@@ -58,14 +58,14 @@ StyledRect {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Screen Recorder")
+                    text: I18n.tr("Screen Recorder")
                     font: Tokens.font.body.medium
                     elide: Text.ElideRight
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Recorder.paused ? qsTr("Paused") : Recorder.running ? qsTr("Running...") : qsTr("Ready")
+                    text: Recorder.paused ? I18n.tr("Paused") : Recorder.running ? I18n.tr("Running...") : I18n.tr("Ready")
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                     elide: Text.ElideRight
@@ -82,8 +82,8 @@ StyledRect {
                 menuItems: [
                     MenuItem {
                         icon: "fullscreen"
-                        text: qsTr("Record")
-                        activeText: qsTr("Start")
+                        text: I18n.tr("Record")
+                        activeText: I18n.tr("Start")
                         onClicked: {
                             root.visibilities.utilities = false;
                             Recorder.start();
@@ -91,8 +91,8 @@ StyledRect {
                     },
                     MenuItem {
                         icon: "volume_up"
-                        text: qsTr("Record with Sound")
-                        activeText: qsTr("Start")
+                        text: I18n.tr("Record with Sound")
+                        activeText: I18n.tr("Start")
                         onClicked: {
                             root.visibilities.utilities = false;
                             Recorder.start(["-s"]);
@@ -100,8 +100,8 @@ StyledRect {
                     },
                     MenuItem {
                         icon: "mic"
-                        text: qsTr("Record with Microphone")
-                        activeText: qsTr("Start")
+                        text: I18n.tr("Record with Microphone")
+                        activeText: I18n.tr("Start")
                         onClicked: {
                             root.visibilities.utilities = false;
                             Recorder.start(["-i"]);
@@ -109,8 +109,8 @@ StyledRect {
                     },
                     MenuItem {
                         icon: "select_to_speak"
-                        text: qsTr("Both Sound & Microphone")
-                        activeText: qsTr("Start")
+                        text: I18n.tr("Both Sound & Microphone")
+                        activeText: I18n.tr("Start")
                         onClicked: {
                             root.visibilities.utilities = false;
                             Recorder.start(["-s","-i"]);
@@ -118,8 +118,8 @@ StyledRect {
                     },
                     MenuItem {
                         icon: "screenshot_region"
-                        text: qsTr("Use Spectacle")
-                        activeText: qsTr("Spectacle")
+                        text: I18n.tr("Use Spectacle")
+                        activeText: I18n.tr("Spectacle")
                         onClicked: {
                             root.visibilities.utilities = false;
                             Recorder.launchSpectacle();
@@ -256,7 +256,7 @@ StyledRect {
                     else
                         time = `${mins}:${secs}`;
 
-                    return qsTr("Recording %1").arg(time);
+                    return I18n.tr("Recording %1").arg(time);
                 }
                 font: Tokens.font.body.medium
                 elide: Text.ElideMiddle

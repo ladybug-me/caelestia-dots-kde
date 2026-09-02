@@ -13,7 +13,7 @@ ColumnLayout {
     StyledText {
         Layout.leftMargin: Tokens.padding.medium
         visible: forecastRepeater.count > 0
-        text: qsTr("7-Day Forecast")
+        text: I18n.tr("7-Day Forecast")
         font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
         color: Colours.palette.m3onSurface
     }
@@ -47,7 +47,7 @@ ColumnLayout {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: forecastItem.index === 0 ? qsTr("Today") : new Date(forecastItem.modelData.date).toLocaleDateString(Qt.locale(), "ddd")
+                        text: forecastItem.index === 0 ? I18n.tr("Today") : new Date(forecastItem.modelData.date).toLocaleDateString(Qt.locale(), "ddd")
                         font: Tokens.font.body.builders.medium.weight(Font.DemiBold).build()
                         color: Colours.palette.m3primary
                     }

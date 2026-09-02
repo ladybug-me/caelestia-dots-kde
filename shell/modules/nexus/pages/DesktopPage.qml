@@ -6,11 +6,12 @@ import Quickshell.Io
 import Caelestia.Config
 import Caelestia.Services
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Desktop & Tiling")
+    title: I18n.tr("Desktop & Tiling")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -25,8 +26,8 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Show KDE Desktop")
-            subtext: qsTr("Disable Caelestia desktop and use native Plasma 6 desktop instead")
+            text: I18n.tr("Show KDE Desktop")
+            subtext: I18n.tr("Disable Caelestia desktop and use native Plasma 6 desktop instead")
             checked: !Config.background.wallpaperEnabled
             onToggled: { 
                 GlobalConfig.background.wallpaperEnabled = !checked; 
@@ -41,8 +42,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Show Desktop Icons")
-            subtext: qsTr("Enable icons for Caelestia desktop")
+            text: I18n.tr("Show Desktop Icons")
+            subtext: I18n.tr("Enable icons for Caelestia desktop")
             checked: Config.background.desktopIconsEnabled
             onToggled: { 
                 GlobalConfig.background.desktopIconsEnabled = checked; 
@@ -58,8 +59,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Material You Icons")
-            subtext: qsTr("Override the KDE icon theme for desktop icons only")
+            text: I18n.tr("Material You Icons")
+            subtext: I18n.tr("Override the KDE icon theme for desktop icons only")
             checked: Config.background.materialYouIconsEnabled
             onToggled: {
                 GlobalConfig.background.materialYouIconsEnabled = checked;
@@ -75,8 +76,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Vibrant Icons")
-            subtext: qsTr("Boost saturation of Material You icons for extra vibrancy")
+            text: I18n.tr("Vibrant Icons")
+            subtext: I18n.tr("Boost saturation of Material You icons for extra vibrancy")
             checked: Config.background.materialYouIconsVibrant
             onToggled: {
                 GlobalConfig.background.materialYouIconsVibrant = checked;
@@ -92,8 +93,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Magic Lamp Minimize")
-            subtext: qsTr("Enable the magic lamp effect when minimizing windows")
+            text: I18n.tr("Magic Lamp Minimize")
+            subtext: I18n.tr("Enable the magic lamp effect when minimizing windows")
             checked: Config.general.magicLampEnabled
             onToggled: {
                 GlobalConfig.general.magicLampEnabled = checked;
@@ -115,23 +116,23 @@ PageBase {
         NavRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             icon: "view_quilt"
-            label: qsTr("Window Tiling")
-            status: Config.general.krohnkiteEnabled ? qsTr("Enabled (Krohnkite)") : qsTr("Disabled")
+            label: I18n.tr("Window Tiling")
+            status: Config.general.krohnkiteEnabled ? I18n.tr("Enabled (Krohnkite)") : I18n.tr("Disabled")
             onClicked: root.nState.openSubPage(3)
         }
 
         NavRow {
             icon: "extension"
-            label: qsTr("Desktop Addons")
-            status: qsTr("Clock, Lyrics, Visualiser, Shimeji")
+            label: I18n.tr("Desktop Addons")
+            status: I18n.tr("Clock, Lyrics, Visualiser, Shimeji")
             onClicked: root.nState.openSubPage(1)
         }
 
         NavRow {
             last: true
             icon: "menu_open"
-            label: qsTr("Right Click Menu")
-            status: qsTr("Configure desktop right click menu")
+            label: I18n.tr("Right Click Menu")
+            status: I18n.tr("Configure desktop right click menu")
             onClicked: root.nState.openSubPage(2)
         }
     }

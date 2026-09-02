@@ -20,7 +20,7 @@ ColumnLayout {
         spacing: Tokens.spacing.medium
 
         StyledText {
-            text: qsTr("Move to workspace")
+            text: I18n.tr("Move to workspace")
             elide: Text.ElideRight
             Layout.fillWidth: true
         }
@@ -69,7 +69,7 @@ ColumnLayout {
         Button {
             color: Colours.palette.m3secondaryContainer
             onColor: Colours.palette.m3onSecondaryContainer
-            text: root.client?.maximized ? qsTr("Restore") : qsTr("Maximize")
+            text: root.client?.maximized ? I18n.tr("Restore") : I18n.tr("Maximize")
             onClicked: {
                 console.log("Maximize clicked. Address:", root.client?.address, "Maximized:", root.client?.maximized);
                 if (typeof KWinActiveWindowBridge !== "undefined") {
@@ -87,7 +87,7 @@ ColumnLayout {
             sourceComponent: Button {
                 color: Colours.palette.m3secondaryContainer
                 onColor: Colours.palette.m3onSecondaryContainer
-                text: root.client?.minimized ? qsTr("Unminimize") : qsTr("Minimize")
+                text: root.client?.minimized ? I18n.tr("Unminimize") : I18n.tr("Minimize")
                 onClicked: {
                     if (typeof KWinActiveWindowBridge !== "undefined") {
                         if (root.client?.minimized) {
@@ -106,7 +106,7 @@ ColumnLayout {
         Button {
             color: Colours.palette.m3errorContainer
             onColor: Colours.palette.m3onErrorContainer
-            text: qsTr("Kill")
+            text: I18n.tr("Kill")
             onClicked: {
                 console.log("Kill clicked. Address:", root.client?.address);
                 if (typeof KWinActiveWindowBridge !== "undefined") {

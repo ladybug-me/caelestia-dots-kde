@@ -265,13 +265,13 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: qsTr("Layout Preview")
+                text: I18n.tr("Layout Preview")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.medium
             }
 
             StyledText {
-                text: qsTr("Windows:")
+                text: I18n.tr("Windows:")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.small
                 Layout.rightMargin: Tokens.spacing.small

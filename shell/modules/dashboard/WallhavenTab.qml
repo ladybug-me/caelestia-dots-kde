@@ -129,12 +129,12 @@ Item {
                             spacing: Tokens.spacing.extraSmall
 
                             StyledText {
-                                text: qsTr("Wallhaven")
+                                text: I18n.tr("Wallhaven")
                                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
                             }
 
                             StyledText {
-                                text: qsTr("Search, preview, and set wallpapers instantly")
+                                text: I18n.tr("Search, preview, and set wallpapers instantly")
                                 font: Tokens.font.body.small
                                 color: Colours.palette.m3onSurfaceVariant
                             }
@@ -171,7 +171,7 @@ Item {
                             id: searchField
 
                             Layout.fillWidth: true
-                            placeholderText: qsTr("Search wallpapers...")
+                            placeholderText: I18n.tr("Search wallpapers...")
                             onTextChanged: root.searchQuery = text
 
                             Keys.onReturnPressed: {
@@ -207,7 +207,7 @@ Item {
                 // Results header with pagination
                 RowLayout {
                     StyledText {
-                        text: root.currentResults.length > 0 ? qsTr("Found %1 wallpapers (page %2 of %3)").arg(root.currentResults.length).arg(WallhavenSearcher.currentPage).arg(WallhavenSearcher.lastPage) : qsTr("No results")
+                        text: root.currentResults.length > 0 ? I18n.tr("Found %1 wallpapers (page %2 of %3)").arg(root.currentResults.length).arg(WallhavenSearcher.currentPage).arg(WallhavenSearcher.lastPage) : I18n.tr("No results")
                         font: Tokens.font.body.small
                         color: Colours.palette.m3onSurfaceVariant
                     }
@@ -217,7 +217,7 @@ Item {
                     }
 
                     TextButton {
-                        text: qsTr("Load more")
+                        text: I18n.tr("Load more")
                         visible: WallhavenSearcher.currentPage < WallhavenSearcher.lastPage && !root.isLoading && root.currentResults.length > 0
                         onClicked: {
                             root.isLoading = true;
@@ -357,7 +357,7 @@ Item {
                 }
 
                 TextButton {
-                    text: root.downloadState === "progress" ? qsTr("Downloading...") : qsTr("Download & Set")
+                    text: root.downloadState === "progress" ? I18n.tr("Downloading...") : I18n.tr("Download & Set")
                     enabled: root.downloadState !== "progress"
                     onClicked: {
                         const wallpaper = root.selectedWallpaper;
@@ -366,7 +366,7 @@ Item {
                             root.downloadingWallpaperId = wallpaper.id;
                             root.downloadProgressValue = 0;
                             root.downloadState = "progress";
-                            root.downloadMessage = qsTr("Connecting...");
+                            root.downloadMessage = I18n.tr("Connecting...");
                             WallhavenSearcher.downloadWallpaper(wallpaper);
                         }
                     }
@@ -382,10 +382,10 @@ Item {
                     Layout.fillWidth: true
                     text: {
                         if (root.downloadState === "success")
-                            return qsTr("Wallpaper applied");
+                            return I18n.tr("Wallpaper applied");
                         if (root.downloadState === "error")
-                            return root.downloadMessage || qsTr("Download failed");
-                        return qsTr("Downloading... %1%").arg(Math.round(root.downloadProgressValue * 100));
+                            return root.downloadMessage || I18n.tr("Download failed");
+                        return I18n.tr("Downloading... %1%").arg(Math.round(root.downloadProgressValue * 100));
                     }
                     font: Tokens.font.body.small
                     color: {
@@ -484,7 +484,7 @@ Item {
             root.downloadProgressValue = 1;
             root.downloadingWallpaperId = id;
             root.downloadState = "success";
-            root.downloadMessage = qsTr("Wallpaper applied");
+            root.downloadMessage = I18n.tr("Wallpaper applied");
             Logger.log("Wallhaven: Wallpaper saved to", path);
             if (root.selectedWallpaper && root.selectedWallpaper.id === id) {
                 Wallpapers.setWallpaper(path);
@@ -497,7 +497,7 @@ Item {
             root.downloadProgressValue = 0;
             root.downloadingWallpaperId = id;
             root.downloadState = "error";
-            root.downloadMessage = error || qsTr("Download failed");
+            root.downloadMessage = error || I18n.tr("Download failed");
             root.isLoading = false;
             console.error("Wallhaven: Download failed", error);
             feedbackResetTimer.restart();

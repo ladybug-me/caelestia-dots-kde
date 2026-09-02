@@ -4,11 +4,12 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Dock")
+    title: I18n.tr("Dock")
     isSubPage: true
 
     ColumnLayout {
@@ -20,7 +21,7 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Enable component")
+            text: I18n.tr("Enable component")
             checked: {
                 for (let i = 0; i < Config.bar.entries.length; i++) {
                     if (Config.bar.entries[i].id === "dock")
@@ -53,8 +54,8 @@ PageBase {
 
         StepperRow {
             Layout.fillWidth: true
-            label: qsTr("Icon size")
-            subtext: qsTr("Size of app icons in the dock")
+            label: I18n.tr("Icon size")
+            subtext: I18n.tr("Size of app icons in the dock")
             value: Config.bar.dock.iconSize
             from: 20
             to: Math.max(20, Tokens.sizes.bar.innerWidth)
@@ -67,8 +68,8 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             last: true
-            text: Strings.localizeEnglishSpelling(qsTr("Recolour icons"))
-            subtext: Strings.localizeEnglishSpelling(qsTr("Recolour application icons using the system theme"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Recolour icons"))
+            subtext: Strings.localizeEnglishSpelling(I18n.tr("Recolour application icons using the system theme"))
             checked: Config.bar.dock.recolourIcons
             onToggled: GlobalConfig.bar.dock.recolourIcons = checked
         }

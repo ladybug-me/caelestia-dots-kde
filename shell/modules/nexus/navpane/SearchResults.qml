@@ -156,7 +156,7 @@ VerticalFadeFlickable {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: qsTr("in ") + item.pageLabel
+                            text: I18n.tr("in ") + item.pageLabel
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight

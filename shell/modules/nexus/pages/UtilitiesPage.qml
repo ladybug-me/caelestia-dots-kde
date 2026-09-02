@@ -4,11 +4,12 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Utilities")
+    title: I18n.tr("Utilities")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -18,49 +19,49 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Quick controls")
+            text: I18n.tr("Quick controls")
         }
 
         NavRow {
             first: true
             icon: "volume_up"
-            label: qsTr("On-screen sliders")
-            status: qsTr("Volume, microphone, brightness, and edge triggers")
+            label: I18n.tr("On-screen sliders")
+            status: I18n.tr("Volume, microphone, brightness, and edge triggers")
             onClicked: root.nState.openSubPage(3)
         }
 
         NavRow {
             icon: "content_paste"
-            label: qsTr("Clipboard")
-            status: qsTr("History size")
+            label: I18n.tr("Clipboard")
+            status: I18n.tr("History size")
             onClicked: root.nState.openSubPage(4)
         }
 
         NavRow {
             icon: "widgets"
-            label: qsTr("Utilities panel")
-            status: qsTr("Choose the cards shown in the panel")
+            label: I18n.tr("Utilities panel")
+            status: I18n.tr("Choose the cards shown in the panel")
             onClicked: root.nState.openSubPage(5)
         }
 
         NavRow {
             last: true
             icon: "toggle_on"
-            label: qsTr("Quick toggles")
-            status: qsTr("Choose the controls shown in Quick Toggles")
+            label: I18n.tr("Quick toggles")
+            status: I18n.tr("Choose the controls shown in Quick Toggles")
             onClicked: root.nState.openSubPage(6)
         }
 
         SectionHeader {
-            text: qsTr("Performance")
+            text: I18n.tr("Performance")
         }
 
         NavRow {
             first: true
             last: true
             icon: "sports_esports"
-            label: qsTr("Game mode")
-            status: qsTr("Auto-enable rules and performance overrides")
+            label: I18n.tr("Game mode")
+            status: I18n.tr("Auto-enable rules and performance overrides")
             onClicked: root.nState.openSubPage(1)
         }
     }

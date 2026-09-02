@@ -43,9 +43,9 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        Accessible.name: qsTr("Caelestia updates")
+        Accessible.name: I18n.tr("Caelestia updates")
         Accessible.role: Accessible.Button
-        Accessible.description: qsTr("Left-click to open the Updates page. Right-click to check for updates")
+        Accessible.description: I18n.tr("Left-click to open the Updates page. Right-click to check for updates")
         onClicked: mouse => {
             if (mouse.button === Qt.RightButton) {
                 UpdateChecker.checkUpdates();

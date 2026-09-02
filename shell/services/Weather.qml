@@ -5,6 +5,7 @@ import Quickshell
 import Caelestia
 import Caelestia.Config
 import qs.utils
+import qs.services
 
 Singleton {
     id: root
@@ -21,7 +22,7 @@ Singleton {
     property int locationSearchToken: 0
 
     readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
-    readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
+    readonly property string description: cc?.weatherDesc ?? I18n.tr("No weather")
     readonly property string temp: formatTemp(cc?.tempC)
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0
@@ -96,7 +97,7 @@ Singleton {
                 json = JSON.parse(text);
             } catch (e) {
                 locationSearchResults = [];
-                locationSearchError = qsTr("Couldn't parse location results. Check your connection and try again.");
+                locationSearchError = I18n.tr("Couldn't parse location results. Check your connection and try again.");
                 return;
             }
             const results = [];
@@ -125,7 +126,7 @@ Singleton {
 
             locationSearchLoading = false;
             locationSearchResults = [];
-            locationSearchError = qsTr("Couldn't fetch locations. Check your connection and try again.");
+            locationSearchError = I18n.tr("Couldn't fetch locations. Check your connection and try again.");
         };
 
         Requests.get(url, onSuccess, onError);

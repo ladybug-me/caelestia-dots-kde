@@ -43,7 +43,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.padding.medium * scaleOffset
         Layout.rightMargin: Tokens.padding.extraSmall * scaleOffset
-        text: qsTr("Keyboard Layouts")
+        text: I18n.tr("Keyboard Layouts")
         font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
     }
 

@@ -57,7 +57,7 @@ Popup {
         spacing: 8
 
         Text {
-            text: qsTr("Add Custom Shortcut")
+            text: I18n.tr("Add Custom Shortcut")
             font: Tokens.fonts.bodyLarge
             color: Colours.palette.m3onSurface
             Layout.fillWidth: true
@@ -68,21 +68,21 @@ Popup {
             id: labelField
             Layout.fillWidth: true
 
-            placeholderText: qsTr("Label (e.g. Firefox)")
+            placeholderText: I18n.tr("Label (e.g. Firefox)")
         }
 
         Controls.StyledTextField {
             id: commandField
             Layout.fillWidth: true
 
-            placeholderText: qsTr("Command (e.g. firefox)")
+            placeholderText: I18n.tr("Command (e.g. firefox)")
         }
 
         Controls.StyledTextField {
             id: iconField
             Layout.fillWidth: true
 
-            placeholderText: qsTr("Icon (e.g. firefox)")
+            placeholderText: I18n.tr("Icon (e.g. firefox)")
         }
 
         RowLayout {
@@ -90,14 +90,14 @@ Popup {
             Layout.topMargin: 8
             
             Controls.TextButton {
-                text: qsTr("Cancel")
+                text: I18n.tr("Cancel")
                 onClicked: root.close()
             }
 
             Item { Layout.fillWidth: true } // Spacer
 
             Controls.TextButton {
-                text: qsTr("Save")
+                text: I18n.tr("Save")
                 enabled: labelField.text.length > 0 && commandField.text.length > 0
                 onClicked: {
                     root.saved(labelField.text, commandField.text, iconField.text);

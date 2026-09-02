@@ -20,7 +20,7 @@ PageBase {
     readonly property string statusText: {
         if (!device)
             return "";
-        let s = connected ? qsTr("Connected") : (device.bonded ? qsTr("Paired") : qsTr("Not paired"));
+        let s = connected ? I18n.tr("Connected") : (device.bonded ? I18n.tr("Paired") : I18n.tr("Not paired"));
         if (connected && device.batteryAvailable)
             s += " • " + Math.round(device.battery * 100) + "%";
         return s;
@@ -32,7 +32,7 @@ PageBase {
             nState.closeSubPage();
     }
 
-    title: device?.name ?? qsTr("Device")
+    title: device?.name ?? I18n.tr("Device")
     isSubPage: true
 
     ColumnLayout {
@@ -81,7 +81,7 @@ PageBase {
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("Forget")
+                        text: I18n.tr("Forget")
                         color: forgetBtn.onColour
                     }
                 }
@@ -136,7 +136,7 @@ PageBase {
 
                         StyledText {
                             Layout.alignment: Qt.AlignHCenter
-                            text: root.connected ? qsTr("Disconnect") : qsTr("Connect")
+                            text: root.connected ? I18n.tr("Disconnect") : I18n.tr("Connect")
                             color: connectBtn.inactiveOnColour
                             animate: true
                         }
@@ -149,8 +149,8 @@ PageBase {
         ToggleRow {
             verticalPadding: Tokens.padding.large
             first: true
-            text: qsTr("Trusted")
-            subtext: qsTr("Allow this device to connect automatically")
+            text: I18n.tr("Trusted")
+            subtext: I18n.tr("Allow this device to connect automatically")
             checked: root.device?.trusted ?? false
             onToggled: {
                 if (root.device)
@@ -160,8 +160,8 @@ PageBase {
 
         ToggleRow {
             verticalPadding: Tokens.padding.large
-            text: qsTr("Reconnect on startup")
-            subtext: qsTr("Attempt to connect this device when the shell starts")
+            text: I18n.tr("Reconnect on startup")
+            subtext: I18n.tr("Attempt to connect this device when the shell starts")
             checked: root.device && GlobalConfig.services.bluetoothAutoReconnectDevices.includes(root.device.address)
             onToggled: {
                 if (!root.device || !root.device.address)
@@ -185,8 +185,8 @@ PageBase {
         ToggleRow {
             Layout.fillWidth: true
             verticalPadding: Tokens.padding.large
-            text: qsTr("Blocked")
-            subtext: qsTr("Prevent this device from connecting")
+            text: I18n.tr("Blocked")
+            subtext: I18n.tr("Prevent this device from connecting")
             checked: root.device?.blocked ?? false
             onToggled: {
                 if (root.device)
@@ -197,8 +197,8 @@ PageBase {
         ToggleRow {
             verticalPadding: Tokens.padding.large
             last: true
-            text: qsTr("Wake allowed")
-            subtext: qsTr("Allow this device to wake the system")
+            text: I18n.tr("Wake allowed")
+            subtext: I18n.tr("Allow this device to wake the system")
             checked: root.device?.wakeAllowed ?? false
             onToggled: {
                 if (root.device)
@@ -228,11 +228,11 @@ PageBase {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Battery")
+                        text: I18n.tr("Battery")
                     }
 
                     StyledText {
-                        text: root.device?.batteryAvailable ? Math.round(root.device.battery * 100) + "%" : qsTr("Unavailable")
+                        text: root.device?.batteryAvailable ? Math.round(root.device.battery * 100) + "%" : I18n.tr("Unavailable")
                         color: Colours.palette.m3onSurfaceVariant
                         font: Tokens.font.body.small
                     }
@@ -268,7 +268,7 @@ PageBase {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Address")
+                    text: I18n.tr("Address")
                 }
 
                 StyledText {

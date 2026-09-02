@@ -27,7 +27,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.padding.medium * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Night Light")
+        text: I18n.tr("Night Light")
         font.weight: 500
         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
     }
@@ -38,7 +38,7 @@ ColumnLayout {
         inactiveColour: HyprSunset.autoMode ? Colours.palette.m3primaryContainer : Colours.palette.m3surfaceVariant
         inactiveOnColour: HyprSunset.autoMode ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurfaceVariant
         verticalPadding: Tokens.padding.small * root.scaleOffset
-        text: HyprSunset.autoMode ? qsTr("Auto") : qsTr("Manual")
+        text: HyprSunset.autoMode ? I18n.tr("Auto") : I18n.tr("Manual")
         icon: "routine"
         
         onClicked: {
@@ -51,7 +51,7 @@ ColumnLayout {
         visible: HyprSunset.autoMode
         Layout.topMargin: Tokens.spacing.medium * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Daylight Temperature (%1K)").arg(Math.round(2000 + daySlider.pos * 4500))
+        text: I18n.tr("Daylight Temperature (%1K)").arg(Math.round(2000 + daySlider.pos * 4500))
         font.weight: Font.Medium
         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
         font.features: { "tnum": 1 }
@@ -89,7 +89,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.spacing.medium * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: HyprSunset.autoMode ? qsTr("Nightlight Temperature (%1K)").arg(Math.round(2000 + nightSlider.pos * 4500)) : qsTr("Temperature (%1K)").arg(Math.round(2000 + nightSlider.pos * 4500))
+        text: HyprSunset.autoMode ? I18n.tr("Nightlight Temperature (%1K)").arg(Math.round(2000 + nightSlider.pos * 4500)) : I18n.tr("Temperature (%1K)").arg(Math.round(2000 + nightSlider.pos * 4500))
         font.weight: Font.Medium
         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
         font.features: { "tnum": 1 }

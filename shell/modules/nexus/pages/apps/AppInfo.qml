@@ -29,7 +29,7 @@ PageBase {
             nState.closeSubPage();
     }
 
-    title: qsTr("App info")
+    title: I18n.tr("App info")
     isSubPage: true
 
     ColumnLayout {
@@ -76,13 +76,13 @@ PageBase {
         // Launcher
         SectionHeader {
             first: true
-            text: qsTr("Launcher")
+            text: I18n.tr("Launcher")
         }
 
         ToggleRow {
             first: true
-            text: Strings.localizeEnglishSpelling(qsTr("Favourite"))
-            subtext: root.favouriteByRegex ? Strings.localizeEnglishSpelling(qsTr("Matched by a regex in favouriteApps — edit the config file to change")) : qsTr("Pin to the top of the launcher")
+            text: Strings.localizeEnglishSpelling(I18n.tr("Favourite"))
+            subtext: root.favouriteByRegex ? Strings.localizeEnglishSpelling(I18n.tr("Matched by a regex in favouriteApps — edit the config file to change")) : I18n.tr("Pin to the top of the launcher")
             enabled: !root.favouriteByRegex
             checked: root.app && Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.app.id)
             onToggled: {
@@ -93,8 +93,8 @@ PageBase {
 
         ToggleRow {
             last: true
-            text: qsTr("Hidden")
-            subtext: root.hiddenByRegex ? qsTr("Matched by a regex in hiddenApps — edit the config file to change") : qsTr("Hide from the launcher")
+            text: I18n.tr("Hidden")
+            subtext: root.hiddenByRegex ? I18n.tr("Matched by a regex in hiddenApps — edit the config file to change") : I18n.tr("Hide from the launcher")
             enabled: !root.hiddenByRegex
             checked: root.app && Strings.testRegexList(GlobalConfig.launcher.hiddenApps, root.app.id)
             onToggled: {
@@ -105,14 +105,14 @@ PageBase {
 
         // Details
         SectionHeader {
-            text: qsTr("Details")
+            text: I18n.tr("Details")
         }
 
         WrapInfoRow {
             id: appId
 
             first: true
-            label: qsTr("App ID")
+            label: I18n.tr("App ID")
             value: root.app?.id ?? ""
             labelComp.Layout.preferredWidth: Math.max(labelComp.implicitWidth, command.labelComp.implicitWidth)
         }
@@ -121,7 +121,7 @@ PageBase {
             id: command
 
             last: true
-            label: qsTr("Command")
+            label: I18n.tr("Command")
             value: (root.app?.command ?? []).join(" ")
             labelComp.Layout.preferredWidth: Math.max(labelComp.implicitWidth, appId.labelComp.implicitWidth)
         }

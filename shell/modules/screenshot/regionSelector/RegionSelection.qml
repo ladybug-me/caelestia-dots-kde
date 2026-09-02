@@ -712,7 +712,7 @@ PanelWindow {
                 opacity: root.draggedAway ? 0 : root.contentRegionOpacity
                 borderColor: root.imageBorderColor
                 fillColor: targeted ? root.imageFillColor : Qt.alpha(root.imageFillColor, 0)
-                text: qsTr("Content region")
+                text: I18n.tr("Content region")
             }
         }
 
@@ -773,7 +773,7 @@ PanelWindow {
 
                 Tooltip {
                     target: parent
-                    text: qsTr("Full Screen Screenshot")
+                    text: I18n.tr("Full Screen Screenshot")
                 }
             }
             // Confirm snip button — appears after a region is drawn
@@ -785,7 +785,7 @@ PanelWindow {
 
                 Tooltip {
                     target: parent
-                    text: qsTr("Snip selected region (Enter)")
+                    text: I18n.tr("Snip selected region (Enter)")
                 }
             }
             IconButton {
@@ -804,7 +804,7 @@ PanelWindow {
 
                 Tooltip {
                     target: parent
-                    text: root.regionConfirmPending ? qsTr("Clear selection") : qsTr("Close")
+                    text: root.regionConfirmPending ? I18n.tr("Clear selection") : I18n.tr("Close")
                 }
             }
         }

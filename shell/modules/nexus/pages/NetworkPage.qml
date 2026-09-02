@@ -15,7 +15,7 @@ PageBase {
 
     signal networkSelected(ap: Nmcli.AccessPoint)
 
-    title: qsTr("Network")
+    title: I18n.tr("Network")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -49,12 +49,12 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Wi-Fi")
+            text: I18n.tr("Wi-Fi")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Wi-Fi")
+            text: I18n.tr("Wi-Fi")
             font: Tokens.font.body.medium
             horizontalPadding: Tokens.padding.largeIncreased
             checked: Nmcli.wifiEnabled
@@ -66,7 +66,7 @@ PageBase {
 
             showList: Nmcli.wifiEnabled
             placeholderIcon: Nmcli.wifiEnabled ? "wifi_find" : "signal_wifi_off"
-            placeholderText: Nmcli.wifiEnabled ? qsTr("No networks found") : qsTr("Wi-Fi disabled")
+            placeholderText: Nmcli.wifiEnabled ? I18n.tr("No networks found") : I18n.tr("Wi-Fi disabled")
             extraHeight: Nmcli.scanning ? Tokens.rounding.extraSmall : 0 // Inline so it isn't affected by anim
             list.anchors.top: scanningIndicator.bottom
 
@@ -156,7 +156,7 @@ PageBase {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: qsTr("Security: %1%2").arg(network.modelData.security).arg(network.modelData.active ? qsTr(" • Connected") : Nmcli.hasSavedProfile(network.modelData.ssid) ? qsTr(" • Saved") : "")
+                            text: I18n.tr("Security: %1%2").arg(network.modelData.security).arg(network.modelData.active ? I18n.tr(" • Connected") : Nmcli.hasSavedProfile(network.modelData.ssid) ? I18n.tr(" • Saved") : "")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight
@@ -206,7 +206,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("VPN")
+            text: I18n.tr("VPN")
         }
 
         ItemList {
@@ -214,7 +214,7 @@ PageBase {
 
             showList: true
             placeholderIcon: "vpn_key_off"
-            placeholderText: qsTr("No VPN profiles found")
+            placeholderText: I18n.tr("No VPN profiles found")
 
             model: ScriptModel {
                 values: [...Nmcli.vpnConnections]
@@ -294,7 +294,7 @@ PageBase {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: vpn.connected ? qsTr("Connected") : qsTr("Available")
+                            text: vpn.connected ? I18n.tr("Connected") : I18n.tr("Available")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight

@@ -35,14 +35,14 @@ ColumnLayout {
 
     readonly property string statusText: {
         if (root.updateRunning)
-            return UpdateChecker.updateStatus !== "" ? UpdateChecker.updateStatus : qsTr("Updating…");
+            return UpdateChecker.updateStatus !== "" ? UpdateChecker.updateStatus : I18n.tr("Updating…");
         if (root.checking)
-            return qsTr("Checking for updates…");
+            return I18n.tr("Checking for updates…");
         if (root.hasUpdate)
             return UpdateChecker.versionSummaryMode
-                ? qsTr("New version available on %1").arg(UpdateChecker.currentBranch)
-                : qsTr("%1 new commits on %2 branch").arg(UpdateChecker.pendingCount).arg(UpdateChecker.currentBranch);
-        return qsTr("System is up to date");
+                ? I18n.tr("New version available on %1").arg(UpdateChecker.currentBranch)
+                : I18n.tr("%1 new commits on %2 branch").arg(UpdateChecker.pendingCount).arg(UpdateChecker.currentBranch);
+        return I18n.tr("System is up to date");
     }
 
     readonly property string statusIcon: root.updateRunning ? "progress_activity" : root.checking ? "sync" : root.hasUpdate ? "update" : "check_circle"
@@ -53,7 +53,7 @@ ColumnLayout {
         const total = Math.max(0, Math.floor(ms / 1000));
         const minutes = Math.floor(total / 60);
         const seconds = total % 60;
-        return minutes > 0 ? qsTr("%1m %2s").arg(minutes).arg(seconds) : qsTr("%1s").arg(seconds);
+        return minutes > 0 ? I18n.tr("%1m %2s").arg(minutes).arg(seconds) : I18n.tr("%1s").arg(seconds);
     }
 
     function hideIndicator(): void {
@@ -122,10 +122,10 @@ ColumnLayout {
                     Layout.fillWidth: true
                     text: {
                         if (root.checking)
-                            return qsTr("Checking…");
+                            return I18n.tr("Checking…");
                         if (UpdateChecker.lastCheckMs <= 0)
-                            return qsTr("Last check: not yet");
-                        return qsTr("Last check %1 ago").arg(root.formatDuration(root.nowMs - UpdateChecker.lastCheckMs));
+                            return I18n.tr("Last check: not yet");
+                        return I18n.tr("Last check %1 ago").arg(root.formatDuration(root.nowMs - UpdateChecker.lastCheckMs));
                     }
                     color: Colours.palette.m3onSurfaceVariant
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
@@ -145,7 +145,7 @@ ColumnLayout {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Next check in %1").arg(root.formatDuration(UpdateChecker.lastCheckMs + UpdateChecker.checkIntervalMs - root.nowMs))
+                    text: I18n.tr("Next check in %1").arg(root.formatDuration(UpdateChecker.lastCheckMs + UpdateChecker.checkIntervalMs - root.nowMs))
                     color: Colours.palette.m3onSurfaceVariant
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
@@ -202,7 +202,7 @@ ColumnLayout {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: root.checking ? qsTr("Checking…") : qsTr("Check for updates")
+                        text: root.checking ? I18n.tr("Checking…") : I18n.tr("Check for updates")
                         color: Colours.palette.m3onSurface
                         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                     }
@@ -243,7 +243,7 @@ ColumnLayout {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Open Updates")
+                        text: I18n.tr("Open Updates")
                         color: Colours.palette.m3onSurface
                         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                     }
@@ -281,7 +281,7 @@ ColumnLayout {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: qsTr("Hide from bar")
+                        text: I18n.tr("Hide from bar")
                         color: Colours.palette.m3onSurface
                         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                     }

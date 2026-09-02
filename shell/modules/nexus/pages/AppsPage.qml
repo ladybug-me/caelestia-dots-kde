@@ -16,7 +16,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Apps")
+    title: I18n.tr("Apps")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -27,15 +27,15 @@ PageBase {
         // Default applications
         SectionHeader {
             first: true
-            text: qsTr("Default applications")
+            text: I18n.tr("Default applications")
         }
 
         ToggleRow {
             id: systemDefaultsToggle
 
             first: true
-            text: qsTr("Force System Defaults (xdg-open)")
-            subtext: qsTr("Override applications to use KDE system defaults")
+            text: I18n.tr("Force System Defaults (xdg-open)")
+            subtext: I18n.tr("Override applications to use KDE system defaults")
             
             checked: GlobalConfig.general.apps.audio.join(" ") === "xdg-open" &&
                      GlobalConfig.general.apps.playback.join(" ") === "xdg-open" &&
@@ -57,7 +57,7 @@ PageBase {
         DefaultRow {
             enabled: !systemDefaultsToggle.checked
             icon: "terminal"
-            label: qsTr("Terminal")
+            label: I18n.tr("Terminal")
             status: GlobalConfig.general.apps.terminal.join(" ")
             hideSystemDefault: true
             onSelected: app => GlobalConfig.general.apps.terminal = app.command
@@ -66,7 +66,7 @@ PageBase {
         DefaultRow {
             enabled: !systemDefaultsToggle.checked
             icon: "volume_up"
-            label: qsTr("Audio")
+            label: I18n.tr("Audio")
             status: GlobalConfig.general.apps.audio.join(" ")
             onSelected: app => GlobalConfig.general.apps.audio = app.command
         }
@@ -74,7 +74,7 @@ PageBase {
         DefaultRow {
             enabled: !systemDefaultsToggle.checked
             icon: "play_circle"
-            label: qsTr("Media playback")
+            label: I18n.tr("Media playback")
             status: GlobalConfig.general.apps.playback.join(" ")
             onSelected: app => GlobalConfig.general.apps.playback = app.command
         }
@@ -83,22 +83,22 @@ PageBase {
             enabled: !systemDefaultsToggle.checked
             last: true
             icon: "folder"
-            label: qsTr("File manager")
+            label: I18n.tr("File manager")
             status: GlobalConfig.general.apps.explorer.join(" ")
             onSelected: app => GlobalConfig.general.apps.explorer = app.command
         }
 
         // Library
         SectionHeader {
-            text: qsTr("Library")
+            text: I18n.tr("Library")
         }
 
         NavRow {
             first: true
             last: true
             icon: "apps"
-            label: qsTr("All apps")
-            status: Strings.localizeEnglishSpelling(qsTr("Browse installed apps, set favourites and hidden"))
+            label: I18n.tr("All apps")
+            status: Strings.localizeEnglishSpelling(I18n.tr("Browse installed apps, set favourites and hidden"))
             onClicked: root.nState.openSubPage(1)
         }
     }
@@ -166,14 +166,14 @@ PageBase {
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: qsTr("System Default")
+                                text: I18n.tr("System Default")
                                 font: Tokens.font.body.small
                                 elide: Text.ElideRight
                             }
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: qsTr("Uses xdg-open (KDE Default)")
+                                text: I18n.tr("Uses xdg-open (KDE Default)")
                                 color: Colours.palette.m3onSurfaceVariant
                                 font: Tokens.font.label.small
                                 elide: Text.ElideRight

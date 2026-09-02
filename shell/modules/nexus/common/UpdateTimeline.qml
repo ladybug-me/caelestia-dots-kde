@@ -34,17 +34,17 @@ Item {
     // timeline a colourful, git-log-style look while keeping the mapping
     // grounded in the current Material palette (so it follows theming).
     readonly property var commitTypes: ({
-        feat: { label: qsTr("feat"), color: Colours.palette.m3primary },
-        fix: { label: qsTr("fix"), color: Colours.palette.m3error },
-        perf: { label: qsTr("perf"), color: Colours.palette.m3secondaryFixedDim },
-        refactor: { label: qsTr("refactor"), color: Colours.palette.m3secondary },
-        style: { label: qsTr("style"), color: Colours.palette.m3tertiaryFixedDim },
-        docs: { label: qsTr("docs"), color: Colours.palette.m3tertiary },
-        test: { label: qsTr("test"), color: Colours.palette.m3primaryFixedDim },
-        build: { label: qsTr("build"), color: Colours.palette.m3outline },
-        ci: { label: qsTr("ci"), color: Colours.palette.m3outline },
-        chore: { label: qsTr("chore"), color: Colours.palette.m3outline },
-        revert: { label: qsTr("revert"), color: Colours.palette.m3error }
+        feat: { label: I18n.tr("feat"), color: Colours.palette.m3primary },
+        fix: { label: I18n.tr("fix"), color: Colours.palette.m3error },
+        perf: { label: I18n.tr("perf"), color: Colours.palette.m3secondaryFixedDim },
+        refactor: { label: I18n.tr("refactor"), color: Colours.palette.m3secondary },
+        style: { label: I18n.tr("style"), color: Colours.palette.m3tertiaryFixedDim },
+        docs: { label: I18n.tr("docs"), color: Colours.palette.m3tertiary },
+        test: { label: I18n.tr("test"), color: Colours.palette.m3primaryFixedDim },
+        build: { label: I18n.tr("build"), color: Colours.palette.m3outline },
+        ci: { label: I18n.tr("ci"), color: Colours.palette.m3outline },
+        chore: { label: I18n.tr("chore"), color: Colours.palette.m3outline },
+        revert: { label: I18n.tr("revert"), color: Colours.palette.m3error }
     })
 
     function commitType(subject) {
@@ -257,7 +257,7 @@ Item {
                             id: mergeText
 
                             anchors.centerIn: parent
-                            text: qsTr("merge")
+                            text: I18n.tr("merge")
                             font: Tokens.font.label.small
                             color: entry.typeColor
                         }

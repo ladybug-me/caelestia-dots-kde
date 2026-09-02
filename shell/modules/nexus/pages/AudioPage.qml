@@ -12,7 +12,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Audio")
+    title: I18n.tr("Audio")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -22,13 +22,13 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Output")
+            text: I18n.tr("Output")
         }
 
         SliderRow {
             first: true
             icon: Icons.getVolumeIcon(Audio.volume, Audio.muted)
-            label: qsTr("Output")
+            label: I18n.tr("Output")
             valueLabel: Math.round(value * 100) + "%"
             value: Audio.volume
             enabled: !Audio.muted
@@ -37,7 +37,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Muted")
+            text: I18n.tr("Muted")
             checked: Audio.muted
             onToggled: Audio.setStreamMuted(Audio.sink, checked)
         }
@@ -47,18 +47,18 @@ PageBase {
             currentId: Audio.sink?.id ?? -1
             iconName: "speaker"
             placeholderIcon: "speaker"
-            placeholderText: qsTr("No output devices")
+            placeholderText: I18n.tr("No output devices")
             onSelected: node => Audio.setAudioSink(node)
         }
 
         SectionHeader {
-            text: qsTr("Input")
+            text: I18n.tr("Input")
         }
 
         SliderRow {
             first: true
             icon: Icons.getMicVolumeIcon(Audio.sourceVolume, Audio.sourceMuted)
-            label: qsTr("Input")
+            label: I18n.tr("Input")
             valueLabel: Math.round(value * 100) + "%"
             value: Audio.sourceVolume
             enabled: !Audio.sourceMuted
@@ -67,7 +67,7 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Muted")
+            text: I18n.tr("Muted")
             checked: Audio.sourceMuted
             onToggled: Audio.setStreamMuted(Audio.source, checked)
         }
@@ -77,40 +77,40 @@ PageBase {
             currentId: Audio.source?.id ?? -1
             iconName: "mic"
             placeholderIcon: "mic_off"
-            placeholderText: qsTr("No input devices")
+            placeholderText: I18n.tr("No input devices")
             onSelected: node => Audio.setAudioSource(node)
         }
 
         SectionHeader {
-            text: qsTr("Apps")
+            text: I18n.tr("Apps")
         }
 
         NavRow {
             first: true
             last: true
             icon: "tune"
-            label: qsTr("App volumes")
-            status: Audio.streams.length === 0 ? qsTr("No apps playing audio") : Audio.streams.length === 1 ? qsTr("1 app playing audio") : qsTr("%1 apps playing audio").arg(Audio.streams.length)
+            label: I18n.tr("App volumes")
+            status: Audio.streams.length === 0 ? I18n.tr("No apps playing audio") : Audio.streams.length === 1 ? I18n.tr("1 app playing audio") : I18n.tr("%1 apps playing audio").arg(Audio.streams.length)
             onClicked: root.nState.openSubPage(1)
         }
 
         SectionHeader {
-            text: qsTr("Customization")
+            text: I18n.tr("Customization")
         }
 
         NavRow {
             first: true
             icon: "volume_up"
-            label: qsTr("Sound effects")
-            status: qsTr("Feedback sounds and volume")
+            label: I18n.tr("Sound effects")
+            status: I18n.tr("Feedback sounds and volume")
             onClicked: root.nState.openSubPage(2)
         }
 
         NavRow {
             last: true
             icon: "notifications_off"
-            label: qsTr("Muted notification apps")
-            status: qsTr("Choose apps that do not play notification sounds")
+            label: I18n.tr("Muted notification apps")
+            status: I18n.tr("Choose apps that do not play notification sounds")
             onClicked: root.nState.openSubPage(3)
         }
     }

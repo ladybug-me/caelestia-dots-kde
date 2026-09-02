@@ -8,11 +8,12 @@ import qs.components
 import qs.components.filedialog
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Launcher")
+    title: I18n.tr("Launcher")
     isSubPage: true
 
     ColumnLayout {
@@ -24,19 +25,19 @@ PageBase {
         // General
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: I18n.tr("General")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Enabled")
+            text: I18n.tr("Enabled")
             checked: Config.launcher.enabled
             onToggled: GlobalConfig.launcher.enabled = checked
         }
 
         ToggleRow {
-            text: qsTr("Use alternative logo")
-            subtext: qsTr("Use the Caelestia logo or a custom image instead of your distribution's logo")
+            text: I18n.tr("Use alternative logo")
+            subtext: I18n.tr("Use the Caelestia logo or a custom image instead of your distribution's logo")
             checked: GlobalConfig.general.logo !== ""
             onToggled: {
                 if (checked) {
@@ -52,15 +53,15 @@ PageBase {
         NavRow {
             visible: GlobalConfig.general.logo !== ""
             icon: "image"
-            label: qsTr("Pick custom logo")
-            status: GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : qsTr("Select an image from your local files")
+            label: I18n.tr("Pick custom logo")
+            status: GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : I18n.tr("Select an image from your local files")
             onClicked: customLogoDialog.open()
 
             FileDialog {
                 id: customLogoDialog
 
-                title: qsTr("Select a custom logo")
-                filterLabel: qsTr("Image files")
+                title: I18n.tr("Select a custom logo")
+                filterLabel: I18n.tr("Image files")
                 filters: Images.validImageExtensions
                 onAccepted: path => {
                     GlobalConfig.general.logo = path;
@@ -71,8 +72,8 @@ PageBase {
         NavRow {
             visible: GlobalConfig.general.logo !== ""
             icon: "palette"
-            label: qsTr("Select KDE icon")
-            status: GlobalConfig.general.logo && GlobalConfig.general.logo !== "caelestia" && !GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : qsTr("Pick an icon from your system theme")
+            label: I18n.tr("Select KDE icon")
+            status: GlobalConfig.general.logo && GlobalConfig.general.logo !== "caelestia" && !GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : I18n.tr("Pick an icon from your system theme")
             onClicked: kdeIconProcess.running = true
 
             Process {
@@ -92,15 +93,15 @@ PageBase {
 
         ToggleRow {
             visible: GlobalConfig.general.logo !== "" && GlobalConfig.general.logo !== "caelestia"
-            text: qsTr("Tint custom logo")
-            subtext: qsTr("Apply the Material You accent color to your custom logo")
+            text: I18n.tr("Tint custom logo")
+            subtext: I18n.tr("Apply the Material You accent color to your custom logo")
             checked: SysInfo.recolourCustomLogo
             onToggled: SysInfo.recolourCustomLogo = checked
         }
 
         StepperRow {
             visible: GlobalConfig.general.logo !== "" && GlobalConfig.general.logo !== "caelestia"
-            label: qsTr("Logo size (%)")
+            label: I18n.tr("Logo size (%)")
             value: SysInfo.customLogoSize
             from: 50
             to: 200
@@ -110,27 +111,27 @@ PageBase {
 
         ToggleRow {
             last: true
-            text: qsTr("Show on hover")
-            subtext: qsTr("Reveal when the cursor reaches the screen edge")
+            text: I18n.tr("Show on hover")
+            subtext: I18n.tr("Reveal when the cursor reaches the screen edge")
             checked: Config.launcher.showOnHover
             onToggled: GlobalConfig.launcher.showOnHover = checked
         }
 
         // Display
         SectionHeader {
-            text: qsTr("Display")
+            text: I18n.tr("Display")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Show power menu")
-            subtext: qsTr("Show the quick session controls (shutdown, sleep, logout) at the bottom")
+            text: I18n.tr("Show power menu")
+            subtext: I18n.tr("Show the quick session controls (shutdown, sleep, logout) at the bottom")
             checked: Config.launcher.showPowerMenu
             onToggled: GlobalConfig.launcher.showPowerMenu = checked
         }
 
         StepperRow {
-            label: qsTr("Max items shown")
+            label: I18n.tr("Max items shown")
             value: Config.launcher.maxShown
             from: 1
             to: 20
@@ -139,7 +140,7 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Max wallpapers")
+            label: I18n.tr("Max wallpapers")
             value: Config.launcher.maxWallpapers
             from: 1
             to: 30
@@ -148,8 +149,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Hover trigger depth")
-            subtext: qsTr("Distance in from the screen edge that opens the launcher")
+            label: I18n.tr("Hover trigger depth")
+            subtext: I18n.tr("Distance in from the screen edge that opens the launcher")
             value: Config.launcher.hoverThickness
             from: 1
             to: 100
@@ -158,8 +159,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Hover trigger width")
-            subtext: qsTr("How much of the bottom edge opens the launcher, as a percentage of its width")
+            label: I18n.tr("Hover trigger width")
+            subtext: I18n.tr("How much of the bottom edge opens the launcher, as a percentage of its width")
             value: Config.launcher.hoverWidth
             from: 10
             to: 100
@@ -169,8 +170,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the launcher opens")
+            label: I18n.tr("Drag threshold")
+            subtext: I18n.tr("Pixels dragged before the launcher opens")
             value: Config.launcher.dragThreshold
             from: 0
             to: 200
@@ -180,58 +181,58 @@ PageBase {
 
         // Behaviour
         SectionHeader {
-            text: Strings.localizeEnglishSpelling(qsTr("Behaviour"))
+            text: Strings.localizeEnglishSpelling(I18n.tr("Behaviour"))
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Vim keybinds")
-            subtext: qsTr("Navigate results with Ctrl+hjkl")
+            text: I18n.tr("Vim keybinds")
+            subtext: I18n.tr("Navigate results with Ctrl+hjkl")
             checked: GlobalConfig.launcher.vimKeybinds
             onToggled: GlobalConfig.launcher.vimKeybinds = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Enable dangerous actions")
-            subtext: qsTr("Allow actions that shut down or log out")
+            text: I18n.tr("Enable dangerous actions")
+            subtext: I18n.tr("Allow actions that shut down or log out")
             checked: GlobalConfig.launcher.enableDangerousActions
             onToggled: GlobalConfig.launcher.enableDangerousActions = checked
         }
 
         // Fuzzy search
         SectionHeader {
-            text: qsTr("Fuzzy search")
+            text: I18n.tr("Fuzzy search")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Apps")
+            text: I18n.tr("Apps")
             checked: GlobalConfig.launcher.useFuzzy.apps
             onToggled: GlobalConfig.launcher.useFuzzy.apps = checked
         }
 
         ToggleRow {
-            text: qsTr("Actions")
+            text: I18n.tr("Actions")
             checked: GlobalConfig.launcher.useFuzzy.actions
             onToggled: GlobalConfig.launcher.useFuzzy.actions = checked
         }
 
         ToggleRow {
-            text: qsTr("Schemes")
+            text: I18n.tr("Schemes")
             checked: GlobalConfig.launcher.useFuzzy.schemes
             onToggled: GlobalConfig.launcher.useFuzzy.schemes = checked
         }
 
         ToggleRow {
-            text: qsTr("Variants")
+            text: I18n.tr("Variants")
             checked: GlobalConfig.launcher.useFuzzy.variants
             onToggled: GlobalConfig.launcher.useFuzzy.variants = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Wallpapers")
+            text: I18n.tr("Wallpapers")
             checked: GlobalConfig.launcher.useFuzzy.wallpapers
             onToggled: GlobalConfig.launcher.useFuzzy.wallpapers = checked
         }

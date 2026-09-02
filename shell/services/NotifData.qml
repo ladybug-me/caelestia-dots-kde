@@ -16,7 +16,7 @@ QtObject {
     property var locks: new Set()
 
     property date time: new Date()
-    property string timeStr: qsTr("now")
+    property string timeStr: I18n.tr("now")
 
     readonly property Timer timeStrTimer: Timer {
         running: !notif.closed
@@ -165,7 +165,7 @@ QtObject {
         const m = Math.floor(diff / 60000);
 
         if (m < 1) {
-            timeStr = qsTr("now");
+            timeStr = I18n.tr("now");
             timeStrTimer.interval = 5000;
         } else {
             const h = Math.floor(m / 60);

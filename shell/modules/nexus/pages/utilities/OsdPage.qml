@@ -2,11 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("On-screen sliders")
+    title: I18n.tr("On-screen sliders")
     isSubPage: true
 
     ColumnLayout {
@@ -17,40 +18,40 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Sliders")
+            text: I18n.tr("Sliders")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Volume")
-            subtext: qsTr("Show the volume slider")
+            text: I18n.tr("Volume")
+            subtext: I18n.tr("Show the volume slider")
             checked: Config.osd.enableVolume
             onToggled: GlobalConfig.osd.enableVolume = checked
         }
 
         ToggleRow {
-            text: qsTr("Microphone")
-            subtext: qsTr("Show the microphone slider")
+            text: I18n.tr("Microphone")
+            subtext: I18n.tr("Show the microphone slider")
             checked: Config.osd.enableMicrophone
             onToggled: GlobalConfig.osd.enableMicrophone = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Brightness")
-            subtext: qsTr("Show the brightness slider")
+            text: I18n.tr("Brightness")
+            subtext: I18n.tr("Show the brightness slider")
             checked: Config.osd.enableBrightness
             onToggled: GlobalConfig.osd.enableBrightness = checked
         }
 
         SectionHeader {
-            text: qsTr("Edge trigger")
+            text: I18n.tr("Edge trigger")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Depth")
-            subtext: qsTr("Distance from the screen edge")
+            label: I18n.tr("Depth")
+            subtext: I18n.tr("Distance from the screen edge")
             value: Config.osd.hoverThickness
             from: 1
             to: 100
@@ -60,8 +61,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Height")
-            subtext: qsTr("Portion of the edge that responds")
+            label: I18n.tr("Height")
+            subtext: I18n.tr("Portion of the edge that responds")
             value: Config.osd.hoverWidth
             from: 10
             to: 100

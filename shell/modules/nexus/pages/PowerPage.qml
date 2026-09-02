@@ -115,7 +115,7 @@ PageBase {
 
     Component.onCompleted: root.refreshIdleSuspendState()
 
-    title: qsTr("Power")
+    title: I18n.tr("Power")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -125,31 +125,31 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Battery indicators")
+            text: I18n.tr("Battery indicators")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Show battery icon")
+            text: I18n.tr("Show battery icon")
             checked: Config.bar.status.showBattery
             onToggled: GlobalConfig.bar.status.showBattery = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Show peripheral battery")
+            text: I18n.tr("Show peripheral battery")
             checked: Config.bar.status.showPeripheralBattery
             onToggled: GlobalConfig.bar.status.showPeripheralBattery = checked
         }
 
         SectionHeader {
-            text: qsTr("Idle & sleep")
+            text: I18n.tr("Idle & sleep")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Idle suspend")
-            subtext: qsTr("Suspend the system after inactivity")
+            text: I18n.tr("Idle suspend")
+            subtext: I18n.tr("Suspend the system after inactivity")
             checked: root.idleSuspendEnabledState
             onToggled: root.setSuspendTimeoutEnabled(checked)
         }
@@ -157,10 +157,10 @@ PageBase {
         StepperRow {
             last: true
             enabled: root.idleSuspendEnabledState
-            label: qsTr("Idle suspend timer")
+            label: I18n.tr("Idle suspend timer")
             subtext: root.idleSuspendEnabledState
-                     ? qsTr("Suspend after %1 minute(s) of inactivity").arg(root.idleSuspendMinutesState)
-                     : qsTr("Enable idle suspend to apply a timer")
+                     ? I18n.tr("Suspend after %1 minute(s) of inactivity").arg(root.idleSuspendMinutesState)
+                     : I18n.tr("Enable idle suspend to apply a timer")
             value: root.idleSuspendMinutesState
             from: 1
             to: 180

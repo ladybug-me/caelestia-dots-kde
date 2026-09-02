@@ -30,7 +30,7 @@ Item {
             Quickshell.execDetached(["sh", "-c", "cliphist decode " + root.modelData.id + " | wl-copy"]);
 
         if (GlobalConfig.utilities.toasts.clipboardChanged)
-            Toaster.toast(qsTr("Copied to clipboard"), preview, "content_paste");
+            Toaster.toast(I18n.tr("Copied to clipboard"), preview, "content_paste");
     }
 
     Component.onCompleted: {

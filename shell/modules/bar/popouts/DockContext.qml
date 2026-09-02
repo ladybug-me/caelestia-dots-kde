@@ -101,7 +101,7 @@ ColumnLayout {
                     id: pinLabel
 
                     anchors.left: parent.left
-                    text: isPinned ? qsTr("Unpin from dock") : qsTr("Pin to dock")
+                    text: isPinned ? I18n.tr("Unpin from dock") : I18n.tr("Pin to dock")
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
             }
@@ -141,7 +141,7 @@ ColumnLayout {
                     id: newWinLabel
 
                     anchors.left: parent.left
-                    text: qsTr("Open new window")
+                    text: I18n.tr("Open new window")
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
             }
@@ -153,7 +153,7 @@ ColumnLayout {
         inactiveColour: Colours.palette.m3primaryContainer
         inactiveOnColour: Colours.palette.m3onPrimaryContainer
         verticalPadding: Tokens.padding.small * root.scaleOffset
-        text: qsTr("End task")
+        text: I18n.tr("End task")
         icon: "close"
         visible: {
             if (!model || !model.toplevels || model.toplevels.length === 0) return false;

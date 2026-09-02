@@ -186,7 +186,7 @@ Item {
         visible: root.state === "wallpapers"
 
         IconTextButton {
-            text: qsTr("Images")
+            text: I18n.tr("Images")
             icon: "image"
             type: Wallpapers.currentMediaFilter === "Image" ? TextButton.Filled : TextButton.Tonal
             onClicked: {
@@ -195,7 +195,7 @@ Item {
             }
         }
         IconTextButton {
-            text: qsTr("Animated")
+            text: I18n.tr("Animated")
             icon: "animation"
             type: Wallpapers.currentMediaFilter === "Animated" ? TextButton.Filled : TextButton.Tonal
             onClicked: {
@@ -204,7 +204,7 @@ Item {
             }
         }
         IconTextButton {
-            text: qsTr("Videos")
+            text: I18n.tr("Videos")
             icon: "videocam"
             type: Wallpapers.currentMediaFilter === "Video" ? TextButton.Filled : TextButton.Tonal
             onClicked: {
@@ -443,14 +443,14 @@ Item {
             StyledText {
                 text: {
                     if (empty.cliphistMissing)
-                        return qsTr("cliphist not found");
+                        return I18n.tr("cliphist not found");
                     if (root.state === "wallpapers")
-                        return qsTr("No wallpapers found");
+                        return I18n.tr("No wallpapers found");
                     if (root.state === "keybinds")
-                        return qsTr("No keybinds found");
+                        return I18n.tr("No keybinds found");
                     if (root.state === "animations")
-                        return qsTr("No animations found");
-                    return qsTr("No results");
+                        return I18n.tr("No animations found");
+                    return I18n.tr("No results");
                 }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.large.weight(Font.Medium).build()
@@ -459,14 +459,14 @@ Item {
             StyledText {
                 text: {
                     if (empty.cliphistMissing)
-                        return qsTr("Install cliphist to enable clipboard history");
+                        return I18n.tr("Install cliphist to enable clipboard history");
                     if (root.state === "wallpapers")
-                        return Wallpapers.list.length === 0 ? qsTr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : qsTr("Try searching for something else");
+                        return Wallpapers.list.length === 0 ? I18n.tr("Try putting some wallpapers in %1").arg(Paths.shortenHome(Paths.wallsdir)) : I18n.tr("Try searching for something else");
                     if (root.state === "keybinds")
-                        return qsTr("No keybinds match your search");
+                        return I18n.tr("No keybinds match your search");
                     if (root.state === "animations")
-                        return qsTr("Try adding .lua files to\n~/.config/caelestia/animations/");
-                    return qsTr("Try searching for something else");
+                        return I18n.tr("Try adding .lua files to\n~/.config/caelestia/animations/");
+                    return I18n.tr("Try searching for something else");
                 }
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.medium

@@ -318,13 +318,13 @@ QtObject {
                 Layout.alignment: Qt.AlignHCenter
             }
             StyledText {
-                text: qsTr("Page under construction")
+                text: I18n.tr("Page under construction")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.title.large
                 Layout.alignment: Qt.AlignHCenter
             }
             StyledText {
-                text: qsTr("This page will be available in a future update.")
+                text: I18n.tr("This page will be available in a future update.")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.large
                 Layout.alignment: Qt.AlignHCenter

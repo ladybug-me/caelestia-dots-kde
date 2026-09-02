@@ -17,7 +17,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Discord Rich Presence")
+    title: I18n.tr("Discord Rich Presence")
     isSubPage: true
 
     function saveToken(token) {
@@ -51,14 +51,14 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Broadcast settings")
+            text: I18n.tr("Broadcast settings")
         }
 
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Enable rich presence")
-            subtext: qsTr("Broadcast custom presence to Vesktop")
+            text: I18n.tr("Enable rich presence")
+            subtext: I18n.tr("Broadcast custom presence to Vesktop")
             checked: GlobalConfig.services.arpcEnabled
             onToggled: GlobalConfig.services.arpcEnabled = checked
         }
@@ -66,8 +66,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Auto-detect Steam games")
-            subtext: qsTr("Automatically broadcast running Steam games")
+            text: I18n.tr("Auto-detect Steam games")
+            subtext: I18n.tr("Automatically broadcast running Steam games")
             checked: GlobalConfig.services.arpcSteamAutoDetect
             onToggled: GlobalConfig.services.arpcSteamAutoDetect = checked
         }
@@ -75,8 +75,8 @@ PageBase {
         ToggleRow {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
-            text: qsTr("Broadcast Caelestia info")
-            subtext: qsTr("Broadcast shell uptime and system info")
+            text: I18n.tr("Broadcast Caelestia info")
+            subtext: I18n.tr("Broadcast shell uptime and system info")
             checked: GlobalConfig.services.arpcCaelestiaInfo
             onToggled: GlobalConfig.services.arpcCaelestiaInfo = checked
         }
@@ -85,8 +85,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
             last: true
-            label: qsTr("Clear when idle")
-            subtext: GlobalConfig.services.arpcIdleTimeout > 0 ? qsTr("Hide the presence after %1 minutes away").arg(Math.round(GlobalConfig.services.arpcIdleTimeout / 60)) : qsTr("Never hide the presence (minutes)")
+            label: I18n.tr("Clear when idle")
+            subtext: GlobalConfig.services.arpcIdleTimeout > 0 ? I18n.tr("Hide the presence after %1 minutes away").arg(Math.round(GlobalConfig.services.arpcIdleTimeout / 60)) : I18n.tr("Never hide the presence (minutes)")
             value: Math.round(GlobalConfig.services.arpcIdleTimeout / 60)
             from: 0
             to: 60
@@ -95,7 +95,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("SteamGridDB integration")
+            text: I18n.tr("SteamGridDB integration")
         }
 
         Item {
@@ -125,13 +125,13 @@ PageBase {
                     spacing: 0
 
                     StyledText {
-                        text: qsTr("SteamGridDB API Key")
+                        text: I18n.tr("SteamGridDB API Key")
                         font: Tokens.font.body.small
                         elide: Text.ElideRight
                     }
 
                     StyledText {
-                        text: qsTr("Used to fetch game icons for Steam games")
+                        text: I18n.tr("Used to fetch game icons for Steam games")
                         font: Tokens.font.label.small
                         color: Colours.palette.m3onSurfaceVariant
                         elide: Text.ElideRight
@@ -178,7 +178,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Target windows picker")
+            text: I18n.tr("Target windows picker")
         }
 
         AutoEnableRow {
@@ -186,8 +186,8 @@ PageBase {
             first: true
             last: true
             icon: "touch_app"
-            label: qsTr("Pick from running windows")
-            status: qsTr("Select an open window to add to ARPC")
+            label: I18n.tr("Pick from running windows")
+            status: I18n.tr("Select an open window to add to ARPC")
             onSelected: windowClass => {
                 let list = Array.from(GlobalConfig.services.arpcTargetWindows);
                 let labels = Array.from(GlobalConfig.services.arpcTargetWindowLabels);
@@ -293,7 +293,7 @@ PageBase {
                             Layout.leftMargin: Math.round(Tokens.font.icon.large.pointSize * 1.5) + Tokens.spacing.medium
                             Layout.preferredHeight: 24
 
-                            placeholderText: qsTr("Custom label (optional) — use {class}, {title}")
+                            placeholderText: I18n.tr("Custom label (optional) — use {class}, {title}")
                             font: Tokens.font.label.small
                             verticalAlignment: TextInput.AlignVCenter
 
@@ -332,7 +332,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Hidden Steam Games")
+            text: I18n.tr("Hidden Steam Games")
         }
 
         AutoEnableRow {
@@ -340,8 +340,8 @@ PageBase {
             first: true
             last: true
             icon: "visibility_off"
-            label: qsTr("Hide a running Steam game")
-            status: qsTr("Select an open Steam game to prevent it from broadcasting")
+            label: I18n.tr("Hide a running Steam game")
+            status: I18n.tr("Select an open Steam game to prevent it from broadcasting")
             onSelected: windowClass => {
                 let appId = windowClass.replace("steam_app_", "");
                 let list = Array.from(GlobalConfig.services.arpcSteamBlacklist);
@@ -434,14 +434,14 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Manual custom presence")
+            text: I18n.tr("Manual custom presence")
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Enable manual override")
-            subtext: qsTr("Force broadcast this custom presence and ignore all other apps")
+            text: I18n.tr("Enable manual override")
+            subtext: I18n.tr("Force broadcast this custom presence and ignore all other apps")
             checked: GlobalConfig.services.arpcManualOverride
             onToggled: GlobalConfig.services.arpcManualOverride = checked
         }

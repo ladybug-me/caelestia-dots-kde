@@ -17,7 +17,7 @@ PageBase {
     property string quickshellVersion
     property string cliVersion
 
-    title: qsTr("About")
+    title: I18n.tr("About")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -85,85 +85,85 @@ PageBase {
 
         // System
         SectionHeader {
-            text: qsTr("System")
+            text: I18n.tr("System")
         }
 
         InfoRow {
             first: true
-            label: qsTr("Hostname")
+            label: I18n.tr("Hostname")
             value: SysInfo.hostname
         }
 
         InfoRow {
-            label: qsTr("Device")
+            label: I18n.tr("Device")
             value: SysInfo.device
         }
 
         InfoRow {
-            label: qsTr("Distro")
+            label: I18n.tr("Distro")
             value: SysInfo.osPrettyName || SysInfo.osName
         }
 
         InfoRow {
-            label: qsTr("Kernel")
+            label: I18n.tr("Kernel")
             value: SysInfo.kernel
         }
 
         InfoRow {
             last: true
-            label: qsTr("Firmware")
+            label: I18n.tr("Firmware")
             value: SysInfo.firmware
         }
 
         // Software
         SectionHeader {
-            text: qsTr("Software")
+            text: I18n.tr("Software")
         }
 
         InfoRow {
             first: true
-            label: qsTr("Shell")
+            label: I18n.tr("Shell")
             value: CUtils.version || "…"
         }
 
         InfoRow {
-            label: qsTr("CLI")
+            label: I18n.tr("CLI")
             value: root.cliVersion || "…"
         }
 
         InfoRow {
-            label: qsTr("Quickshell")
+            label: I18n.tr("Quickshell")
             value: root.quickshellVersion || "…"
         }
 
         InfoRow {
             last: true
-            label: qsTr("Qt")
+            label: I18n.tr("Qt")
             value: CUtils.qtVersion || "…"
         }
 
         // Plugins
         SectionHeader {
-            text: qsTr("Plugins")
+            text: I18n.tr("Plugins")
         }
 
         InfoRow {
             first: true
             last: true
-            label: qsTr("Loaded plugins")
+            label: I18n.tr("Loaded plugins")
             value: root.pluginCount.toString()
         }
 
         // Advanced
         SectionHeader {
-            text: qsTr("Advanced")
+            text: I18n.tr("Advanced")
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Debug Mode")
-            subtext: qsTr("Enable verbose debug logging for troubleshooting. Run 'caelestia shell -l' to view.")
+            text: I18n.tr("Debug Mode")
+            subtext: I18n.tr("Enable verbose debug logging for troubleshooting. Run 'caelestia shell -l' to view.")
             checked: GlobalConfig.general.debugLogs
             onClicked: GlobalConfig.general.debugLogs = !GlobalConfig.general.debugLogs
         }

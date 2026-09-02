@@ -209,7 +209,7 @@ Item {
             }
 
             StyledText {
-                text: qsTr("Loading lyrics...")
+                text: I18n.tr("Loading lyrics...")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.title.medium
             }
@@ -241,7 +241,7 @@ Item {
             }
 
             StyledText {
-                text: qsTr("No lyrics found")
+                text: I18n.tr("No lyrics found")
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.title.medium
             }

@@ -14,7 +14,7 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("AI Assistant")
+    title: I18n.tr("AI Assistant")
 
     // API key entry for one provider. The value is pushed back out through
     // committed() so each instance keeps a plain static binding to its own
@@ -46,7 +46,7 @@ PageBase {
                 spacing: Tokens.spacing.medium
 
                 StyledText {
-                    text: qsTr("API key")
+                    text: I18n.tr("API key")
                     font: Tokens.font.body.small
                     color: Colours.palette.m3onSurface
                 }
@@ -62,7 +62,7 @@ PageBase {
         StyledText {
             Layout.fillWidth: true
             Layout.leftMargin: Tokens.padding.largeIncreased
-            text: qsTr("Stored in your session keyring, not in shell.json. The %1 environment variable overrides it.").arg(keyField.envName)
+            text: I18n.tr("Stored in your session keyring, not in shell.json. The %1 environment variable overrides it.").arg(keyField.envName)
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.label.small
             wrapMode: Text.Wrap
@@ -156,7 +156,7 @@ PageBase {
 
     // ---- Account helpers (mirror AiAssistant's model) ----
     function accounts() {
-        const list = [{ id: "", name: qsTr("Default"), dir: "" }];
+        const list = [{ id: "", name: I18n.tr("Default"), dir: "" }];
         try {
             const parsed = JSON.parse(GlobalConfig.ai.claudeAccountsJson || "[]");
             if (Array.isArray(parsed))
@@ -193,7 +193,7 @@ PageBase {
     function addAndLogin() {
         const arr = rawAccounts();
         const id = "acc_" + Date.now();
-        arr.push({ id: id, name: qsTr("Account") + " " + (arr.length + 1) });
+        arr.push({ id: id, name: I18n.tr("Account") + " " + (arr.length + 1) });
         GlobalConfig.ai.claudeAccountsJson = JSON.stringify(arr);
         GlobalConfig.ai.activeClaudeAccount = id;
         loginActive();
@@ -251,7 +251,7 @@ PageBase {
         let inner = "";
         if (dir !== "")
             inner = "mkdir -p " + JSON.stringify(dir) + "; export CLAUDE_CONFIG_DIR=" + JSON.stringify(dir) + "; ";
-        inner += JSON.stringify(root.claudeBin()) + " auth login; echo; echo " + JSON.stringify(qsTr("Login done? You can close this window.")) + "; read -n1";
+        inner += JSON.stringify(root.claudeBin()) + " auth login; echo; echo " + JSON.stringify(I18n.tr("Login done? You can close this window.")) + "; read -n1";
         loginProc.command = [term, "-e", "sh", "-lc", inner];
         loginProc.running = true;
     }
@@ -314,7 +314,7 @@ PageBase {
             }
             onExited: code => {
                 root.installing = false;
-                root.installStatus = code === 0 ? qsTr("Installed.") : (qsTr("Failed") + " (" + code + ")");
+                root.installStatus = code === 0 ? I18n.tr("Installed.") : (I18n.tr("Failed") + " (" + code + ")");
                 root.refreshStatus();
                 // Re-read both versions so the button settles on "Check for
                 // updates" instead of still offering the update just applied.
@@ -365,74 +365,74 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Local provider")
+            text: I18n.tr("Local provider")
         }
 
         ToggleRow {
             first: true
             last: true
-            text: qsTr("Ollama")
+            text: I18n.tr("Ollama")
             checked: GlobalConfig.ai.enableOllama
             onToggled: GlobalConfig.ai.enableOllama = checked
         }
 
         SectionHeader {
-            text: qsTr("Claude")
+            text: I18n.tr("Claude")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Claude Code")
-            subtext: qsTr("Uses the Claude CLI and your Claude login")
+            text: I18n.tr("Claude Code")
+            subtext: I18n.tr("Uses the Claude CLI and your Claude login")
             checked: GlobalConfig.ai.enableClaudeCode
             onToggled: GlobalConfig.ai.enableClaudeCode = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("Claude API")
-            subtext: qsTr("Pay-per-token API with an Anthropic key")
+            text: I18n.tr("Claude API")
+            subtext: I18n.tr("Pay-per-token API with an Anthropic key")
             checked: GlobalConfig.ai.enableClaude
             onToggled: GlobalConfig.ai.enableClaude = checked
         }
 
         SectionHeader {
-            text: qsTr("Other providers")
+            text: I18n.tr("Other providers")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("OpenAI (ChatGPT)")
-            subtext: qsTr("Pay-per-token API with an OpenAI key")
+            text: I18n.tr("OpenAI (ChatGPT)")
+            subtext: I18n.tr("Pay-per-token API with an OpenAI key")
             checked: GlobalConfig.ai.enableOpenai
             onToggled: GlobalConfig.ai.enableOpenai = checked
         }
 
         ToggleRow {
-            text: qsTr("Gemini")
-            subtext: qsTr("Google's OpenAI-compatible endpoint")
+            text: I18n.tr("Gemini")
+            subtext: I18n.tr("Google's OpenAI-compatible endpoint")
             checked: GlobalConfig.ai.enableGemini
             onToggled: GlobalConfig.ai.enableGemini = checked
         }
 
         ToggleRow {
-            text: qsTr("OpenRouter")
-            subtext: qsTr("One key for models from multiple vendors")
+            text: I18n.tr("OpenRouter")
+            subtext: I18n.tr("One key for models from multiple vendors")
             checked: GlobalConfig.ai.enableOpenrouter
             onToggled: GlobalConfig.ai.enableOpenrouter = checked
         }
 
         ToggleRow {
-            text: qsTr("opencode Zen")
-            subtext: qsTr("Curated coding models, pay as you go")
+            text: I18n.tr("opencode Zen")
+            subtext: I18n.tr("Curated coding models, pay as you go")
             checked: GlobalConfig.ai.enableOpencode
             onToggled: GlobalConfig.ai.enableOpencode = checked
         }
 
         ToggleRow {
             last: true
-            text: qsTr("opencode Go")
-            subtext: qsTr("Monthly subscription; shares Zen's key")
+            text: I18n.tr("opencode Go")
+            subtext: I18n.tr("Monthly subscription; shares Zen's key")
             checked: GlobalConfig.ai.enableOpencodeGo
             onToggled: GlobalConfig.ai.enableOpencodeGo = checked
         }
@@ -444,7 +444,7 @@ PageBase {
                      || GlobalConfig.ai.enableOpenrouter
                      || GlobalConfig.ai.enableOpencode
                      || GlobalConfig.ai.enableOpencodeGo
-            text: qsTr("API keys")
+            text: I18n.tr("API keys")
         }
 
         // Show key fields only for enabled API providers.
@@ -488,16 +488,16 @@ PageBase {
         // Everything below is only meaningful while the provider is on.
         SectionHeader {
             visible: GlobalConfig.ai.enableClaudeCode
-            text: qsTr("Claude Code")
+            text: I18n.tr("Claude Code")
         }
 
         InfoRow {
             visible: GlobalConfig.ai.enableClaudeCode
             first: true
-            label: qsTr("Status")
+            label: I18n.tr("Status")
             value: {
                 if (!root.claudeInstalled)
-                    return qsTr("Not installed");
+                    return I18n.tr("Not installed");
                 if (UpdateChecker.claudeCodeHasUpdate)
                     return root.claudeVersionShort + " → " + UpdateChecker.claudeCodeLatestVersion;
                 return root.claudeVersionShort;
@@ -511,20 +511,20 @@ PageBase {
             icon: root.claudeInstalled && !UpdateChecker.claudeCodeHasUpdate ? "refresh" : "download"
             label: {
                 if (!root.claudeInstalled)
-                    return qsTr("Download Claude Code");
+                    return I18n.tr("Download Claude Code");
                 if (UpdateChecker.claudeCodeHasUpdate)
-                    return qsTr("Update Claude Code");
-                return qsTr("Check for updates");
+                    return I18n.tr("Update Claude Code");
+                return I18n.tr("Check for updates");
             }
             status: {
                 if (root.installing)
-                    return root.installStatus || qsTr("Installing…");
+                    return root.installStatus || I18n.tr("Installing…");
                 if (UpdateChecker.claudeCodeChecking)
-                    return qsTr("Checking…");
+                    return I18n.tr("Checking…");
                 if (root.installStatus !== "")
                     return root.installStatus;
                 if (root.claudeInstalled && !UpdateChecker.claudeCodeHasUpdate && UpdateChecker.claudeCodeLatestVersion !== "")
-                    return qsTr("Up to date");
+                    return I18n.tr("Up to date");
                 return "";
             }
             onClicked: {
@@ -537,7 +537,7 @@ PageBase {
                     return;
                 }
                 root.installing = true;
-                root.installStatus = qsTr("Installing…");
+                root.installStatus = I18n.tr("Installing…");
                 installProc.running = true;
             }
         }
@@ -545,7 +545,7 @@ PageBase {
         // ── Accounts ───────────────────────────────────────────────
         SectionHeader {
             visible: GlobalConfig.ai.enableClaudeCode
-            text: qsTr("Claude accounts")
+            text: I18n.tr("Claude accounts")
         }
         Repeater {
             model: root.accounts()
@@ -594,7 +594,7 @@ PageBase {
                         }
                         StyledText {
                             Layout.fillWidth: true
-                            text: accRect.isActive ? qsTr("Active") : qsTr("Tap to select")
+                            text: accRect.isActive ? I18n.tr("Active") : I18n.tr("Tap to select")
                             color: Colours.palette.m3onSurfaceVariant
                             font: Tokens.font.label.small
                             elide: Text.ElideRight
@@ -623,8 +623,8 @@ PageBase {
         NavRow {
             visible: GlobalConfig.ai.enableClaudeCode
             icon: "login"
-            label: qsTr("Log in to selected account")
-            status: root.claudeInstalled ? "" : qsTr("Install Claude Code first")
+            label: I18n.tr("Log in to selected account")
+            status: root.claudeInstalled ? "" : I18n.tr("Install Claude Code first")
             onClicked: {
                 if (root.claudeInstalled)
                     root.loginActive();
@@ -634,8 +634,8 @@ PageBase {
             visible: GlobalConfig.ai.enableClaudeCode
             last: true
             icon: "person_add"
-            label: qsTr("Add another account & log in")
-            status: root.claudeInstalled ? qsTr("Log into a different Claude account") : qsTr("Install Claude Code first")
+            label: I18n.tr("Add another account & log in")
+            status: root.claudeInstalled ? I18n.tr("Log into a different Claude account") : I18n.tr("Install Claude Code first")
             onClicked: {
                 if (root.claudeInstalled)
                     root.addAndLogin();

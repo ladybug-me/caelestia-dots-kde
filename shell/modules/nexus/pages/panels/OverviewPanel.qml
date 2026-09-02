@@ -7,6 +7,7 @@ import qs.components
 import qs.components.controls
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
@@ -15,12 +16,12 @@ PageBase {
         MenuItem {
             property int value: 0
 
-            text: qsTr("KDE Grid")
+            text: I18n.tr("KDE Grid")
         },
         MenuItem {
             property int value: 1
 
-            text: qsTr("GNOME Grid")
+            text: I18n.tr("GNOME Grid")
         }
     ]
 
@@ -28,71 +29,71 @@ PageBase {
         MenuItem {
             property int value: 0
 
-            text: qsTr("Linear")
+            text: I18n.tr("Linear")
         },
         MenuItem {
             property int value: 2
 
-            text: qsTr("Quadratic Out")
+            text: I18n.tr("Quadratic Out")
         },
         MenuItem {
             property int value: 3
 
-            text: qsTr("Quadratic In-Out")
+            text: I18n.tr("Quadratic In-Out")
         },
         MenuItem {
             property int value: 6
 
-            text: qsTr("Cubic Out")
+            text: I18n.tr("Cubic Out")
         },
         MenuItem {
             property int value: 10
 
-            text: qsTr("Quartic Out")
+            text: I18n.tr("Quartic Out")
         },
         MenuItem {
             property int value: 14
 
-            text: qsTr("Quintic Out")
+            text: I18n.tr("Quintic Out")
         },
         MenuItem {
             property int value: 18
 
-            text: qsTr("Sine Out")
+            text: I18n.tr("Sine Out")
         },
         MenuItem {
             property int value: 22
 
-            text: qsTr("Exponential Out")
+            text: I18n.tr("Exponential Out")
         },
         MenuItem {
             property int value: 26
 
-            text: qsTr("Circular Out")
+            text: I18n.tr("Circular Out")
         },
         MenuItem {
             property int value: 30
 
-            text: qsTr("Elastic Out")
+            text: I18n.tr("Elastic Out")
         },
         MenuItem {
             property int value: 33
 
-            text: qsTr("Back In")
+            text: I18n.tr("Back In")
         },
         MenuItem {
             property int value: 34
 
-            text: qsTr("Back Out")
+            text: I18n.tr("Back Out")
         },
         MenuItem {
             property int value: 38
 
-            text: qsTr("Bounce Out")
+            text: I18n.tr("Bounce Out")
         }
     ]
 
-    title: qsTr("Overview")
+    title: I18n.tr("Overview")
     isSubPage: true
 
     ColumnLayout {
@@ -103,24 +104,24 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Activation")
+            text: I18n.tr("Activation")
         }
         ToggleRow {
             first: true
-            text: qsTr("Enable overview")
+            text: I18n.tr("Enable overview")
             checked: GlobalConfig.overview.enabled
             onToggled: GlobalConfig.overview.enabled = checked
         }
         ToggleRow {
-            text: qsTr("Show on hover")
-            subtext: qsTr("Open overview by hovering a corner instead of dragging")
+            text: I18n.tr("Show on hover")
+            subtext: I18n.tr("Open overview by hovering a corner instead of dragging")
             checked: GlobalConfig.overview.showOnHover
             onToggled: GlobalConfig.overview.showOnHover = checked
         }
         StepperRow {
-            label: qsTr("Trigger area size")
+            label: I18n.tr("Trigger area size")
             last: GlobalConfig.overview.showOnHover
-            subtext: qsTr("Size of the corner activation areas in pixels")
+            subtext: I18n.tr("Size of the corner activation areas in pixels")
             value: GlobalConfig.overview.hoverThickness
             from: 1
             to: 100
@@ -130,8 +131,8 @@ PageBase {
         }
         StepperRow {
             last: !GlobalConfig.overview.showOnHover
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Distance to drag from corner to open overview")
+            label: I18n.tr("Drag threshold")
+            subtext: I18n.tr("Distance to drag from corner to open overview")
             value: GlobalConfig.overview.dragThreshold
             from: 10
             to: 200
@@ -140,42 +141,42 @@ PageBase {
             visible: !GlobalConfig.overview.showOnHover
         }
         SectionHeader {
-            text: qsTr("Corners")
+            text: I18n.tr("Corners")
         }
         // Enabling a corner takes it off KWin for as long as it stays enabled;
         // whatever KDE had bound there comes back untouched when it's turned
         // off, on shell exit, or on the next start after a crash.
         ToggleRow {
             first: true
-            text: qsTr("Top-Left corner")
+            text: I18n.tr("Top-Left corner")
             checked: GlobalConfig.overview.hoverTopLeft
             onToggled: GlobalConfig.overview.hoverTopLeft = checked
         }
         ToggleRow {
-            text: qsTr("Top-Right corner")
+            text: I18n.tr("Top-Right corner")
             checked: GlobalConfig.overview.hoverTopRight
             onToggled: GlobalConfig.overview.hoverTopRight = checked
         }
         ToggleRow {
-            text: qsTr("Bottom-Left corner")
+            text: I18n.tr("Bottom-Left corner")
             checked: GlobalConfig.overview.hoverBottomLeft
             onToggled: GlobalConfig.overview.hoverBottomLeft = checked
         }
         ToggleRow {
             last: true
-            text: qsTr("Bottom-Right corner")
+            text: I18n.tr("Bottom-Right corner")
             checked: GlobalConfig.overview.hoverBottomRight
             onToggled: GlobalConfig.overview.hoverBottomRight = checked
         }
         SectionHeader {
-            text: qsTr("Behaviour")
+            text: I18n.tr("Behaviour")
         }
         SelectRow {
             first: true
-            label: qsTr("Window layout style")
-            subtext: qsTr("Choose the layout algorithm used in the overview")
+            label: I18n.tr("Window layout style")
+            subtext: I18n.tr("Choose the layout algorithm used in the overview")
             fallbackIcon: "grid_view"
-            fallbackText: qsTr("GNOME Grid")
+            fallbackText: I18n.tr("GNOME Grid")
             active: {
                 for (let i = 0; i < layoutTypeItems.length; i++) {
                     if (layoutTypeItems[i].value === GlobalConfig.overview.layoutType)
@@ -189,27 +190,27 @@ PageBase {
             }
         }
         ToggleRow {
-            text: qsTr("Disable wallpaper blur")
-            subtext: qsTr("Do not blur the background wallpaper when opening overview")
+            text: I18n.tr("Disable wallpaper blur")
+            subtext: I18n.tr("Do not blur the background wallpaper when opening overview")
             checked: GlobalConfig.overview.disableWallpaperBlur
             onToggled: GlobalConfig.overview.disableWallpaperBlur = checked
         }
         ToggleRow {
             last: true
-            text: qsTr("Enable overview blur")
-            subtext: qsTr("Enable QuickShell-based blur effect on overview wallpaper")
+            text: I18n.tr("Enable overview blur")
+            subtext: I18n.tr("Enable QuickShell-based blur effect on overview wallpaper")
             checked: GlobalConfig.overview.enableOverviewBlur
             onToggled: GlobalConfig.overview.enableOverviewBlur = checked
         }
         SectionHeader {
-            text: qsTr("Animations")
+            text: I18n.tr("Animations")
         }
         SelectRow {
             first: true
-            label: qsTr("Animation easing type")
-            subtext: qsTr("Choose the easing curve for overview animations")
+            label: I18n.tr("Animation easing type")
+            subtext: I18n.tr("Choose the easing curve for overview animations")
             fallbackIcon: "animation"
-            fallbackText: qsTr("Back In")
+            fallbackText: I18n.tr("Back In")
             active: {
                 for (let i = 0; i < easingTypeItems.length; i++) {
                     if (easingTypeItems[i].value === GlobalConfig.overview.easingType)
@@ -223,8 +224,8 @@ PageBase {
             }
         }
         StepperRow {
-            label: qsTr("Base duration")
-            subtext: qsTr("Base duration for overview opening/closing in milliseconds")
+            label: I18n.tr("Base duration")
+            subtext: I18n.tr("Base duration for overview opening/closing in milliseconds")
             value: GlobalConfig.overview.baseDuration
             from: 100
             to: 1000
@@ -232,8 +233,8 @@ PageBase {
             onMoved: v => GlobalConfig.overview.baseDuration = v
         }
         StepperRow {
-            label: qsTr("Blob scale speed")
-            subtext: qsTr("Scaling speed modifier for background blobs")
+            label: I18n.tr("Blob scale speed")
+            subtext: I18n.tr("Scaling speed modifier for background blobs")
             value: GlobalConfig.overview.blobScaleSpeed
             from: 0.1
             to: 5.0
@@ -241,8 +242,8 @@ PageBase {
             onMoved: v => GlobalConfig.overview.blobScaleSpeed = v
         }
         StepperRow {
-            label: qsTr("Wallpaper fade speed")
-            subtext: qsTr("Fade speed modifier for the wallpaper")
+            label: I18n.tr("Wallpaper fade speed")
+            subtext: I18n.tr("Fade speed modifier for the wallpaper")
             value: GlobalConfig.overview.wallpaperFadeSpeed
             from: 0.1
             to: 5.0
@@ -251,8 +252,8 @@ PageBase {
         }
         StepperRow {
             last: true
-            label: qsTr("Grid fade speed")
-            subtext: qsTr("Fade speed modifier for the window grid")
+            label: I18n.tr("Grid fade speed")
+            subtext: I18n.tr("Fade speed modifier for the window grid")
             value: GlobalConfig.overview.gridFadeSpeed
             from: 0.1
             to: 5.0

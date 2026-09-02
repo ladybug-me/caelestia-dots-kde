@@ -5,30 +5,31 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
     readonly property var connectivityToggles: [
-        { id: "wifi", label: qsTr("Wi-Fi") },
-        { id: "bluetooth", label: qsTr("Bluetooth") },
-        { id: "vpn", label: qsTr("VPN") },
+        { id: "wifi", label: I18n.tr("Wi-Fi") },
+        { id: "bluetooth", label: I18n.tr("Bluetooth") },
+        { id: "vpn", label: I18n.tr("VPN") },
     ]
     readonly property var toolToggles: [
-        { id: "settings", label: qsTr("Settings") },
-        { id: "colorpicker", label: Strings.localizeEnglishSpelling(qsTr("Colour Picker")) },
-        { id: "wallpaper", label: qsTr("Wallpaper") },
-        { id: "badapple", label: qsTr("Bad Apple") },
+        { id: "settings", label: I18n.tr("Settings") },
+        { id: "colorpicker", label: Strings.localizeEnglishSpelling(I18n.tr("Colour Picker")) },
+        { id: "wallpaper", label: I18n.tr("Wallpaper") },
+        { id: "badapple", label: I18n.tr("Bad Apple") },
     ]
     readonly property var systemToggles: [
-        { id: "mic", label: qsTr("Microphone") },
-        { id: "dnd", label: qsTr("Do Not Disturb") },
-        { id: "pauseWallpaper", label: qsTr("Pause Wallpaper") },
-        { id: "nightlight", label: qsTr("Night Light") },
-        { id: "restartShell", label: qsTr("Restart Shell") },
+        { id: "mic", label: I18n.tr("Microphone") },
+        { id: "dnd", label: I18n.tr("Do Not Disturb") },
+        { id: "pauseWallpaper", label: I18n.tr("Pause Wallpaper") },
+        { id: "nightlight", label: I18n.tr("Night Light") },
+        { id: "restartShell", label: I18n.tr("Restart Shell") },
     ]
 
-    title: qsTr("Quick toggles")
+    title: I18n.tr("Quick toggles")
     isSubPage: true
 
     ColumnLayout {
@@ -39,7 +40,7 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Connectivity")
+            text: I18n.tr("Connectivity")
         }
 
         Repeater {
@@ -54,7 +55,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("Tools")
+            text: I18n.tr("Tools")
         }
 
         Repeater {
@@ -69,7 +70,7 @@ PageBase {
         }
 
         SectionHeader {
-            text: qsTr("System")
+            text: I18n.tr("System")
         }
 
         Repeater {

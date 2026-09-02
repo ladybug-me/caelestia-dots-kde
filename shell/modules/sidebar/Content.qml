@@ -111,13 +111,13 @@ Item {
 
                             model: {
                                 var tabs = [
-                                    { id: "notifications", label: qsTr("Notifications"), icon: "notifications" }
+                                    { id: "notifications", label: I18n.tr("Notifications"), icon: "notifications" }
                                 ];
                                 if (root.aiEnabled) {
-                                    tabs.push({ id: "ai", label: qsTr("AI Assistant"), icon: "smart_toy" });
+                                    tabs.push({ id: "ai", label: I18n.tr("AI Assistant"), icon: "smart_toy" });
                                 }
                                 if (GlobalConfig.ai.showNews) {
-                                    tabs.push({ id: "news", label: qsTr("News"), icon: "newspaper" });
+                                    tabs.push({ id: "news", label: I18n.tr("News"), icon: "newspaper" });
                                 }
                                 return tabs;
                             }

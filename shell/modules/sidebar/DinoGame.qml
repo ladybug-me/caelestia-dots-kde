@@ -253,7 +253,7 @@ Item {
         
         StyledText {
             Layout.alignment: Qt.AlignHCenter
-            text: qsTr("All up to date!")
+            text: I18n.tr("All up to date!")
             color: root.activeColor
             font: Tokens.font.headline.builders.small.width(90).build()
         }

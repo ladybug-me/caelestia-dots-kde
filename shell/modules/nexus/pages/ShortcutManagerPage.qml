@@ -8,11 +8,12 @@ import qs.components
 import qs.components.controls
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Shortcuts")
+    title: I18n.tr("Shortcuts")
 
     property var shellShortcuts: []
 
@@ -140,7 +141,7 @@ PageBase {
                     id: searchField
 
                     Layout.fillWidth: true
-                    placeholderText: qsTr("Search shortcuts")
+                    placeholderText: I18n.tr("Search shortcuts")
                     color: Colours.palette.m3onSurface
                     font: Tokens.font.body.medium
                     onTextChanged: root.shortcutQuery = text
@@ -160,7 +161,7 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Shell UI")
+            text: I18n.tr("Shell UI")
             visible: root.shellShortcuts.length > 0
         }
 
@@ -186,7 +187,7 @@ PageBase {
 
         SectionHeader {
             first: root.shellShortcuts.length === 0
-            text: qsTr("Applications")
+            text: I18n.tr("Applications")
             visible: root.appShortcuts.length > 0
         }
 
@@ -211,7 +212,7 @@ PageBase {
 
         SectionHeader {
             first: root.shellShortcuts.length === 0 && root.appShortcuts.length === 0
-            text: qsTr("Workspaces")
+            text: I18n.tr("Workspaces")
             visible: root.workspaceShortcuts.length > 0
         }
 
@@ -236,7 +237,7 @@ PageBase {
 
         SectionHeader {
             first: root.shellShortcuts.length === 0 && root.appShortcuts.length === 0 && root.workspaceShortcuts.length === 0
-            text: qsTr("Window Tiling (Krohnkite)")
+            text: I18n.tr("Window Tiling (Krohnkite)")
             visible: Config.general.krohnkiteEnabled && root.tilingShortcuts.length > 0
         }
 
@@ -267,7 +268,7 @@ PageBase {
                      && root.appShortcuts.length === 0
                      && root.workspaceShortcuts.length === 0
                      && root.tilingShortcuts.length === 0
-            text: qsTr("No shortcuts found")
+            text: I18n.tr("No shortcuts found")
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.body.medium
             horizontalAlignment: Text.AlignHCenter

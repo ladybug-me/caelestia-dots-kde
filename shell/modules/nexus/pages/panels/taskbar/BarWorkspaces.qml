@@ -5,11 +5,12 @@ import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.Services
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Workspaces")
+    title: I18n.tr("Workspaces")
     isSubPage: true
 
     ColumnLayout {
@@ -40,8 +41,8 @@ PageBase {
 
         StepperRow {
             first: true
-            label: qsTr("Shown")
-            subtext: qsTr("Number of workspaces displayed")
+            label: I18n.tr("Shown")
+            subtext: I18n.tr("Number of workspaces displayed")
             value: Config.bar.workspaces.shown
             from: 1
             to: 20
@@ -64,46 +65,46 @@ PageBase {
         }
 
         ToggleRow {
-            text: qsTr("Active indicator")
+            text: I18n.tr("Active indicator")
             checked: Config.bar.workspaces.activeIndicator
             onToggled: GlobalConfig.bar.workspaces.activeIndicator = checked
         }
 
         ToggleRow {
-            text: qsTr("Active trail")
+            text: I18n.tr("Active trail")
             checked: Config.bar.workspaces.activeTrail
             onToggled: GlobalConfig.bar.workspaces.activeTrail = checked
         }
 
         ToggleRow {
-            text: qsTr("Occupied background")
+            text: I18n.tr("Occupied background")
             checked: Config.bar.workspaces.occupiedBg
             onToggled: GlobalConfig.bar.workspaces.occupiedBg = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Use material icons for indicators")
+            text: I18n.tr("Use material icons for indicators")
             checked: Config.bar.workspaces.useIcon
             onToggled: GlobalConfig.bar.workspaces.useIcon = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
-            text: qsTr("Show windows")
-            subtext: qsTr("Show icons of open windows on each workspace")
+            text: I18n.tr("Show windows")
+            subtext: I18n.tr("Show icons of open windows on each workspace")
             checked: Config.bar.workspaces.showWindows
             onToggled: GlobalConfig.bar.workspaces.showWindows = checked
         }
 
         ToggleRow {
-            text: qsTr("Windows on special workspaces")
+            text: I18n.tr("Windows on special workspaces")
             checked: Config.bar.workspaces.showWindowsOnSpecialWorkspaces
             onToggled: GlobalConfig.bar.workspaces.showWindowsOnSpecialWorkspaces = checked
         }
 
         StepperRow {
-            label: qsTr("Max window icons")
+            label: I18n.tr("Max window icons")
             value: Config.bar.workspaces.maxWindowIcons
             from: 0
             to: 20
@@ -115,8 +116,8 @@ PageBase {
 
         ToggleRow {
             last: true
-            text: qsTr("Per-monitor workspaces")
-            subtext: qsTr("Show each monitor's workspaces independently")
+            text: I18n.tr("Per-monitor workspaces")
+            subtext: I18n.tr("Show each monitor's workspaces independently")
             checked: GlobalConfig.bar.workspaces.perMonitorWorkspaces
             onToggled: GlobalConfig.bar.workspaces.perMonitorWorkspaces = checked
         }

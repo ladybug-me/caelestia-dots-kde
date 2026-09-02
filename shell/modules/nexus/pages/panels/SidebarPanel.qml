@@ -8,11 +8,12 @@ import qs.components
 import qs.components.controls
 import qs.utils
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
 
-    title: qsTr("Sidebar")
+    title: I18n.tr("Sidebar")
     isSubPage: true
 
     ColumnLayout {
@@ -23,12 +24,12 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("General")
+            text: I18n.tr("General")
         }
 
         ToggleRow {
             first: true
-            text: qsTr("Enabled")
+            text: I18n.tr("Enabled")
             checked: Config.sidebar.enabled
             onToggled: GlobalConfig.sidebar.enabled = checked
         }
@@ -37,8 +38,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
             last: true
-            label: qsTr("Drag threshold")
-            subtext: qsTr("Pixels dragged before the sidebar opens")
+            label: I18n.tr("Drag threshold")
+            subtext: I18n.tr("Pixels dragged before the sidebar opens")
             value: Config.sidebar.dragThreshold
             from: 0
             to: 200
@@ -48,14 +49,14 @@ PageBase {
 
         // Sidebar Tabs
         SectionHeader {
-            text: qsTr("Sidebar Tabs")
+            text: I18n.tr("Sidebar Tabs")
         }
 
         ToggleRow {
             Layout.fillWidth: true
             first: true
-            text: qsTr("Show News tab")
-            subtext: qsTr("Show the News tab in the sidebar")
+            text: I18n.tr("Show News tab")
+            subtext: I18n.tr("Show the News tab in the sidebar")
             checked: GlobalConfig.ai.showNews
             onToggled: GlobalConfig.ai.showNews = checked
         }
@@ -64,8 +65,8 @@ PageBase {
             Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
             Layout.fillWidth: true
             last: true
-            text: qsTr("Show Caelestia Mode")
-            subtext: qsTr("Show the Caelestia Mode toggle at the bottom of notifications")
+            text: I18n.tr("Show Caelestia Mode")
+            subtext: I18n.tr("Show the Caelestia Mode toggle at the bottom of notifications")
             checked: GlobalConfig.ai.showCaelestiaMode
             onToggled: GlobalConfig.ai.showCaelestiaMode = checked
         }

@@ -16,35 +16,35 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Toggle & rearrange")
+    title: I18n.tr("Toggle & rearrange")
     isSubPage: true
     scrollable: true
 
     readonly property var componentMeta: {
-        "logo": { icon: "rocket_launch", name: qsTr("Logo") },
-        "workspaces": { icon: "workspaces", name: qsTr("Workspaces") },
+        "logo": { icon: "rocket_launch", name: I18n.tr("Logo") },
+        "workspaces": { icon: "workspaces", name: I18n.tr("Workspaces") },
         "github": {
             icon: "commit",
-            name: qsTr("GitHub"),
+            name: I18n.tr("GitHub"),
             available: BarComponents.GithubStore.available,
-            unavailableText: qsTr("GitHub token not detected")
+            unavailableText: I18n.tr("GitHub token not detected")
         },
-        "activeWindow": { icon: "dock_to_right", name: qsTr("Active window") },
-        "tray": { icon: "expand_more", name: qsTr("System tray") },
-        "updateIndicator": { icon: "update", name: qsTr("Updates") },
-        "clock": { icon: "schedule", name: qsTr("Clock") },
-        "statusIcons": { icon: "wifi", name: qsTr("Status icons") },
-        "kbLayoutIndicator": { icon: "keyboard", name: qsTr("Keyboard layout") },
-        "notificationsIndicator": { icon: "notifications", name: qsTr("Notifications") },
-        "perfCpu": { icon: "memory", name: qsTr("CPU"), available: Cpu.name.length > 0, unavailableText: qsTr("CPU sensor not detected") },
-        "perfMemory": { icon: "memory_alt", name: qsTr("Memory"), available: Memory.total > 1, unavailableText: qsTr("Memory sensor not detected") },
-        "perfStorage": { icon: "hard_disk", name: qsTr("Storage"), available: Storage.disks.length > 0, unavailableText: qsTr("Storage disks not detected") },
-        "perfNetwork": { icon: "swap_vert", name: qsTr("Network") },
-        "perfGpu": { icon: "desktop_windows", name: qsTr("GPU"), available: Gpu.type !== Gpu.None, unavailableText: qsTr("GPU not detected") },
-        "perfBattery": { icon: "battery_full", name: qsTr("Battery"), available: UPower.displayDevice.isLaptopBattery, unavailableText: qsTr("Battery not detected") },
-        "dock": { icon: "apps", name: qsTr("Dock") },
-        "showDesktop": { icon: "keyboard_double_arrow_down", name: qsTr("Show Desktop") },
-        "power": { icon: "power_settings_new", name: qsTr("Power menu") }
+        "activeWindow": { icon: "dock_to_right", name: I18n.tr("Active window") },
+        "tray": { icon: "expand_more", name: I18n.tr("System tray") },
+        "updateIndicator": { icon: "update", name: I18n.tr("Updates") },
+        "clock": { icon: "schedule", name: I18n.tr("Clock") },
+        "statusIcons": { icon: "wifi", name: I18n.tr("Status icons") },
+        "kbLayoutIndicator": { icon: "keyboard", name: I18n.tr("Keyboard layout") },
+        "notificationsIndicator": { icon: "notifications", name: I18n.tr("Notifications") },
+        "perfCpu": { icon: "memory", name: I18n.tr("CPU"), available: Cpu.name.length > 0, unavailableText: I18n.tr("CPU sensor not detected") },
+        "perfMemory": { icon: "memory_alt", name: I18n.tr("Memory"), available: Memory.total > 1, unavailableText: I18n.tr("Memory sensor not detected") },
+        "perfStorage": { icon: "hard_disk", name: I18n.tr("Storage"), available: Storage.disks.length > 0, unavailableText: I18n.tr("Storage disks not detected") },
+        "perfNetwork": { icon: "swap_vert", name: I18n.tr("Network") },
+        "perfGpu": { icon: "desktop_windows", name: I18n.tr("GPU"), available: Gpu.type !== Gpu.None, unavailableText: I18n.tr("GPU not detected") },
+        "perfBattery": { icon: "battery_full", name: I18n.tr("Battery"), available: UPower.displayDevice.isLaptopBattery, unavailableText: I18n.tr("Battery not detected") },
+        "dock": { icon: "apps", name: I18n.tr("Dock") },
+        "showDesktop": { icon: "keyboard_double_arrow_down", name: I18n.tr("Show Desktop") },
+        "power": { icon: "power_settings_new", name: I18n.tr("Power menu") }
     }
 
     property bool isGlobalDragging: false
@@ -196,13 +196,13 @@ PageBase {
             spacing: Tokens.spacing.medium
 
             Text {
-                text: qsTr("Active components")
+                text: I18n.tr("Active components")
                 font: Tokens.font.title.small
                 color: Colours.palette.m3onSurface
             }
 
             Text {
-                text: qsTr("Drag to rearrange or disable")
+                text: I18n.tr("Drag to rearrange or disable")
                 font: Tokens.font.body.small
                 color: Colours.palette.m3onSurfaceVariant
             }
@@ -215,7 +215,7 @@ PageBase {
                 radius: Tokens.rounding.large
                 
                 Text {
-                    text: qsTr("Left Zone")
+                    text: I18n.tr("Left Zone")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -268,7 +268,7 @@ PageBase {
                 radius: Tokens.rounding.large
                 
                 Text {
-                    text: qsTr("Middle Zone")
+                    text: I18n.tr("Middle Zone")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -321,7 +321,7 @@ PageBase {
                 radius: Tokens.rounding.large
                 
                 Text {
-                    text: qsTr("Right Zone")
+                    text: I18n.tr("Right Zone")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -382,13 +382,13 @@ PageBase {
                     spacing: 0
                     
                     Text {
-                        text: qsTr("Library")
+                        text: I18n.tr("Library")
                         font: Tokens.font.title.small
                         color: Colours.palette.m3onSurface
                     }
 
                     Text {
-                        text: qsTr("Disabled components")
+                        text: I18n.tr("Disabled components")
                         font: Tokens.font.body.small
                         color: Colours.palette.m3onSurfaceVariant
                     }
@@ -397,9 +397,9 @@ PageBase {
                 Item { Layout.fillWidth: true }
 
                 TextButton {
-                    text: qsTr("RESET")
+                    text: I18n.tr("RESET")
                     type: TextButton.Filled
-                    ToolTip.text: qsTr("Restore the default taskbar component layout")
+                    ToolTip.text: I18n.tr("Restore the default taskbar component layout")
                     ToolTip.visible: hovered
                     onClicked: root.resetToDefaults()
                 }
@@ -411,7 +411,7 @@ PageBase {
                 color: "transparent"
                 
                 Text {
-                    text: qsTr("Empty")
+                    text: I18n.tr("Empty")
                     font: Tokens.font.label.large
                     color: Colours.palette.m3onSurfaceVariant
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -612,7 +612,7 @@ PageBase {
                             const base = componentMeta[compId]?.name ?? compId;
                             if (delegateWrapper.isAvailable)
                                 return base;
-                            const reason = componentMeta[compId]?.unavailableText ?? qsTr("Not detected");
+                            const reason = componentMeta[compId]?.unavailableText ?? I18n.tr("Not detected");
                             return `${base} (${reason})`;
                         }
                         font: Tokens.font.body.small

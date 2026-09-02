@@ -4,6 +4,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.modules.nexus.common
+import qs.services
 
 PageBase {
     id: root
@@ -22,7 +23,7 @@ PageBase {
         appInput.text = "";
     }
 
-    title: qsTr("Muted notification apps")
+    title: I18n.tr("Muted notification apps")
     isSubPage: true
 
     ColumnLayout {
@@ -33,7 +34,7 @@ PageBase {
 
         SectionHeader {
             first: true
-            text: qsTr("Muted apps")
+            text: I18n.tr("Muted apps")
         }
 
         RowLayout {
@@ -48,7 +49,7 @@ PageBase {
             }
 
             IconTextButton {
-                text: qsTr("Add")
+                text: I18n.tr("Add")
                 icon: "add"
                 onClicked: root.addApp()
             }

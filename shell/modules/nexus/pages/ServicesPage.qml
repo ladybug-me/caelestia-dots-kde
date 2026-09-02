@@ -15,10 +15,10 @@ PageBase {
 
     readonly property list<MenuItem> autoSchemeItems: [
         MenuItem {
-            text: qsTr("Sunrise and sunset")
+            text: I18n.tr("Sunrise and sunset")
         },
         MenuItem {
-            text: qsTr("Fixed times")
+            text: I18n.tr("Fixed times")
         }
     ]
     readonly property list<string> autoSchemeValues: ["solar", "fixed"]
@@ -40,7 +40,7 @@ PageBase {
     // Lyrics backends, ordered to match LyricsBackend::Backend (Auto, Local, LRCLIB, NetEase)
     readonly property list<MenuItem> lyricsItems: [
         MenuItem {
-            text: qsTr("Auto")
+            text: I18n.tr("Auto")
         },
         MenuItem {
             text: "Local"
@@ -56,16 +56,16 @@ PageBase {
     // GPU options + the config string each maps to (see Gpu::parseType)
     readonly property list<MenuItem> gpuItems: [
         MenuItem {
-            text: qsTr("Auto")
+            text: I18n.tr("Auto")
         },
         MenuItem {
             text: "NVIDIA"
         },
         MenuItem {
-            text: qsTr("Generic")
+            text: I18n.tr("Generic")
         },
         MenuItem {
-            text: qsTr("None")
+            text: I18n.tr("None")
         }
     ]
 
@@ -82,7 +82,7 @@ PageBase {
         return 3; // None
     }
 
-    title: qsTr("Services")
+    title: I18n.tr("Services")
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -108,13 +108,13 @@ PageBase {
         // Polling
         SectionHeader {
             first: true
-            text: qsTr("Polling")
+            text: I18n.tr("Polling")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Media refresh")
-            subtext: qsTr("How often the media position updates (ms)")
+            label: I18n.tr("Media refresh")
+            subtext: I18n.tr("How often the media position updates (ms)")
             value: GlobalConfig.dashboard.mediaUpdateInterval
             from: 100
             to: 2000
@@ -123,8 +123,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("System stats refresh")
-            subtext: qsTr("CPU, memory and GPU update interval (seconds)")
+            label: I18n.tr("System stats refresh")
+            subtext: I18n.tr("CPU, memory and GPU update interval (seconds)")
             value: GlobalConfig.dashboard.resourceUpdateInterval / 1000
             from: 0.5
             to: 10
@@ -134,8 +134,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Wi-Fi rescan")
-            subtext: qsTr("How often available networks are rescanned (seconds)")
+            label: I18n.tr("Wi-Fi rescan")
+            subtext: I18n.tr("How often available networks are rescanned (seconds)")
             value: GlobalConfig.nexus.networkRescanInterval / 1000
             from: 5
             to: 120
@@ -145,13 +145,13 @@ PageBase {
 
         // Media & lyrics
         SectionHeader {
-            text: qsTr("Media & lyrics")
+            text: I18n.tr("Media & lyrics")
         }
 
         SelectRow {
             first: true
-            label: qsTr("Lyrics backend")
-            subtext: qsTr("Source used to fetch synced lyrics")
+            label: I18n.tr("Lyrics backend")
+            subtext: I18n.tr("Source used to fetch synced lyrics")
             menuItems: root.lyricsItems
             active: root.lyricsItems[Lyrics.preferredBackend] ?? root.lyricsItems[0]
             onSelected: item => Lyrics.preferredBackend = root.lyricsItems.indexOf(item)
@@ -159,24 +159,24 @@ PageBase {
 
         SelectRow {
             last: true
-            label: qsTr("Default player")
-            subtext: qsTr("Preferred media player when several are open")
+            label: I18n.tr("Default player")
+            subtext: I18n.tr("Preferred media player when several are open")
             menuItems: playerVariants.instances
             active: menuItems.find(i => i.text === GlobalConfig.services.defaultPlayer) ?? null
             fallbackIcon: "music_note"
-            fallbackText: GlobalConfig.services.defaultPlayer || qsTr("Auto")
+            fallbackText: GlobalConfig.services.defaultPlayer || I18n.tr("Auto")
             onSelected: item => GlobalConfig.services.defaultPlayer = item.text
         }
 
         // Input increments
         SectionHeader {
-            text: qsTr("Input increments")
+            text: I18n.tr("Input increments")
         }
 
         StepperRow {
             first: true
-            label: qsTr("Volume step")
-            subtext: qsTr("Amount the volume changes per scroll (%)")
+            label: I18n.tr("Volume step")
+            subtext: I18n.tr("Amount the volume changes per scroll (%)")
             value: Math.round(GlobalConfig.services.audioIncrement * 100)
             from: 1
             to: 50
@@ -185,8 +185,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Brightness step")
-            subtext: qsTr("Amount the brightness changes per scroll (%)")
+            label: I18n.tr("Brightness step")
+            subtext: I18n.tr("Amount the brightness changes per scroll (%)")
             value: Math.round(GlobalConfig.services.brightnessIncrement * 100)
             from: 1
             to: 50
@@ -196,8 +196,8 @@ PageBase {
 
         StepperRow {
             last: true
-            label: qsTr("Max volume")
-            subtext: qsTr("Upper limit for output volume (%)")
+            label: I18n.tr("Max volume")
+            subtext: I18n.tr("Upper limit for output volume (%)")
             value: Math.round(GlobalConfig.services.maxVolume * 100)
             from: 50
             to: 200
@@ -207,20 +207,20 @@ PageBase {
 
         // Service tuning
         SectionHeader {
-            text: qsTr("Service tuning")
+            text: I18n.tr("Service tuning")
         }
 
         NavRow {
             first: true
             icon: "chat" // Using chat since discord icon might not be available in Material icons
-            label: qsTr("Discord Rich Presence")
-            status: qsTr("Broadcast your status to Vesktop")
+            label: I18n.tr("Discord Rich Presence")
+            status: I18n.tr("Broadcast your status to Vesktop")
             onClicked: root.nState.openSubPage(1)
         }
 
         StepperRow {
-            label: qsTr("Visualiser bars")
-            subtext: qsTr("Number of bars in the audio visualisers")
+            label: I18n.tr("Visualiser bars")
+            subtext: I18n.tr("Number of bars in the audio visualisers")
             value: GlobalConfig.services.visualiserBars
             from: 10
             to: 120
@@ -229,31 +229,31 @@ PageBase {
         }
 
         ToggleRow {
-            text: Strings.localizeEnglishSpelling(qsTr("Smart colour scheme"))
-            subtext: qsTr("Derive theme mode and variant from the wallpaper")
+            text: Strings.localizeEnglishSpelling(I18n.tr("Smart colour scheme"))
+            subtext: I18n.tr("Derive theme mode and variant from the wallpaper")
             checked: GlobalConfig.services.smartScheme
             onToggled: GlobalConfig.services.smartScheme = checked
         }
 
         ToggleRow {
-            text: qsTr("Automatic light and dark")
-            subtext: qsTr("Switch the theme mode on a schedule")
+            text: I18n.tr("Automatic light and dark")
+            subtext: I18n.tr("Switch the theme mode on a schedule")
             checked: GlobalConfig.services.autoSchemeEnabled
             onToggled: GlobalConfig.services.autoSchemeEnabled = checked
         }
 
         SelectRow {
             Layout.fillWidth: true
-            label: qsTr("Schedule")
-            subtext: AutoScheme.coords ? qsTr("Sunrise and sunset use your weather location") : qsTr("Set a weather location to use sunrise and sunset")
+            label: I18n.tr("Schedule")
+            subtext: AutoScheme.coords ? I18n.tr("Sunrise and sunset use your weather location") : I18n.tr("Set a weather location to use sunrise and sunset")
             menuItems: root.autoSchemeItems
             active: root.autoSchemeItems[Math.max(0, root.autoSchemeValues.indexOf(GlobalConfig.services.autoSchemeMode))]
             onSelected: item => GlobalConfig.services.autoSchemeMode = root.autoSchemeValues[root.autoSchemeItems.indexOf(item)]
         }
 
         StepperRow {
-            label: qsTr("Light mode hour")
-            subtext: qsTr("Switches at %1").arg(GlobalConfig.services.autoSchemeLightTime)
+            label: I18n.tr("Light mode hour")
+            subtext: I18n.tr("Switches at %1").arg(GlobalConfig.services.autoSchemeLightTime)
             value: root.schemeHour(GlobalConfig.services.autoSchemeLightTime)
             from: 0
             to: 23
@@ -261,8 +261,8 @@ PageBase {
         }
 
         StepperRow {
-            label: qsTr("Dark mode hour")
-            subtext: qsTr("Switches at %1, also used when sunrise and sunset are unavailable").arg(GlobalConfig.services.autoSchemeDarkTime)
+            label: I18n.tr("Dark mode hour")
+            subtext: I18n.tr("Switches at %1, also used when sunrise and sunset are unavailable").arg(GlobalConfig.services.autoSchemeDarkTime)
             value: root.schemeHour(GlobalConfig.services.autoSchemeDarkTime)
             from: 0
             to: 23
@@ -272,8 +272,8 @@ PageBase {
         SelectRow {
             Layout.fillWidth: true
             last: true
-            label: qsTr("GPU")
-            subtext: Gpu.name ? qsTr("Monitoring: %1").arg(Gpu.name) : qsTr("Override for GPU type")
+            label: I18n.tr("GPU")
+            subtext: Gpu.name ? I18n.tr("Monitoring: %1").arg(Gpu.name) : I18n.tr("Override for GPU type")
             menuOnTop: true
             menuItems: root.gpuItems
             active: root.gpuItems[root.gpuKeyToIndex(GlobalConfig.services.gpuType)]

@@ -36,56 +36,56 @@ Searcher {
         Variant {
             variant: "vibrant"
             icon: "sentiment_very_dissatisfied"
-            name: qsTr("Vibrant")
-            description: qsTr("A high chroma palette. The primary palette's chroma is at maximum.")
+            name: I18n.tr("Vibrant")
+            description: I18n.tr("A high chroma palette. The primary palette's chroma is at maximum.")
         },
         Variant {
             variant: "tonalspot"
             icon: "android"
-            name: qsTr("Tonal Spot")
-            description: Strings.localizeEnglishSpelling(qsTr("Default for Material theme colours. A pastel palette with a low chroma."))
+            name: I18n.tr("Tonal Spot")
+            description: Strings.localizeEnglishSpelling(I18n.tr("Default for Material theme colours. A pastel palette with a low chroma."))
         },
         Variant {
             variant: "expressive"
             icon: "compare_arrows"
-            name: qsTr("Expressive")
-            description: Strings.localizeEnglishSpelling(qsTr("A medium chroma palette. The primary palette's hue is different from the seed colour, for variety."))
+            name: I18n.tr("Expressive")
+            description: Strings.localizeEnglishSpelling(I18n.tr("A medium chroma palette. The primary palette's hue is different from the seed colour, for variety."))
         },
         Variant {
             variant: "fidelity"
             icon: "compare"
-            name: qsTr("Fidelity")
-            description: Strings.localizeEnglishSpelling(qsTr("Matches the seed colour, even if the seed colour is very bright (high chroma)."))
+            name: I18n.tr("Fidelity")
+            description: Strings.localizeEnglishSpelling(I18n.tr("Matches the seed colour, even if the seed colour is very bright (high chroma)."))
         },
         Variant {
             variant: "content"
             icon: "sentiment_calm"
-            name: qsTr("Content")
-            description: qsTr("Almost identical to fidelity.")
+            name: I18n.tr("Content")
+            description: I18n.tr("Almost identical to fidelity.")
         },
         Variant {
             variant: "fruitsalad"
             icon: "nutrition"
-            name: qsTr("Fruit Salad")
-            description: Strings.localizeEnglishSpelling(qsTr("A playful theme - the seed colour's hue does not appear in the theme."))
+            name: I18n.tr("Fruit Salad")
+            description: Strings.localizeEnglishSpelling(I18n.tr("A playful theme - the seed colour's hue does not appear in the theme."))
         },
         Variant {
             variant: "rainbow"
             icon: "looks"
-            name: qsTr("Rainbow")
-            description: Strings.localizeEnglishSpelling(qsTr("A playful theme - the seed colour's hue does not appear in the theme."))
+            name: I18n.tr("Rainbow")
+            description: Strings.localizeEnglishSpelling(I18n.tr("A playful theme - the seed colour's hue does not appear in the theme."))
         },
         Variant {
             variant: "neutral"
             icon: "contrast"
-            name: qsTr("Neutral")
-            description: qsTr("Close to grayscale, a hint of chroma.")
+            name: I18n.tr("Neutral")
+            description: I18n.tr("Close to grayscale, a hint of chroma.")
         },
         Variant {
             variant: "monochrome"
             icon: "filter_b_and_w"
-            name: qsTr("Monochrome")
-            description: Strings.localizeEnglishSpelling(qsTr("All colours are grayscale, no chroma."))
+            name: I18n.tr("Monochrome")
+            description: Strings.localizeEnglishSpelling(I18n.tr("All colours are grayscale, no chroma."))
         }
     ]
 

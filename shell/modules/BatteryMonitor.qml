@@ -4,6 +4,7 @@ import Quickshell.Services.UPower
 import Caelestia
 import Caelestia.Config
 import Caelestia.Services
+import qs.services
 
 Scope {
     id: root
@@ -14,10 +15,10 @@ Scope {
         function onOnBatteryChanged(): void {
             if (UPower.onBattery) {
                 if (GlobalConfig.utilities.toasts.chargingChanged)
-                    Toaster.toast(qsTr("Charger unplugged"), qsTr("Battery is discharging"), "power_off");
+                    Toaster.toast(I18n.tr("Charger unplugged"), I18n.tr("Battery is discharging"), "power_off");
             } else {
                 if (GlobalConfig.utilities.toasts.chargingChanged)
-                    Toaster.toast(qsTr("Charger plugged in"), qsTr("Battery is charging"), "power");
+                    Toaster.toast(I18n.tr("Charger plugged in"), I18n.tr("Battery is charging"), "power");
                 for (const level of root.warnLevels)
                     level.warned = false;
             }
@@ -35,12 +36,12 @@ Scope {
             for (const level of root.warnLevels) {
                 if (p <= level.level && !level.warned) {
                     level.warned = true;
-                    Toaster.toast(level.title ?? qsTr("Battery warning"), level.message ?? qsTr("Battery level is low"), level.icon ?? "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
+                    Toaster.toast(level.title ?? I18n.tr("Battery warning"), level.message ?? I18n.tr("Battery level is low"), level.icon ?? "battery_android_alert", level.critical ? Toast.Error : Toast.Warning);
                 }
             }
 
             if (!hibernateTimer.running && p <= GlobalConfig.general.battery.criticalLevel) {
-                Toaster.toast(qsTr("Hibernating in 5 seconds"), qsTr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
+                Toaster.toast(I18n.tr("Hibernating in 5 seconds"), I18n.tr("Hibernating to prevent data loss"), "battery_android_alert", Toast.Error);
                 hibernateTimer.start();
             }
         }

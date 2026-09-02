@@ -171,9 +171,9 @@ Singleton {
                 applyKwin(true);
 
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Game mode enabled"),
-                    root.onHyprland ? qsTr("Disabled Hyprland animations, blur, gaps and shadows")
-                                    : qsTr("Paused video wallpaper, disabled blur and animations"), "gamepad");
+                Toaster.toast(I18n.tr("Game mode enabled"),
+                    root.onHyprland ? I18n.tr("Disabled Hyprland animations, blur, gaps and shadows")
+                                    : I18n.tr("Paused video wallpaper, disabled blur and animations"), "gamepad");
         } else {
             if (root.restoreVideoWallpaper) {
                 GlobalConfig.background.videoWallpaperPaused = false;
@@ -186,8 +186,8 @@ Singleton {
                 applyKwin(false);
 
             if (GlobalConfig.utilities.toasts.gameModeChanged)
-                Toaster.toast(qsTr("Game mode disabled"),
-                    root.onHyprland ? qsTr("Hyprland settings restored") : qsTr("Desktop effects restored"), "gamepad");
+                Toaster.toast(I18n.tr("Game mode disabled"),
+                    root.onHyprland ? I18n.tr("Hyprland settings restored") : I18n.tr("Desktop effects restored"), "gamepad");
         }
     }
 

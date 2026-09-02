@@ -38,7 +38,7 @@ Toolbar {
 
         Tooltip {
             target: parent
-            text: qsTr("Window Selector")
+            text: I18n.tr("Window Selector")
         }
     }
 
@@ -46,9 +46,9 @@ Toolbar {
         id: tabBar
 
         tabButtonList: [
-            {"icon": "content_cut", "name": qsTr("Screenshot")},
-            {"icon": "image_search", "name": qsTr("Google Lens")},
-            {"icon": "text_fields", "name": qsTr("Text Recognition")}
+            {"icon": "content_cut", "name": I18n.tr("Screenshot")},
+            {"icon": "image_search", "name": I18n.tr("Google Lens")},
+            {"icon": "text_fields", "name": I18n.tr("Text Recognition")}
         ]
         currentIndex: root.action === RegionSelection.SnipAction.Search ? 1 : (root.action === RegionSelection.SnipAction.CharRecognition ? 2 : 0)
         onCurrentIndexChanged: {

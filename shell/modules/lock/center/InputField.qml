@@ -15,9 +15,9 @@ Item {
     required property real centerScale
     required property Pam pam
 
-    Accessible.name: qsTr("Password entry")
+    Accessible.name: I18n.tr("Password entry")
     Accessible.role: Accessible.EditableText
-    Accessible.description: qsTr("Type your password to unlock the screen")
+    Accessible.description: I18n.tr("Type your password to unlock the screen")
     readonly property alias placeholder: placeholder
     readonly property alias placeholderWidth: nonAnimPlaceholder.width
     property string buffer
@@ -52,10 +52,10 @@ Item {
 
         text: {
             if (root.pam.passwd.active)
-                return qsTr("Loading...");
+                return I18n.tr("Loading...");
             if (root.pam.state === "max")
-                return qsTr("Max tries reached");
-            return qsTr("Enter your password");
+                return I18n.tr("Max tries reached");
+            return I18n.tr("Enter your password");
         }
         font: placeholder.font
     }

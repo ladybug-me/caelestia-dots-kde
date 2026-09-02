@@ -31,7 +31,7 @@ ColumnLayout {
     StyledText {
         Layout.topMargin: Tokens.padding.medium * root.scaleOffset
         Layout.leftMargin: Tokens.padding.small * root.scaleOffset
-        text: qsTr("GitHub")
+        text: I18n.tr("GitHub")
         font.weight: 500
         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
     }
@@ -64,7 +64,7 @@ ColumnLayout {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: root.username.length > 0 ? `@${root.username}` : qsTr("Not authenticated")
+                    text: root.username.length > 0 ? `@${root.username}` : I18n.tr("Not authenticated")
                     color: Services.Colours.palette.m3onSurface
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
@@ -83,13 +83,13 @@ ColumnLayout {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: qsTr("Last 7 days")
+                    text: I18n.tr("Last 7 days")
                     color: Services.Colours.palette.m3onSurfaceVariant
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
                 }
 
                 StyledText {
-                    text: qsTr("%1 commits").arg(root.total)
+                    text: I18n.tr("%1 commits").arg(root.total)
                     font.weight: 600
                     color: Services.Colours.palette.m3onSurface
                     font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale
@@ -124,7 +124,7 @@ ColumnLayout {
         inactiveColour: Services.Colours.palette.m3primaryContainer
         inactiveOnColour: Services.Colours.palette.m3onPrimaryContainer
         verticalPadding: Tokens.padding.small * root.scaleOffset
-        text: qsTr("Open profile")
+        text: I18n.tr("Open profile")
         icon: "open_in_new"
 
         onClicked: {
