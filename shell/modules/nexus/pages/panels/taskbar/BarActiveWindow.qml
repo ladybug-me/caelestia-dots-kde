@@ -1,7 +1,12 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import qs.components
+import qs.components.filedialog
+import qs.services
+import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
@@ -66,11 +71,73 @@ PageBase {
         }
 
         ToggleRow {
-            last: true
             text: qsTr("Popout on hover")
             subtext: qsTr("Show a window details popout when hovering")
             checked: Config.bar.popouts.activeWindow
             onToggled: GlobalConfig.bar.popouts.activeWindow = checked
+        }
+
+        SectionHeader {
+            text: qsTr("Greeting images")
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            Layout.leftMargin: Tokens.padding.largeIncreased
+            Layout.rightMargin: Tokens.padding.largeIncreased
+            Layout.bottomMargin: Tokens.spacing.extraSmall
+            text: qsTr("Shown in the active-window popout when no window is focused. A different image is used for each time of day; leave empty to use the bundled default.")
+            font: Tokens.font.label.small
+            color: Colours.palette.m3onSurfaceVariant
+            wrapMode: Text.WordWrap
+        }
+
+        // One picker row per time-of-day slot.
+        Repeater {
+            model: [
+                { key: "morningGif", label: qsTr("Morning image"), hint: qsTr("Shown 05:00–12:00") },
+                { key: "afternoonGif", label: qsTr("Afternoon image"), hint: qsTr("Shown 12:00–17:00") },
+                { key: "eveningGif", label: qsTr("Evening image"), hint: qsTr("Shown 17:00–20:00") },
+                { key: "nightGif", label: qsTr("Night image"), hint: qsTr("Shown 20:00–05:00") }
+            ]
+
+            ColumnLayout {
+                id: slot
+
+                required property int index
+                required property var modelData
+                readonly property string currentValue: Config.bar.activeWindow[modelData.key] ?? ""
+
+                Layout.fillWidth: true
+                spacing: 0
+
+                NavRow {
+                    first: slot.index === 0
+                    last: slot.currentValue === ""
+                    icon: "image"
+                    label: slot.modelData.label
+                    status: slot.currentValue !== "" ? slot.currentValue : slot.modelData.hint
+                    onClicked: gifDialog.open()
+
+                    FileDialog {
+                        id: gifDialog
+
+                        title: qsTr("Select a greeting image")
+                        filterLabel: qsTr("Image files")
+                        filters: Images.validImageExtensions
+                        onAccepted: path => GlobalConfig.bar.activeWindow[slot.modelData.key] = path
+                    }
+                }
+
+                // Reset-to-default row, only while a custom image is set.
+                NavRow {
+                    visible: slot.currentValue !== ""
+                    last: true
+                    icon: "restart_alt"
+                    label: qsTr("Reset to default")
+                    onClicked: GlobalConfig.bar.activeWindow[slot.modelData.key] = ""
+                }
+            }
         }
     }
 }

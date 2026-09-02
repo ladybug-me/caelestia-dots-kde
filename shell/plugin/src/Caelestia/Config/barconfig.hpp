@@ -74,6 +74,12 @@ class BarActiveWindow : public ConfigObject {
     CONFIG_PROPERTY(bool, compact, false)
     CONFIG_PROPERTY(bool, inverted, false)
     CONFIG_PROPERTY(bool, showOnHover, true)
+    // Custom greeting preview images shown in the active-window popout when no
+    // window is focused. Empty = use the bundled default for that time of day.
+    CONFIG_GLOBAL_PROPERTY(QString, morningGif, u""_s)
+    CONFIG_GLOBAL_PROPERTY(QString, afternoonGif, u""_s)
+    CONFIG_GLOBAL_PROPERTY(QString, eveningGif, u""_s)
+    CONFIG_GLOBAL_PROPERTY(QString, nightGif, u""_s)
 
 public:
     explicit BarActiveWindow(QObject* parent = nullptr)

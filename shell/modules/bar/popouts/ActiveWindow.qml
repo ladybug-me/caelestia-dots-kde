@@ -15,12 +15,21 @@ Item {
     implicitWidth: child.implicitWidth
     implicitHeight: child.implicitHeight
 
+    // Resolve a user-configured greeting image, falling back to the bundled
+    // default for the current time of day when the setting is empty.
+    function resolveGif(custom, fallback) {
+        if (custom && custom.length > 0)
+            return custom.startsWith("/") ? "file://" + custom : custom;
+        return Qt.resolvedUrl(fallback);
+    }
+
     readonly property string gifPath: {
         const hr = new Date().getHours();
-        if (hr >= 5 && hr < 12) return Qt.resolvedUrl("../../../assets/morning.gif");
-        if (hr >= 12 && hr < 17) return Qt.resolvedUrl("../../../assets/afternoon.gif");
-        if (hr >= 17 && hr < 20) return Qt.resolvedUrl("../../../assets/evening.gif");
-        return Qt.resolvedUrl("../../../assets/night.gif");
+        const aw = GlobalConfig.bar.activeWindow;
+        if (hr >= 5 && hr < 12) return resolveGif(aw.morningGif, "../../../assets/morning.gif");
+        if (hr >= 12 && hr < 17) return resolveGif(aw.afternoonGif, "../../../assets/afternoon.gif");
+        if (hr >= 17 && hr < 20) return resolveGif(aw.eveningGif, "../../../assets/evening.gif");
+        return resolveGif(aw.nightGif, "../../../assets/night.gif");
     }
 
     readonly property real masterScale: !isNaN(GlobalConfig.bar.previewScale) ? GlobalConfig.bar.previewScale : 1.0
