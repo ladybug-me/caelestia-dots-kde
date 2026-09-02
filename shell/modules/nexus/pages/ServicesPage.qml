@@ -23,20 +23,6 @@ PageBase {
     ]
     readonly property list<string> autoSchemeValues: ["solar", "fixed"]
 
-    /// The hour of an "HH:MM" config value, for the steppers.
-    function schemeHour(time: string): int {
-        const minutes = Solar.parseTime(time);
-        return minutes < 0 ? 0 : Math.floor(minutes / 60);
-    }
-
-    /// Replaces only the hour, so minutes set by hand in the config file are
-    /// not thrown away by touching the stepper.
-    function withHour(time: string, hour: int): string {
-        const minutes = Solar.parseTime(time);
-        const mins = minutes < 0 ? 0 : minutes % 60;
-        return `${String(hour).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
-    }
-
     // Lyrics backends, ordered to match LyricsBackend::Backend (Auto, Local, LRCLIB, NetEase)
     readonly property list<MenuItem> lyricsItems: [
         MenuItem {
@@ -53,33 +39,18 @@ PageBase {
         }
     ]
 
-    // GPU options + the config string each maps to (see Gpu::parseType)
-    readonly property list<MenuItem> gpuItems: [
-        MenuItem {
-            text: qsTr("Auto")
-        },
-        MenuItem {
-            text: "NVIDIA"
-        },
-        MenuItem {
-            text: qsTr("Generic")
-        },
-        MenuItem {
-            text: qsTr("None")
-        }
-    ]
+    /// The hour of an "HH:MM" config value, for the steppers.
+    function schemeHour(time: string): int {
+        const minutes = Solar.parseTime(time);
+        return minutes < 0 ? 0 : Math.floor(minutes / 60);
+    }
 
-    readonly property list<string> gpuValues: ["", "NVIDIA", "GENERIC", "None"]
-
-    function gpuKeyToIndex(key: string): int {
-        const u = (key ?? "").trim().toUpperCase();
-        if (u === "")
-            return 0; // Auto
-        if (u === "NVIDIA")
-            return 1;
-        if (u === "GENERIC")
-            return 2;
-        return 3; // None
+    /// Replaces only the hour, so minutes set by hand in the config file are
+    /// not thrown away by touching the stepper.
+    function withHour(time: string, hour: int): string {
+        const minutes = Solar.parseTime(time);
+        const mins = minutes < 0 ? 0 : minutes % 60;
+        return `${String(hour).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
     }
 
     title: qsTr("Services")
@@ -269,15 +240,83 @@ PageBase {
             onMoved: h => GlobalConfig.services.autoSchemeDarkTime = root.withHour(GlobalConfig.services.autoSchemeDarkTime, h)
         }
 
+        Variants {
+            id: gpuVariants
+
+            model: {
+                const list = ["Auto"];
+                for (let i = 0; i < Gpu.devices.length; ++i) {
+                    list.push(Gpu.devices[i]);
+                }
+                list.push("None");
+                return list;
+            }
+
+            MenuItem {
+                required property string modelData
+
+                text: {
+                    if (modelData === "Auto") {
+                        return Gpu.devices.length > 0 ? qsTr("Auto (Default: %1)").arg(Gpu.devices[0]) : qsTr("Auto");
+                    }
+                    if (modelData === "None") {
+                        return qsTr("None (Disabled)");
+                    }
+                    return modelData;
+                }
+                icon: {
+                    if (modelData === "Auto") {
+                        return "autorenew";
+                    }
+                    if (modelData === "None") {
+                        return "block";
+                    }
+                    return "memory";
+                }
+            }
+        }
+
         SelectRow {
             Layout.fillWidth: true
             last: true
             label: qsTr("GPU")
-            subtext: Gpu.name ? qsTr("Monitoring: %1").arg(Gpu.name) : qsTr("Override for GPU type")
+            subtext: {
+                if (GlobalConfig.services.gpuType === "None" || Gpu.type === Gpu.None) {
+                    return qsTr("GPU monitoring disabled");
+                }
+                return Gpu.name ? qsTr("Monitoring: %1").arg(Gpu.name) : qsTr("Auto-detect GPU");
+            }
             menuOnTop: true
-            menuItems: root.gpuItems
-            active: root.gpuItems[root.gpuKeyToIndex(GlobalConfig.services.gpuType)]
-            onSelected: item => GlobalConfig.services.gpuType = root.gpuValues[root.gpuItems.indexOf(item)]
+            menuItems: gpuVariants.instances
+            active: {
+                const current = GlobalConfig.services.gpuType ?? "";
+                const insts = gpuVariants.instances;
+                if (!insts || insts.length === 0) {
+                    return null;
+                }
+                if (current === "" || current === "Auto") {
+                    return insts[0];
+                }
+                if (current === "None") {
+                    return insts[insts.length - 1];
+                }
+                for (let i = 1; i < insts.length - 1; ++i) {
+                    if (gpuVariants.model[i] === current || Gpu.name === gpuVariants.model[i]) {
+                        return insts[i];
+                    }
+                }
+                return insts[0];
+            }
+            onSelected: item => {
+                const idx = gpuVariants.instances.indexOf(item);
+                if (idx <= 0) {
+                    GlobalConfig.services.gpuType = "";
+                } else if (idx === gpuVariants.instances.length - 1) {
+                    GlobalConfig.services.gpuType = "None";
+                } else {
+                    GlobalConfig.services.gpuType = gpuVariants.model[idx];
+                }
+            }
         }
     }
 }

@@ -4,8 +4,16 @@
 
 #include <qprocess.h>
 #include <qqmlintegration.h>
+#include <QStringList>
 
 namespace caelestia::services {
+
+struct GpuDevice {
+    QString pciId;
+    QString name;
+    QString vendorId;
+    QString deviceId;
+};
 
 class Gpu : public TickingService {
     Q_OBJECT
@@ -15,9 +23,9 @@ class Gpu : public TickingService {
 public:
     enum Type {
         Auto,    // user override is empty (config "") — defer to detected autoType
-        None,    // no usable GPU
-        Nvidia,  // queried via nvidia-smi
-        Generic, // queried via /sys/class/drm/card*/device/gpu_busy_percent
+        None,    // no usable GPU / disabled
+        Nvidia,  // Nvidia GPU
+        Generic, // Intel / AMD / other GPU
     };
     Q_ENUM(Type)
 
@@ -28,9 +36,11 @@ private:
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
     Q_PROPERTY(qreal percentage READ percentage NOTIFY percentageChanged)
     Q_PROPERTY(qreal temperature READ temperature NOTIFY temperatureChanged)
+    Q_PROPERTY(QStringList devices READ devices NOTIFY devicesChanged)
 
 public:
     explicit Gpu(QObject* parent = nullptr);
+    ~Gpu() override;
 
     [[nodiscard]] Type type() const;
     [[nodiscard]] Type userType() const;
@@ -38,6 +48,7 @@ public:
     [[nodiscard]] QString name() const;
     [[nodiscard]] qreal percentage() const;
     [[nodiscard]] qreal temperature() const;
+    [[nodiscard]] QStringList devices() const;
 
 signals:
     void typeChanged();
@@ -46,35 +57,38 @@ signals:
     void nameChanged();
     void percentageChanged();
     void temperatureChanged();
+    void devicesChanged();
 
 protected:
     void tick() override;
 
 private:
-    void detectTypeOnce();
-    void detectNameOnce();
+    void detectDevices();
+    void updateSelectedDevice();
+    void ensureNvtopRunning();
+    void stopNvtop();
     void readGenericUsage();
-    void startNvtopUsage();
-    void startNvidiaUsage();
     void readGpuTemperature();
 
     void setUserType(Type value);
     void setAutoType(Type value);
     void setName(QString value);
 
-    [[nodiscard]] static Type parseType(const QString& s);
     [[nodiscard]] static QString cleanName(QString s);
+    [[nodiscard]] static QString ensureNvtopConfig();
 
     Type m_userType = Auto;
     Type m_autoType = None;
+    QString m_userConfig;
     QString m_name;
     qreal m_percentage = 0.0;
     qreal m_temperature = 0.0;
 
-    QProcess* m_typeProc = nullptr;
-    QProcess* m_nameProc = nullptr;
-    QProcess* m_nvidiaProc = nullptr;
+    QList<GpuDevice> m_detectedDevices;
+    int m_selectedDeviceIdx = -1;
+
     QProcess* m_nvtopProc = nullptr;
+    QByteArray m_nvtopBuffer;
     bool m_hasNvtop = false;
 };
 
