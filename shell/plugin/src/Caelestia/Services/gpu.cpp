@@ -13,10 +13,41 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 #include <QTextStream>
+#include <dlfcn.h>
+#include <qloggingcategory.h>
+
+Q_DECLARE_LOGGING_CATEGORY(lcGpu)
+Q_LOGGING_CATEGORY(lcGpu, "caelestia.services.gpu", QtInfoMsg)
 
 namespace caelestia::services {
 
 namespace {
+
+// NVML minimal definitions
+typedef enum nvmlReturn_enum {
+    NVML_SUCCESS = 0,
+} nvmlReturn_t;
+
+typedef struct nvmlDevice_st* nvmlDevice_t;
+
+typedef struct nvmlUtilization_st {
+    unsigned int gpu;
+    unsigned int memory;
+} nvmlUtilization_t;
+
+constexpr int NVML_TEMPERATURE_GPU = 0;
+
+typedef nvmlReturn_t (*nvmlInit_v2_t)(void);
+typedef nvmlReturn_t (*nvmlShutdown_t)(void);
+typedef nvmlReturn_t (*nvmlDeviceGetHandleByPciBusId_v2_t)(const char *pciBusId, nvmlDevice_t *device);
+typedef nvmlReturn_t (*nvmlDeviceGetUtilizationRates_t)(nvmlDevice_t device, nvmlUtilization_t *utilization);
+typedef nvmlReturn_t (*nvmlDeviceGetTemperature_t)(nvmlDevice_t device, int sensorType, unsigned int *temp);
+
+nvmlInit_v2_t nvmlInit_v2_fn = nullptr;
+nvmlShutdown_t nvmlShutdown_fn = nullptr;
+nvmlDeviceGetHandleByPciBusId_v2_t nvmlDeviceGetHandleByPciBusId_v2_fn = nullptr;
+nvmlDeviceGetUtilizationRates_t nvmlDeviceGetUtilizationRates_fn = nullptr;
+nvmlDeviceGetTemperature_t nvmlDeviceGetTemperature_fn = nullptr;
 
 void lookupPciNames(
     const QString& vendorId,
@@ -102,7 +133,6 @@ bool parseTrailingNumber(const QString& s, qreal& out) {
 Gpu::Gpu(QObject* parent)
     : TickingService(parent) {
     auto* svc = caelestia::config::ConfigSingleton::instance()->services();
-    m_hasNvtop = !QStandardPaths::findExecutable(QStringLiteral("nvtop")).isEmpty();
     m_userConfig = svc->gpuType();
 
     detectDevices();
@@ -110,14 +140,12 @@ Gpu::Gpu(QObject* parent)
 
     QObject::connect(svc, &caelestia::config::ServiceConfig::gpuTypeChanged, this, [this, svc] {
         m_userConfig = svc->gpuType();
-        // Stop existing nvtop so it restarts with the correct device index
-        stopNvtop();
         updateSelectedDevice();
     });
 }
 
 Gpu::~Gpu() {
-    stopNvtop();
+    cleanupNvidia();
 }
 
 Gpu::Type Gpu::type() const {
@@ -267,7 +295,7 @@ void Gpu::updateSelectedDevice() {
             m_temperature = 0.0;
             Q_EMIT temperatureChanged();
         }
-        stopNvtop();
+        cleanupNvidia();
         return;
     }
 
@@ -330,16 +358,16 @@ void Gpu::updateSelectedDevice() {
         }
     }
 
-    if (type() == None) {
-        stopNvtop();
-    } else if (m_hasNvtop) {
-        ensureNvtopRunning();
+    if (type() == Nvidia) {
+        initNvidia();
+    } else {
+        cleanupNvidia();
     }
 }
 
 void Gpu::tick() {
     const Type t = type();
-    if (t == None) {
+    if (t == None || m_selectedDeviceIdx < 0 || m_selectedDeviceIdx >= m_detectedDevices.size()) {
         if (m_percentage > 0.0001) {
             m_percentage = 0.0;
             Q_EMIT percentageChanged();
@@ -351,265 +379,125 @@ void Gpu::tick() {
         return;
     }
 
-    if (m_hasNvtop) {
-        // nvtop pushes data asynchronously via readyReadStandardOutput.
-        // If it died unexpectedly, restart it; otherwise nothing to do here.
-        ensureNvtopRunning();
+    if (t == Nvidia) {
+        readNvidiaUsageAndTemp();
     } else {
         readGenericUsage();
-        readGpuTemperature();
+        readGenericTemperature();
     }
 }
 
-QString Gpu::ensureNvtopConfig() {
-    const QString runtimeDir = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
-    const QString baseDir = runtimeDir.isEmpty()
-        ? QStandardPaths::writableLocation(QStandardPaths::TempLocation)
-        : runtimeDir;
-    const QString dirPath = QStringLiteral("%1/caelestia").arg(baseDir);
-    QDir().mkpath(dirPath);
-
-    const QString configPath = QStringLiteral("%1/nvtop.ini").arg(dirPath);
-    // Always (re)write the config so any stale file from a previous run is correct
-    QFile file(configPath);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        const QByteArray cfg =
-            "[GeneralOption]\n"
-            "UseColor = false\n"
-            "UpdateInterval = 10\n"
-            "ShowInfoMessages = false\n\n"
-            "[HeaderOption]\n"
-            "UseFahrenheit = false\n"
-            "EncodeHideTimer = -1\n"
-            "GPUInfoBar = false\n\n"
-            "[ChartOption]\n"
-            "ReverseChart = false\n\n"
-            "[ProcessListOption]\n"
-            "HideNvtopProcess = true\n"
-            "HideNvtopProcessList = true\n";
-        file.write(cfg);
-        file.close();
+void Gpu::initNvidia() {
+    if (m_nvmlLib) {
+        return; // Already initialized
     }
-    return configPath;
-}
 
-void Gpu::ensureNvtopRunning() {
-    if (type() == None || !m_hasNvtop || m_nvtopProc) {
+    m_nvmlLib = dlopen("libnvidia-ml.so", RTLD_NOW);
+    if (!m_nvmlLib) {
+        m_nvmlLib = dlopen("libnvidia-ml.so.1", RTLD_NOW);
+    }
+    if (!m_nvmlLib) {
+        qCWarning(lcGpu) << "Failed to load libnvidia-ml.so";
         return;
     }
 
-    m_nvtopProc = new QProcess(this);
-    m_nvtopBuffer.clear();
+    nvmlInit_v2_fn = reinterpret_cast<nvmlInit_v2_t>(dlsym(m_nvmlLib, "nvmlInit_v2"));
+    nvmlShutdown_fn = reinterpret_cast<nvmlShutdown_t>(dlsym(m_nvmlLib, "nvmlShutdown"));
+    nvmlDeviceGetHandleByPciBusId_v2_fn = reinterpret_cast<nvmlDeviceGetHandleByPciBusId_v2_t>(dlsym(m_nvmlLib, "nvmlDeviceGetHandleByPciBusId_v2"));
+    nvmlDeviceGetUtilizationRates_fn = reinterpret_cast<nvmlDeviceGetUtilizationRates_t>(dlsym(m_nvmlLib, "nvmlDeviceGetUtilizationRates"));
+    nvmlDeviceGetTemperature_fn = reinterpret_cast<nvmlDeviceGetTemperature_t>(dlsym(m_nvmlLib, "nvmlDeviceGetTemperature"));
 
-    // Capture the vendor ID of the selected device at launch time.
-    // We match by vendor name in nvtop's device_name field rather than by
-    // positional index because nvtop and sysfs enumerate GPUs in different orders
-    // (e.g. nvtop lists NVIDIA first while sysfs places iGPU at index 0).
-    const QString targetVendorId =
-        (m_selectedDeviceIdx >= 0 && m_selectedDeviceIdx < m_detectedDevices.size())
-            ? m_detectedDevices.at(m_selectedDeviceIdx).vendorId
-            : QString();
+    if (!nvmlInit_v2_fn || !nvmlShutdown_fn || !nvmlDeviceGetHandleByPciBusId_v2_fn || !nvmlDeviceGetUtilizationRates_fn || !nvmlDeviceGetTemperature_fn) {
+        qCWarning(lcGpu) << "Failed to resolve required NVML functions";
+        cleanupNvidia();
+        return;
+    }
 
-    QObject::connect(m_nvtopProc, &QProcess::readyReadStandardOutput, this, [this, targetVendorId] {
-        if (!m_nvtopProc) {
-            return;
-        }
-        m_nvtopBuffer.append(m_nvtopProc->readAllStandardOutput());
+    if (nvmlInit_v2_fn() != NVML_SUCCESS) {
+        qCWarning(lcGpu) << "nvmlInit_v2 failed";
+        cleanupNvidia();
+        return;
+    }
 
-        // nvtop -l emits one complete JSON array per update, followed by a newline.
-        // We find the last COMPLETE top-level [...] block using a depth-tracking
-        // backward scan — naive lastIndexOf('[') would wrongly match nested process
-        // sub-arrays, producing a frame with no gpu_util/temp keys.
-        qsizetype lastClose = -1;
-        qsizetype firstOpen = -1;
-        {
-            int depth = 0;
-            for (qsizetype i = m_nvtopBuffer.size() - 1; i >= 0; --i) {
-                const char c = m_nvtopBuffer.at(i);
-                if (c == ']') {
-                    if (depth == 0) {
-                        lastClose = i;
-                    }
-                    ++depth;
-                } else if (c == '[') {
-                    --depth;
-                    if (depth == 0) {
-                        firstOpen = i;
-                        break;
-                    }
-                }
-            }
-        }
-        if (firstOpen < 0 || lastClose < 0) {
-            return;
-        }
-
-        const QByteArray frame = m_nvtopBuffer.mid(
-            static_cast<qint64>(firstOpen),
-            static_cast<qint64>(lastClose - firstOpen + 1));
-        // Keep only data after the consumed frame (in case of partial next update)
-        m_nvtopBuffer = m_nvtopBuffer.mid(static_cast<qint64>(lastClose + 1));
-
-        QJsonParseError parseErr;
-        const QJsonDocument doc = QJsonDocument::fromJson(frame, &parseErr);
-        if (parseErr.error != QJsonParseError::NoError || !doc.isArray()) {
-            return;
-        }
-        const QJsonArray arr = doc.array();
-        if (arr.isEmpty()) {
-            return;
-        }
-
-        // Match device by vendor name in nvtop's device_name field.
-        // nvtop does not enumerate in sysfs order, so positional indexing is wrong.
-        // Strategy:
-        //   NVIDIA (10de) → device_name contains "NVIDIA"
-        //   AMD   (1002)  → device_name contains "AMD" or "Radeon"
-        //   Intel (8086)  → any entry that is not NVIDIA and not AMD
-        //   Unknown       → first entry
-        const auto isNvidiaEntry = [](const QString& name) {
-            return name.contains(QStringLiteral("NVIDIA"), Qt::CaseInsensitive);
-        };
-        const auto isAmdEntry = [](const QString& name) {
-            return name.contains(QStringLiteral("AMD"), Qt::CaseInsensitive)
-                   || name.contains(QStringLiteral("Radeon"), Qt::CaseInsensitive);
-        };
-
-        QJsonObject devObj;
-        for (const QJsonValue& val : arr) {
-            if (!val.isObject()) {
-                continue;
-            }
-            const QJsonObject obj = val.toObject();
-            const QString devName = obj.value(QStringLiteral("device_name")).toString();
-            if (targetVendorId == QStringLiteral("10de")) {
-                if (isNvidiaEntry(devName)) {
-                    devObj = obj;
-                    break;
-                }
-            } else if (targetVendorId == QStringLiteral("1002")) {
-                if (isAmdEntry(devName)) {
-                    devObj = obj;
-                    break;
-                }
-            } else {
-                // Intel or unknown: pick first non-NVIDIA, non-AMD entry
-                if (!isNvidiaEntry(devName) && !isAmdEntry(devName)) {
-                    devObj = obj;
-                    break;
-                }
-            }
-        }
-        // Fall back to first entry if nothing matched (single-GPU system, etc.)
-        if (devObj.isEmpty() && !arr.isEmpty()) {
-            devObj = arr.first().toObject();
-        }
-
-        if (devObj.isEmpty()) {
-            return;
-        }
-
-        // --- GPU utilization ---
-        const QJsonValue utilVal = devObj.value(QStringLiteral("gpu_util"));
-        if (utilVal.isString()) {
-            const QString utilStr = utilVal.toString();
-            qreal raw = 0.0;
-            if (parseTrailingNumber(utilStr, raw)) {
-                const qreal usage = raw / 100.0;
-                if (std::abs(usage - m_percentage) > 0.0001) {
-                    m_percentage = usage;
-                    Q_EMIT percentageChanged();
-                }
-            }
-        }
-
-        // --- Temperature ---
-        // nvtop may report null temp for iGPUs (Intel), so we fall back to sysfs only then.
-        const QJsonValue tempVal = devObj.value(QStringLiteral("temp"));
-        if (!tempVal.isNull() && tempVal.isString()) {
-            qreal raw = 0.0;
-            if (parseTrailingNumber(tempVal.toString(), raw)) {
-                if (std::abs(raw - m_temperature) > 0.05) {
-                    m_temperature = raw;
-                    Q_EMIT temperatureChanged();
-                }
-            }
-        } else {
-            // iGPU — temperature not reported by nvtop; read from hwmon sysfs
-            readGpuTemperature();
-        }
-    });
-
-    QObject::connect(
-        m_nvtopProc,
-        &QProcess::errorOccurred,
-        this,
-        [this](QProcess::ProcessError) { stopNvtop(); });
-
-    QObject::connect(
-        m_nvtopProc,
-        &QProcess::finished,
-        this,
-        [this](int, QProcess::ExitStatus) { stopNvtop(); });
-
-    const QString configPath = ensureNvtopConfig();
-    m_nvtopProc->start(
-        QStringLiteral("nvtop"),
-        {QStringLiteral("-c"),
-         configPath,
-         QStringLiteral("-p"),
-         QStringLiteral("-P"),
-         QStringLiteral("-l"),
-         QStringLiteral("-d"),
-         QStringLiteral("10")});
+    const QString& pciId = m_detectedDevices.at(m_selectedDeviceIdx).pciId;
+    nvmlDevice_t dev = nullptr;
+    if (nvmlDeviceGetHandleByPciBusId_v2_fn(pciId.toUtf8().constData(), &dev) == NVML_SUCCESS) {
+        m_nvmlDevice = dev;
+    } else {
+        qCWarning(lcGpu) << "Failed to get NVML handle for PCI ID:" << pciId;
+    }
 }
 
-void Gpu::stopNvtop() {
-    if (m_nvtopProc) {
-        // Disconnect all signals from this object to prevent re-entrant stopNvtop() calls
-        m_nvtopProc->disconnect(this);
-        m_nvtopProc->kill();
-        m_nvtopProc->deleteLater();
-        m_nvtopProc = nullptr;
-        m_nvtopBuffer.clear();
+void Gpu::cleanupNvidia() {
+    m_nvmlDevice = nullptr;
+    if (m_nvmlLib) {
+        if (nvmlShutdown_fn) {
+            nvmlShutdown_fn();
+        }
+        dlclose(m_nvmlLib);
+        m_nvmlLib = nullptr;
+    }
+}
+
+void Gpu::readNvidiaUsageAndTemp() {
+    if (!m_nvmlDevice || !nvmlDeviceGetUtilizationRates_fn || !nvmlDeviceGetTemperature_fn) {
+        return;
+    }
+
+    nvmlUtilization_t util;
+    if (nvmlDeviceGetUtilizationRates_fn(static_cast<nvmlDevice_t>(m_nvmlDevice), &util) == NVML_SUCCESS) {
+        const qreal newPerc = util.gpu / 100.0;
+        if (std::abs(newPerc - m_percentage) > 0.0001) {
+            m_percentage = newPerc;
+            Q_EMIT percentageChanged();
+        }
+    }
+
+    unsigned int temp = 0;
+    if (nvmlDeviceGetTemperature_fn(static_cast<nvmlDevice_t>(m_nvmlDevice), NVML_TEMPERATURE_GPU, &temp) == NVML_SUCCESS) {
+        if (std::abs(static_cast<qreal>(temp) - m_temperature) > 0.05) {
+            m_temperature = temp;
+            Q_EMIT temperatureChanged();
+        }
     }
 }
 
 void Gpu::readGenericUsage() {
-    const QStringList cards =
-        QDir(QStringLiteral("/sys/class/drm"))
-            .entryList(QStringList() << QStringLiteral("card*"), QDir::Dirs | QDir::NoDotAndDotDot);
+    if (m_selectedDeviceIdx < 0 || m_selectedDeviceIdx >= m_detectedDevices.size()) {
+        return;
+    }
+    const QString& pciId = m_detectedDevices.at(m_selectedDeviceIdx).pciId;
+    const QString sysfsDir = QStringLiteral("/sys/bus/pci/devices/%1").arg(pciId);
+    const QString drmDir = sysfsDir + QStringLiteral("/drm");
 
-    qreal sum = 0.0;
-    int count = 0;
+    qreal newPerc = 0.0;
+    bool found = false;
 
-    // First preference: gpu_busy_percent (AMDGPU, some Intel i915)
+    // List cards under the specific PCI device
+    const QStringList cards = QDir(drmDir).entryList(QStringList() << QStringLiteral("card*"), QDir::Dirs | QDir::NoDotAndDotDot);
+
+    // First preference: gpu_busy_percent (AMDGPU, some Intel Xe)
     for (const QString& card : cards) {
-        QFile f(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card));
-        if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            continue;
-        }
-        bool ok = false;
-        const qreal v = f.readAll().trimmed().toDouble(&ok);
-        f.close();
-        if (ok) {
-            sum += v;
-            ++count;
+        QFile f(QStringLiteral("%1/%2/device/gpu_busy_percent").arg(drmDir, card));
+        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            bool ok = false;
+            newPerc = f.readAll().trimmed().toDouble(&ok) / 100.0;
+            f.close();
+            if (ok) {
+                found = true;
+                break;
+            }
         }
     }
 
     // Second preference: RPS frequency ratio (Intel i915 gt sysfs)
-    if (count < static_cast<int>(cards.size())) {
+    if (!found) {
         for (const QString& card : cards) {
-            if (QFile::exists(
-                    QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card))) {
-                continue; // already counted above
-            }
-            QFile cur(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_cur_freq_mhz").arg(card));
+            QFile cur(QStringLiteral("%1/%2/gt/gt0/rps_cur_freq_mhz").arg(drmDir, card));
             if (!cur.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 continue;
             }
-            QFile max(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_max_freq_mhz").arg(card));
+            QFile max(QStringLiteral("%1/%2/gt/gt0/rps_max_freq_mhz").arg(drmDir, card));
             if (!max.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 cur.close();
                 continue;
@@ -621,25 +509,63 @@ void Gpu::readGenericUsage() {
             cur.close();
             max.close();
             if (curOk && maxOk && maxV > 0.0) {
-                const qreal ratio = qBound(0.0, curV / maxV, 1.0);
-                sum += ratio * 100.0;
-                ++count;
+                newPerc = qBound(0.0, curV / maxV, 1.0);
+                found = true;
+                break;
             }
         }
     }
 
-    const qreal newPerc = count > 0 ? sum / static_cast<qreal>(count) / 100.0 : 0.0;
-    if (std::abs(newPerc - m_percentage) > 0.0001) {
+    if (found && std::abs(newPerc - m_percentage) > 0.0001) {
         m_percentage = newPerc;
         Q_EMIT percentageChanged();
     }
 }
 
-void Gpu::readGpuTemperature() {
-    const auto t = sensorslib::gpuPciAverageTemp();
-    const qreal newTemp = t.value_or(0.0);
-    if (std::abs(newTemp - m_temperature) > 0.05) {
-        m_temperature = newTemp;
+void Gpu::readGenericTemperature() {
+    if (m_selectedDeviceIdx < 0 || m_selectedDeviceIdx >= m_detectedDevices.size()) {
+        return;
+    }
+    const QString& pciId = m_detectedDevices.at(m_selectedDeviceIdx).pciId;
+    const QString hwmonDir = QStringLiteral("/sys/bus/pci/devices/%1/hwmon").arg(pciId);
+    
+    // Some Intel GPUs don't expose hwmon under their PCI device directly. 
+    // Usually iGPUs share the CPU package temperature. We could fall back to it,
+    // but reading the exact device's hwmon is most accurate for AMD/dGPUs.
+    const QStringList hwmons = QDir(hwmonDir).entryList(QStringList() << QStringLiteral("hwmon*"), QDir::Dirs | QDir::NoDotAndDotDot);
+    
+    qreal maxTemp = 0.0;
+    bool found = false;
+
+    for (const QString& hwmon : hwmons) {
+        // Find all tempX_input files
+        const QStringList tempFiles = QDir(QStringLiteral("%1/%2").arg(hwmonDir, hwmon)).entryList(QStringList() << QStringLiteral("temp*_input"), QDir::Files);
+        for (const QString& tempFile : tempFiles) {
+            QFile f(QStringLiteral("%1/%2/%3").arg(hwmonDir, hwmon, tempFile));
+            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                bool ok = false;
+                const qreal t = f.readAll().trimmed().toDouble(&ok);
+                if (ok) {
+                    // sysfs temp is usually in millidegrees Celsius
+                    maxTemp = std::max(maxTemp, t / 1000.0);
+                    found = true;
+                }
+                f.close();
+            }
+        }
+    }
+
+    // Fallback: If no hwmon on the device (like many Intel iGPUs), use sensorslib cpu fallback if generic
+    if (!found) {
+        const auto t = sensorslib::gpuPciAverageTemp();
+        if (t.has_value()) {
+            maxTemp = *t;
+            found = true;
+        }
+    }
+
+    if (found && std::abs(maxTemp - m_temperature) > 0.05) {
+        m_temperature = maxTemp;
         Q_EMIT temperatureChanged();
     }
 }

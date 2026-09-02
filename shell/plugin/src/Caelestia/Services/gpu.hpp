@@ -2,7 +2,6 @@
 
 #include "tickingservice.hpp"
 
-#include <qprocess.h>
 #include <qqmlintegration.h>
 #include <QStringList>
 
@@ -65,17 +64,17 @@ protected:
 private:
     void detectDevices();
     void updateSelectedDevice();
-    void ensureNvtopRunning();
-    void stopNvtop();
+    void initNvidia();
+    void cleanupNvidia();
+    void readNvidiaUsageAndTemp();
     void readGenericUsage();
-    void readGpuTemperature();
+    void readGenericTemperature();
 
     void setUserType(Type value);
     void setAutoType(Type value);
     void setName(QString value);
 
     [[nodiscard]] static QString cleanName(QString s);
-    [[nodiscard]] static QString ensureNvtopConfig();
 
     Type m_userType = Auto;
     Type m_autoType = None;
@@ -87,9 +86,8 @@ private:
     QList<GpuDevice> m_detectedDevices;
     int m_selectedDeviceIdx = -1;
 
-    QProcess* m_nvtopProc = nullptr;
-    QByteArray m_nvtopBuffer;
-    bool m_hasNvtop = false;
+    void* m_nvmlLib = nullptr;
+    void* m_nvmlDevice = nullptr;
 };
 
 } // namespace caelestia::services
