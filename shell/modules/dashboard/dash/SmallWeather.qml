@@ -47,7 +47,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
 
             animate: true
-            text: Weather.description
+            text: I18n.tr(Weather.description)
             font: Tokens.font.body.small
 
             elide: Text.ElideRight
