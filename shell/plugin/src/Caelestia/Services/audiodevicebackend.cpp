@@ -15,6 +15,28 @@ AudioDeviceFilterModel::AudioDeviceFilterModel(QObject* parent)
 {
 }
 
+static bool isDeviceInactive(PulseAudioQt::Device *device) {
+    const auto ports = device->ports();
+
+    // If the currently selected port is explicitly unavailable, the device is inactive
+    auto activeIdx = device->activePortIndex();
+    if (activeIdx < (quint32)ports.size()) {
+        if (ports.at(activeIdx)->availability() == PulseAudioQt::Port::Unavailable) {
+            return true;
+        }
+        return false;
+    }
+    if (ports.isEmpty()) {
+        return false;
+    }
+    for (auto port : ports) {
+        if (port->availability() != PulseAudioQt::Port::Unavailable) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool AudioDeviceFilterModel::showInactiveDevices() const
 {
     return m_showInactiveDevices;
@@ -38,9 +60,8 @@ bool AudioDeviceFilterModel::filterAcceptsRow(int source_row, const QModelIndex 
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
     QVariant data = sourceModel()->data(index, AbstractModel::PulseObjectRole);
     if (Device *device = qobject_cast<Device *>(data.value<QObject *>())) {
-        const auto ports = device->ports();
-        if (ports.size() == 1 && ports.at(0)->availability() == Port::Unavailable) {
-            return false; // KDE hides devices with exactly one port that is unavailable
+        if (isDeviceInactive(device)) {
+            return false;
         }
     }
     return true;
@@ -96,12 +117,8 @@ QAbstractItemModel* AudioBackend::cards() const
 bool AudioBackend::isSinkInactive(const QString& name)
 {
     for (auto sink : Context::instance()->sinks()) {
-        if (sink->name() == name) {
-            auto ports = sink->ports();
-            if (ports.size() == 1 && ports.at(0)->availability() == Port::Unavailable) {
-                return true;
-            }
-            return false;
+        if (sink->name() == name || sink->description() == name) {
+            return isDeviceInactive(sink);
         }
     }
     return false;
@@ -110,12 +127,8 @@ bool AudioBackend::isSinkInactive(const QString& name)
 bool AudioBackend::isSourceInactive(const QString& name)
 {
     for (auto source : Context::instance()->sources()) {
-        if (source->name() == name) {
-            auto ports = source->ports();
-            if (ports.size() == 1 && ports.at(0)->availability() == Port::Unavailable) {
-                return true;
-            }
-            return false;
+        if (source->name() == name || source->description() == name) {
+            return isDeviceInactive(source);
         }
     }
     return false;

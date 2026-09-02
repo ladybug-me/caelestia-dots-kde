@@ -88,6 +88,51 @@ PageBase {
         }
 
         SectionHeader {
+            text: qsTr("Device Profiles")
+        }
+
+        Repeater {
+            model: Audio.cards
+            delegate: SplitButtonRow {
+                id: cardRow
+                
+                label: model.PulseObject.description || model.PulseObject.name
+                
+                property var _dynamicItems: []
+
+                Instantiator {
+                    model: cardRow.model.PulseObject.profiles
+                    delegate: MenuItem {
+                        required property var modelData
+                        required property int index
+                        
+                        text: modelData.description
+                        onClicked: cardRow.model.PulseObject.activeProfileIndex = index
+                    }
+                    onObjectAdded: (index, object) => {
+                        let arr = cardRow._dynamicItems;
+                        arr.splice(index, 0, object);
+                        cardRow._dynamicItems = arr;
+                        cardRow.menuItems = cardRow._dynamicItems;
+                    }
+                    onObjectRemoved: (index, object) => {
+                        let arr = cardRow._dynamicItems;
+                        arr.splice(index, 1);
+                        cardRow._dynamicItems = arr;
+                        cardRow.menuItems = cardRow._dynamicItems;
+                    }
+                }
+                
+                active: {
+                    let items = cardRow.menuItems;
+                    let idx = cardRow.model.PulseObject.activeProfileIndex;
+                    if (items && idx >= 0 && idx < items.length) return items[idx];
+                    return null;
+                }
+            }
+        }
+
+        SectionHeader {
             text: qsTr("Apps")
         }
 

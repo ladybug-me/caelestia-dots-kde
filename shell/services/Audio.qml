@@ -13,7 +13,12 @@ Singleton {
     id: root
 
     property bool showInactiveDevices: false
-    onShowInactiveDevicesChanged: refreshNodes()
+    onShowInactiveDevicesChanged: {
+        AudioBackend.showInactiveDevices = showInactiveDevices;
+        refreshNodes();
+    }
+    
+    property var cards: AudioBackend.cards
 
     property string previousSinkName: ""
     property string previousSourceName: ""
