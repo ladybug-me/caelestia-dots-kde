@@ -506,7 +506,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 elide: Text.ElideRight
-                text: device.modelData?.description || device.modelData?.name || qsTr("Unknown")
+                text: device.modelData?.properties?.["node.nick"] || device.modelData?.description || device.modelData?.name || qsTr("Unknown")
                 color: device.active ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
                 font.pointSize: Tokens.font.body.small.pointSize * root.fontScale
             }

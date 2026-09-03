@@ -71,6 +71,88 @@ bool AudioDeviceFilterModel::filterAcceptsRow(int source_row, const QModelIndex 
     return true;
 }
 
+static QString getCardFriendlyName(PulseAudioQt::Card *card)
+{
+    if (!card) {
+        return QString();
+    }
+
+    // 1. Try to find the active, non-inactive sink on this card
+    for (auto sink : card->sinks()) {
+        if (!isDeviceInactive(sink)) {
+            const auto props = sink->pulseProperties();
+            QString nick = props.value(QStringLiteral("node.nick")).toString();
+            if (!nick.isEmpty()) {
+                return nick;
+            }
+            QString profDesc = props.value(QStringLiteral("device.profile.description")).toString();
+            if (!profDesc.isEmpty()) {
+                return profDesc;
+            }
+            auto activePortIdx = sink->activePortIndex();
+            const auto ports = sink->ports();
+            if (activePortIdx < static_cast<quint32>(ports.size())) {
+                auto port = ports.at(static_cast<qsizetype>(activePortIdx));
+                if (port && !port->description().isEmpty()) {
+                    return port->description();
+                }
+            }
+        }
+    }
+
+    // 2. Check available output ports on the card itself
+    for (auto port : card->ports()) {
+        if (port && port->availability() != PulseAudioQt::Port::Unavailable) {
+            if (!port->name().startsWith(QLatin1String("Mic"), Qt::CaseInsensitive) &&
+                !port->name().startsWith(QLatin1String("[In]"), Qt::CaseInsensitive)) {
+                if (!port->description().isEmpty()) {
+                    return port->description();
+                }
+            }
+        }
+    }
+
+    // 3. Try to find an active source on this card
+    for (auto source : card->sources()) {
+        if (!isDeviceInactive(source)) {
+            const auto props = source->pulseProperties();
+            QString nick = props.value(QStringLiteral("node.nick")).toString();
+            if (!nick.isEmpty()) {
+                return nick;
+            }
+            QString profDesc = props.value(QStringLiteral("device.profile.description")).toString();
+            if (!profDesc.isEmpty()) {
+                return profDesc;
+            }
+            auto activePortIdx = source->activePortIndex();
+            const auto ports = source->ports();
+            if (activePortIdx < static_cast<quint32>(ports.size())) {
+                auto port = ports.at(static_cast<qsizetype>(activePortIdx));
+                if (port && !port->description().isEmpty()) {
+                    return port->description();
+                }
+            }
+        }
+    }
+
+    // 4. Fallback to card's device.description
+    const auto cardProps = card->properties();
+    if (cardProps.contains(QStringLiteral("device.description"))) {
+        QString desc = cardProps.value(QStringLiteral("device.description")).toString();
+        if (!desc.isEmpty()) {
+            return desc;
+        }
+    }
+    if (cardProps.contains(QStringLiteral("alsa.card_name"))) {
+        QString name = cardProps.value(QStringLiteral("alsa.card_name")).toString();
+        if (!name.isEmpty()) {
+            return name;
+        }
+    }
+
+    return card->name();
+}
+
 CardFilterModel::CardFilterModel(QObject* parent)
     : QSortFilterProxyModel(parent)
 {
@@ -89,14 +171,7 @@ QVariant CardFilterModel::data(const QModelIndex &index, int role) const
         QModelIndex sourceIndex = mapToSource(index);
         QVariant poVar = sourceModel()->data(sourceIndex, PulseAudioQt::AbstractModel::PulseObjectRole);
         if (auto card = qobject_cast<PulseAudioQt::Card *>(poVar.value<QObject *>())) {
-            const auto props = card->properties();
-            if (props.contains(QStringLiteral("device.description"))) {
-                return props.value(QStringLiteral("device.description")).toString();
-            }
-            if (props.contains(QStringLiteral("alsa.card_name"))) {
-                return props.value(QStringLiteral("alsa.card_name")).toString();
-            }
-            return card->name();
+            return getCardFriendlyName(card);
         }
     }
     return QSortFilterProxyModel::data(index, role);
@@ -268,14 +343,7 @@ bool AudioBackend::isSourceInactive(const QString& name)
 QString AudioBackend::cardDescription(QObject *cardObj) const
 {
     if (auto card = qobject_cast<PulseAudioQt::Card *>(cardObj)) {
-        const auto props = card->properties();
-        if (props.contains(QStringLiteral("device.description"))) {
-            return props.value(QStringLiteral("device.description")).toString();
-        }
-        if (props.contains(QStringLiteral("alsa.card_name"))) {
-            return props.value(QStringLiteral("alsa.card_name")).toString();
-        }
-        return card->name();
+        return getCardFriendlyName(card);
     }
     return QString();
 }
