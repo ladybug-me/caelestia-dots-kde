@@ -151,7 +151,7 @@ ColumnLayout {
 
                         StyledText {
                             Layout.fillWidth: true
-                            text: Audio.sink ? (Audio.sink.description || Audio.sink.name) : qsTr("No output device")
+                            text: Audio.sink ? (Audio.sink.properties?.["node.nick"] || Audio.sink.description || Audio.sink.name) : qsTr("No output device")
                             elide: Text.ElideRight
                             font.pointSize: Tokens.font.title.small.pointSize * root.fontScale
                             font.weight: Font.Medium

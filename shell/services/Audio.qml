@@ -85,6 +85,10 @@ Singleton {
         Pipewire.preferredDefaultAudioSource = newSource;
     }
 
+    function getNodeDisplayName(node: PwNode): string {
+        return node?.properties?.["node.nick"] || node?.description || node?.name || qsTr("Unknown Device");
+    }
+
     function cycleNextAudioOutput(): void {
         if (sinks.length === 0)
             return;
@@ -276,7 +280,7 @@ Singleton {
         if (!sink?.ready)
             return;
 
-        const newSinkName = sink.description || sink.name || qsTr("Unknown Device");
+        const newSinkName = root.getNodeDisplayName(sink);
 
         if (previousSinkName && previousSinkName !== newSinkName && GlobalConfig.utilities.toasts.audioOutputChanged)
             Toaster.toast(qsTr("Audio output changed"), qsTr("Now using: %1").arg(newSinkName), "volume_up");
@@ -288,7 +292,7 @@ Singleton {
         if (!source?.ready)
             return;
 
-        const newSourceName = source.description || source.name || qsTr("Unknown Device");
+        const newSourceName = root.getNodeDisplayName(source);
 
         if (previousSourceName && previousSourceName !== newSourceName && GlobalConfig.utilities.toasts.audioInputChanged)
             Toaster.toast(qsTr("Audio input changed"), qsTr("Now using: %1").arg(newSourceName), "mic");
@@ -301,8 +305,8 @@ Singleton {
     Component.onCompleted: {
         AudioBackend.showInactiveDevices = root.showInactiveDevices;
         refreshNodes();
-        previousSinkName = sink?.description || sink?.name || qsTr("Unknown Device");
-        previousSourceName = source?.description || source?.name || qsTr("Unknown Device");
+        previousSinkName = root.getNodeDisplayName(sink);
+        previousSourceName = root.getNodeDisplayName(source);
 
         // CavaProvider is only registered when the plugin was built with
         // libcava available (see shell/plugin/CMakeLists.txt); create it
