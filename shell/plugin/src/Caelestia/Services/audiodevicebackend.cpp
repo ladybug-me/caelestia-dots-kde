@@ -322,22 +322,30 @@ QAbstractItemModel* AudioBackend::cards() const
 
 bool AudioBackend::isSinkInactive(const QString& name)
 {
+    bool found = false;
     for (auto sink : Context::instance()->sinks()) {
         if (sink->name() == name || sink->description() == name) {
-            return isDeviceInactive(sink);
+            found = true;
+            if (!isDeviceInactive(sink)) {
+                return false;
+            }
         }
     }
-    return false;
+    return found;
 }
 
 bool AudioBackend::isSourceInactive(const QString& name)
 {
+    bool found = false;
     for (auto source : Context::instance()->sources()) {
         if (source->name() == name || source->description() == name) {
-            return isDeviceInactive(source);
+            found = true;
+            if (!isDeviceInactive(source)) {
+                return false;
+            }
         }
     }
-    return false;
+    return found;
 }
 
 QString AudioBackend::cardDescription(QObject *cardObj) const

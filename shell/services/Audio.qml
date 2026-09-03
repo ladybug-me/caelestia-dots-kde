@@ -234,21 +234,37 @@ Singleton {
     }
 
     function refreshNodes(): void {
-        const newSinks = [];
-        const newSources = [];
         const newStreams = [];
         const newAppStreams = [];
         const seenApps = new Set();
+        const seenSinks = new Map();
+        const seenSources = new Map();
 
         for (const node of Pipewire.nodes.values) {
             if (!node.isStream) {
                 if (node.isSink) {
-                    if (root.showInactiveDevices || !AudioBackend.isSinkInactive(node.name))
-                        newSinks.push(node);
+                    if (root.showInactiveDevices || !AudioBackend.isSinkInactive(node.name)) {
+                        if (!seenSinks.has(node.name)) {
+                            seenSinks.set(node.name, node);
+                        } else {
+                            const existing = seenSinks.get(node.name);
+                            if (node === Pipewire.defaultAudioSink || (existing !== Pipewire.defaultAudioSink && node.id > existing.id)) {
+                                seenSinks.set(node.name, node);
+                            }
+                        }
+                    }
                 }
                 else if (node.audio) {
-                    if (root.showInactiveDevices || !AudioBackend.isSourceInactive(node.name))
-                        newSources.push(node);
+                    if (root.showInactiveDevices || !AudioBackend.isSourceInactive(node.name)) {
+                        if (!seenSources.has(node.name)) {
+                            seenSources.set(node.name, node);
+                        } else {
+                            const existing = seenSources.get(node.name);
+                            if (node === Pipewire.defaultAudioSource || (existing !== Pipewire.defaultAudioSource && node.id > existing.id)) {
+                                seenSources.set(node.name, node);
+                            }
+                        }
+                    }
                 }
             } else if (node.audio) {
                 newStreams.push(node);
@@ -266,8 +282,8 @@ Singleton {
         // Assign appStreams before streams so listeners of streamsChanged already
         // observe the deduplicated app list.
         root.appStreams = newAppStreams;
-        root.sinks = newSinks;
-        root.sources = newSources;
+        root.sinks = [...seenSinks.values()];
+        root.sources = [...seenSources.values()];
         root.streams = newStreams;
     }
 
