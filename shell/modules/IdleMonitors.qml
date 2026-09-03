@@ -28,8 +28,9 @@ Scope {
     function requestLock(): void {
         if (root.isHyprland)
             lock.lock.locked = true;
-        else
-            Quickshell.execDetached(["loginctl", "lock-session"]);
+        // the following is commented because it unconditionally locks the session on KDE
+        // else
+        //     Quickshell.execDetached(["loginctl", "lock-session"]);
     }
 
     function requestUnlock(): void {

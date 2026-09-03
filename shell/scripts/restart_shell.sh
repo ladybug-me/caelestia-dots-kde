@@ -23,4 +23,20 @@ export QS_DISABLE_CRASH_HANDLER=1
 export QSG_RENDER_LOOP=threaded
 export QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
-/usr/bin/caelestia shell -d
+# Start the shell without handing it (and everything it launches) a stdout that
+# goes nowhere. `caelestia shell -d` daemonizes, which points stdio at
+# /dev/null, and the callers of this script redirect it there anyway - so a
+# restart from the UI used to undo the fix that login gets right, until the
+# next login. A transient user service is immune to both: systemd connects its
+# stdio to the journal regardless of what this script was started with.
+if command -v caelestia-shell-ipc >/dev/null 2>&1; then
+    caelestia-shell-ipc start
+elif command -v systemd-run >/dev/null 2>&1; then
+    QS="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo /usr/bin/quickshell)"
+    systemctl --user reset-failed caelestia-shell.service 2>/dev/null || true
+    systemd-run --user --quiet --collect --unit=caelestia-shell \
+        --description="Caelestia Shell" \
+        -- "$QS" -n -p "$HOME/.config/quickshell/caelestia/shell.qml"
+else
+    /usr/bin/caelestia shell -d
+fi

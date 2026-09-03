@@ -192,12 +192,23 @@ while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
     i=$((i + 1))
 done
 
-# Start the shell – the CLI was patched for path-based resolution during build.
-# Fall back to the IPC wrapper or direct quickshell if the CLI is unavailable.
-if command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
-    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
-elif [[ -n "$SHELL_IPC" ]]; then
+# Start the shell. The IPC wrapper is preferred over the CLI here because it
+# starts the shell as a transient user service: the CLI's `shell -d`
+# daemonizes, which points the shell's stdio at /dev/null, and every
+# application launched from the shell then inherits a stdout that goes
+# nowhere. Vesktop deadlocks when a call starts in exactly that state
+# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
+if [[ -n "$SHELL_IPC" ]]; then
     "$SHELL_IPC" start 2>/dev/null &
+elif command -v systemd-run >/dev/null 2>&1; then
+    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    systemd-run --user --quiet --collect --unit=caelestia-shell \
+        --description="Caelestia Shell" \
+        -- "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" &
+elif command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
+    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
 else
     QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
     export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"

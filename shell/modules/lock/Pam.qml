@@ -9,7 +9,7 @@ import Caelestia.Services
 Scope {
     id: root
 
-    required property WlSessionLock lock
+    required property var lock
 
     readonly property alias passwd: passwd
     readonly property alias fprint: fprint

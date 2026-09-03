@@ -35,7 +35,7 @@ StyledSwitch {
         StateLayer {
             id: stateLayer
 
-            disabled: root.disabled
+            disabled: !root.enabled
             manualPressOverride: root.pressed
         }
     }

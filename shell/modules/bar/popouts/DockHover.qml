@@ -93,9 +93,8 @@ StyledRect {
                         const subCmd = root.model.entry.runInTerminal
                             ? [...GlobalConfig.general.apps.terminal, `${Quickshell.shellDir}/assets/wrap_term_launch.sh`, ...root.model.entry.command]
                             : root.model.entry.command;
-                        const finalCmd = GlobalConfig.services.useSystemd ? ["app2unit", "--", ...subCmd] : subCmd;
                         Quickshell.execDetached({
-                            command: finalCmd,
+                            command: Launch.wrap(subCmd),
                             workingDirectory: root.model.entry.workingDirectory
                         });
                     }

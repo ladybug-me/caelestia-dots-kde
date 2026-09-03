@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import "modules"
 import "modules/lock"
 import QtQml
 import Quickshell
@@ -10,13 +11,16 @@ ShellRoot {
         Qt.application.name = "caelestia-lockscreen";
     }
 
+    Fonts {}
+    GSFLoader {}
+
     Variants {
         model: Quickshell.screens
         
         LockBackgroundWindow {
             required property var modelData
 
-            screen: modelData
+            targetScreen: modelData
         }
     }
 }

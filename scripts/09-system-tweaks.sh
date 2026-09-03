@@ -285,6 +285,26 @@ if old in text:
 }
 
 #
+# TWEAK: Link KDE user avatar to ~/.face and ~/.face.icon for Caelestia and SDDM
+#
+tweak_user_avatar_symlinks() {
+    info "Setting up user profile picture symlinks..."
+
+    local user_name="${USER:-$(id -un)}"
+    local account_icon="/var/lib/AccountsService/icons/$user_name"
+
+    if [[ -f "$account_icon" ]]; then
+        ln -sf "$account_icon" "$HOME/.face"
+        ln -sf "$account_icon" "$HOME/.face.icon"
+        info "Linked $account_icon -> $HOME/.face"
+        info "Linked $account_icon -> $HOME/.face.icon"
+        ok "User profile picture symlinks configured."
+    else
+        info "No AccountsService avatar found at $account_icon. Skipping."
+    fi
+}
+
+#
 #  ADD NEW TWEAKS ABOVE THIS LINE
 # To add a new tweak:
 #   1. Define a function: tweak_<name>() { ... }
@@ -308,6 +328,7 @@ tweak_remove_panels
 tweak_default_shell
 tweak_default_scheme
 tweak_patch_caelestia_cli
+tweak_user_avatar_symlinks
 tweak_reload_kde
 
 echo

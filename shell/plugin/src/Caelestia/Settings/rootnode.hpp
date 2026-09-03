@@ -17,6 +17,7 @@ public:
     [[nodiscard]] QList<Diagnostic> diagnostics() const;
 
     void load();
+    Q_INVOKABLE void save();
 
 signals:
     void diagnosticsChanged();

@@ -76,6 +76,8 @@ StyledRect {
                 id: iconLoader
 
                 Layout.fillHeight: true
+                Layout.preferredWidth: height
+                Layout.preferredHeight: 0
                 active: root.width > Tokens.sizes.lock.largeLogoWidth
 
                 sourceComponent: SysInfo.isDefaultLogo ? caelestiaLogo : distroIcon
@@ -162,7 +164,7 @@ StyledRect {
 
         ColouredIcon {
             source: SysInfo.osLogo
-            implicitSize: height
+            width: height
             colour: Colours.palette.m3primary
             layer.enabled: Config.lock.recolourLogo
         }

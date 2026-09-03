@@ -22,6 +22,10 @@ void RootNode::load() {
         reloadFromFile();
 }
 
+void RootNode::save() {
+    saveToFile();
+}
+
 QList<Diagnostic> RootNode::diagnostics() const {
     return m_diagnostics;
 }

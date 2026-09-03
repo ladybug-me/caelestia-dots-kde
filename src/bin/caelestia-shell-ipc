@@ -42,6 +42,28 @@ QS="$(_quickshell)"
 # ---- resolve shell config path ------------------------------------------------
 SHELL_CONFIG="${CAELESTIA_SHELL_CONFIG:-$HOME/.config/quickshell/caelestia/shell.qml}"
 
+# Start the shell without handing it (and everything it launches) a stdout that
+# goes nowhere. --daemonize detaches from the terminal by pointing stdio at
+# /dev/null, and every application started from the shell inherits those
+# descriptors; Vesktop deadlocks when a call starts in exactly that state
+# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
+#
+# A transient user service gets the same "returns immediately, survives the
+# terminal" behaviour from systemd, with stdio on the journal. Without systemd
+# there is nothing better than the old behaviour.
+_start_shell() {
+    if command -v systemd-run >/dev/null 2>&1; then
+        # A unit left behind by a crashed shell would make --unit fail.
+        systemctl --user reset-failed caelestia-shell.service 2>/dev/null || true
+        exec systemd-run --user --quiet --collect \
+            --unit="caelestia-shell" \
+            --description="Caelestia Shell" \
+            -- "$QS" -n -p "$SHELL_CONFIG"
+    fi
+
+    exec stdbuf -oL -eL "$QS" -d -n -p "$SHELL_CONFIG"
+}
+
 if [[ ! -f "$SHELL_CONFIG" ]]; then
     echo "[ERR] Caelestia shell config not found: $SHELL_CONFIG" >&2
     echo "       Build the shell first: bash scripts/08-build-shell.sh" >&2
@@ -106,7 +128,7 @@ case "${1:-}" in
         if _is_running; then
             echo "Shell is already running."
         else
-            exec stdbuf -oL -eL "$QS" -d -n -p "$SHELL_CONFIG"
+            _start_shell
         fi
         ;;
 
@@ -117,7 +139,7 @@ case "${1:-}" in
         fi
         export QML2_IMPORT_PATH="${QML2_IMPORT_PATH:-$HOME/.local/lib/qt6/qml}"
         export CAELESTIA_LIB_DIR="${CAELESTIA_LIB_DIR:-$HOME/.local/lib/caelestia}"
-        exec stdbuf -oL -eL "$QS" -d -n -p "$SHELL_CONFIG"
+        _start_shell
         ;;
 
     -h|--help|help|"")

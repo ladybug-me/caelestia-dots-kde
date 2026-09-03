@@ -11,14 +11,7 @@ Searcher {
 
     function launch(entry: DesktopEntry): void {
         appDb.incrementFrequency(entry.id);
-
-        if (entry.runInTerminal)
-            Quickshell.execDetached({
-                command: [...GlobalConfig.general.apps.terminal, `${Quickshell.shellDir}/assets/wrap_term_launch.sh`, ...entry.command],
-                workingDirectory: entry.workingDirectory
-            });
-        else
-            entry.execute();
+        Launch.launchEntry(entry);
     }
 
     /// Every visible desktop entry in AppDb order (favourites, then frequency, then name).

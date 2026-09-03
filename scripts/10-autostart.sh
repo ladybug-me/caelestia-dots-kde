@@ -51,10 +51,18 @@ export QS_DROP_EXPENSIVE_FONTS=1
 export QS_DISABLE_CRASH_HANDLER=1
 export QSG_RENDER_LOOP=threaded
 export QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
-# stdbuf forces line-buffered stdout/stderr; without it, glibc fully-buffers
-# output when it isn't attached to a TTY (e.g. when captured by journald via
-# systemd), so qDebug/qWarning messages can sit unflushed indefinitely.
-exec stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "\$HOME/.config/quickshell/caelestia/shell.qml"
+# No --daemonize: the autostart entry already runs under a systemd user unit,
+# which supervises the process and connects its stdout/stderr to the journal.
+# Detaching would replace that with /dev/null, and every application launched
+# from the shell inherits those descriptors - which is how the shell was
+# handing apps a stdout that goes nowhere. Vesktop deadlocks in exactly that
+# state when a call starts (issue #402); reproducible outside the shell with
+# `vesktop >/dev/null 2>&1`.
+#
+# Dropping it also makes the old stdbuf wrapper unnecessary: journald stdio is
+# what the line-buffering hack was working around, and stdbuf leaked
+# LD_PRELOAD=libstdbuf.so into every launched app on top of that.
+exec "$QUICKSHELL_PATH" -n -p "\$HOME/.config/quickshell/caelestia/shell.qml"
 EOF
 chmod +x "$HOME/.local/bin/caelestia-autostart.sh"
 
