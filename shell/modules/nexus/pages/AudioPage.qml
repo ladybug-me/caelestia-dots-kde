@@ -2,7 +2,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -93,41 +95,29 @@ PageBase {
 
         Repeater {
             model: Audio.cards
+
             delegate: SplitButtonRow {
                 id: cardRow
-                
-                label: model.PulseObject.description || model.PulseObject.name
-                
-                property var _dynamicItems: []
 
-                Instantiator {
-                    model: cardRow.model.PulseObject.profiles
-                    delegate: MenuItem {
+                required property var model
+                readonly property var card: model.PulseObject
+                readonly property var availableProfiles: card?.profiles ? card.profiles.filter(p => p.availability !== 2 || card.profiles.indexOf(p) === card.activeProfileIndex) : []
+
+                label: AudioBackend.cardDescription(card) || card?.properties?.["device.description"] || model.description || card?.name || qsTr("Unknown Device")
+                menuItems: profileVariants.instances
+                active: menuItems.find(item => item.modelData === cardRow.card?.profiles?.[cardRow.card?.activeProfileIndex] || item.text === cardRow.card?.profiles?.[cardRow.card?.activeProfileIndex]?.description) ?? null
+
+                Variants {
+                    id: profileVariants
+
+                    model: cardRow.availableProfiles
+
+                    MenuItem {
                         required property var modelData
-                        required property int index
-                        
+
                         text: modelData.description
-                        onClicked: cardRow.model.PulseObject.activeProfileIndex = index
+                        onClicked: cardRow.card.activeProfileIndex = cardRow.card.profiles.indexOf(modelData)
                     }
-                    onObjectAdded: (index, object) => {
-                        let arr = cardRow._dynamicItems;
-                        arr.splice(index, 0, object);
-                        cardRow._dynamicItems = arr;
-                        cardRow.menuItems = cardRow._dynamicItems;
-                    }
-                    onObjectRemoved: (index, object) => {
-                        let arr = cardRow._dynamicItems;
-                        arr.splice(index, 1);
-                        cardRow._dynamicItems = arr;
-                        cardRow.menuItems = cardRow._dynamicItems;
-                    }
-                }
-                
-                active: {
-                    let items = cardRow.menuItems;
-                    let idx = cardRow.model.PulseObject.activeProfileIndex;
-                    if (items && idx >= 0 && idx < items.length) return items[idx];
-                    return null;
                 }
             }
         }

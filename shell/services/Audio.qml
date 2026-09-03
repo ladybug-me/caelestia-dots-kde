@@ -13,11 +13,6 @@ Singleton {
     id: root
 
     property bool showInactiveDevices: false
-    onShowInactiveDevicesChanged: {
-        AudioBackend.showInactiveDevices = showInactiveDevices;
-        refreshNodes();
-    }
-    
     property var cards: AudioBackend.cards
 
     property string previousSinkName: ""
@@ -49,6 +44,8 @@ Singleton {
     // build without Cava doesn't fail this whole singleton's component load.
     property var cava: null
     readonly property alias beatTracker: beatTracker
+
+    property var _sfxCache: ({})
 
     function setVolume(newVolume: real): void {
         if (sink?.ready && sink?.audio) {
@@ -182,8 +179,6 @@ Singleton {
         SoundEffect {}
     }
 
-    property var _sfxCache: ({})
-
     function playSoundSource(sourcePath: string, enabled: bool, volume: real): void {
         if (!GlobalConfig.audio.sounds.enabled || !enabled)
             return;
@@ -272,6 +267,11 @@ Singleton {
         root.streams = newStreams;
     }
 
+    onShowInactiveDevicesChanged: {
+        AudioBackend.showInactiveDevices = showInactiveDevices;
+        refreshNodes();
+    }
+
     onSinkChanged: {
         if (!sink?.ready)
             return;
@@ -299,6 +299,7 @@ Singleton {
     // Populate immediately: Pipewire.nodes may already be filled by the time this
     // lazily-loaded singleton is created, so onValuesChanged would never fire.
     Component.onCompleted: {
+        AudioBackend.showInactiveDevices = root.showInactiveDevices;
         refreshNodes();
         previousSinkName = sink?.description || sink?.name || qsTr("Unknown Device");
         previousSourceName = source?.description || source?.name || qsTr("Unknown Device");
@@ -321,6 +322,14 @@ Singleton {
         }
 
         target: Pipewire.nodes
+    }
+
+    Connections {
+        function onDevicesChanged(): void {
+            root.refreshNodes();
+        }
+
+        target: AudioBackend
     }
 
     // Always track the current defaults so volume/mute bind even if the lists

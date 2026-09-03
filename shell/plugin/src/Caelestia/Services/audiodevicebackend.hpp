@@ -25,6 +25,22 @@ private:
     bool m_showInactiveDevices = false;
 };
 
+class CardFilterModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    enum CardRoles {
+        DescriptionRole = Qt::UserRole + 100,
+    };
+    Q_ENUM(CardRoles)
+
+    explicit CardFilterModel(QObject* parent = nullptr);
+
+    QHash<int, QByteArray> roleNames() const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+};
+
 class AudioBackend : public QObject
 {
     Q_OBJECT
@@ -49,13 +65,25 @@ public:
 
     Q_INVOKABLE bool isSinkInactive(const QString& name);
     Q_INVOKABLE bool isSourceInactive(const QString& name);
+    Q_INVOKABLE QString cardDescription(QObject *card) const;
 
 Q_SIGNALS:
     void showInactiveDevicesChanged();
+    void devicesChanged();
+
+private:
+    void registerSink(QObject *sink);
+    void registerSource(QObject *source);
+    void registerCard(QObject *card);
+
+private Q_SLOTS:
+    void onSinkChanged();
+    void onSourceChanged();
+    void onCardChanged();
 
 private:
     AudioDeviceFilterModel* m_sinksFilter;
     AudioDeviceFilterModel* m_sourcesFilter;
-    QAbstractItemModel* m_cardModel;
+    CardFilterModel* m_cardModel;
     bool m_showInactiveDevices = false;
 };
