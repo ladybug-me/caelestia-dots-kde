@@ -456,6 +456,10 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
     git -C "$BUNDLE_DIR" rev-parse HEAD > ~/.config/quickshell/caelestia/.current_commit 2>/dev/null || true
     git -C "$BUNDLE_DIR" rev-parse --abbrev-ref HEAD > ~/.config/quickshell/caelestia/.update_branch 2>/dev/null || true
 
+    # Record which checkout deployed this tree so the Nexus updater can
+    # refuse to clobber a dev clone's uncommitted work (issue #565).
+    printf '%s\n' "$BUNDLE_DIR" > ~/.config/quickshell/caelestia/.bundle_source 2>/dev/null || true
+
     # Persist the installed version too. The update checker resolves
     # unrecognised commits through its bare cache repo, which only mirrors
     # origin branches - a commit that exists only in this local checkout

@@ -233,6 +233,21 @@ info "Executing build scripts (GUI prompts will appear if required)..."
 
 export BUNDLE_DIR="$UPD_DIR/repo"
 
+# Refuse to overwrite an install that was deployed from a developer's local
+# clone with uncommitted changes. Alternating between this internal checkout
+# and update.sh (which deploys from the user's actual clone) silently discards
+# live edits, since both write the same state files from different sources of
+# truth (issue #565).
+BUNDLE_SOURCE="$HOME/.config/quickshell/caelestia/.bundle_source"
+if [[ -f "$BUNDLE_SOURCE" ]]; then
+    PREV_BUNDLE="$(cat "$BUNDLE_SOURCE" 2>/dev/null || true)"
+    if [[ -n "$PREV_BUNDLE" && "$PREV_BUNDLE" != "$UPD_DIR/repo" && -d "$PREV_BUNDLE/.git" ]]; then
+        if ! git -C "$PREV_BUNDLE" diff-index --quiet HEAD -- 2>/dev/null; then
+            die "Installed shell was deployed from a local clone with uncommitted changes ($PREV_BUNDLE). Run update.sh from that clone, or commit/stash your changes."
+        fi
+    fi
+fi
+
 # 4. Deploy Configs
 echo "PROGRESS: 3/5: Deploying configuration files..."
 echo
