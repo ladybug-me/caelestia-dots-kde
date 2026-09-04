@@ -239,7 +239,7 @@ if [[ "${APPLY_LOCKSCREEN:-true}" != "false" ]]; then
 
     if $PLUGIN_OK && command -v kwriteconfig6 >/dev/null 2>&1; then
         kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin net.dosowisko.PlasmaApplicationWallpaper
-        kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key command "quickshell -p $HOME/.config/quickshell/caelestia/lockscreen.qml"
+        kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key command "$HOME/.local/bin/caelestia-lockscreen"
         kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group net.dosowisko.PlasmaApplicationWallpaper --group General --key fps 1
         kwriteconfig6 --file kscreenlockerrc --group Greeter --group LnF --group General --key alwaysShowClock false
         kwriteconfig6 --file kscreenlockerrc --group Greeter --group LnF --group General --key showMediaControls false

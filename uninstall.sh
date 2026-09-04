@@ -298,7 +298,8 @@ for f in \
     "$HOME/.local/bin/caelestia-shell-ipc" \
     "$HOME/.local/bin/ydotoold-wrapper" \
     "$HOME/.local/bin/caelestia-update" \
-    "$HOME/.local/bin/caelestia-check-updates"
+    "$HOME/.local/bin/caelestia-check-updates" \
+    "$HOME/.local/bin/caelestia-lockscreen"
 do
     if [[ -f "$f" ]]; then
         rm -f "$f"

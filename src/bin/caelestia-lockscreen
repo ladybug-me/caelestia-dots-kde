@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Launch the Caelestia lock screen from kscreenlocker.
+#
+# kscreenlocker_greet does not inherit the session environment, so the
+# QML2_IMPORT_PATH / CAELESTIA_LIB_DIR variables that live in shell rc files
+# and the autostart script are missing here. Export them before exec'ing
+# quickshell, otherwise the Caelestia imports fail to load and KDE falls back
+# to the default image wallpaper (issue #579).
+
+export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"
+export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+export QS_DROP_EXPENSIVE_FONTS=1
+export QS_DISABLE_CRASH_HANDLER=1
+export QSG_RENDER_LOOP=threaded
+
+QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || true)"
+if [[ -z "$QUICKSHELL_PATH" ]]; then
+    for candidate in /usr/bin/quickshell /usr/local/bin/quickshell "$HOME/.local/bin/quickshell"; do
+        if [[ -x "$candidate" ]]; then
+            QUICKSHELL_PATH="$candidate"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$QUICKSHELL_PATH" ]]; then
+    echo "[FATAL] quickshell not found in PATH" >&2
+    exit 1
+fi
+
+exec "$QUICKSHELL_PATH" -p "$HOME/.config/quickshell/caelestia/lockscreen.qml"
