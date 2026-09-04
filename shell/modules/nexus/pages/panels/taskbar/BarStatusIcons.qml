@@ -26,70 +26,70 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Speakers")
-            checked: Config.bar.status.showAudio
-            onToggled: GlobalConfig.bar.status.showAudio = checked
+            checked: root.nState.targetConfig.bar.status.showAudio
+            onToggled: Globalroot.nState.targetConfig.bar.status.showAudio = checked
         }
 
         ToggleRow {
             text: qsTr("Microphone")
-            checked: Config.bar.status.showMicrophone
-            onToggled: GlobalConfig.bar.status.showMicrophone = checked
+            checked: root.nState.targetConfig.bar.status.showMicrophone
+            onToggled: Globalroot.nState.targetConfig.bar.status.showMicrophone = checked
         }
 
         ToggleRow {
             text: qsTr("Keyboard layout")
-            checked: Config.bar.status.showKbLayout
-            onToggled: GlobalConfig.bar.status.showKbLayout = checked
+            checked: root.nState.targetConfig.bar.status.showKbLayout
+            onToggled: Globalroot.nState.targetConfig.bar.status.showKbLayout = checked
         }
 
         ToggleRow {
             text: qsTr("Network")
-            checked: Config.bar.status.showNetwork
-            onToggled: GlobalConfig.bar.status.showNetwork = checked
+            checked: root.nState.targetConfig.bar.status.showNetwork
+            onToggled: Globalroot.nState.targetConfig.bar.status.showNetwork = checked
         }
 
         ToggleRow {
             text: qsTr("Wi-Fi")
-            checked: Config.bar.status.showWifi
-            onToggled: GlobalConfig.bar.status.showWifi = checked
+            checked: root.nState.targetConfig.bar.status.showWifi
+            onToggled: Globalroot.nState.targetConfig.bar.status.showWifi = checked
         }
 
         ToggleRow {
             text: qsTr("Bluetooth")
-            checked: Config.bar.status.showBluetooth
-            onToggled: GlobalConfig.bar.status.showBluetooth = checked
+            checked: root.nState.targetConfig.bar.status.showBluetooth
+            onToggled: Globalroot.nState.targetConfig.bar.status.showBluetooth = checked
         }
 
         ToggleRow {
             text: qsTr("Night Light")
-            checked: Config.bar.status.showNightLight
-            onToggled: GlobalConfig.bar.status.showNightLight = checked
+            checked: root.nState.targetConfig.bar.status.showNightLight
+            onToggled: Globalroot.nState.targetConfig.bar.status.showNightLight = checked
         }
 
         ToggleRow {
             text: qsTr("Battery")
-            checked: Config.bar.status.showBattery
-            onToggled: GlobalConfig.bar.status.showBattery = checked
+            checked: root.nState.targetConfig.bar.status.showBattery
+            onToggled: Globalroot.nState.targetConfig.bar.status.showBattery = checked
         }
 
         ToggleRow {
             text: qsTr("Peripheral Battery")
-            checked: Config.bar.status.showPeripheralBattery
-            onToggled: GlobalConfig.bar.status.showPeripheralBattery = checked
+            checked: root.nState.targetConfig.bar.status.showPeripheralBattery
+            onToggled: Globalroot.nState.targetConfig.bar.status.showPeripheralBattery = checked
         }
 
         ToggleRow {
             text: qsTr("Notifications")
-            checked: Config.bar.status.showNotifications
-            onToggled: GlobalConfig.bar.status.showNotifications = checked
+            checked: root.nState.targetConfig.bar.status.showNotifications
+            onToggled: Globalroot.nState.targetConfig.bar.status.showNotifications = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
             last: true
             text: qsTr("Caps Lock")
-            checked: Config.bar.status.showLockStatus
-            onToggled: GlobalConfig.bar.status.showLockStatus = checked
+            checked: root.nState.targetConfig.bar.status.showLockStatus
+            onToggled: Globalroot.nState.targetConfig.bar.status.showLockStatus = checked
         }
 
         // Behaviour
@@ -102,8 +102,8 @@ PageBase {
             last: true
             text: qsTr("Popout on hover")
             subtext: qsTr("Show a details popout when hovering the status icons")
-            checked: Config.bar.popouts.statusIcons
-            onToggled: GlobalConfig.bar.popouts.statusIcons = checked
+            checked: root.nState.targetConfig.bar.popouts.statusIcons
+            onToggled: Globalroot.nState.targetConfig.bar.popouts.statusIcons = checked
         }
     }
 }

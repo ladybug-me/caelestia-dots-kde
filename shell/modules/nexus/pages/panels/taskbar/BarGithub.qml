@@ -64,8 +64,8 @@ PageBase {
             first: true
             text: qsTr("Component background")
             subtext: qsTr("Render a solid background behind the GitHub activity widget")
-            checked: Config.bar.github.background
-            onToggled: GlobalConfig.bar.github.background = checked
+            checked: root.nState.targetConfig.bar.github.background
+            onToggled: Globalroot.nState.targetConfig.bar.github.background = checked
         }
 
         Item {

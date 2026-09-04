@@ -30,30 +30,30 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Enabled")
-            checked: Config.launcher.enabled
-            onToggled: GlobalConfig.launcher.enabled = checked
+            checked: root.nState.targetConfig.launcher.enabled
+            onToggled: Globalroot.nState.targetConfig.launcher.enabled = checked
         }
 
         ToggleRow {
             text: qsTr("Use alternative logo")
             subtext: qsTr("Use the Caelestia logo or a custom image instead of your distribution's logo")
-            checked: GlobalConfig.general.logo !== ""
+            checked: Globalroot.nState.targetConfig.general.logo !== ""
             onToggled: {
                 if (checked) {
-                    if (GlobalConfig.general.logo === "") {
-                        GlobalConfig.general.logo = "caelestia";
+                    if (Globalroot.nState.targetConfig.general.logo === "") {
+                        Globalroot.nState.targetConfig.general.logo = "caelestia";
                     }
                 } else {
-                    GlobalConfig.general.logo = "";
+                    Globalroot.nState.targetConfig.general.logo = "";
                 }
             }
         }
 
         NavRow {
-            visible: GlobalConfig.general.logo !== ""
+            visible: Globalroot.nState.targetConfig.general.logo !== ""
             icon: "image"
             label: qsTr("Pick custom logo")
-            status: GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : qsTr("Select an image from your local files")
+            status: Globalroot.nState.targetConfig.general.logo.includes("/") ? Globalroot.nState.targetConfig.general.logo : qsTr("Select an image from your local files")
             onClicked: customLogoDialog.open()
 
             FileDialog {
@@ -63,16 +63,16 @@ PageBase {
                 filterLabel: qsTr("Image files")
                 filters: Images.validImageExtensions
                 onAccepted: path => {
-                    GlobalConfig.general.logo = path;
+                    Globalroot.nState.targetConfig.general.logo = path;
                 }
             }
         }
 
         NavRow {
-            visible: GlobalConfig.general.logo !== ""
+            visible: Globalroot.nState.targetConfig.general.logo !== ""
             icon: "palette"
             label: qsTr("Select KDE icon")
-            status: GlobalConfig.general.logo && GlobalConfig.general.logo !== "caelestia" && !GlobalConfig.general.logo.includes("/") ? GlobalConfig.general.logo : qsTr("Pick an icon from your system theme")
+            status: Globalroot.nState.targetConfig.general.logo && Globalroot.nState.targetConfig.general.logo !== "caelestia" && !Globalroot.nState.targetConfig.general.logo.includes("/") ? Globalroot.nState.targetConfig.general.logo : qsTr("Pick an icon from your system theme")
             onClicked: kdeIconProcess.running = true
 
             Process {
@@ -83,7 +83,7 @@ PageBase {
                     onStreamFinished: {
                         let res = text.trim();
                         if (res) {
-                            GlobalConfig.general.logo = res;
+                            Globalroot.nState.targetConfig.general.logo = res;
                         }
                     }
                 }
@@ -91,7 +91,7 @@ PageBase {
         }
 
         ToggleRow {
-            visible: GlobalConfig.general.logo !== "" && GlobalConfig.general.logo !== "caelestia"
+            visible: Globalroot.nState.targetConfig.general.logo !== "" && Globalroot.nState.targetConfig.general.logo !== "caelestia"
             text: qsTr("Tint custom logo")
             subtext: qsTr("Apply the Material You accent color to your custom logo")
             checked: SysInfo.recolourCustomLogo
@@ -99,7 +99,7 @@ PageBase {
         }
 
         StepperRow {
-            visible: GlobalConfig.general.logo !== "" && GlobalConfig.general.logo !== "caelestia"
+            visible: Globalroot.nState.targetConfig.general.logo !== "" && Globalroot.nState.targetConfig.general.logo !== "caelestia"
             label: qsTr("Logo size (%)")
             value: SysInfo.customLogoSize
             from: 50
@@ -112,8 +112,8 @@ PageBase {
             last: true
             text: qsTr("Show on hover")
             subtext: qsTr("Reveal when the cursor reaches the screen edge")
-            checked: Config.launcher.showOnHover
-            onToggled: GlobalConfig.launcher.showOnHover = checked
+            checked: root.nState.targetConfig.launcher.showOnHover
+            onToggled: Globalroot.nState.targetConfig.launcher.showOnHover = checked
         }
 
         // Display
@@ -125,64 +125,64 @@ PageBase {
             first: true
             text: qsTr("Browse apps when search is empty")
             subtext: qsTr("Show the categorized app grid in the launcher when the search field is empty")
-            checked: Config.launcher.showBrowseOnEmpty
-            onToggled: GlobalConfig.launcher.showBrowseOnEmpty = checked
+            checked: root.nState.targetConfig.launcher.showBrowseOnEmpty
+            onToggled: Globalroot.nState.targetConfig.launcher.showBrowseOnEmpty = checked
         }
 
         ToggleRow {
             text: qsTr("Show power menu")
             subtext: qsTr("Show the quick session controls (shutdown, sleep, logout) at the bottom")
-            checked: Config.launcher.showPowerMenu
-            onToggled: GlobalConfig.launcher.showPowerMenu = checked
+            checked: root.nState.targetConfig.launcher.showPowerMenu
+            onToggled: Globalroot.nState.targetConfig.launcher.showPowerMenu = checked
         }
 
         StepperRow {
             label: qsTr("Max items shown")
-            value: Config.launcher.maxShown
+            value: root.nState.targetConfig.launcher.maxShown
             from: 1
             to: 20
             stepSize: 1
-            onMoved: v => GlobalConfig.launcher.maxShown = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.maxShown = v
         }
 
         StepperRow {
             label: qsTr("Max wallpapers")
-            value: Config.launcher.maxWallpapers
+            value: root.nState.targetConfig.launcher.maxWallpapers
             from: 1
             to: 30
             stepSize: 1
-            onMoved: v => GlobalConfig.launcher.maxWallpapers = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.maxWallpapers = v
         }
 
         StepperRow {
             label: qsTr("Hover trigger depth")
             subtext: qsTr("Distance in from the screen edge that opens the launcher")
-            value: Config.launcher.hoverThickness
+            value: root.nState.targetConfig.launcher.hoverThickness
             from: 1
             to: 100
             stepSize: 1
-            onMoved: v => GlobalConfig.launcher.hoverThickness = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.hoverThickness = v
         }
 
         StepperRow {
             label: qsTr("Hover trigger width")
             subtext: qsTr("How much of the bottom edge opens the launcher, as a percentage of its width")
-            value: Config.launcher.hoverWidth
+            value: root.nState.targetConfig.launcher.hoverWidth
             from: 10
             to: 100
             stepSize: 5
-            onMoved: v => GlobalConfig.launcher.hoverWidth = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.hoverWidth = v
         }
 
         StepperRow {
             last: true
             label: qsTr("Drag threshold")
             subtext: qsTr("Pixels dragged before the launcher opens")
-            value: Config.launcher.dragThreshold
+            value: root.nState.targetConfig.launcher.dragThreshold
             from: 0
             to: 200
             stepSize: 5
-            onMoved: v => GlobalConfig.launcher.dragThreshold = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.dragThreshold = v
         }
 
         // Clipboard
@@ -194,19 +194,19 @@ PageBase {
             first: true
             label: qsTr("Max clipboard entries")
             subtext: qsTr("Number of copied items kept in history")
-            value: Config.launcher.clipboardMaxEntries
+            value: root.nState.targetConfig.launcher.clipboardMaxEntries
             from: 1
             to: 100
             stepSize: 1
-            onMoved: v => GlobalConfig.launcher.clipboardMaxEntries = v
+            onMoved: v => Globalroot.nState.targetConfig.launcher.clipboardMaxEntries = v
         }
 
         ToggleRow {
             last: true
             text: qsTr("Confirm clear")
             subtext: qsTr("Ask before clearing the clipboard history")
-            checked: GlobalConfig.launcher.confirmClearClipboard
-            onToggled: GlobalConfig.launcher.confirmClearClipboard = checked
+            checked: Globalroot.nState.targetConfig.launcher.confirmClearClipboard
+            onToggled: Globalroot.nState.targetConfig.launcher.confirmClearClipboard = checked
         }
 
         // Behaviour
@@ -218,16 +218,16 @@ PageBase {
             first: true
             text: qsTr("Vim keybinds")
             subtext: qsTr("Navigate results with Ctrl+hjkl")
-            checked: GlobalConfig.launcher.vimKeybinds
-            onToggled: GlobalConfig.launcher.vimKeybinds = checked
+            checked: Globalroot.nState.targetConfig.launcher.vimKeybinds
+            onToggled: Globalroot.nState.targetConfig.launcher.vimKeybinds = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Enable dangerous actions")
             subtext: qsTr("Allow actions that shut down or log out")
-            checked: GlobalConfig.launcher.enableDangerousActions
-            onToggled: GlobalConfig.launcher.enableDangerousActions = checked
+            checked: Globalroot.nState.targetConfig.launcher.enableDangerousActions
+            onToggled: Globalroot.nState.targetConfig.launcher.enableDangerousActions = checked
         }
 
         // Fuzzy search
@@ -238,33 +238,33 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Apps")
-            checked: GlobalConfig.launcher.useFuzzy.apps
-            onToggled: GlobalConfig.launcher.useFuzzy.apps = checked
+            checked: Globalroot.nState.targetConfig.launcher.useFuzzy.apps
+            onToggled: Globalroot.nState.targetConfig.launcher.useFuzzy.apps = checked
         }
 
         ToggleRow {
             text: qsTr("Actions")
-            checked: GlobalConfig.launcher.useFuzzy.actions
-            onToggled: GlobalConfig.launcher.useFuzzy.actions = checked
+            checked: Globalroot.nState.targetConfig.launcher.useFuzzy.actions
+            onToggled: Globalroot.nState.targetConfig.launcher.useFuzzy.actions = checked
         }
 
         ToggleRow {
             text: qsTr("Schemes")
-            checked: GlobalConfig.launcher.useFuzzy.schemes
-            onToggled: GlobalConfig.launcher.useFuzzy.schemes = checked
+            checked: Globalroot.nState.targetConfig.launcher.useFuzzy.schemes
+            onToggled: Globalroot.nState.targetConfig.launcher.useFuzzy.schemes = checked
         }
 
         ToggleRow {
             text: qsTr("Variants")
-            checked: GlobalConfig.launcher.useFuzzy.variants
-            onToggled: GlobalConfig.launcher.useFuzzy.variants = checked
+            checked: Globalroot.nState.targetConfig.launcher.useFuzzy.variants
+            onToggled: Globalroot.nState.targetConfig.launcher.useFuzzy.variants = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Wallpapers")
-            checked: GlobalConfig.launcher.useFuzzy.wallpapers
-            onToggled: GlobalConfig.launcher.useFuzzy.wallpapers = checked
+            checked: Globalroot.nState.targetConfig.launcher.useFuzzy.wallpapers
+            onToggled: Globalroot.nState.targetConfig.launcher.useFuzzy.wallpapers = checked
         }
     }
 }

@@ -19,21 +19,21 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Background")
-            checked: Config.bar.clock.background
-            onToggled: GlobalConfig.bar.clock.background = checked
+            checked: root.nState.targetConfig.bar.clock.background
+            onToggled: Globalroot.nState.targetConfig.bar.clock.background = checked
         }
 
         ToggleRow {
             text: qsTr("Show date")
-            checked: Config.bar.clock.showDate
-            onToggled: GlobalConfig.bar.clock.showDate = checked
+            checked: root.nState.targetConfig.bar.clock.showDate
+            onToggled: Globalroot.nState.targetConfig.bar.clock.showDate = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Show icon")
-            checked: Config.bar.clock.showIcon
-            onToggled: GlobalConfig.bar.clock.showIcon = checked
+            checked: root.nState.targetConfig.bar.clock.showIcon
+            onToggled: Globalroot.nState.targetConfig.bar.clock.showIcon = checked
         }
     }
 }

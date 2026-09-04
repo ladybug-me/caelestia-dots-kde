@@ -11,6 +11,9 @@ QtObject {
     property bool searchOpen
     property string searchQuery
 
+    property string targetScreenName: ""
+    property var targetConfig: targetScreenName !== "" ? GlobalConfig.forScreen(targetScreenName) : GlobalConfig
+
     property string selectedWallpaperCategory
     property string wallpaperFilterType: "all"
     property BluetoothDevice selectedBtDevice

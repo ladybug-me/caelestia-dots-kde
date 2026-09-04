@@ -20,14 +20,14 @@ PageBase {
             first: true
             text: qsTr("Enable component")
             checked: {
-                for (let i = 0; i < Config.bar.entries.length; i++) {
-                    if (Config.bar.entries[i].id === "activeWindow")
-                        return Config.bar.entries[i].enabled;
+                for (let i = 0; i < root.nState.targetConfig.bar.entries.length; i++) {
+                    if (root.nState.targetConfig.bar.entries[i].id === "activeWindow")
+                        return root.nState.targetConfig.bar.entries[i].enabled;
                 }
                 return false;
             }
             onToggled: {
-                let newEntries = [...GlobalConfig.bar.entries];
+                let newEntries = [...Globalroot.nState.targetConfig.bar.entries];
                 let found = false;
                 for (let i = 0; i < newEntries.length; i++) {
                     if (newEntries[i].id === "activeWindow") {
@@ -41,36 +41,36 @@ PageBase {
                     newEntries.push({ id: "activeWindow", enabled: checked, zone: "left" });
                 }
 
-                GlobalConfig.bar.entries = newEntries;
+                Globalroot.nState.targetConfig.bar.entries = newEntries;
             }
         }
 
         ToggleRow {
             Layout.fillWidth: true
             text: qsTr("Compact")
-            checked: Config.bar.activeWindow.compact
-            onToggled: GlobalConfig.bar.activeWindow.compact = checked
+            checked: root.nState.targetConfig.bar.activeWindow.compact
+            onToggled: Globalroot.nState.targetConfig.bar.activeWindow.compact = checked
         }
 
         ToggleRow {
             text: qsTr("Inverted")
-            checked: Config.bar.activeWindow.inverted
-            onToggled: GlobalConfig.bar.activeWindow.inverted = checked
+            checked: root.nState.targetConfig.bar.activeWindow.inverted
+            onToggled: Globalroot.nState.targetConfig.bar.activeWindow.inverted = checked
         }
 
         ToggleRow {
             text: qsTr("Show on hover")
             subtext: qsTr("Only show the active window title while hovering")
-            checked: Config.bar.activeWindow.showOnHover
-            onToggled: GlobalConfig.bar.activeWindow.showOnHover = checked
+            checked: root.nState.targetConfig.bar.activeWindow.showOnHover
+            onToggled: Globalroot.nState.targetConfig.bar.activeWindow.showOnHover = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Popout on hover")
             subtext: qsTr("Show a window details popout when hovering")
-            checked: Config.bar.popouts.activeWindow
-            onToggled: GlobalConfig.bar.popouts.activeWindow = checked
+            checked: root.nState.targetConfig.bar.popouts.activeWindow
+            onToggled: Globalroot.nState.targetConfig.bar.popouts.activeWindow = checked
         }
     }
 }
