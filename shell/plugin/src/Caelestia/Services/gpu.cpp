@@ -176,8 +176,7 @@ void Gpu::readGenericUsage() {
         QDir(QStringLiteral("/sys/class/drm"))
             .entryList(QStringList() << QStringLiteral("card*"), QDir::Dirs | QDir::NoDotAndDotDot);
 
-    qreal sum = 0.0;
-    int count = 0;
+    qreal maxPerc = -1.0;
 
     // Pass 1: amdgpu (and some newer Xe) cards expose a direct busy percent.
     for (const QString& card : cards) {
@@ -188,48 +187,47 @@ void Gpu::readGenericUsage() {
         bool ok = false;
         const qreal v = f.readAll().trimmed().toDouble(&ok);
         f.close();
-        if (ok) {
-            sum += v;
-            ++count;
+        if (ok && v > maxPerc) {
+            maxPerc = v;
         }
     }
 
     // Pass 2: Intel iGPUs have no busy-percent node; approximate usage as the
     // ratio of the current GPU frequency to its maximum.
-    if (count < cards.size()) {
-        for (const QString& card : cards) {
-            if (QFile::exists(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card)))
-                continue;
-            QFile cur(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_cur_freq_mhz").arg(card));
-            if (!cur.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                continue;
-            }
-            QFile max(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_max_freq_mhz").arg(card));
-            if (!max.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                cur.close();
-                continue;
-            }
-            bool curOk = false;
-            bool maxOk = false;
-            const qreal curV = cur.readAll().trimmed().toDouble(&curOk);
-            const qreal maxV = max.readAll().trimmed().toDouble(&maxOk);
+    for (const QString& card : cards) {
+        if (QFile::exists(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card)))
+            continue;
+        QFile cur(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_cur_freq_mhz").arg(card));
+        if (!cur.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            continue;
+        }
+        QFile max(QStringLiteral("/sys/class/drm/%1/gt/gt0/rps_max_freq_mhz").arg(card));
+        if (!max.open(QIODevice::ReadOnly | QIODevice::Text)) {
             cur.close();
-            max.close();
-            if (curOk && maxOk && maxV > 0.0) {
-                qreal ratio = curV / maxV;
-                if (ratio < 0.0) {
-                    ratio = 0.0;
-                }
-                if (ratio > 1.0) {
-                    ratio = 1.0;
-                }
-                sum += ratio * 100.0;
-                ++count;
+            continue;
+        }
+        bool curOk = false;
+        bool maxOk = false;
+        const qreal curV = cur.readAll().trimmed().toDouble(&curOk);
+        const qreal maxV = max.readAll().trimmed().toDouble(&maxOk);
+        cur.close();
+        max.close();
+        if (curOk && maxOk && maxV > 0.0) {
+            qreal ratio = curV / maxV;
+            if (ratio < 0.0) {
+                ratio = 0.0;
+            }
+            if (ratio > 1.0) {
+                ratio = 1.0;
+            }
+            const qreal v = ratio * 100.0;
+            if (v > maxPerc) {
+                maxPerc = v;
             }
         }
     }
 
-    const qreal newPerc = count > 0 ? sum / count / 100.0 : 0.0;
+    const qreal newPerc = maxPerc >= 0.0 ? maxPerc / 100.0 : 0.0;
     if (std::abs(newPerc - m_percentage) > 0.0001) {
         m_percentage = newPerc;
         Q_EMIT percentageChanged();
