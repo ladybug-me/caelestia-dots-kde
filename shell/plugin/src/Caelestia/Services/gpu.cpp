@@ -174,8 +174,7 @@ void Gpu::readGenericUsage() {
     const QStringList paths =
         QDir(QStringLiteral("/sys/class/drm"))
             .entryList(QStringList() << QStringLiteral("card*"), QDir::Dirs | QDir::NoDotAndDotDot);
-    qreal sum = 0.0;
-    int count = 0;
+    qreal maxVal = -1.0;
     for (const QString& card : paths) {
         QFile f(QStringLiteral("/sys/class/drm/%1/device/gpu_busy_percent").arg(card));
         if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -185,11 +184,12 @@ void Gpu::readGenericUsage() {
         const qreal v = f.readAll().trimmed().toDouble(&ok);
         f.close();
         if (ok) {
-            sum += v;
-            ++count;
+            if (v > maxVal) {
+                maxVal = v;
+            }
         }
     }
-    const qreal newPerc = count > 0 ? sum / count / 100.0 : 0.0;
+    const qreal newPerc = maxVal >= 0.0 ? maxVal / 100.0 : 0.0;
     if (std::abs(newPerc - m_percentage) > 0.0001) {
         m_percentage = newPerc;
         Q_EMIT percentageChanged();
