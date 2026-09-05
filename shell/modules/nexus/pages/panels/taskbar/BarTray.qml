@@ -20,28 +20,28 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Background")
-            checked: Config.bar.tray.background
-            onToggled: GlobalConfig.bar.tray.background = checked
+            checked: root.nState.targetConfig.bar.tray.background
+            onToggled: Globalroot.nState.targetConfig.bar.tray.background = checked
         }
 
         ToggleRow {
             text: qsTr("Recolor icons")
-            checked: Config.bar.tray.recolour
-            onToggled: GlobalConfig.bar.tray.recolour = checked
+            checked: root.nState.targetConfig.bar.tray.recolour
+            onToggled: Globalroot.nState.targetConfig.bar.tray.recolour = checked
         }
 
         ToggleRow {
             text: qsTr("Compact")
-            checked: Config.bar.tray.compact
-            onToggled: GlobalConfig.bar.tray.compact = checked
+            checked: root.nState.targetConfig.bar.tray.compact
+            onToggled: Globalroot.nState.targetConfig.bar.tray.compact = checked
         }
 
         ToggleRow {
             last: true
             text: qsTr("Popout on hover")
             subtext: qsTr("Show the tray menu popout when hovering")
-            checked: Config.bar.popouts.tray
-            onToggled: GlobalConfig.bar.popouts.tray = checked
+            checked: root.nState.targetConfig.bar.popouts.tray
+            onToggled: Globalroot.nState.targetConfig.bar.popouts.tray = checked
         }
     }
 }

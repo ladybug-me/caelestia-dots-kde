@@ -108,36 +108,36 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Enable overview")
-            checked: GlobalConfig.overview.enabled
-            onToggled: GlobalConfig.overview.enabled = checked
+            checked: Globalroot.nState.targetConfig.overview.enabled
+            onToggled: Globalroot.nState.targetConfig.overview.enabled = checked
         }
         ToggleRow {
             text: qsTr("Show on hover")
             subtext: qsTr("Open overview by hovering a corner instead of dragging")
-            checked: GlobalConfig.overview.showOnHover
-            onToggled: GlobalConfig.overview.showOnHover = checked
+            checked: Globalroot.nState.targetConfig.overview.showOnHover
+            onToggled: Globalroot.nState.targetConfig.overview.showOnHover = checked
         }
         StepperRow {
             label: qsTr("Trigger area size")
-            last: GlobalConfig.overview.showOnHover
+            last: Globalroot.nState.targetConfig.overview.showOnHover
             subtext: qsTr("Size of the corner activation areas in pixels")
-            value: GlobalConfig.overview.hoverThickness
+            value: Globalroot.nState.targetConfig.overview.hoverThickness
             from: 1
             to: 100
             stepSize: 1
-            onMoved: v => GlobalConfig.overview.hoverThickness = v
-            visible: GlobalConfig.overview.showOnHover
+            onMoved: v => Globalroot.nState.targetConfig.overview.hoverThickness = v
+            visible: Globalroot.nState.targetConfig.overview.showOnHover
         }
         StepperRow {
-            last: !GlobalConfig.overview.showOnHover
+            last: !Globalroot.nState.targetConfig.overview.showOnHover
             label: qsTr("Drag threshold")
             subtext: qsTr("Distance to drag from corner to open overview")
-            value: GlobalConfig.overview.dragThreshold
+            value: Globalroot.nState.targetConfig.overview.dragThreshold
             from: 10
             to: 200
             stepSize: 5
-            onMoved: v => GlobalConfig.overview.dragThreshold = v
-            visible: !GlobalConfig.overview.showOnHover
+            onMoved: v => Globalroot.nState.targetConfig.overview.dragThreshold = v
+            visible: !Globalroot.nState.targetConfig.overview.showOnHover
         }
         SectionHeader {
             text: qsTr("Corners")
@@ -148,24 +148,24 @@ PageBase {
         ToggleRow {
             first: true
             text: qsTr("Top-Left corner")
-            checked: GlobalConfig.overview.hoverTopLeft
-            onToggled: GlobalConfig.overview.hoverTopLeft = checked
+            checked: Globalroot.nState.targetConfig.overview.hoverTopLeft
+            onToggled: Globalroot.nState.targetConfig.overview.hoverTopLeft = checked
         }
         ToggleRow {
             text: qsTr("Top-Right corner")
-            checked: GlobalConfig.overview.hoverTopRight
-            onToggled: GlobalConfig.overview.hoverTopRight = checked
+            checked: Globalroot.nState.targetConfig.overview.hoverTopRight
+            onToggled: Globalroot.nState.targetConfig.overview.hoverTopRight = checked
         }
         ToggleRow {
             text: qsTr("Bottom-Left corner")
-            checked: GlobalConfig.overview.hoverBottomLeft
-            onToggled: GlobalConfig.overview.hoverBottomLeft = checked
+            checked: Globalroot.nState.targetConfig.overview.hoverBottomLeft
+            onToggled: Globalroot.nState.targetConfig.overview.hoverBottomLeft = checked
         }
         ToggleRow {
             last: true
             text: qsTr("Bottom-Right corner")
-            checked: GlobalConfig.overview.hoverBottomRight
-            onToggled: GlobalConfig.overview.hoverBottomRight = checked
+            checked: Globalroot.nState.targetConfig.overview.hoverBottomRight
+            onToggled: Globalroot.nState.targetConfig.overview.hoverBottomRight = checked
         }
         SectionHeader {
             text: qsTr("Behavior")
@@ -178,28 +178,28 @@ PageBase {
             fallbackText: qsTr("GNOME Grid")
             active: {
                 for (let i = 0; i < layoutTypeItems.length; i++) {
-                    if (layoutTypeItems[i].value === GlobalConfig.overview.layoutType)
+                    if (layoutTypeItems[i].value === Globalroot.nState.targetConfig.overview.layoutType)
                         return layoutTypeItems[i];
                 }
                 return layoutTypeItems[1];
             }
             menuItems: layoutTypeItems
             onSelected: item => {
-                GlobalConfig.overview.layoutType = item.value
+                Globalroot.nState.targetConfig.overview.layoutType = item.value
             }
         }
         ToggleRow {
             text: qsTr("Disable wallpaper blur")
             subtext: qsTr("Do not blur the background wallpaper when opening overview")
-            checked: GlobalConfig.overview.disableWallpaperBlur
-            onToggled: GlobalConfig.overview.disableWallpaperBlur = checked
+            checked: Globalroot.nState.targetConfig.overview.disableWallpaperBlur
+            onToggled: Globalroot.nState.targetConfig.overview.disableWallpaperBlur = checked
         }
         ToggleRow {
             last: true
             text: qsTr("Enable overview blur")
             subtext: qsTr("Enable QuickShell-based blur effect on overview wallpaper")
-            checked: GlobalConfig.overview.enableOverviewBlur
-            onToggled: GlobalConfig.overview.enableOverviewBlur = checked
+            checked: Globalroot.nState.targetConfig.overview.enableOverviewBlur
+            onToggled: Globalroot.nState.targetConfig.overview.enableOverviewBlur = checked
         }
         SectionHeader {
             text: qsTr("Animations")
@@ -212,52 +212,52 @@ PageBase {
             fallbackText: qsTr("Back In")
             active: {
                 for (let i = 0; i < easingTypeItems.length; i++) {
-                    if (easingTypeItems[i].value === GlobalConfig.overview.easingType)
+                    if (easingTypeItems[i].value === Globalroot.nState.targetConfig.overview.easingType)
                         return easingTypeItems[i];
                 }
                 return easingTypeItems[10];
             }
             menuItems: easingTypeItems
             onSelected: item => {
-                GlobalConfig.overview.easingType = item.value
+                Globalroot.nState.targetConfig.overview.easingType = item.value
             }
         }
         StepperRow {
             label: qsTr("Base duration")
             subtext: qsTr("Base duration for overview opening/closing in milliseconds")
-            value: GlobalConfig.overview.baseDuration
+            value: Globalroot.nState.targetConfig.overview.baseDuration
             from: 100
             to: 1000
             stepSize: 50
-            onMoved: v => GlobalConfig.overview.baseDuration = v
+            onMoved: v => Globalroot.nState.targetConfig.overview.baseDuration = v
         }
         StepperRow {
             label: qsTr("Blob scale speed")
             subtext: qsTr("Scaling speed modifier for background blobs")
-            value: GlobalConfig.overview.blobScaleSpeed
+            value: Globalroot.nState.targetConfig.overview.blobScaleSpeed
             from: 0.1
             to: 5.0
             stepSize: 0.1
-            onMoved: v => GlobalConfig.overview.blobScaleSpeed = v
+            onMoved: v => Globalroot.nState.targetConfig.overview.blobScaleSpeed = v
         }
         StepperRow {
             label: qsTr("Wallpaper fade speed")
             subtext: qsTr("Fade speed modifier for the wallpaper")
-            value: GlobalConfig.overview.wallpaperFadeSpeed
+            value: Globalroot.nState.targetConfig.overview.wallpaperFadeSpeed
             from: 0.1
             to: 5.0
             stepSize: 0.1
-            onMoved: v => GlobalConfig.overview.wallpaperFadeSpeed = v
+            onMoved: v => Globalroot.nState.targetConfig.overview.wallpaperFadeSpeed = v
         }
         StepperRow {
             last: true
             label: qsTr("Grid fade speed")
             subtext: qsTr("Fade speed modifier for the window grid")
-            value: GlobalConfig.overview.gridFadeSpeed
+            value: Globalroot.nState.targetConfig.overview.gridFadeSpeed
             from: 0.1
             to: 5.0
             stepSize: 0.1
-            onMoved: v => GlobalConfig.overview.gridFadeSpeed = v
+            onMoved: v => Globalroot.nState.targetConfig.overview.gridFadeSpeed = v
         }
     }
 }

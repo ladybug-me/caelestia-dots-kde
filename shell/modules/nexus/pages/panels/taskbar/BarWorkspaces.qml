@@ -23,8 +23,8 @@ PageBase {
 
             function onWorkspacesChanged() {
                 let len = KWinWorkspaceState.workspaces.length;
-                if (len > 0 && GlobalConfig.bar.workspaces.shown !== len) {
-                    GlobalConfig.bar.workspaces.shown = len;
+                if (len > 0 && Globalroot.nState.targetConfig.bar.workspaces.shown !== len) {
+                    Globalroot.nState.targetConfig.bar.workspaces.shown = len;
                 }
             }
         }
@@ -32,8 +32,8 @@ PageBase {
         Component.onCompleted: {
             if (typeof KWinWorkspaceState !== "undefined") {
                 let len = KWinWorkspaceState.workspaces.length;
-                if (len > 0 && GlobalConfig.bar.workspaces.shown !== len) {
-                    GlobalConfig.bar.workspaces.shown = len;
+                if (len > 0 && Globalroot.nState.targetConfig.bar.workspaces.shown !== len) {
+                    Globalroot.nState.targetConfig.bar.workspaces.shown = len;
                 }
             }
         }
@@ -42,12 +42,12 @@ PageBase {
             first: true
             label: qsTr("Shown")
             subtext: qsTr("Number of workspaces displayed")
-            value: Config.bar.workspaces.shown
+            value: root.nState.targetConfig.bar.workspaces.shown
             from: 1
             to: 20
             stepSize: 1
             onMoved: v => {
-                GlobalConfig.bar.workspaces.shown = v;
+                Globalroot.nState.targetConfig.bar.workspaces.shown = v;
                 if (typeof KWinWorkspaceState !== "undefined") {
                     let d = KWinWorkspaceState.workspaces;
                     let count = d.length;
@@ -65,50 +65,50 @@ PageBase {
 
         ToggleRow {
             text: qsTr("Active indicator")
-            checked: Config.bar.workspaces.activeIndicator
-            onToggled: GlobalConfig.bar.workspaces.activeIndicator = checked
+            checked: root.nState.targetConfig.bar.workspaces.activeIndicator
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.activeIndicator = checked
         }
 
         ToggleRow {
             text: qsTr("Active trail")
-            checked: Config.bar.workspaces.activeTrail
-            onToggled: GlobalConfig.bar.workspaces.activeTrail = checked
+            checked: root.nState.targetConfig.bar.workspaces.activeTrail
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.activeTrail = checked
         }
 
         ToggleRow {
             text: qsTr("Occupied background")
-            checked: Config.bar.workspaces.occupiedBg
-            onToggled: GlobalConfig.bar.workspaces.occupiedBg = checked
+            checked: root.nState.targetConfig.bar.workspaces.occupiedBg
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.occupiedBg = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
             text: qsTr("Use material icons for indicators")
-            checked: Config.bar.workspaces.useIcon
-            onToggled: GlobalConfig.bar.workspaces.useIcon = checked
+            checked: root.nState.targetConfig.bar.workspaces.useIcon
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.useIcon = checked
         }
 
         ToggleRow {
             Layout.fillWidth: true
             text: qsTr("Show windows")
             subtext: qsTr("Show icons of open windows on each workspace")
-            checked: Config.bar.workspaces.showWindows
-            onToggled: GlobalConfig.bar.workspaces.showWindows = checked
+            checked: root.nState.targetConfig.bar.workspaces.showWindows
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.showWindows = checked
         }
 
         ToggleRow {
             text: qsTr("Windows on special workspaces")
-            checked: Config.bar.workspaces.showWindowsOnSpecialWorkspaces
-            onToggled: GlobalConfig.bar.workspaces.showWindowsOnSpecialWorkspaces = checked
+            checked: root.nState.targetConfig.bar.workspaces.showWindowsOnSpecialWorkspaces
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.showWindowsOnSpecialWorkspaces = checked
         }
 
         StepperRow {
             label: qsTr("Max window icons")
-            value: Config.bar.workspaces.maxWindowIcons
+            value: root.nState.targetConfig.bar.workspaces.maxWindowIcons
             from: 0
             to: 20
             stepSize: 1
-            onMoved: v => GlobalConfig.bar.workspaces.maxWindowIcons = v
+            onMoved: v => Globalroot.nState.targetConfig.bar.workspaces.maxWindowIcons = v
         }
 
 
@@ -117,8 +117,8 @@ PageBase {
             last: true
             text: qsTr("Per-monitor workspaces")
             subtext: qsTr("Show each monitor's workspaces independently")
-            checked: GlobalConfig.bar.workspaces.perMonitorWorkspaces
-            onToggled: GlobalConfig.bar.workspaces.perMonitorWorkspaces = checked
+            checked: Globalroot.nState.targetConfig.bar.workspaces.perMonitorWorkspaces
+            onToggled: Globalroot.nState.targetConfig.bar.workspaces.perMonitorWorkspaces = checked
         }
     }
 }

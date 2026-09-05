@@ -68,7 +68,7 @@ PageBase {
     }
 
     function load() {
-        let entries = Config.bar.entries;
+        let entries = root.nState.targetConfig.bar.entries;
         leftModel.clear();
         middleModel.clear();
         rightModel.clear();
@@ -124,7 +124,7 @@ PageBase {
 
     function resetToDefaults() {
         const entries = defaultEntries();
-        GlobalConfig.bar.entries = entries;
+        Globalroot.nState.targetConfig.bar.entries = entries;
 
         leftModel.clear();
         middleModel.clear();
@@ -171,7 +171,7 @@ PageBase {
             }
         }
         
-        GlobalConfig.bar.entries = newEntries;
+        Globalroot.nState.targetConfig.bar.entries = newEntries;
     }
 
     Component.onCompleted: load()

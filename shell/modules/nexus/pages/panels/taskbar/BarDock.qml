@@ -22,14 +22,14 @@ PageBase {
             first: true
             text: qsTr("Enable component")
             checked: {
-                for (let i = 0; i < Config.bar.entries.length; i++) {
-                    if (Config.bar.entries[i].id === "dock")
-                        return Config.bar.entries[i].enabled;
+                for (let i = 0; i < root.nState.targetConfig.bar.entries.length; i++) {
+                    if (root.nState.targetConfig.bar.entries[i].id === "dock")
+                        return root.nState.targetConfig.bar.entries[i].enabled;
                 }
                 return false;
             }
             onToggled: {
-                let newEntries = [...GlobalConfig.bar.entries];
+                let newEntries = [...Globalroot.nState.targetConfig.bar.entries];
                 let found = false;
                 for (let i = 0; i < newEntries.length; i++) {
                     if (newEntries[i].id === "dock") {
@@ -45,7 +45,7 @@ PageBase {
                     newEntries.push({ id: "dock", enabled: checked, zone: "middle" });
                 }
 
-                GlobalConfig.bar.entries = newEntries;
+                Globalroot.nState.targetConfig.bar.entries = newEntries;
             }
         }
 
@@ -55,11 +55,11 @@ PageBase {
             Layout.fillWidth: true
             label: qsTr("Icon size")
             subtext: qsTr("Size of app icons in the dock")
-            value: Config.bar.dock.iconSize
+            value: root.nState.targetConfig.bar.dock.iconSize
             from: 20
             to: Math.max(20, Tokens.sizes.bar.innerWidth)
             stepSize: 2
-            onMoved: v => GlobalConfig.bar.dock.iconSize = v
+            onMoved: v => Globalroot.nState.targetConfig.bar.dock.iconSize = v
         }
 
 
@@ -69,8 +69,8 @@ PageBase {
             last: true
             text: qsTr("Recolor icons")
             subtext: qsTr("Recolor application icons using the system theme")
-            checked: Config.bar.dock.recolourIcons
-            onToggled: GlobalConfig.bar.dock.recolourIcons = checked
+            checked: root.nState.targetConfig.bar.dock.recolourIcons
+            onToggled: Globalroot.nState.targetConfig.bar.dock.recolourIcons = checked
         }
     }
 }
