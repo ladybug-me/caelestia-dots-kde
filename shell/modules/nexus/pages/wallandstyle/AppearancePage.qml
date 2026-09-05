@@ -10,6 +10,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
@@ -46,16 +47,10 @@ PageBase {
             type: TextButton.Filled
             scale: pressed ? 0.95 : 1.0
 
-            onClicked: restartProcess.running = true
+            onClicked: Launch.exec(["bash", "-c", "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/scripts/restart_shell.sh\"; sleep 1; caelestia shell nexus openPage 0 8"])
 
             Behavior on scale {
                 Anim { type: Anim.DefaultEffects }
-            }
-
-            Process {
-                id: restartProcess
-
-                command: ["bash", "-c", "nohup bash -c 'bash \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/scripts/restart_shell.sh\"; sleep 1; caelestia shell nexus openPage 0 8' >/dev/null 2>&1 & disown"]
             }
         }
     ]

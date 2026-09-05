@@ -270,7 +270,7 @@ PanelWindow {
     onPreparationDoneChanged: {
         if (!preparationDone) return;
         if (root.isRecording && root.recordingShouldStop) {
-            Quickshell.execDetached([Paths.absolutePath("~/.local/bin/caelestia-record")]);
+            Launch.exec([Paths.absolutePath("~/.local/bin/caelestia-record")]);
             root.dismiss();
             return;
         }
@@ -318,7 +318,7 @@ PanelWindow {
             root.screenshotPath, //
             root.action
         )
-        Quickshell.execDetached(command);
+        Launch.exec(command);
         if (root.action == ScreenshotAction.SnipAction.Record || root.action == ScreenshotAction.SnipAction.RecordWithSound) {
             root.phase = RegionSelection.Phase.Post
             root.selectionMode = RegionSelection.SelectionMode.RectCorners
@@ -357,7 +357,7 @@ PanelWindow {
         }
         root.dismiss();
         // Small delay so the window has time to come to front before spectacle fires
-        Qt.callLater(() => { Quickshell.execDetached(command); });
+        Qt.callLater(() => { Launch.exec(command); });
     }
 
     // Only clickable in Selection phase

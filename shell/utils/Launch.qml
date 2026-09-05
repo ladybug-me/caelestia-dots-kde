@@ -50,9 +50,9 @@ Singleton {
         }
 
         if (root.hasSystemdCat)
-            return ["systemd-cat", "--", ...command];
+            return ["systemd-run", "--user", "--scope", "--quiet", "systemd-cat", "--", ...command];
 
-        return command;
+        return ["systemd-run", "--user", "--scope", "--quiet", "--", ...command];
     }
 
     /// Launches a command, detached from the shell.

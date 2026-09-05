@@ -203,7 +203,7 @@ case "$ACTION" in
 
         # Launch in background via a subshell so we can capture the PID
         (
-            exec "${args[@]}" &
+            exec "${args[@]}" >/tmp/gpu-screen-recorder.log 2>&1 &
             echo $! > "$PID_FILE"
             wait
             rm -f "$PID_FILE" "$LOCK_FILE" "$CURRENT_FILE"

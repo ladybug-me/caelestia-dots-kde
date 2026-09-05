@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.utils
 
 // Whether EasyEffects is running, and a way to start or stop it.
 //
@@ -22,14 +23,14 @@ Singleton {
     }
 
     function enable(): void {
-        Quickshell.execDetached(["bash", "-c",
+        Launch.exec(["bash", "-c",
             "easyeffects --hide-window --service-mode >/dev/null 2>&1 || "
             + "flatpak run com.github.wwmm.easyeffects --hide-window --service-mode >/dev/null 2>&1"]);
         confirmTimer.restart();
     }
 
     function disable(): void {
-        Quickshell.execDetached(["bash", "-c",
+        Launch.exec(["bash", "-c",
             "pkill -x easyeffects >/dev/null 2>&1 || "
             + "flatpak kill com.github.wwmm.easyeffects >/dev/null 2>&1"]);
         confirmTimer.restart();
@@ -48,7 +49,7 @@ Singleton {
     /// naming, but a right click that silently does nothing is worse, and the
     /// windowed instance goes on applying the same chain once it is up.
     function open(): void {
-        Quickshell.execDetached(["bash", "-c",
+        Launch.exec(["bash", "-c",
             "easyeffects -q >/dev/null 2>&1; flatpak kill com.github.wwmm.easyeffects >/dev/null 2>&1; "
             + "easyeffects >/dev/null 2>&1 || flatpak run com.github.wwmm.easyeffects >/dev/null 2>&1"]);
         confirmTimer.restart();

@@ -9,6 +9,7 @@ import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.services
+import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
@@ -90,13 +91,7 @@ PageBase {
                 Anim { type: Anim.DefaultEffects }
             }
 
-            onClicked: restartProcess.running = true
-
-            Process {
-                id: restartProcess
-
-                command: ["bash", "-c", "nohup bash -c 'bash \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/scripts/restart_shell.sh\"; sleep 1; caelestia shell nexus openPage 15 0' >/dev/null 2>&1 & disown"]
-            }
+            onClicked: Launch.exec(["bash", "-c", "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/scripts/restart_shell.sh\"; sleep 1; caelestia shell nexus openPage 15 0"])
         }
     ]
 
