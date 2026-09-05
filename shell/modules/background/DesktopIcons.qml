@@ -426,9 +426,9 @@ Item {
                     onClicked: (mouse) => {
                         if (mouse.button === Qt.LeftButton) {
                             if (fileName.toLowerCase().endsWith(".desktop")) {
-                                Quickshell.execDetached(["kioclient", "exec", path]);
+                                Launch.exec(["kioclient", "exec", path]);
                             } else {
-                                Quickshell.execDetached(["xdg-open", path]);
+                                Launch.exec(["xdg-open", path]);
                             }
                         }
                     }

@@ -35,7 +35,7 @@ Singleton {
     }
 
     function launchSpectacle(): void {
-        Quickshell.execDetached(["spectacle", "-R", "r"]);
+        Launch.exec(["spectacle", "-R", "r"]);
     }
 
     // Forces a fresh probe of gpu-screen-recorder; `running` updates on exit.
