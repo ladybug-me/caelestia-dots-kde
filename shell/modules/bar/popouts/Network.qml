@@ -128,8 +128,14 @@ ColumnLayout {
                     } else {
                         NetworkConnection.handleConnect(networkItem.modelData, null, network => {
                             // Password is required - show password dialog
-                            NetworkConnection.passwordNetwork = network;
-                            root.passwordNetwork = network;
+                            const networkSnapshot = {
+                                ssid: network.ssid,
+                                bssid: network.bssid || "",
+                                isSecure: network.isSecure ?? true,
+                                strength: network.strength ?? 0
+                            };
+                            NetworkConnection.passwordNetwork = networkSnapshot;
+                            root.passwordNetwork = networkSnapshot;
                             root.showPasswordDialog = true;
                             root.popouts.currentName = "wirelesspassword";
                         });
@@ -468,13 +474,10 @@ ColumnLayout {
 
     Connections {
         function onActiveChanged(): void {
-            // Close password dialog if we successfully connected
+            // Reset local dialog tracking if we successfully connected
             if (root.showPasswordDialog && root.passwordNetwork && Nmcli.active && Nmcli.active.ssid === root.passwordNetwork.ssid) {
                 root.showPasswordDialog = false;
                 root.passwordNetwork = null;
-                if (root.popouts.currentName === "wirelesspassword") {
-                    root.popouts.currentName = "network";
-                }
             }
         }
 
