@@ -1,9 +1,11 @@
-﻿pragma Singleton
+pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Caelestia
 import Caelestia.Services
+import qs.components.misc
 
 /// Thin adapter wrapping the C++ NmQt (NetworkManagerQt/D-Bus) singleton.
 /// Preserves the legacy Nmcli API surface so existing QML consumers continue
@@ -87,6 +89,11 @@ Singleton {
 
     readonly property alias connectionCheckTimer: connectionCheckTimer
     readonly property alias immediateCheckTimer: immediateCheckTimer
+
+    // Guards against spurious notifications at shell startup.
+    // Becomes true ~3 s after the shell is ready so we don't toast
+    // "Wi-Fi connected" for the network that was already active.
+
 
     signal connectionFailed(string ssid)
     signal monitorEvent()
@@ -189,7 +196,7 @@ Singleton {
         return !!state && state.startsWith("connecting");
     }
 
-    function connectingSsid(): string { return NmQt.connectingSsid; }
+    readonly property string connectingSsid: NmQt.connectingSsid
 
     function executeCommand(args: list<string>, callback: var): void {
         if (callback && typeof callback === "function")
@@ -212,15 +219,23 @@ Singleton {
     function connectToNetworkWithPasswordCheck(ssid: string, isSecure: bool, callback: var, bssid: string): void {
         let immediateResult = null;
         const wrappedCallback = result => {
-            if (result && result.success)
-                return;
-
             immediateResult = result;
-            root.pendingConnection = null;
-            connectionCheckTimer.stop();
-            immediateCheckTimer.stop();
-            immediateCheckTimer.checkCount = 0;
-            if (callback && typeof callback === "function") callback(result);
+            if (result && !result.success) {
+                root.pendingConnection = null;
+                connectionCheckTimer.stop();
+                immediateCheckTimer.stop();
+                immediateCheckTimer.checkCount = 0;
+                root.connectionFailed(ssid);
+                if (callback && typeof callback === "function") callback(result);
+            } else if (result && result.needsPassword) {
+                root.pendingConnection = null;
+                connectionCheckTimer.stop();
+                immediateCheckTimer.stop();
+                immediateCheckTimer.checkCount = 0;
+                if (callback && typeof callback === "function") callback(result);
+            }
+            // If success is true and needsPassword is false, do not stop timers. 
+            // Wait for active connection state to update.
         };
         NmQt.connectToNetworkWithPasswordCheck(ssid, isSecure, wrappedCallback, bssid);
         if (callback && !immediateResult) {
@@ -234,18 +249,20 @@ Singleton {
     function connectToNetwork(ssid: string, password: string, bssid: string, callback: var): void {
         let immediateResult = null;
         const wrappedCallback = result => {
-            if (result && result.success)
-                return;
-
             immediateResult = result;
-            root.pendingConnection = null;
-            connectionCheckTimer.stop();
-            immediateCheckTimer.stop();
-            immediateCheckTimer.checkCount = 0;
-            if (callback && typeof callback === "function") callback(result);
+            if (result && !result.success) {
+                root.pendingConnection = null;
+                connectionCheckTimer.stop();
+                immediateCheckTimer.stop();
+                immediateCheckTimer.checkCount = 0;
+                root.connectionFailed(ssid);
+                if (callback && typeof callback === "function") callback(result);
+            }
+            // If success is true, do not stop timers.
+            // Wait for active connection state to update.
         };
         NmQt.connectToNetwork(ssid, password, bssid, wrappedCallback);
-        if (callback && !immediateResult) {
+        if (!immediateResult) {
             root.pendingConnection = { ssid: ssid, bssid: bssid || "", callback: callback };
             connectionCheckTimer.start();
             immediateCheckTimer.checkCount = 0;
@@ -450,6 +467,8 @@ Singleton {
         rebuildEthernetDevices();
     }
 
+
+
     Connections {
         function onNetworksChanged(): void {
             rebuildNetworkList();
@@ -472,6 +491,12 @@ Singleton {
         function onConnectionFailed(ssid: string): void {
             root.connectionFailed(ssid);
         }
+        function onActiveChanged(): void {
+            // Intentionally empty — network-change toasts are handled by
+            // the root.onActiveChanged watcher below, which fires on the
+            // rebuilt Nmcli.active (typed AccessPoint) rather than on every
+            // intermediate NmQt state change.
+        }
 
         target: NmQt
     }
@@ -479,7 +504,7 @@ Singleton {
     Timer {
         id: connectionCheckTimer
 
-        interval: 4000
+        interval: 20000
 
         onTriggered: {
             if (root.pendingConnection) {

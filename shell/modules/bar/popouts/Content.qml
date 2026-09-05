@@ -74,16 +74,6 @@ Item {
                 id: passwordComponent
 
                 popouts: root.popouts
-                network: (networkPopout.item as Network)?.passwordNetwork ?? null
-            }
-
-            // Keep the loaded dialog's network fresh — one live binding instead
-            // of three hand-written assignments with a timing workaround.
-            Binding {
-                when: passwordPopout.item !== null
-                target: passwordPopout.item
-                property: "network"
-                value: (networkPopout.item as Network)?.passwordNetwork ?? null
             }
         }
 

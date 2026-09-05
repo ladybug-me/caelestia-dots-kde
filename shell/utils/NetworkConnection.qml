@@ -28,6 +28,8 @@ import qs.services
 QtObject {
     id: root
 
+    property var passwordNetwork: null
+
     /**
      * Handle network connection with automatic disconnection if needed.
      * If there's an active network different from the target, disconnects first,

@@ -128,6 +128,7 @@ ColumnLayout {
                     } else {
                         NetworkConnection.handleConnect(networkItem.modelData, null, network => {
                             // Password is required - show password dialog
+                            NetworkConnection.passwordNetwork = network;
                             root.passwordNetwork = network;
                             root.showPasswordDialog = true;
                             root.popouts.currentName = "wirelesspassword";

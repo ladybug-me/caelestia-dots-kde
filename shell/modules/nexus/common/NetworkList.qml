@@ -31,7 +31,7 @@ ItemList {
 
     model: ScriptModel {
         values: {
-            const connecting = Nmcli.connectingSsid();
+            const connecting = Nmcli.connectingSsid;
             // Lower rank sorts higher in the list
             const rank = n => n.active ? 0 : n.ssid === connecting ? 1 : Nmcli.hasSavedProfile(n.ssid) ? 2 : 3;
             const sorted = [...Nmcli.networks].sort((a, b) => rank(a) - rank(b) || b.strength - a.strength);
@@ -49,7 +49,7 @@ ItemList {
         property bool currentSelected
         property real textOpacity: disabled ? 0.5 : 1
 
-        disabled: currentSelected || Nmcli.connectingSsid() === modelData.ssid
+        disabled: currentSelected || Nmcli.connectingSsid === modelData.ssid
 
         anchors.left: root.list.contentItem.left
         anchors.right: root.list.contentItem.right
@@ -61,7 +61,12 @@ ItemList {
 
         onClicked: {
             if (!modelData.active) {
-                NetworkConnection.handleConnect(modelData);
+                NetworkConnection.handleConnect(modelData, null, ap => {
+                    // Password required for unsaved encrypted network — open Add Network
+                    // page pre-filled with the SSID so only the password field shows.
+                    root.nState.pendingNetworkSsid = ap.ssid;
+                    root.nState.openSubPage(2);
+                });
                 currentSelected = true;
                 root.networkSelected(modelData);
             } else {
@@ -94,6 +99,26 @@ ItemList {
             }
 
             target: root
+        }
+
+        // Reset currentSelected when the password dialog closes (SSID cleared)
+        // so the row is interactive again after Cancel or failed connection.
+        Connections {
+            function onPendingNetworkSsidChanged(): void {
+                if (root.nState.pendingNetworkSsid === "")
+                    network.currentSelected = false;
+            }
+
+            target: root.nState
+        }
+
+        Connections {
+            function onConnectionFailed(ssid: string): void {
+                if (network.modelData.ssid === ssid)
+                    network.currentSelected = false;
+            }
+
+            target: Nmcli
         }
 
         RowLayout {

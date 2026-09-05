@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "NmQt.hpp"
 
-#include <NetworkManagerQt/Manager>
-#include <NetworkManagerQt/Device>
-#include <NetworkManagerQt/WirelessDevice>
 #include <NetworkManagerQt/AccessPoint>
-#include <NetworkManagerQt/WirelessNetwork>
+#include <NetworkManagerQt/ActiveConnection>
 #include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/ConnectionSettings>
-#include <NetworkManagerQt/Settings>
-#include <NetworkManagerQt/ActiveConnection>
-#include <NetworkManagerQt/WirelessSetting>
-#include <NetworkManagerQt/WirelessSecuritySetting>
-#include <NetworkManagerQt/WiredDevice>
-#include <NetworkManagerQt/Ipv4Setting>
+#include <NetworkManagerQt/Device>
 #include <NetworkManagerQt/IpAddress>
-
+#include <NetworkManagerQt/Ipv4Setting>
+#include <NetworkManagerQt/Manager>
+#include <NetworkManagerQt/Settings>
+#include <NetworkManagerQt/Utils>
+#include <NetworkManagerQt/WiredDevice>
+#include <NetworkManagerQt/WirelessDevice>
+#include <NetworkManagerQt/WirelessNetwork>
+#include <NetworkManagerQt/WirelessSecuritySetting>
+#include <NetworkManagerQt/WirelessSetting>
 #include <QDBusConnection>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
@@ -25,7 +25,6 @@
 #include <QJSEngine>
 #include <QLoggingCategory>
 #include <QSet>
-
 #include <algorithm>
 
 Q_LOGGING_CATEGORY(lcNmQt, "caelestia.services.nmqt", QtInfoMsg)
@@ -95,33 +94,27 @@ NmQt::NmQt(QObject* parent)
     }
 
     // -- Wireless enable state --
-    connect(notifier, &NetworkManager::Notifier::wirelessEnabledChanged,
-            this, &NmQt::onWirelessEnabledChanged);
-    connect(notifier, &NetworkManager::Notifier::wirelessHardwareEnabledChanged,
-            this, &NmQt::onWirelessHardwareEnabledChanged);
+    connect(notifier, &NetworkManager::Notifier::wirelessEnabledChanged, this, &NmQt::onWirelessEnabledChanged);
+    connect(notifier, &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this,
+        &NmQt::onWirelessHardwareEnabledChanged);
 
     // -- Device list changes --
-    connect(notifier, &NetworkManager::Notifier::deviceAdded,
-            this, &NmQt::onNetworkDevicesChanged);
-    connect(notifier, &NetworkManager::Notifier::deviceRemoved,
-            this, &NmQt::onNetworkDevicesChanged);
+    connect(notifier, &NetworkManager::Notifier::deviceAdded, this, &NmQt::onNetworkDevicesChanged);
+    connect(notifier, &NetworkManager::Notifier::deviceRemoved, this, &NmQt::onNetworkDevicesChanged);
 
     // -- Active connections --
-    connect(notifier, &NetworkManager::Notifier::activeConnectionsChanged,
-            this, &NmQt::onActiveConnectionsChanged);
+    connect(notifier, &NetworkManager::Notifier::activeConnectionsChanged, this, &NmQt::onActiveConnectionsChanged);
 
     // -- NM (re)appearing / finishing its own startup sequence --
-    connect(notifier, &NetworkManager::Notifier::serviceAppeared,
-            this, &NmQt::onNetworkManagerReady);
-    connect(notifier, &NetworkManager::Notifier::isStartingUpChanged,
-            this, &NmQt::onNetworkManagerReady);
+    connect(notifier, &NetworkManager::Notifier::serviceAppeared, this, &NmQt::onNetworkManagerReady);
+    connect(notifier, &NetworkManager::Notifier::isStartingUpChanged, this, &NmQt::onNetworkManagerReady);
 
     // -- Connection list (saved profiles) --
     if (auto* settingsNotifier = NetworkManager::settingsNotifier()) {
-        connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionAdded,
-                this, &NmQt::onConnectionsChanged);
-        connect(settingsNotifier, &NetworkManager::SettingsNotifier::connectionRemoved,
-                this, &NmQt::onConnectionsChanged);
+        connect(
+            settingsNotifier, &NetworkManager::SettingsNotifier::connectionAdded, this, &NmQt::onConnectionsChanged);
+        connect(
+            settingsNotifier, &NetworkManager::SettingsNotifier::connectionRemoved, this, &NmQt::onConnectionsChanged);
     }
 
     // -- Read initial state from NetworkManagerQt caches --
@@ -144,31 +137,70 @@ NmQt::~NmQt() = default;
 // ---
 
 bool NmQt::isConnected() const {
-    return NetworkManager::status() == NetworkManager::Status::Connected
-        || NetworkManager::status() == NetworkManager::Status::ConnectedLinkLocal
-        || NetworkManager::status() == NetworkManager::Status::ConnectedSiteOnly;
+    return NetworkManager::status() == NetworkManager::Status::Connected ||
+           NetworkManager::status() == NetworkManager::Status::ConnectedLinkLocal ||
+           NetworkManager::status() == NetworkManager::Status::ConnectedSiteOnly;
 }
 
-bool NmQt::wifiEnabled() const { return m_wifiEnabled; }
-bool NmQt::scanning() const { return m_scanning; }
-QString NmQt::connectingSsid() const { return m_connectingSsid; }
+bool NmQt::wifiEnabled() const {
+    return m_wifiEnabled;
+}
 
-QVariantList NmQt::networks() const { return m_networks; }
-QVariantMap NmQt::active() const { return m_active; }
+bool NmQt::scanning() const {
+    return m_scanning;
+}
 
-QStringList NmQt::savedConnections() const { return m_savedConnections; }
-QStringList NmQt::savedConnectionSsids() const { return m_savedConnectionSsids; }
+QString NmQt::connectingSsid() const {
+    return m_connectingSsid;
+}
 
-QVariantMap NmQt::activeEthernet() const { return m_activeEthernet; }
-QVariantList NmQt::ethernetDevices() const { return m_ethernetDevices; }
+QVariantList NmQt::networks() const {
+    return m_networks;
+}
 
-QVariantList NmQt::vpnConnections() const { return m_vpnConnections; }
-QVariantMap NmQt::activeVpn() const { return m_activeVpn; }
-QString NmQt::vpnPendingConnection() const { return m_vpnPendingConnection; }
+QVariantMap NmQt::active() const {
+    return m_active;
+}
 
-QVariantMap NmQt::wirelessDeviceDetails() const { return m_wirelessDeviceDetails; }
-QVariantMap NmQt::ethernetDeviceDetails() const { return m_ethernetDeviceDetails; }
-QVariantMap NmQt::savedConnectionSecurity() const { return m_savedConnectionSecurity; }
+QStringList NmQt::savedConnections() const {
+    return m_savedConnections;
+}
+
+QStringList NmQt::savedConnectionSsids() const {
+    return m_savedConnectionSsids;
+}
+
+QVariantMap NmQt::activeEthernet() const {
+    return m_activeEthernet;
+}
+
+QVariantList NmQt::ethernetDevices() const {
+    return m_ethernetDevices;
+}
+
+QVariantList NmQt::vpnConnections() const {
+    return m_vpnConnections;
+}
+
+QVariantMap NmQt::activeVpn() const {
+    return m_activeVpn;
+}
+
+QString NmQt::vpnPendingConnection() const {
+    return m_vpnPendingConnection;
+}
+
+QVariantMap NmQt::wirelessDeviceDetails() const {
+    return m_wirelessDeviceDetails;
+}
+
+QVariantMap NmQt::ethernetDeviceDetails() const {
+    return m_ethernetDeviceDetails;
+}
+
+QVariantMap NmQt::savedConnectionSecurity() const {
+    return m_savedConnectionSecurity;
+}
 
 // ---
 //  QML-invokable actions
@@ -178,12 +210,11 @@ void NmQt::getNetworks(QJSValue callback) {
     refreshNetworks();
     if (callback.isCallable()) {
         auto arr = qjsEngine(this)->toScriptValue(m_networks);
-        callback.call({arr});
+        callback.call({ arr });
     }
 }
 
-void NmQt::connectToNetwork(const QString& ssid, const QString& password,
-                             const QString& bssid, QJSValue callback) {
+void NmQt::connectToNetwork(const QString& ssid, const QString& password, const QString& bssid, QJSValue callback) {
     // Locate the wireless device
     NetworkManager::WirelessDevice::Ptr wifiDev;
     for (const auto& dev : NetworkManager::networkInterfaces()) {
@@ -219,10 +250,8 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
             targetAp = ap;
     }
 
-    const bool apIsOpen = targetAp
-        && !targetAp->wpaFlags()
-        && !targetAp->rsnFlags()
-        && !targetAp->capabilities().testFlag(NetworkManager::AccessPoint::Privacy);
+    const bool apIsOpen = targetAp && !targetAp->wpaFlags() && !targetAp->rsnFlags() &&
+                          !targetAp->capabilities().testFlag(NetworkManager::AccessPoint::Privacy);
 
     // Look for a saved connection matching this SSID
     NetworkManager::Connection::Ptr existingConn;
@@ -248,12 +277,9 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
         emit connectingSsidChanged();
 
         QDBusPendingReply<QDBusObjectPath> reply =
-            NetworkManager::activateConnection(existingConn->path(),
-                                                wifiDev->uni(),
-                                                QString());
+            NetworkManager::activateConnection(existingConn->path(), wifiDev->uni(), QString());
         auto* watcher = new QDBusPendingCallWatcher(reply, this);
-        connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                [this, ssid, callback](QDBusPendingCallWatcher* w) {
+        connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, ssid, callback](QDBusPendingCallWatcher* w) {
             w->deleteLater();
             QDBusPendingReply<QDBusObjectPath> r = *w;
             if (r.isError()) {
@@ -275,8 +301,7 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
         qCInfo(lcNmQt) << "connectToNetwork:" << ssid << "needs password";
         m_connectingSsid.clear();
         emit connectingSsidChanged();
-        invokeCallback(callback, false, {}, "Secrets were required, but not provided",
-                       -1, true);
+        invokeCallback(callback, false, {}, "Secrets were required, but not provided", -1, true);
         return;
     }
 
@@ -284,9 +309,10 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
     // represent the nested wireless and security settings NetworkManager needs.
     NetworkManager::ConnectionSettings settings(NetworkManager::ConnectionSettings::Wireless);
     settings.setId(ssid);
+    settings.setUuid(NetworkManager::ConnectionSettings::createNewUuid());
 
-    auto wirelessSetting = settings.setting(NetworkManager::Setting::SettingType::Wireless)
-                                .dynamicCast<NetworkManager::WirelessSetting>();
+    auto wirelessSetting =
+        settings.setting(NetworkManager::Setting::SettingType::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
     if (!wirelessSetting) {
         invokeCallback(callback, false, {}, "Could not create wireless settings", -1);
         return;
@@ -298,13 +324,13 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
 
     QString specificObject;
     if (!bssid.isEmpty())
-        wirelessSetting->setBssid(bssid.toUtf8());
+        wirelessSetting->setBssid(NetworkManager::macAddressFromString(bssid));
     if (targetAp)
         specificObject = targetAp->uni();
 
     if (!password.isEmpty()) {
         auto securitySetting = settings.setting(NetworkManager::Setting::SettingType::WirelessSecurity)
-                                    .dynamicCast<NetworkManager::WirelessSecuritySetting>();
+                                   .dynamicCast<NetworkManager::WirelessSecuritySetting>();
         if (!securitySetting) {
             invokeCallback(callback, false, {}, "Could not create wireless security settings", -1);
             return;
@@ -314,9 +340,8 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
         // to WPA-PSK for WPA/WPA2 networks. Hard-coding WpaPsk here previously
         // made pure WPA3/SAE APs reject an otherwise-correct password.
         const bool useSae = targetAp && targetAp->rsnFlags().testFlag(NetworkManager::AccessPoint::KeyMgmtSAE);
-        securitySetting->setKeyMgmt(useSae
-            ? NetworkManager::WirelessSecuritySetting::SAE
-            : NetworkManager::WirelessSecuritySetting::WpaPsk);
+        securitySetting->setKeyMgmt(
+            useSae ? NetworkManager::WirelessSecuritySetting::SAE : NetworkManager::WirelessSecuritySetting::WpaPsk);
         securitySetting->setPsk(password);
         securitySetting->setInitialized(true);
         wirelessSetting->setSecurity(securitySetting->name());
@@ -324,15 +349,12 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
     // else: open network (apIsOpen) — no wireless-security setting needed.
 
     QDBusPendingReply<QDBusObjectPath, QDBusObjectPath> reply =
-        NetworkManager::addAndActivateConnection(settings.toMap(),
-                                                  wifiDev->uni(),
-                                                  specificObject);
+        NetworkManager::addAndActivateConnection(settings.toMap(), wifiDev->uni(), specificObject);
     m_connectingSsid = ssid;
     emit connectingSsidChanged();
 
     auto* watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this,
-            [this, ssid, callback](QDBusPendingCallWatcher* w) {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, ssid, callback](QDBusPendingCallWatcher* w) {
         w->deleteLater();
         QDBusPendingReply<QDBusObjectPath, QDBusObjectPath> r = *w;
         if (r.isError()) {
@@ -340,9 +362,8 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
             m_connectingSsid.clear();
             emit connectingSsidChanged();
             const auto& errMsg = r.error().message();
-            bool needsPw = errMsg.contains("Secrets")
-                        || errMsg.contains("password")
-                        || errMsg.contains("802-11-wireless-security");
+            bool needsPw = errMsg.contains("Secrets") || errMsg.contains("password") ||
+                           errMsg.contains("802-11-wireless-security");
             invokeCallback(callback, false, {}, errMsg, -1, needsPw);
         } else {
             m_connectingSsid.clear();
@@ -352,8 +373,8 @@ void NmQt::connectToNetwork(const QString& ssid, const QString& password,
     });
 }
 
-void NmQt::connectToNetworkWithPasswordCheck(const QString& ssid, bool isSecure,
-                                              QJSValue callback, const QString& bssid) {
+void NmQt::connectToNetworkWithPasswordCheck(
+    const QString& ssid, bool isSecure, QJSValue callback, const QString& bssid) {
     if (!isSecure) {
         connectToNetwork(ssid, QString(), bssid, callback);
         return;
@@ -382,8 +403,7 @@ void NmQt::connectToNetworkWithPasswordCheck(const QString& ssid, bool isSecure,
         connectToNetwork(ssid, QString(), bssid, callback);
     } else {
         // No saved profile — caller needs to provide password
-        invokeCallback(callback, false, {}, "Secrets were required, but not provided",
-                       -1, true);
+        invokeCallback(callback, false, {}, "Secrets were required, but not provided", -1, true);
     }
 }
 
@@ -391,8 +411,7 @@ void NmQt::disconnectFromNetwork() {
     // Find any active wireless connection and deactivate it
     const auto activeConns = NetworkManager::activeConnectionsPaths();
     for (const auto& path : activeConns) {
-        NetworkManager::ActiveConnection::Ptr ac =
-            NetworkManager::findActiveConnection(path);
+        NetworkManager::ActiveConnection::Ptr ac = NetworkManager::findActiveConnection(path);
         if (!ac)
             continue;
 
@@ -436,13 +455,11 @@ void NmQt::forgetNetwork(const QString& ssid, QJSValue callback) {
         if (wirelessSetting->ssid() == ssid) {
             QDBusPendingReply<> reply = conn->remove();
             auto* watcher = new QDBusPendingCallWatcher(reply, this);
-            connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                    [this, callback](QDBusPendingCallWatcher* w) {
+            connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, callback](QDBusPendingCallWatcher* w) {
                 w->deleteLater();
                 QDBusPendingReply<> r = *w;
-                invokeCallback(callback, !r.isError(),
-                               r.isError() ? QString() : QStringLiteral("Deleted"),
-                               r.isError() ? r.error().message() : QString());
+                invokeCallback(callback, !r.isError(), r.isError() ? QString() : QStringLiteral("Deleted"),
+                    r.isError() ? r.error().message() : QString());
                 refreshSavedConnections();
             });
             return;
@@ -486,14 +503,12 @@ void NmQt::rescanWifi() {
     emit scanningChanged();
 
     // Wire up scan-finished signal once
-    connect(wifiDev.data(), &NetworkManager::WirelessDevice::lastScanChanged,
-            this, &NmQt::onScanFinished,
-            Qt::UniqueConnection);
+    connect(wifiDev.data(), &NetworkManager::WirelessDevice::lastScanChanged, this, &NmQt::onScanFinished,
+        Qt::UniqueConnection);
 
     auto reply = wifiDev->requestScan();
     auto* watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this,
-            [this](QDBusPendingCallWatcher* w) {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this](QDBusPendingCallWatcher* w) {
         QDBusPendingReply<> result = *w;
         w->deleteLater();
         if (result.isError()) {
@@ -504,8 +519,7 @@ void NmQt::rescanWifi() {
     });
 }
 
-void NmQt::connectEthernet(const QString& connectionName, const QString& interfaceName,
-                            QJSValue callback) {
+void NmQt::connectEthernet(const QString& connectionName, const QString& interfaceName, QJSValue callback) {
     if (!connectionName.isEmpty()) {
         const auto connPaths = NetworkManager::listConnections();
         for (const auto& conn : connPaths) {
@@ -513,15 +527,14 @@ void NmQt::connectEthernet(const QString& connectionName, const QString& interfa
                 QDBusPendingReply<QDBusObjectPath> reply =
                     NetworkManager::activateConnection(conn->path(), interfaceName, QString());
                 auto* watcher = new QDBusPendingCallWatcher(reply, this);
-                connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                        [this, callback](QDBusPendingCallWatcher* w) {
-                    w->deleteLater();
-                    QDBusPendingReply<QDBusObjectPath> r = *w;
-                    invokeCallback(callback, !r.isError(),
-                                   r.isError() ? QString() : QStringLiteral("Connected"),
-                                   r.isError() ? r.error().message() : QString());
-                    refreshEthernetDevices();
-                });
+                connect(
+                    watcher, &QDBusPendingCallWatcher::finished, this, [this, callback](QDBusPendingCallWatcher* w) {
+                        w->deleteLater();
+                        QDBusPendingReply<QDBusObjectPath> r = *w;
+                        invokeCallback(callback, !r.isError(), r.isError() ? QString() : QStringLiteral("Connected"),
+                            r.isError() ? r.error().message() : QString());
+                        refreshEthernetDevices();
+                    });
                 return;
             }
         }
@@ -537,18 +550,16 @@ void NmQt::connectEthernet(const QString& connectionName, const QString& interfa
             if (!availableConnections.isEmpty()) {
                 const auto connection = availableConnections.front();
                 QDBusPendingReply<QDBusObjectPath> reply =
-                    NetworkManager::activateConnection(connection->path(),
-                                                        dev->uni(), QString());
+                    NetworkManager::activateConnection(connection->path(), dev->uni(), QString());
                 auto* watcher = new QDBusPendingCallWatcher(reply, this);
-                connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                        [this, callback](QDBusPendingCallWatcher* w) {
-                    w->deleteLater();
-                    QDBusPendingReply<QDBusObjectPath> r = *w;
-                    invokeCallback(callback, !r.isError(),
-                                   r.isError() ? QString() : QStringLiteral("Connected"),
-                                   r.isError() ? r.error().message() : QString());
-                    refreshEthernetDevices();
-                });
+                connect(
+                    watcher, &QDBusPendingCallWatcher::finished, this, [this, callback](QDBusPendingCallWatcher* w) {
+                        w->deleteLater();
+                        QDBusPendingReply<QDBusObjectPath> r = *w;
+                        invokeCallback(callback, !r.isError(), r.isError() ? QString() : QStringLiteral("Connected"),
+                            r.isError() ? r.error().message() : QString());
+                        refreshEthernetDevices();
+                    });
                 return;
             }
         }
@@ -565,8 +576,7 @@ void NmQt::disconnectEthernet(const QString& connectionName, QJSValue callback) 
 
     const auto activeConns = NetworkManager::activeConnectionsPaths();
     for (const auto& path : activeConns) {
-        NetworkManager::ActiveConnection::Ptr ac =
-            NetworkManager::findActiveConnection(path);
+        NetworkManager::ActiveConnection::Ptr ac = NetworkManager::findActiveConnection(path);
         if (!ac)
             continue;
         if (ac->id() == connectionName || ac->uuid() == connectionName) {
@@ -596,18 +606,17 @@ void NmQt::connectVpn(const QString& connectionName, QJSValue callback) {
                 NetworkManager::activateConnection(conn->path(), QString(), QString());
             auto* watcher = new QDBusPendingCallWatcher(reply, this);
             connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                    [this, connectionName, callback](QDBusPendingCallWatcher* w) {
-                w->deleteLater();
-                QDBusPendingReply<QDBusObjectPath> r = *w;
-                invokeCallback(callback, !r.isError(),
-                               r.isError() ? QString() : QStringLiteral("Connected"),
-                               r.isError() ? r.error().message() : QString());
-                if (m_vpnPendingConnection == connectionName) {
-                    m_vpnPendingConnection.clear();
-                    emit vpnPendingConnectionChanged();
-                }
-                refreshVpnConnections();
-            });
+                [this, connectionName, callback](QDBusPendingCallWatcher* w) {
+                    w->deleteLater();
+                    QDBusPendingReply<QDBusObjectPath> r = *w;
+                    invokeCallback(callback, !r.isError(), r.isError() ? QString() : QStringLiteral("Connected"),
+                        r.isError() ? r.error().message() : QString());
+                    if (m_vpnPendingConnection == connectionName) {
+                        m_vpnPendingConnection.clear();
+                        emit vpnPendingConnectionChanged();
+                    }
+                    refreshVpnConnections();
+                });
             return;
         }
     }
@@ -628,8 +637,7 @@ void NmQt::disconnectVpn(const QString& connectionName, QJSValue callback) {
 
     const auto activeConns = NetworkManager::activeConnectionsPaths();
     for (const auto& path : activeConns) {
-        NetworkManager::ActiveConnection::Ptr ac =
-            NetworkManager::findActiveConnection(path);
+        NetworkManager::ActiveConnection::Ptr ac = NetworkManager::findActiveConnection(path);
         if (ac && (ac->id() == connectionName || ac->uuid() == connectionName)) {
             NetworkManager::deactivateConnection(path);
             invokeCallback(callback, true, "Disconnected");
@@ -651,7 +659,7 @@ void NmQt::loadSavedConnections(QJSValue callback) {
     refreshSavedConnections();
     if (callback.isCallable()) {
         auto arr = qjsEngine(this)->toScriptValue(m_savedConnectionSsids);
-        callback.call({arr});
+        callback.call({ arr });
     }
 }
 
@@ -659,7 +667,7 @@ void NmQt::loadVpnConnections(QJSValue callback) {
     refreshVpnConnections();
     if (callback.isCallable()) {
         auto arr = qjsEngine(this)->toScriptValue(m_vpnConnections);
-        callback.call({arr});
+        callback.call({ arr });
     }
 }
 
@@ -692,7 +700,7 @@ void NmQt::getWirelessDeviceDetails(const QString& interfaceName, QJSValue callb
     if (callback.isCallable()) {
         auto engine = qjsEngine(this);
         auto obj = engine->toScriptValue(m_wirelessDeviceDetails);
-        callback.call({obj});
+        callback.call({ obj });
     }
 }
 
@@ -701,7 +709,7 @@ void NmQt::getEthernetDeviceDetails(const QString& interfaceName, QJSValue callb
     if (callback.isCallable()) {
         auto engine = qjsEngine(this);
         auto obj = engine->toScriptValue(m_ethernetDeviceDetails);
-        callback.call({obj});
+        callback.call({ obj });
     }
 }
 
@@ -719,7 +727,7 @@ void NmQt::getIpv4Config(const QString& connectionName, QJSValue callback) {
 
     const auto conn = findConnectionByName(connectionName);
     if (!conn) {
-        callback.call({QJSValue()});
+        callback.call({ QJSValue() });
         return;
     }
 
@@ -731,10 +739,11 @@ void NmQt::getIpv4Config(const QString& connectionName, QJSValue callback) {
     cfg.setProperty("ignoreAutoDns", false);
     cfg.setProperty("autoconnect", conn->settings()->autoconnect());
 
-    const auto ipv4 = conn->settings()->setting(NetworkManager::Setting::SettingType::Ipv4)
+    const auto ipv4 = conn->settings()
+                          ->setting(NetworkManager::Setting::SettingType::Ipv4)
                           .dynamicCast<NetworkManager::Ipv4Setting>();
     if (!ipv4) {
-        callback.call({cfg});
+        callback.call({ cfg });
         return;
     }
 
@@ -760,11 +769,10 @@ void NmQt::getIpv4Config(const QString& connectionName, QJSValue callback) {
     cfg.setProperty("dns", dns.join(QStringLiteral(", ")));
     cfg.setProperty("ignoreAutoDns", ipv4->ignoreAutoDns());
 
-    callback.call({cfg});
+    callback.call({ cfg });
 }
 
-void NmQt::setIpv4Config(const QString& connectionName, const QVariantMap& config,
-                         QJSValue callback) {
+void NmQt::setIpv4Config(const QString& connectionName, const QVariantMap& config, QJSValue callback) {
     const auto conn = findConnectionByName(connectionName);
     if (!conn) {
         invokeCallback(callback, false, {}, QStringLiteral("Connection not found"), -1);
@@ -781,8 +789,8 @@ void NmQt::setIpv4Config(const QString& connectionName, const QVariantMap& confi
     const QString gatewayStr = config.value(QStringLiteral("gateway")).toString().trimmed();
     const QString dnsStr = config.value(QStringLiteral("dns")).toString().trimmed();
 
-    auto ipv4 = settings->setting(NetworkManager::Setting::SettingType::Ipv4)
-                    .dynamicCast<NetworkManager::Ipv4Setting>();
+    auto ipv4 =
+        settings->setting(NetworkManager::Setting::SettingType::Ipv4).dynamicCast<NetworkManager::Ipv4Setting>();
     if (!ipv4) {
         invokeCallback(callback, false, {}, QStringLiteral("No IPv4 setting"), -1);
         return;
@@ -807,7 +815,7 @@ void NmQt::setIpv4Config(const QString& connectionName, const QVariantMap& confi
         addr.setPrefixLength(prefix);
         if (!gatewayStr.isEmpty())
             addr.setGateway(QHostAddress(gatewayStr));
-        ipv4->setAddresses({addr});
+        ipv4->setAddresses({ addr });
         ipv4->setGateway(gatewayStr);
     } else {
         ipv4->setMethod(NetworkManager::Ipv4Setting::Automatic);
@@ -830,8 +838,7 @@ void NmQt::setIpv4Config(const QString& connectionName, const QVariantMap& confi
 
     QDBusPendingReply<> reply = conn->update(settings->toMap());
     auto* watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this,
-            [this, callback](QDBusPendingCallWatcher* w) {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, callback](QDBusPendingCallWatcher* w) {
         w->deleteLater();
         QDBusPendingReply<> r = *w;
         if (r.isError()) {
@@ -854,8 +861,7 @@ void NmQt::setAutoconnect(const QString& connectionName, bool enabled, QJSValue 
 
     QDBusPendingReply<> reply = conn->update(settings->toMap());
     auto* watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this,
-            [this, callback](QDBusPendingCallWatcher* w) {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, callback](QDBusPendingCallWatcher* w) {
         w->deleteLater();
         QDBusPendingReply<> r = *w;
         if (r.isError()) {
@@ -866,8 +872,8 @@ void NmQt::setAutoconnect(const QString& connectionName, bool enabled, QJSValue 
     });
 }
 
-void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
-                            const QString& security, bool hidden, QJSValue callback) {
+void NmQt::addHiddenNetwork(
+    const QString& ssid, const QString& password, const QString& security, bool hidden, QJSValue callback) {
     if (ssid.isEmpty()) {
         invokeCallback(callback, false, {}, QStringLiteral("No SSID specified"), -1);
         return;
@@ -893,8 +899,7 @@ void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
         QDBusPendingReply<QDBusObjectPath> reply =
             NetworkManager::activateConnection(existing->path(), wifiDev->uni(), QString());
         auto* watcher = new QDBusPendingCallWatcher(reply, this);
-        connect(watcher, &QDBusPendingCallWatcher::finished, this,
-                [this, ssid, callback](QDBusPendingCallWatcher* w) {
+        connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, ssid, callback](QDBusPendingCallWatcher* w) {
             w->deleteLater();
             QDBusPendingReply<QDBusObjectPath> r = *w;
             if (r.isError()) {
@@ -902,6 +907,8 @@ void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
                 emit connectingSsidChanged();
                 invokeCallback(callback, false, {}, r.error().message(), -1);
             } else {
+                m_connectingSsid.clear();
+                emit connectingSsidChanged();
                 invokeCallback(callback, true, QStringLiteral("Connection activated"));
             }
         });
@@ -912,9 +919,10 @@ void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
 
     NetworkManager::ConnectionSettings settings(NetworkManager::ConnectionSettings::Wireless);
     settings.setId(ssid);
+    settings.setUuid(NetworkManager::ConnectionSettings::createNewUuid());
 
-    auto wirelessSetting = settings.setting(NetworkManager::Setting::SettingType::Wireless)
-                               .dynamicCast<NetworkManager::WirelessSetting>();
+    auto wirelessSetting =
+        settings.setting(NetworkManager::Setting::SettingType::Wireless).dynamicCast<NetworkManager::WirelessSetting>();
     if (!wirelessSetting) {
         invokeCallback(callback, false, {}, QStringLiteral("Could not create wireless settings"), -1);
         return;
@@ -945,8 +953,7 @@ void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
     emit connectingSsidChanged();
 
     auto* watcher = new QDBusPendingCallWatcher(reply, this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this,
-            [this, ssid, callback](QDBusPendingCallWatcher* w) {
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, ssid, callback](QDBusPendingCallWatcher* w) {
         w->deleteLater();
         QDBusPendingReply<QDBusObjectPath, QDBusObjectPath> r = *w;
         if (r.isError()) {
@@ -954,6 +961,8 @@ void NmQt::addHiddenNetwork(const QString& ssid, const QString& password,
             emit connectingSsidChanged();
             invokeCallback(callback, false, {}, r.error().message(), -1);
         } else {
+            m_connectingSsid.clear();
+            emit connectingSsidChanged();
             refreshSavedConnections();
             invokeCallback(callback, true, QStringLiteral("Hidden network added"));
         }
@@ -977,7 +986,7 @@ QString NmQt::ethernetDataUsage(const QString& interfaceName) const {
     if (interfaceName.isEmpty())
         return {};
     quint64 total = 0;
-    const char* names[] = {"rx_bytes", "tx_bytes"};
+    const char* names[] = { "rx_bytes", "tx_bytes" };
     for (const char* name : names) {
         QFile f(QStringLiteral("/sys/class/net/%1/statistics/%2").arg(interfaceName, name));
         if (f.open(QIODevice::ReadOnly))
@@ -985,8 +994,8 @@ QString NmQt::ethernetDataUsage(const QString& interfaceName) const {
     }
     if (total == 0)
         return {};
-    const QStringList units = {QStringLiteral("B"), QStringLiteral("KB"), QStringLiteral("MB"),
-                               QStringLiteral("GB"), QStringLiteral("TB")};
+    const QStringList units = { QStringLiteral("B"), QStringLiteral("KB"), QStringLiteral("MB"), QStringLiteral("GB"),
+        QStringLiteral("TB") };
     double value = static_cast<double>(total);
     int i = 0;
     while (value >= 1024.0 && i < units.size() - 1) {
@@ -1031,13 +1040,12 @@ void NmQt::onConnectionsChanged() {
     refreshVpnConnections();
 }
 
-void NmQt::onDeviceStateChanged(NetworkManager::Device::State newState,
-                                 NetworkManager::Device::State oldState,
-                                 NetworkManager::Device::StateChangeReason /*reason*/) {
+void NmQt::onDeviceStateChanged(NetworkManager::Device::State newState, NetworkManager::Device::State oldState,
+    NetworkManager::Device::StateChangeReason /*reason*/) {
     Q_UNUSED(oldState)
-    const bool wasConnecting = (oldState == NetworkManager::Device::State::NeedAuth
-                             || oldState == NetworkManager::Device::State::ConfiguringHardware
-                             || oldState == NetworkManager::Device::State::ConfiguringIp);
+    const bool wasConnecting = (oldState == NetworkManager::Device::State::NeedAuth ||
+                                oldState == NetworkManager::Device::State::ConfiguringHardware ||
+                                oldState == NetworkManager::Device::State::ConfiguringIp);
 
     if (wasConnecting) {
         m_connectingSsid.clear();
@@ -1056,9 +1064,7 @@ void NmQt::onDeviceStateChanged(NetworkManager::Device::State newState,
         if (auto* dev = qobject_cast<NetworkManager::Device*>(sender())) {
             auto* wd = qobject_cast<NetworkManager::WirelessDevice*>(dev);
             if (wd) {
-                emit connectionFailed(wd->activeAccessPoint()
-                                      ? wd->activeAccessPoint()->ssid()
-                                      : QString());
+                emit connectionFailed(wd->activeAccessPoint() ? wd->activeAccessPoint()->ssid() : QString());
             }
         }
         break;
@@ -1116,15 +1122,12 @@ void NmQt::refreshNetworks() {
     }
 
     // Connect device state changes (unique connection guards against duplicates)
-    connect(wifiDev.data(), &NetworkManager::Device::stateChanged,
-            this, &NmQt::onDeviceStateChanged,
-            Qt::UniqueConnection);
-    connect(wifiDev.data(), &NetworkManager::WirelessDevice::accessPointAppeared,
-            this, &NmQt::onAccessPointAppeared,
-            Qt::UniqueConnection);
-    connect(wifiDev.data(), &NetworkManager::WirelessDevice::accessPointDisappeared,
-            this, &NmQt::onAccessPointDisappeared,
-            Qt::UniqueConnection);
+    connect(
+        wifiDev.data(), &NetworkManager::Device::stateChanged, this, &NmQt::onDeviceStateChanged, Qt::UniqueConnection);
+    connect(wifiDev.data(), &NetworkManager::WirelessDevice::accessPointAppeared, this, &NmQt::onAccessPointAppeared,
+        Qt::UniqueConnection);
+    connect(wifiDev.data(), &NetworkManager::WirelessDevice::accessPointDisappeared, this,
+        &NmQt::onAccessPointDisappeared, Qt::UniqueConnection);
 
     // Build AP list from NM cache
     QVariantList newList;
@@ -1133,8 +1136,7 @@ void NmQt::refreshNetworks() {
     QHash<QString, int> networkIndexes;
 
     for (const auto& apPath : aps) {
-        NetworkManager::AccessPoint::Ptr ap =
-            wifiDev->findAccessPoint(apPath);
+        NetworkManager::AccessPoint::Ptr ap = wifiDev->findAccessPoint(apPath);
         if (!ap || ap->ssid().isEmpty())
             continue;
 
@@ -1148,8 +1150,8 @@ void NmQt::refreshNetworks() {
         auto wpaFlags = ap->wpaFlags();
         auto rsnFlags = ap->rsnFlags();
         if (wpaFlags || rsnFlags) {
-            if (rsnFlags.testFlag(NetworkManager::AccessPoint::KeyMgmtSAE)
-                && rsnFlags.testFlag(NetworkManager::AccessPoint::KeyMgmtPsk))
+            if (rsnFlags.testFlag(NetworkManager::AccessPoint::KeyMgmtSAE) &&
+                rsnFlags.testFlag(NetworkManager::AccessPoint::KeyMgmtPsk))
                 security = QStringLiteral("WPA2/WPA3");
             else if (rsnFlags.testFlag(NetworkManager::AccessPoint::KeyMgmtSAE))
                 security = QStringLiteral("WPA3");
@@ -1164,17 +1166,16 @@ void NmQt::refreshNetworks() {
             security = QStringLiteral("WEP");
         }
 
-        auto map = buildApMap(ap->ssid(), ap->hardwareAddress(),
-                              strength, frequency, isActive, security);
+        auto map = buildApMap(ap->ssid(), ap->hardwareAddress(), strength, frequency, isActive, security);
         const int existingIndex = networkIndexes.value(ap->ssid(), -1);
         if (existingIndex < 0) {
             networkIndexes.insert(ap->ssid(), newList.size());
             newList.append(map);
         } else {
             const auto existing = newList.at(existingIndex).toMap();
-            const bool replace = (isActive && !existing.value("active").toBool())
-                || (!isActive && !existing.value("active").toBool()
-                    && strength > existing.value("strength").toInt());
+            const bool replace =
+                (isActive && !existing.value("active").toBool()) ||
+                (!isActive && !existing.value("active").toBool() && strength > existing.value("strength").toInt());
             if (replace)
                 newList[existingIndex] = map;
         }
@@ -1284,11 +1285,9 @@ void NmQt::refreshSavedConnections() {
                 ssids.append(wirelessSetting->ssid());
 
                 QString keyMgmt;
-                const auto sec = conn->settings()->setting(
-                    NetworkManager::Setting::SettingType::WirelessSecurity);
+                const auto sec = conn->settings()->setting(NetworkManager::Setting::SettingType::WirelessSecurity);
                 if (sec) {
-                    const auto* secSetting =
-                        static_cast<NetworkManager::WirelessSecuritySetting*>(sec.data());
+                    const auto* secSetting = static_cast<NetworkManager::WirelessSecuritySetting*>(sec.data());
                     keyMgmt = keyMgmtToString(secSetting->keyMgmt());
                 }
                 if (keyMgmt.isEmpty())
@@ -1446,8 +1445,8 @@ void NmQt::refreshEthernetDeviceDetails(const QString& interfaceName) {
             ethDev = NetworkManager::findDeviceByIpFace(interfaceName);
     } else {
         for (const auto& dev : NetworkManager::networkInterfaces()) {
-            if (dev && dev->type() == NetworkManager::Device::Ethernet
-                && dev->state() == NetworkManager::Device::State::Activated) {
+            if (dev && dev->type() == NetworkManager::Device::Ethernet &&
+                dev->state() == NetworkManager::Device::State::Activated) {
                 ethDev = dev;
                 break;
             }
@@ -1502,9 +1501,8 @@ void NmQt::refreshEthernetDeviceDetails(const QString& interfaceName) {
 //  Static helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-QVariantMap NmQt::buildApMap(const QString& ssid, const QString& bssid,
-                              int strength, int frequency,
-                              bool active, const QString& security) {
+QVariantMap NmQt::buildApMap(
+    const QString& ssid, const QString& bssid, int strength, int frequency, bool active, const QString& security) {
     QVariantMap map;
     map["ssid"] = ssid;
     map["bssid"] = bssid;
@@ -1516,9 +1514,8 @@ QVariantMap NmQt::buildApMap(const QString& ssid, const QString& bssid,
     return map;
 }
 
-void NmQt::invokeCallback(QJSValue callback, bool success,
-                           const QString& output, const QString& error,
-                           int exitCode, bool needsPassword) {
+void NmQt::invokeCallback(
+    QJSValue callback, bool success, const QString& output, const QString& error, int exitCode, bool needsPassword) {
     if (!callback.isCallable())
         return;
 
@@ -1533,7 +1530,7 @@ void NmQt::invokeCallback(QJSValue callback, bool success,
     result.setProperty("exitCode", exitCode);
     result.setProperty("needsPassword", needsPassword);
 
-    callback.call({result});
+    callback.call({ result });
 }
 
 } // namespace caelestia::services

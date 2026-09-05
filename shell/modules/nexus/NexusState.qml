@@ -20,6 +20,9 @@ QtObject {
     property string selectedEthernetInterface
     property bool networkDetailsFromSaved
 
+    // Pre-filled SSID for AddNetworkPage when password is needed for an unsaved network
+    property string pendingNetworkSsid: ""
+
     signal close
     signal subPageOpened(idx: int)
     signal subPageClosed
