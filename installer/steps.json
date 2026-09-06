@@ -1,0 +1,27 @@
+{
+  "phases": [
+    { "id": "prepare", "name": "Prepare" },
+    { "id": "packages", "name": "Packages" },
+    { "id": "configure", "name": "Configure" },
+    { "id": "build", "name": "Build" },
+    { "id": "finalize", "name": "Finalize" }
+  ],
+  "steps": [
+    { "name": "Refresh mirrors", "script": "scripts/00-refresh-mirrors.sh", "phase": "prepare" },
+    { "name": "Update system", "script": "scripts/00a-system-update.sh", "phase": "prepare" },
+    { "name": "Ensure prerequisites", "script": "scripts/01-ensure-prereqs.sh", "phase": "prepare" },
+    { "name": "Update submodules", "script": "scripts/02a-submodules.sh", "phase": "prepare" },
+    { "name": "Back up current setup", "script": "scripts/00-backup-themes.sh", "phase": "prepare" },
+    { "name": "Install packages", "script": "scripts/02-all-packages.sh", "phase": "packages" },
+    { "name": "Install lock screen greeter", "script": "scripts/02-packages.sh", "phase": "packages" },
+    { "name": "Deploy config files", "script": "scripts/03-deploy-configs.sh", "phase": "configure" },
+    { "name": "Download wallpapers", "script": "scripts/03a-wallpapers.sh", "phase": "configure" },
+    { "name": "Apply KDE theme", "script": "scripts/04-deploy-kde.sh", "phase": "configure" },
+    { "name": "Enable system services", "script": "scripts/06-services.sh", "phase": "configure" },
+    { "name": "Configure KDE applications", "script": "scripts/07-kde-apps.sh", "phase": "configure" },
+    { "name": "Build Caelestia shell", "script": "scripts/08-build-shell.sh", "phase": "build" },
+    { "name": "Apply system tweaks", "script": "scripts/09-system-tweaks.sh", "phase": "finalize" },
+    { "name": "Create autostart entries", "script": "scripts/10-autostart.sh", "phase": "finalize" },
+    { "name": "Install optional components", "script": "scripts/11-optional-apps.sh", "phase": "finalize" }
+  ]
+}

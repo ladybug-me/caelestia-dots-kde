@@ -8,10 +8,11 @@ Validates cross-cutting concerns:
   - Installer entrypoints and referenced scripts exist
   - Submodules are properly initialized
   - Workflow files are valid YAML
-  - No duplicate script step names in Runner.cpp
+  - Installer step manifest (steps.json) is consistent
   - Git-tracked docs/ files referenced in installer_config.md exist
 """
 
+import json
 import py_compile
 import re
 import shutil
@@ -111,29 +112,34 @@ class MetadataConsistencyTests(unittest.TestCase):
 
 
 class InstallerTests(unittest.TestCase):
+    def _load_steps_json(self) -> dict:
+        path = ROOT / "installer" / "steps.json"
+        self.assertTrue(path.is_file(), f"Missing installer step manifest: {path.relative_to(ROOT).as_posix()}")
+        return json.loads(path.read_text(encoding="utf-8"))
+
     def test_installer_entrypoints_exist(self) -> None:
         for rel_path in INSTALLER_ENTRYPOINTS:
             self.assertTrue((ROOT / rel_path).is_file(), f"Missing installer entrypoint: {rel_path.as_posix()}")
 
-    def test_setup_references_existing_step_scripts(self) -> None:
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        matches = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
+    def test_step_scripts_exist(self) -> None:
+        """steps.json is the source of truth for installer steps; every script must exist."""
+        data = self._load_steps_json()
+        steps = data.get("steps", [])
+        self.assertTrue(steps, "steps.json must define at least one step")
 
-        self.assertTrue(matches, "No installer steps found in Runner.cpp")
-
-        for rel_path in matches:
-            normalized = Path(rel_path.replace("\\", "/"))
-            resolved = ROOT / normalized
-            self.assertTrue(resolved.is_file(), f"Missing installer step referenced by Runner.cpp: {resolved.relative_to(ROOT).as_posix()}")
+        for step in steps:
+            script = step.get("script")
+            self.assertTrue(script, f"Step missing 'script': {step!r}")
+            resolved = ROOT / Path(str(script).replace("\\", "/"))
+            self.assertTrue(resolved.is_file(), f"Missing installer step script: {script}")
 
     def test_no_duplicate_step_names(self) -> None:
-        """Runner.cpp must not define two steps with the same display name."""
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        names = re.findall(r'\{"([^"]+)",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
-        display_names = [n[0] for n in names]
+        """steps.json must not define two steps with the same display name."""
+        data = self._load_steps_json()
+        names = [step.get("name") for step in data.get("steps", [])]
 
         seen: dict[str, int] = {}
-        for name in display_names:
+        for name in names:
             seen[name] = seen.get(name, 0) + 1
 
         duplicates = {name: count for name, count in seen.items() if count > 1}
@@ -142,26 +148,16 @@ class InstallerTests(unittest.TestCase):
             f"Duplicate installer step names: {duplicates}",
         )
 
-    def test_runner_steps_ordered(self) -> None:
-        """Installer step numbering (00-*, 01-*, ...) should match Runner.cpp order.
+    def test_step_phases_reference_known_phases(self) -> None:
+        """Every step must reference a phase id declared in steps.json."""
+        data = self._load_steps_json()
+        phase_ids = {p.get("id") for p in data.get("phases", [])}
 
-        The glob result order from git may differ from Runner.cpp order; this test
-        is informational - Runner.cpp defines the canonical order, and step scripts
-        named with numbered prefixes should be consistent with it.
-        """
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
-        scripts = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
-
-        prev_num = -1
-        for script in scripts:
-            basename = Path(script).name
-            match = re.match(r"^(\d+)", basename)
-            if match:
-                num = int(match.group(1))
-                if num < prev_num:
-                    # Pre-existing ordering quirk - skip assertion
-                    pass
-                prev_num = num
+        for step in data.get("steps", []):
+            self.assertIn(
+                step.get("phase"), phase_ids,
+                f"Step references unknown phase: {step.get('phase')!r}",
+            )
 
 
 class VersionConsistencyTests(unittest.TestCase):
@@ -271,16 +267,15 @@ class DocsReferenceTests(unittest.TestCase):
 
     def test_installer_config_references_valid_links(self) -> None:
         """docs/installer_config.md should reference existing source files."""
-        config_doc = ROOT / "docs" / "installer_config.md"
+        config_doc = ROOT / ".github" / "docs" / "installer_config.md"
         if not config_doc.is_file():
             return
 
         text = config_doc.read_text(encoding="utf-8")
-        # Check that Runner.cpp is referenced and exists
-        if "Runner.cpp" in text:
+        if "steps.json" in text:
             self.assertTrue(
-                (ROOT / "installer" / "src" / "Runner.cpp").is_file(),
-                "installer_config.md references Runner.cpp which doesn't exist"
+                (ROOT / "installer" / "steps.json").is_file(),
+                "installer_config.md references steps.json which doesn't exist"
             )
 
 

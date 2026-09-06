@@ -6,6 +6,8 @@ Validates:
      ANSI codes match expected pattern.
   2. installer/menu.json - valid menu tree, unique IDs, all action IDs are recognized,
      select options are non-empty, text defaults are strings.
+  3. installer/steps.json - valid phase/step manifest, unique phase ids and step
+     names, every step references a known phase.
 """
 
 import json
@@ -263,6 +265,91 @@ def validate_menu(filepath: Path) -> None:
         ok("menu.json passed validation")
 
 
+# ─── steps.json validation ───
+
+
+def validate_steps(filepath: Path) -> None:
+    print(f"\n{BOLD}=== Validating {filepath.relative_to(ROOT)} ==={RESET}")
+
+    try:
+        data = json.loads(filepath.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        error(f"steps.json: invalid JSON - {e}")
+        return
+
+    if not isinstance(data, dict):
+        error("steps.json: root must be an object")
+        return
+
+    phases = data.get("phases")
+    steps = data.get("steps")
+
+    if not isinstance(phases, list) or len(phases) == 0:
+        error("steps.json: 'phases' must be a non-empty array")
+        return
+    if not isinstance(steps, list) or len(steps) == 0:
+        error("steps.json: 'steps' must be a non-empty array")
+        return
+
+    phase_ids: set[str] = set()
+    phase_names: set[str] = set()
+    for i, phase in enumerate(phases):
+        path = f"phases[{i}]"
+        if not isinstance(phase, dict):
+            error(f"steps.json: {path} must be an object")
+            continue
+        pid = phase.get("id")
+        name = phase.get("name")
+        if not isinstance(pid, str) or not pid.strip():
+            error(f"steps.json: {path} must have a non-empty string 'id'")
+        elif pid in phase_ids:
+            error(f"steps.json: {path} duplicate phase id '{pid}'")
+        else:
+            phase_ids.add(pid)
+        if not isinstance(name, str) or not name.strip():
+            error(f"steps.json: {path} must have a non-empty string 'name'")
+        elif name in phase_names:
+            error(f"steps.json: {path} duplicate phase name '{name}'")
+        else:
+            phase_names.add(name)
+
+    step_names: set[str] = set()
+    used_phases: set[str] = set()
+    for i, step in enumerate(steps):
+        path = f"steps[{i}]"
+        if not isinstance(step, dict):
+            error(f"steps.json: {path} must be an object")
+            continue
+
+        name = step.get("name")
+        if not isinstance(name, str) or not name.strip():
+            error(f"steps.json: {path} must have a non-empty string 'name'")
+        elif name in step_names:
+            error(f"steps.json: {path} duplicate step name '{name}'")
+        else:
+            step_names.add(name)
+
+        script = step.get("script")
+        if not isinstance(script, str) or not script.strip():
+            error(f"steps.json: {path} must have a non-empty string 'script'")
+        elif not script.startswith("scripts/"):
+            warn(f"steps.json: {path} script '{script}' is not under scripts/")
+
+        phase = step.get("phase")
+        if not isinstance(phase, str) or not phase.strip():
+            error(f"steps.json: {path} must have a non-empty string 'phase'")
+        elif phase in phase_ids:
+            used_phases.add(phase)
+        else:
+            error(f"steps.json: {path} references unknown phase '{phase}'")
+
+    for pid in phase_ids - used_phases:
+        warn(f"steps.json: phase '{pid}' has no steps")
+
+    if EXIT_CODE == 0:
+        ok("steps.json passed validation")
+
+
 def main() -> int:
     theme_path = ROOT / "installer" / "theme.json"
     menu_path = ROOT / "installer" / "menu.json"
@@ -276,6 +363,13 @@ def main() -> int:
         validate_menu(menu_path)
     else:
         error(f"{menu_path.relative_to(ROOT)} not found")
+
+    steps_path = ROOT / "installer" / "steps.json"
+
+    if steps_path.is_file():
+        validate_steps(steps_path)
+    else:
+        error(f"{steps_path.relative_to(ROOT)} not found")
 
     print()
     if EXIT_CODE == 0:
