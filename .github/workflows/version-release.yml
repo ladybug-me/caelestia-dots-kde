@@ -279,28 +279,20 @@ jobs:
   # release.
   # ═══════════════════════════════════════════════════════════
   build-installer:
-    name: Build installer TUI (${{ matrix.arch }})
+    name: Build installer TUI (Go)
     needs: version-release
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-22.04
-            arch: x86_64
-          - runner: ubuntu-24.04-arm
-            arch: aarch64
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Build Dependencies
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq cmake g++ make
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: installer/go.mod
+          cache-dependency-path: installer/go.sum
 
       - name: Load Release Tag
         run: |
@@ -309,10 +301,12 @@ jobs:
           echo "TAG=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build Installer TUI
+        working-directory: installer
         run: |
           set -euo pipefail
-          cmake -B installer/build -DCMAKE_BUILD_TYPE=Release installer
-          cmake --build installer/build -- -j"$(nproc)"
+          TUI_VERSION="$(tr -d '[:space:]' < tui.version)"
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o "caelestia-install-x86_64-v${TUI_VERSION}" .
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -mod=vendor -o "caelestia-install-aarch64-v${TUI_VERSION}" .
 
       - name: Attach Prebuilt Installer to Release
         env:
@@ -320,5 +314,7 @@ jobs:
         run: |
           set -euo pipefail
           TUI_VERSION="$(tr -d '[:space:]' < installer/tui.version)"
-          cp installer/build/caelestia-install "caelestia-install-${{ matrix.arch }}-v${TUI_VERSION}"
-          gh release upload "$TAG" "caelestia-install-${{ matrix.arch }}-v${TUI_VERSION}" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" \
+            "installer/caelestia-install-x86_64-v${TUI_VERSION}" \
+            "installer/caelestia-install-aarch64-v${TUI_VERSION}" \
+            --repo "$GITHUB_REPOSITORY" --clobber

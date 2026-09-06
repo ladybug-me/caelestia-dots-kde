@@ -91,6 +91,33 @@ jobs:
         run: python3 .github/scripts/validate_json_configs.py
 
   # ═══════════════════════════════════════════════════════════
+  # Installer Go - build, vet, and test the Bubble Tea TUI
+  # ═══════════════════════════════════════════════════════════
+  installer-go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: installer
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: installer/go.mod
+          cache-dependency-path: installer/go.sum
+
+      - name: Build
+        run: CGO_ENABLED=0 go build -mod=vendor ./...
+
+      - name: Vet
+        run: go vet -mod=vendor ./...
+
+      - name: Test
+        run: go test -mod=vendor ./...
+
+  # ═══════════════════════════════════════════════════════════
   # Job 4: File hygiene - large files, whitespace, merge conflicts
   # ═══════════════════════════════════════════════════════════
   file-hygiene:

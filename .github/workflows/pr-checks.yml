@@ -77,9 +77,9 @@ jobs:
             echo "QML files outside shell/: $NON_SHELL_QML" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Detect installer C++ changes - these affect the TUI installer
-          if grep -q '^installer/src/.*\.(cpp|hpp|h)$' /tmp/changed_files.txt; then
-            echo "Installer C++ changes - compilation will be verified by validate workflow." >> $GITHUB_STEP_SUMMARY
+          # Detect installer Go changes - these affect the TUI installer
+          if grep -Eq '^installer/.*\.go$' /tmp/changed_files.txt; then
+            echo "Installer Go changes - build, vet, and tests run in the validate workflow." >> $GITHUB_STEP_SUMMARY
           fi
 
           # Detect shell CMakeLists.txt changes - build system changes

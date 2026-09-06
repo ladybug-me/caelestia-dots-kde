@@ -249,25 +249,23 @@ else
     fi
     # Reuse a previously compiled binary that matches this checkout's TUI
     # version so repeated runs don't recompile every time.
-    STAMP="$BUNDLE_DIR/installer/build/.tui_stamp"
+    STAMP="$BUNDLE_DIR/installer/.tui_stamp"
     if [[ -x "$BIN" && -f "$STAMP" ]] && [[ "$(cat "$STAMP" 2>/dev/null)" == "$(tui_version)" ]]; then
         stop_spinner
         echo "[OK]    Reusing compiled installer binary (matches TUI version)."
     else
-        # Compiling needs build tools; install whatever is missing first.
+        # Compiling needs the Go toolchain; install it if missing.
         MISSING_PKGS=()
-        if ! command -v g++ >/dev/null 2>&1; then MISSING_PKGS+=("g++"); fi
-        if ! command -v cmake >/dev/null 2>&1; then MISSING_PKGS+=("cmake"); fi
-        if ! command -v make >/dev/null 2>&1; then MISSING_PKGS+=("make"); fi
+        if ! command -v go >/dev/null 2>&1; then MISSING_PKGS+=("go"); fi
         if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
             stop_spinner
             echo "Missing build tools: ${MISSING_PKGS[*]}. Installing..."
             if [[ "$BASE_DISTRO" == "arch" ]]; then
-                run_arch_pacman_install base-devel cmake
+                run_arch_pacman_install go
             elif [[ "$BASE_DISTRO" == "fedora" ]]; then
-                sudo dnf install -y gcc-c++ cmake make
+                sudo dnf install -y golang
             elif [[ "$BASE_DISTRO" == "debian" ]]; then
-                sudo apt-get update && sudo apt-get install -y build-essential g++ cmake make
+                sudo apt-get update && sudo apt-get install -y golang-go
             else
                 echo "Could not auto-install build tools. Please install manually: ${MISSING_PKGS[*]}"
                 exit 1
@@ -275,13 +273,11 @@ else
             start_spinner
         fi
 
-        BUILD_DIR="$BUNDLE_DIR/installer/build"
+        BUILD_DIR="$BUNDLE_DIR/installer"
         BUILD_LOG="/tmp/caelestia_build.log"
-        mkdir -p "$BUILD_DIR"
         (
             cd "$BUILD_DIR" || exit 1
-            cmake -DCMAKE_BUILD_TYPE=Release .. >"$BUILD_LOG" 2>&1 || exit 1
-            make -j"$(nproc 2>/dev/null || echo 1)" >>"$BUILD_LOG" 2>&1 || exit 1
+            CGO_ENABLED=0 go build -mod=vendor -o caelestia-install . >"$BUILD_LOG" 2>&1 || exit 1
         ) || {
             stop_spinner
             echo "[FATAL] Failed to build the Caelestia installer." >&2
