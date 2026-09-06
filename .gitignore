@@ -18,6 +18,10 @@ __pycache__/
 *.py[cod]
 
 installer/build/
+installer/installer.exe
+installer/caelestia-install
+installer/caelestia-install-*
+installer/.tui_stamp
 caelestia-install
 build
 
