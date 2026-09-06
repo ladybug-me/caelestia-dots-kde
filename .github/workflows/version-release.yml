@@ -208,10 +208,27 @@ jobs:
       - name: Install Shell Build Dependencies
         run: |
           set -euo pipefail
-          pacman -Syu --noconfirm --needed git github-cli cmake ninja \
+          pacman -Syu --noconfirm --needed git github-cli cmake ninja meson autoconf-archive \
             qt6-base qt6-declarative qt6-shadertools qt6-wayland qt6-tools \
             kwindowsystem kguiaddons kglobalaccel kconfig networkmanager-qt pulseaudio-qt \
-            libqalculate pipewire aubio cava lm_sensors extra-cmake-modules
+            libqalculate pipewire libpipewire aubio lm_sensors extra-cmake-modules \
+            fftw ncurses alsa-lib iniparser libglvnd sdl2 portaudio sndio libpulse
+
+      # Arch's `cava` package only ships the CLI binary, not the shared
+      # library/headers the shell links against (see shell/plugin/CMakeLists.txt).
+      # Build `libcava` from AUR instead so pkg-config/find_library actually
+      # picks it up and the audio visualizer is compiled into the release asset.
+      - name: Build and Install libcava (AUR)
+        run: |
+          set -euo pipefail
+          useradd -m builder
+          su builder -c '
+            set -euo pipefail
+            git clone --depth 1 https://aur.archlinux.org/libcava.git /tmp/libcava
+            cd /tmp/libcava
+            makepkg --noconfirm
+          '
+          pacman -U --noconfirm /tmp/libcava/libcava-*.pkg.tar.zst
 
       - name: Load Release Tag
         run: |
