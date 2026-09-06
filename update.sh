@@ -8,6 +8,7 @@ set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/prompt.sh"
 
 section() {
     local title="$1"
@@ -55,21 +56,11 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
         info "Using provided branch: $BRANCH"
     else
         if [ -t 1 ]; then
-            BRANCHES="main dev"
             echo
             info "Available remote branches (default: main):"
-            select BRANCH in $BRANCHES; do
-                if [ -z "$REPLY" ]; then
-                    BRANCH="main"
-                    info "Defaulted to branch: $BRANCH"
-                    break
-                elif [ -n "$BRANCH" ]; then
-                    info "Selected branch: $BRANCH"
-                    break
-                else
-                    warn "Invalid selection. Please enter a valid number or press Enter for main."
-                fi
-            done
+            BRANCH="$(choose "Select a branch" main dev)"
+            BRANCH="${BRANCH:-main}"
+            info "Selected branch: $BRANCH"
         else
             BRANCH=$(git -C "$BUNDLE_DIR" rev-parse --abbrev-ref HEAD)
             if [ -z "$BRANCH" ] || [ "$BRANCH" == "HEAD" ]; then

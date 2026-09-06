@@ -19,6 +19,7 @@ BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
 export BUNDLE_DIR
 export INSTALL_START_EPOCH="$(date +%s)"
+source "$SCRIPTS_DIR/lib/prompt.sh"
 
 # Prevent concurrent runs.
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/caelestia-setup.lock"
@@ -108,49 +109,38 @@ normalize_line_endings_first() {
     fi
 
     echo "[WARN]  Detected ${#crlf_files[@]} file(s) with CRLF line endings."
-    while true; do
-        read -r -p "Convert all files under this repo to LF with dos2unix? [Y/n]: " convert_choice
-        convert_choice="${convert_choice:-y}"
+    if confirm_yes "Convert all files under this repo to LF with dos2unix?"; then
+        if ! command -v dos2unix >/dev/null 2>&1; then
+            echo "[WARN]  dos2unix is not installed. Attempting to install it now..."
+            case "$BASE_DISTRO" in
+                arch)
+                    run_arch_pacman_install dos2unix || return 1
+                    ;;
+                fedora)
+                    sudo dnf install -y dos2unix || return 1
+                    ;;
+                debian)
+                    sudo apt-get update && sudo apt-get install -y dos2unix || return 1
+                    ;;
+                *)
+                    echo "[WARN]  Could not detect distro for automatic dos2unix installation."
+                    return 1
+                    ;;
+            esac
+            echo "[OK]    dos2unix installed."
+        fi
 
-        case "${convert_choice,,}" in
-            y|yes)
-                if ! command -v dos2unix >/dev/null 2>&1; then
-                    echo "[WARN]  dos2unix is not installed. Attempting to install it now..."
-                    case "$BASE_DISTRO" in
-                        arch)
-                            run_arch_pacman_install dos2unix || return 1
-                            ;;
-                        fedora)
-                            sudo dnf install -y dos2unix || return 1
-                            ;;
-                        debian)
-                            sudo apt-get update && sudo apt-get install -y dos2unix || return 1
-                            ;;
-                        *)
-                            echo "[WARN]  Could not detect distro for automatic dos2unix installation."
-                            return 1
-                            ;;
-                    esac
-                    echo "[OK]    dos2unix installed."
-                fi
+        (
+            cd "$BUNDLE_DIR" || exit 1
+            printf '%s\0' "${crlf_files[@]}" | xargs -0 -r dos2unix --
+        ) || return 1
 
-                (
-                    cd "$BUNDLE_DIR" || exit 1
-                    printf '%s\0' "${crlf_files[@]}" | xargs -0 -r dos2unix --
-                ) || return 1
-
-                echo "[OK]    Line endings normalized to LF."
-                return 0
-                ;;
-            n|no)
-                echo "[WARN]  Skipping line ending normalization by user choice."
-                return 0
-                ;;
-            *)
-                echo "Please answer with y or n."
-                ;;
-        esac
-    done
+        echo "[OK]    Line endings normalized to LF."
+        return 0
+    else
+        echo "[WARN]  Skipping line ending normalization by user choice."
+        return 0
+    fi
 }
 
 if ! normalize_line_endings_first; then

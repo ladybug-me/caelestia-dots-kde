@@ -13,6 +13,7 @@ BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Shared log helpers: canonical [INFO]/[OK]/[WARN]/[SKIP]/[ERR] markers,
 # matching the installer TUI and every step script.
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/prompt.sh"
 
 section() {
     local title="$1"
@@ -41,13 +42,11 @@ else
 fi
 
 if [[ "$BASE_DISTRO" == "unknown" ]]; then
-    echo "Could not detect distribution. Select base:"
-    echo "  1) Arch-based   2) Fedora-based   3) Debian-based   4) Exit"
-    read -r -p "Choice [1-4]: " _dc
+    _dc="$(choose "Could not detect distribution. Select base:" "Arch-based" "Fedora-based" "Debian-based")" || die "Exiting."
     case "$_dc" in
-        1) BASE_DISTRO="arch" ;;
-        2) BASE_DISTRO="fedora" ;;
-        3) BASE_DISTRO="debian" ;;
+        Arch-based) BASE_DISTRO="arch" ;;
+        Fedora-based) BASE_DISTRO="fedora" ;;
+        Debian-based) BASE_DISTRO="debian" ;;
         *) die "Exiting." ;;
     esac
 fi
@@ -78,15 +77,13 @@ trap 'kill $_SUDO_LOOP 2>/dev/null; true' EXIT
 
 # -- Confirmation ---------------------------------------------------------------
 echo
-read -r -p "Are you sure you want to uninstall Caelestia KDE? [y/N]: " _confirm
-[[ "${_confirm,,}" == "y" || "${_confirm,,}" == "yes" ]] || die "Uninstall cancelled."
+confirm_no "Are you sure you want to uninstall Caelestia KDE?" || die "Uninstall cancelled."
 
 echo
 echo "Remove installed packages as well? This will uninstall"
 echo "tools like fish, foot, btop, fastfetch, and others."
-read -r -p "Remove packages? [y/N]: " _remove_pkgs
 REMOVE_PACKAGES=false
-[[ "${_remove_pkgs,,}" == "y" || "${_remove_pkgs,,}" == "yes" ]] && REMOVE_PACKAGES=true
+confirm_no "Remove packages?" && REMOVE_PACKAGES=true
 
 # -- Backup selection -----------------------------------------------------------
 SELECTED_BACKUP=""
@@ -99,8 +96,7 @@ SHELL_RC_RESTORED="false"
 if [[ -d "$BUNDLE_DIR/backups" ]]; then
     mapfile -t backups < <(find "$BUNDLE_DIR/backups" -mindepth 1 -maxdepth 1 -type d -name '[0-9]*_[0-9]*' | sort -r)
     if [[ ${#backups[@]} -gt 0 ]]; then
-        echo
-        echo "Available backups to restore from:"
+        backup_labels=()
         for i in "${!backups[@]}"; do
             bdir="${backups[$i]}"
             bname="$(basename "$bdir")"
@@ -118,17 +114,18 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
                 tag="${tag} [Shell: ${prev_shell_name}]"
             fi
 
-            echo "  $((i+1))) $formatted_date$tag"
+            backup_labels+=("$((i+1))) $formatted_date$tag")
         done
-        echo "  0) None (Do not restore from backup)"
+        backup_labels+=("0) None (Do not restore from backup)")
 
         while true; do
-            read -r -p "Select a backup to restore [1]: " _bsel
+            _bsel_choice="$(choose "Select a backup to restore:" "${backup_labels[@]}")" || { SELECTED_BACKUP=""; break; }
+            _bsel="${_bsel_choice%%\)*}"
             _bsel="${_bsel:-1}"
             if [[ "$_bsel" == "0" ]]; then
                 SELECTED_BACKUP=""
                 break
-            elif [[ "$_bsel" -ge 1 ]] && [[ "$_bsel" -le "${#backups[@]}" ]]; then
+            elif [[ "$_bsel" =~ ^[0-9]+$ ]] && (( _bsel >= 1 )) && (( _bsel <= ${#backups[@]} )); then
                 SELECTED_BACKUP="${backups[$((_bsel-1))]}"
                 SELECTED_KNSV="$(find "$SELECTED_BACKUP" -maxdepth 1 -type f -name '*.knsv' | head -n 1)"
                 if [[ -n "$SELECTED_KNSV" ]]; then
@@ -140,8 +137,7 @@ if [[ -d "$BUNDLE_DIR/backups" ]]; then
                     warn "The selected backup contains Caelestia configurations."
                     echo "   Restoring this backup will NOT revert to a clean KDE desktop!"
                     echo "    Instead, it will restore a previous Caelestia state."
-                    read -r -p "Are you sure you want to restore this backup? [y/N]: " _cwarn
-                    if [[ "${_cwarn,,}" != "y" && "${_cwarn,,}" != "yes" ]]; then
+                    if ! confirm_no "Are you sure you want to restore this backup?"; then
                         echo "  Backup selection cancelled. Please select again."
                         continue
                     fi
@@ -702,8 +698,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         warn "The following packages will be removed:"
         printf '  %s\n' "${ARCH_PACKAGES[@]}"
         echo
-        read -r -p "Proceed? [y/N]: " _pkg_confirm
-        if [[ "${_pkg_confirm,,}" == "y" || "${_pkg_confirm,,}" == "yes" ]]; then
+        if confirm_no "Proceed?"; then
             # Remove packages that are actually installed; ignore errors for missing ones
             mapfile -t _installed < <(yay -Qq "${ARCH_PACKAGES[@]}" 2>/dev/null)
             if [[ ${#_installed[@]} -gt 0 ]]; then
@@ -718,8 +713,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         warn "The following packages will be removed:"
         printf '  %s\n' "${FEDORA_PACKAGES[@]}"
         echo
-        read -r -p "Proceed? [y/N]: " _pkg_confirm
-        if [[ "${_pkg_confirm,,}" == "y" || "${_pkg_confirm,,}" == "yes" ]]; then
+        if confirm_no "Proceed?"; then
             sudo dnf remove -y "${FEDORA_PACKAGES[@]}" 2>/dev/null || \
                 warn "Some packages could not be removed. Check manually."
             ok "Fedora packages removed"
@@ -730,8 +724,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         warn "The following packages will be removed:"
         printf '  %s\n' "${DEBIAN_PACKAGES[@]}"
         echo
-        read -r -p "Proceed? [y/N]: " _pkg_confirm
-        if [[ "${_pkg_confirm,,}" == "y" || "${_pkg_confirm,,}" == "yes" ]]; then
+        if confirm_no "Proceed?"; then
             sudo apt-get remove -y "${DEBIAN_PACKAGES[@]}" 2>/dev/null || \
                 warn "Some packages could not be removed. Check manually."
             ok "Debian packages removed"
@@ -778,8 +771,7 @@ done
 # Installer cache
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde"
 if [[ -d "$CACHE_DIR" ]]; then
-    read -r -p "Remove installer cache at $CACHE_DIR? [y/N]: " _cache_confirm
-    if [[ "${_cache_confirm,,}" == "y" || "${_cache_confirm,,}" == "yes" ]]; then
+    if confirm_no "Remove installer cache at $CACHE_DIR?"; then
         rm -rf "$CACHE_DIR"
         ok "Removed installer cache"
     else
@@ -817,13 +809,9 @@ warn "Please log out and back in to fully apply all changes."
 echo
 
 # Prompt user for immediate logout (same behavior as setup finalizer)
-read -r -p "Would you like to log out now? (y/N): " response
-case "$response" in
-    [yY][eE][sS]|[yY])
-        echo "Logging out..."
-        qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null
-        ;;
-    *)
-        echo "Exiting script. Please remember to log out manually later."
-        ;;
-esac
+if confirm_no "Would you like to log out now?"; then
+    echo "Logging out..."
+    qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout 2>/dev/null
+else
+    echo "Exiting script. Please remember to log out manually later."
+fi

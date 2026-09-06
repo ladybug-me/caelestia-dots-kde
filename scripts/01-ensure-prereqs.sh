@@ -42,6 +42,10 @@ if [[ "$BASE_DISTRO" == "arch" ]]; then
         info "ccache not found, installing..."
         sudo pacman -S --needed --noconfirm ccache
     fi
+    if ! command -v gum >/dev/null 2>&1; then
+        info "gum not found, installing..."
+        sudo pacman -S --needed --noconfirm gum || warn "gum is not available; prompts fall back to plain input."
+    fi
     if [[ -f /etc/makepkg.conf ]] && grep -q '!ccache' /etc/makepkg.conf; then
         info "Enabling ccache in /etc/makepkg.conf (system-wide makepkg setting)..."
         mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
@@ -68,6 +72,11 @@ elif [[ "$BASE_DISTRO" == "fedora" ]]; then
         sudo dnf install -y yq createrepo_c jq
         ok "Prerequisites installed."
     fi
+
+    if ! command -v gum >/dev/null 2>&1; then
+        info "gum not found, installing..."
+        sudo dnf install -y gum || warn "gum is not available; prompts fall back to plain input."
+    fi
 elif [[ "$BASE_DISTRO" == "debian" ]]; then
     info "Checking for Debian prerequisites (apt-get, yq, jq, build-essential)..."
 
@@ -82,5 +91,10 @@ elif [[ "$BASE_DISTRO" == "debian" ]]; then
         sudo apt-get update
         sudo apt-get install -y yq jq build-essential git curl
         ok "Prerequisites installed."
+    fi
+
+    if ! command -v gum >/dev/null 2>&1; then
+        info "gum not found, installing..."
+        sudo apt-get install -y gum || warn "gum is not available; prompts fall back to plain input."
     fi
 fi

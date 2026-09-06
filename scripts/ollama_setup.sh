@@ -9,6 +9,8 @@
 # error pointing at the wrong step.
 set -euo pipefail
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib/prompt.sh"
+
 # Harmonious HSL colors for elegant premium styling output
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -37,33 +39,28 @@ echo -e "${GREEN}Ollama daemon is now running in the background.${NC}"
 # 3. Prompt user to download models
 section "Step 3/4 - Model Selection"
 echo -e "Caelestia's AI Assistant requires at least one model. Here are some popular options:"
-echo -e "  1) llama3  (Meta's highly capable model, ~4.7GB)"
-echo -e "  2) phi3    (Microsoft's lightweight and fast model, ~2.3GB)"
-echo -e "  3) gemma   (Google's lightweight model, ~5.2GB)"
-echo -e "  4) mistral (Solid all-rounder model, ~4.1GB)"
-echo -e "  5) All of the above"
-echo -e "  6) Skip for now"
 
-read -p "Select models to download [1-6]: " MODEL_CHOICE
+MODEL_CHOICE="$(choose "Select models to download:" "llama3 (Meta's model, ~4.7GB)" "phi3 (lightweight and fast, ~2.3GB)" "gemma (Google's model, ~5.2GB)" "mistral (all-rounder, ~4.1GB)" "All of the above" "Skip for now" || true)"
 
 pull_model() {
     echo -e "${BLUE}Pulling $1...${NC}"
     ollama pull "$1"
 }
 
-case $MODEL_CHOICE in
-    1) pull_model "llama3" ;;
-    2) pull_model "phi3" ;;
-    3) pull_model "gemma" ;;
-    4) pull_model "mistral" ;;
-    5) 
+case "$MODEL_CHOICE" in
+    llama3*)  pull_model "llama3" ;;
+    phi3*)    pull_model "phi3" ;;
+    gemma*)   pull_model "gemma" ;;
+    mistral*) pull_model "mistral" ;;
+    "All of the above")
         pull_model "llama3"
         pull_model "phi3"
         pull_model "gemma"
         pull_model "mistral"
         ;;
-    6) echo -e "${YELLOW}Skipping model download. You can download models later using 'ollama pull <model>'.${NC}" ;;
-    *) echo -e "${RED}Invalid selection. Skipping model download.${NC}" ;;
+    *)
+        echo -e "${YELLOW}Skipping model download. You can download models later using 'ollama pull <model>'.${NC}"
+        ;;
 esac
 
 # 4. Final configuration and setup
