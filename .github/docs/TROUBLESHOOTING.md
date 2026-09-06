@@ -25,18 +25,16 @@ This document catalogs known failure modes, error conditions, and edge cases dis
 
 ## 1. Build & Compilation Issues
 
-### 1.1 C++ Installer Compilation Fails
+### 1.1 Installer Compilation Fails
 
-The installer compiles the `caelestia-install` TUI binary during `setup.sh`. The CMake project requires **C++20** (`CMAKE_CXX_STANDARD 20`).
+The installer compiles the `caelestia-install` TUI binary during `setup.sh`. It is a Go program built with `CGO_ENABLED=0 go build -mod=vendor`, so it needs only the Go toolchain (no C++ compiler or CMake).
 
 | Symptom | Likely Cause | Fix |
 |---|---|---|
-| `g++: command not found` | Build tools not installed | Arch: `sudo pacman -S base-devel` — Fedora: `sudo dnf install gcc-c++` |
-| `cmake: command not found` | CMake missing | Auto-installer handles this if `BASE_DISTRO` is detected; otherwise install manually |
-| `[FATAL] Failed to build the Caelestia installer` | General CMake/make error | Read build log: `cat /tmp/caelestia_build.log` |
-| Compiler error about modern C++ features | GCC older than 10 | Ensure GCC 10+ is installed: `g++ --version` |
-| Exit 139 (SIGSEGV) at runtime | C++ bug in the TUI | Check stderr log at `/tmp/caelestia_installer_err.log` |
-| Exit 127 at runtime | Missing shared library | Run `ldd` on the binary to find missing `.so` files |
+| `go: command not found` | Go toolchain missing | Arch: `sudo pacman -S go` - Fedora: `sudo dnf install golang` - Debian: `sudo apt-get install golang-go` |
+| `[FATAL] Failed to build the Caelestia installer` | `go build` error | Read build log: `cat /tmp/caelestia_build.log` |
+| Exit 139 (SIGSEGV) at runtime | Bug in the TUI or a dependency | Check stderr log at `/tmp/caelestia_installer_err.log` |
+| Exit 127 at runtime | Missing shared library | The binary is static (CGO_ENABLED=0); rebuild or use the prebuilt asset |
 
 ### 1.2 Shell / Plugin Compilation Fails
 
