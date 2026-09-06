@@ -169,40 +169,23 @@ int main(int argc, char** argv) {
     }
     check_signals();
 
-    // Phase 3: Profile -> Configure -> Review (review happens before any
-    // step runs; Back from the menu returns to the profile picker).
+    // Phase 3: Configure -> Optional apps -> Review. There is no profile
+    // picker; the Configure screen seeds from the standard menu defaults, and
+    // one yes/no asks about the optional app theming before the menu appears.
     if (!g_menu.is_null() && g_menu.contains("menu")) {
-        std::cerr << "[installer] phase 3: profile + configure + review" << std::endl;
+        std::cerr << "[installer] phase 3: configure + optional apps + review" << std::endl;
         UI::init_menu_defaults(g_menu["menu"]);
 
-        bool has_profiles = g_menu.contains("profiles") && g_menu["profiles"].is_array() &&
-                            !g_menu["profiles"].empty();
-        std::string profile_id = "custom";
-        if (has_profiles) {
-            profile_id = UI::profile_select();
-            if (profile_id.empty()) {
-                std::cerr << "[installer] user canceled at profile select" << std::endl;
-                Term::restore();
-                return 0;
-            }
-            UI::apply_profile(profile_id);
+        UI::optional_apps_prompt();
+        if (g_quit) {
+            std::cerr << "[installer] user canceled at optional apps prompt" << std::endl;
+            Term::restore();
+            return 0;
         }
-        std::string profile_title = UI::profile_title(profile_id);
 
         bool begin = false;
         while (!begin && !g_quit) {
-            if (!UI::render_menu(g_menu["menu"], "CONFIGURATION", profile_title)) {
-                if (has_profiles) {
-                    profile_id = UI::profile_select();
-                    if (profile_id.empty()) {
-                        std::cerr << "[installer] user canceled at profile select" << std::endl;
-                        Term::restore();
-                        return 0;
-                    }
-                    UI::apply_profile(profile_id);
-                    profile_title = UI::profile_title(profile_id);
-                    continue;
-                }
+            if (!UI::render_menu(g_menu["menu"], "CONFIGURATION")) {
                 std::cerr << "[installer] user backed out of menu" << std::endl;
                 Term::restore();
                 return 0;

@@ -368,20 +368,26 @@ namespace UI {
         return "exit";
     }
 
-    std::string profile_select() {
-        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array() ||
-            g_menu["profiles"].empty()) {
-            return "custom";
-        }
+    // Replaces the former profile picker. The install seeds from the standard
+    // menu defaults; this single yes/no asks the one question the picker used
+    // to encode: whether to also apply the optional app theming. Yes enables
+    // every boolean in the Applications submenu, so the choices remain visible
+    // and editable on the Configure screen.
+    void optional_apps_prompt() {
+        struct Choice {
+            bool value;
+            string title;
+            string help;
+        };
+        vector<Choice> choices = {
+            {true, "Yes - also theme my applications",
+             "Adds theming for VSCode/VSCodium, Zed, Spicetify, Discord/Equibop, "
+             "Todoist, and Firefox."},
+            {false, "No - keep the standard install",
+             "Installs the shell, packages, and theming only."},
+        };
 
-        vector<string> ids, titles, helps;
-        for (auto& p : g_menu["profiles"]) {
-            ids.push_back(p.contains("id") && p["id"].is_string() ? p["id"].get<string>() : "");
-            titles.push_back(p.contains("title") && p["title"].is_string() ? p["title"].get<string>() : ids.back());
-            helps.push_back(p.contains("help") && p["help"].is_string() ? p["help"].get<string>() : "");
-        }
-
-        int selected = 0;
+        int selected = 0; // default to Yes (the Full-install intent)
         while (!g_quit) {
             if (g_resized) { Term::get_size(); g_resized = false; }
             cout << Draw::sync_start() << Draw::clear();
@@ -391,21 +397,23 @@ namespace UI {
             int h = g_term_height - 2;
             if (w < 30 || h < 12) {
                 cout << Draw::sync_end() << flush;
-                return "custom";
+                return; // too small to render; fall back to standard defaults
             }
 
-            Draw::box(x, y, w, h, "INSTALLATION PROFILE", "primary", "on_surface");
+            Draw::box(x, y, w, h, "OPTIONAL APP THEMING", "primary", "on_surface");
             Draw::text(x + 2, y + 2, navigate_hint(), "muted");
+            Draw::text(x + 4, y + 4, "Caelestia can also theme your applications.", "on_surface");
+            Draw::text(x + 4, y + 5, "Install the optional app theming as well?", "on_surface");
 
-            for (size_t i = 0; i < titles.size(); ++i) {
+            for (size_t i = 0; i < choices.size(); ++i) {
                 string col = (int)i == selected ? "bold_primary" : "muted";
-                Draw::text(x + 4, y + 4 + (int)i,
-                           ((int)i == selected ? "> " : "  ") + titles[i], col);
+                Draw::text(x + 4, y + 7 + (int)i,
+                           ((int)i == selected ? "> " : "  ") + choices[i].title, col);
             }
 
-            int help_y = y + 5 + (int)titles.size();
+            int help_y = y + 10;
             if (help_y < y + h - 2)
-                Draw::text(x + 4, help_y, Draw::fit(helps[selected], (size_t)(w - 8)), "secondary");
+                Draw::text(x + 4, help_y, Draw::fit(choices[selected].help, (size_t)(w - 8)), "secondary");
 
             Draw::text(x + 2, y + h - 2, Draw::fit("Esc - Cancel installation", (size_t)(w - 4)), "muted");
 
@@ -415,46 +423,34 @@ namespace UI {
             if (key == "KEY_up") {
                 if (selected > 0) selected--;
             } else if (key == "KEY_down") {
-                if (selected < (int)titles.size() - 1) selected++;
+                if (selected < (int)choices.size() - 1) selected++;
             } else if (key == "enter" || key == " ") {
-                return ids[selected];
-            } else if (key == "escape") {
-                return "";
-            }
-        }
-        return "";
-    }
-
-    void init_menu_defaults(const json& items);
-
-    void apply_profile(const std::string& profile_id) {
-        g_answers.clear();
-        if (!g_menu.is_null() && g_menu.contains("menu") && g_menu["menu"].is_array())
-            init_menu_defaults(g_menu["menu"]);
-        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array()) return;
-        for (auto& p : g_menu["profiles"]) {
-            if (!p.contains("id") || !p["id"].is_string() || p["id"].get<string>() != profile_id) continue;
-            if (!p.contains("sets") || !p["sets"].is_object()) return;
-            for (auto it = p["sets"].begin(); it != p["sets"].end(); ++it) {
-                if (it.value().is_boolean())
-                    g_answers[it.key()] = it.value().get<bool>() ? "true" : "false";
-                else if (it.value().is_string())
-                    g_answers[it.key()] = it.value().get<string>();
-            }
-            return;
-        }
-    }
-
-    std::string profile_title(const std::string& profile_id) {
-        if (!g_menu.is_null() && g_menu.contains("profiles") && g_menu["profiles"].is_array()) {
-            for (auto& p : g_menu["profiles"]) {
-                if (p.contains("id") && p["id"].is_string() && p["id"].get<string>() == profile_id &&
-                    p.contains("title") && p["title"].is_string()) {
-                    return p["title"].get<string>();
+                if (choices[selected].value) {
+                    // Enable every boolean in the Applications submenu so the
+                    // optional-components step runs and the Configure screen
+                    // shows the apps pre-checked.
+                    if (!g_menu.is_null() && g_menu.contains("menu") && g_menu["menu"].is_array()) {
+                        for (auto& item : g_menu["menu"]) {
+                            if (!item.contains("type") || item["type"] != "submenu") continue;
+                            if (!item.contains("id") || item["id"].get<string>() != "menu_apps") continue;
+                            if (item.contains("items") && item["items"].is_array()) {
+                                for (auto& child : item["items"]) {
+                                    if (child.contains("type") && child["type"] == "boolean" &&
+                                        child.contains("id") && child["id"].is_string()) {
+                                        g_answers[child["id"].get<string>()] = "true";
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
+                return;
+            } else if (key == "escape") {
+                g_quit = true;
+                return;
             }
         }
-        return "Custom";
     }
 
     void init_menu_defaults(const json& items) {
@@ -914,7 +910,7 @@ namespace UI {
 }
 
 namespace UI {
-    bool render_menu(const json& menu_items, const std::string& title, const std::string& profile_title) {
+    bool render_menu(const json& menu_items, const std::string& title) {
         struct MenuItemMeta {
             string type;
             string title;
@@ -996,10 +992,6 @@ namespace UI {
 
             Draw::text(left + 2, top + 2, Draw::fit(navigate_hint(), (size_t)(w - 4)), "muted");
 
-            if (!profile_title.empty()) {
-                Draw::text(left + 2, top + 3, Draw::fit("Profile: " + profile_title, (size_t)(w - 4)), "accent");
-            }
-
             for (int i = 0; i < num_items; ++i) {
                 if (start_y + i >= top + h - 1) break;
                 string display = Draw::fit(build_display(i), (size_t)max_len);
@@ -1037,7 +1029,7 @@ namespace UI {
                     if (id == "action_review" || id == "action_proceed") return true;
                 } else if (type == "submenu") {
                     if (item.contains("items")) {
-                        bool proceed = render_menu(item["items"], selected_meta.title, profile_title);
+                        bool proceed = render_menu(item["items"], selected_meta.title);
                         if (proceed) return true; // review chosen from a submenu bubbles up
                     }
                 } else if (type == "boolean") {
