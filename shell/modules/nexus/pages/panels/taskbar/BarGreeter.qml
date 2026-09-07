@@ -33,8 +33,10 @@ PageBase {
     }
 
     function resetToDefaults(): void {
-        GlobalConfig.bar.resetOption("greeter");
-        GlobalConfig.bar.popouts.resetOption("greeter");
+        const bar = GlobalConfig.bar;
+        const popouts = GlobalConfig.bar.popouts;
+        bar.resetOption("greeter");
+        popouts.resetOption("greeter");
         GlobalConfig.save();
     }
 
