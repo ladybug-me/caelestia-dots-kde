@@ -13,55 +13,14 @@ Item {
 
     property var popouts
     property var utilities
+    property string activeTab: "notifications"
 
     readonly property bool isBarHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
     readonly property bool showPopoutSeparator: isBarHorizontal && root.visibilities.sidebar && popouts && popouts.hasCurrent && popouts.currentName !== "dockhover" && popouts.currentName !== "dockcontext" && popouts.currentName !== "activewindow" && popouts.currentName !== "greeter" && popouts.currentName !== "greetercontext" && popouts.currentName !== "github"
-
-    property string activeTab: "notifications"
-
-    // The AI tab shows when the master switch is on AND at least one provider is enabled.
-    // True while the assistant is mid-answer, so the sidebar can stay loaded long
-    // enough to finish instead of taking the request down with it when it closes.
     readonly property bool aiBusy: aiLoader.item ? (aiLoader.item.isTyping || aiLoader.item.inAgentLoop) : false
-
     readonly property bool aiEnabled: GlobalConfig.ai.enableAiAssistant && (GlobalConfig.ai.enableOllama || GlobalConfig.ai.enableClaudeCode || GlobalConfig.ai.enableClaude || GlobalConfig.ai.enableOpenai || GlobalConfig.ai.enableGemini || GlobalConfig.ai.enableOpenrouter || GlobalConfig.ai.enableOpencode || GlobalConfig.ai.enableOpencodeGo)
 
-    Connections {
-        target: GlobalConfig.ai
-
-        function onEnableAiAssistantChanged() { checkAiTab(); }
-
-        function onEnableOllamaChanged() { checkAiTab(); }
-
-        function onEnableClaudeCodeChanged() { checkAiTab(); }
-
-        function onEnableClaudeChanged() { checkAiTab(); }
-
-        function onEnableOpenaiChanged() { checkAiTab(); }
-
-        function onEnableGeminiChanged() { checkAiTab(); }
-
-        function onEnableOpenrouterChanged() { checkAiTab(); }
-
-        function onEnableOpencodeChanged() { checkAiTab(); }
-
-        function onEnableOpencodeGoChanged() { checkAiTab(); }
-
-        function onShowNewsChanged() { checkAiTab(); }
-    }
-
-    Connections {
-        target: root.visibilities
-
-        function onSidebarChanged() {
-            if (root.visibilities.sidebar) {
-                root.activeTab = Visibilities.initialSidebarTab;
-                checkAiTab();
-            }
-        }
-    }
-
-    function checkAiTab() {
+    function checkAiTab(): void {
         if (!root.aiEnabled && root.activeTab === "ai") {
             root.activeTab = "notifications";
         }
@@ -71,6 +30,32 @@ Item {
     }
 
     Component.onCompleted: checkAiTab()
+
+    Connections {
+        function onEnableAiAssistantChanged(): void { checkAiTab(); }
+        function onEnableOllamaChanged(): void { checkAiTab(); }
+        function onEnableClaudeCodeChanged(): void { checkAiTab(); }
+        function onEnableClaudeChanged(): void { checkAiTab(); }
+        function onEnableOpenaiChanged(): void { checkAiTab(); }
+        function onEnableGeminiChanged(): void { checkAiTab(); }
+        function onEnableOpenrouterChanged(): void { checkAiTab(); }
+        function onEnableOpencodeChanged(): void { checkAiTab(); }
+        function onEnableOpencodeGoChanged(): void { checkAiTab(); }
+        function onShowNewsChanged(): void { checkAiTab(); }
+
+        target: GlobalConfig.ai
+    }
+
+    Connections {
+        function onSidebarChanged(): void {
+            if (root.visibilities.sidebar) {
+                root.activeTab = Visibilities.initialSidebarTab;
+                checkAiTab();
+            }
+        }
+
+        target: root.visibilities
+    }
 
     GridLayout {
         id: layout
@@ -94,8 +79,8 @@ Item {
                 // Tab Switcher Header
                 Item {
                     id: headerContainer
-                    Layout.fillWidth: true
 
+                    Layout.fillWidth: true
                     implicitHeight: (!root.aiEnabled && !GlobalConfig.ai.showNews) ? 0 : 64
                     visible: root.aiEnabled || GlobalConfig.ai.showNews
                     clip: true
@@ -126,7 +111,6 @@ Item {
                                 id: tabBtn
 
                                 required property var modelData
-
                                 readonly property bool active: root.activeTab === modelData.id
 
                                 Layout.fillWidth: true
@@ -171,9 +155,6 @@ Item {
                     Item {
                         id: indicator
 
-                        anchors.verticalCenter: parent.bottom
-                        implicitHeight: 6
-                        
                         property int activeIndex: {
                             var arr = tabRepeater.model;
                             for (var i = 0; i < arr.length; i++) {
@@ -181,11 +162,12 @@ Item {
                             }
                             return 0;
                         }
-
                         readonly property real tabWidth: (headerContainer.width - Tokens.padding.medium * 2) / tabRepeater.count
+
+                        anchors.verticalCenter: parent.bottom
+                        implicitHeight: 6
                         width: tabWidth - Tokens.padding.medium * 2
                         x: Tokens.padding.medium + activeIndex * tabWidth + (tabWidth - width) / 2
-
                         clip: true
 
                         StyledRect {
@@ -210,11 +192,11 @@ Item {
 
                 // Content Panel Stack
                 Item {
+                    property int activeIndex: indicator.activeIndex
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-
-                    property int activeIndex: indicator.activeIndex
 
                     NotifDock {
                         anchors.top: parent.top
@@ -225,7 +207,7 @@ Item {
                         visible: opacity > 0
                         props: root.props
                         visibilities: root.visibilities
-                        
+
                         Behavior on x { Anim { type: Anim.DefaultSpatial } }
                         Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
                     }
@@ -235,20 +217,18 @@ Item {
 
                         property bool hasBeenActive: false
 
-                        active: hasBeenActive || root.activeTab === "ai"
-                        onActiveChanged: if (active) hasBeenActive = true
-
                         anchors.top: parent.top
                         anchors.bottom: parent.bottom
                         width: parent.width
                         x: root.activeTab === "ai" ? 0 : (indicator.activeIndex < 1 ? width : -width)
                         opacity: root.activeTab === "ai" ? 1 : 0
                         visible: opacity > 0
-                        
+                        active: hasBeenActive || root.activeTab === "ai"
                         sourceComponent: AiAssistant {
                             anchors.fill: parent
                         }
-                        
+                        onActiveChanged: if (active) hasBeenActive = true
+
                         Behavior on x { Anim { type: Anim.DefaultSpatial } }
                         Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
                     }
@@ -260,7 +240,7 @@ Item {
                         x: root.activeTab === "news" ? 0 : width
                         opacity: root.activeTab === "news" ? 1 : 0
                         visible: opacity > 0
-                        
+
                         Behavior on x { Anim { type: Anim.DefaultSpatial } }
                         Behavior on opacity { Anim { type: Anim.DefaultSpatial } }
                     }

@@ -15,15 +15,10 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Greeter")
-    isSubPage: true
-    scrollable: true
-
     readonly property list<MenuItem> modeItems: [
         MenuItem { text: qsTr("Time of day"); icon: "schedule" },
         MenuItem { text: qsTr("Slideshow"); icon: "slideshow" }
     ]
-
     readonly property list<string> mediaFilters: [
         "gif", "webp", "png", "jpg", "jpeg", "svg", "mp4", "webm", "mkv", "mov", "avi"
     ]
@@ -43,13 +38,15 @@ PageBase {
         GlobalConfig.save();
     }
 
+    title: qsTr("Greeter")
+    isSubPage: true
+    scrollable: true
     headerActions: [
         IconTextButton {
             text: qsTr("Reset Defaults")
             icon: "restart_alt"
             type: TextButton.Tonal
             scale: pressed ? 0.95 : 1.0
-
             onClicked: root.resetToDefaults()
 
             Behavior on scale {
@@ -177,6 +174,7 @@ PageBase {
 
             FileDialog {
                 id: morningDialog
+
                 title: qsTr("Select Morning Media")
                 filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
                 filters: root.mediaFilters
@@ -221,6 +219,7 @@ PageBase {
 
             FileDialog {
                 id: afternoonDialog
+
                 title: qsTr("Select Afternoon Media")
                 filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
                 filters: root.mediaFilters
@@ -265,6 +264,7 @@ PageBase {
 
             FileDialog {
                 id: eveningDialog
+
                 title: qsTr("Select Evening Media")
                 filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
                 filters: root.mediaFilters
@@ -309,6 +309,7 @@ PageBase {
 
             FileDialog {
                 id: nightDialog
+
                 title: qsTr("Select Night Media")
                 filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
                 filters: root.mediaFilters
@@ -420,6 +421,7 @@ PageBase {
 
             FileDialog {
                 id: addFolderDialog
+
                 title: qsTr("Select Media Folder")
                 selectFolder: true
                 onAccepted: path => {
@@ -438,17 +440,18 @@ PageBase {
 
             delegate: ConnectedRect {
                 id: folderRow
+
                 required property string modelData
                 required property int index
 
-                Layout.fillWidth: true
                 first: false
                 last: index === ((Config.bar.greeter?.slideshowFolders?.length ?? 1) - 1)
-
                 implicitHeight: fRow.implicitHeight + Tokens.padding.medium * 2
+                Layout.fillWidth: true
 
                 RowLayout {
                     id: fRow
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.medium
                     anchors.leftMargin: Tokens.padding.largeIncreased
@@ -497,6 +500,7 @@ PageBase {
 
             FileDialog {
                 id: addMediaDialog
+
                 title: qsTr("Select a Media File")
                 filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
                 filters: root.mediaFilters
@@ -516,17 +520,18 @@ PageBase {
 
             delegate: ConnectedRect {
                 id: fileRow
+
                 required property string modelData
                 required property int index
 
-                Layout.fillWidth: true
                 first: false
                 last: index === ((Config.bar.greeter?.slideshowGifs?.length ?? 1) - 1)
-
                 implicitHeight: gRow.implicitHeight + Tokens.padding.medium * 2
+                Layout.fillWidth: true
 
                 RowLayout {
                     id: gRow
+
                     anchors.fill: parent
                     anchors.margins: Tokens.padding.medium
                     anchors.leftMargin: Tokens.padding.largeIncreased

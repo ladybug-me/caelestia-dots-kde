@@ -1,38 +1,21 @@
 pragma Singleton
 
 import QtQuick
+import QtCore
 import Quickshell
 import Caelestia.Config
 import Caelestia.Models
-import qs.utils
 import qs.services
-
-import QtCore
+import qs.utils
 
 Singleton {
     id: root
 
-    Settings {
-        id: greeterSettings
-        category: "Greeter"
-        property string lastMedia: ""
-        property int lastIndex: 0
-    }
-
-    function resolvePath(p: string): string {
-        if (!p) return "";
-        if (p.startsWith("file://")) {
-            p = p.slice(7);
-        }
-        if (p.startsWith("root:/")) {
-            return Quickshell.shellPath(p.slice(6));
-        }
-        if (p.startsWith("~")) {
-            return Paths.home + p.slice(1);
-        }
-        return p;
-    }
-
+    property int activePopoutCount: 0
+    property var allSlideshowMedia: []
+    property int currentIndex: greeterSettings.lastIndex
+    property string currentMedia: greeterSettings.lastMedia
+    readonly property bool isPopoutOpen: activePopoutCount > 0
     readonly property string timeOfDayMedia: {
         const hr = Time.hours;
         const mStart = Config.bar.greeter.morningStart;
@@ -50,15 +33,21 @@ Singleton {
             return resolvePath(Config.bar.greeter.nightGif);
         }
     }
-
-    property int activePopoutCount: 0
-    readonly property bool isPopoutOpen: activePopoutCount > 0
-
-    property var allSlideshowMedia: []
-    property int currentIndex: greeterSettings.lastIndex
-    property string currentMedia: greeterSettings.lastMedia
-
     readonly property string activeMedia: (Config.bar.greeter.mode === "slideshow") ? (currentMedia || (allSlideshowMedia.length > 0 ? allSlideshowMedia[0] : timeOfDayMedia)) : timeOfDayMedia
+
+    function resolvePath(p: string): string {
+        if (!p) return "";
+        if (p.startsWith("file://")) {
+            p = p.slice(7);
+        }
+        if (p.startsWith("root:/")) {
+            return Quickshell.shellPath(p.slice(6));
+        }
+        if (p.startsWith("~")) {
+            return Paths.home + p.slice(1);
+        }
+        return p;
+    }
 
     function updateMediaList(): void {
         let files = [];
@@ -109,10 +98,24 @@ Singleton {
         }
     }
 
+    Component.onCompleted: updateMediaList()
+
+    Settings {
+        id: greeterSettings
+
+        property string lastMedia: ""
+        property int lastIndex: 0
+
+        category: "Greeter"
+    }
+
     Instantiator {
         id: folderScanners
 
         model: Config.bar.greeter.slideshowFolders
+        onObjectAdded: root.updateMediaList()
+        onObjectRemoved: root.updateMediaList()
+        onCountChanged: root.updateMediaList()
 
         delegate: FileSystemModel {
             id: fsModel
@@ -121,37 +124,20 @@ Singleton {
             filter: FileSystemModel.Files
             nameFilters: Images.validImageExtensions.concat(Images.validVideoExtensions).map(e => `*.${e}`)
             recursive: true
-
             onEntriesChanged: root.updateMediaList()
             Component.onCompleted: root.updateMediaList()
         }
-
-        onObjectAdded: root.updateMediaList()
-        onObjectRemoved: root.updateMediaList()
-        onCountChanged: root.updateMediaList()
     }
 
     Connections {
-        target: Config.bar.greeter
+        function onSlideshowGifsChanged(): void { root.updateMediaList(); }
+        function onSlideshowFoldersChanged(): void { root.updateMediaList(); }
+        function onMorningGifChanged(): void { root.updateMediaList(); }
+        function onAfternoonGifChanged(): void { root.updateMediaList(); }
+        function onEveningGifChanged(): void { root.updateMediaList(); }
+        function onNightGifChanged(): void { root.updateMediaList(); }
 
-        function onSlideshowGifsChanged() {
-            root.updateMediaList();
-        }
-        function onSlideshowFoldersChanged() {
-            root.updateMediaList();
-        }
-        function onMorningGifChanged() {
-            root.updateMediaList();
-        }
-        function onAfternoonGifChanged() {
-            root.updateMediaList();
-        }
-        function onEveningGifChanged() {
-            root.updateMediaList();
-        }
-        function onNightGifChanged() {
-            root.updateMediaList();
-        }
+        target: Config.bar.greeter
     }
 
     Timer {
@@ -160,7 +146,6 @@ Singleton {
         interval: Math.max(2, Math.round(Config.bar.greeter.slideshowInterval)) * 1000
         running: root.isPopoutOpen && Config.bar.greeter.mode === "slideshow" && root.allSlideshowMedia.length > 1
         repeat: true
-
         onTriggered: {
             const list = root.allSlideshowMedia;
             if (list.length === 0) return;
@@ -176,6 +161,4 @@ Singleton {
             greeterSettings.lastIndex = root.currentIndex;
         }
     }
-
-    Component.onCompleted: updateMediaList()
 }
