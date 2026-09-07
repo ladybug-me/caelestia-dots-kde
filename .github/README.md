@@ -93,7 +93,7 @@ Use the built-in keyboard shortcut manager present in Caelestia Settings.
 <details>
 <summary><b>Greeter animations</b></summary>
 
-Replace `morning.gif`, `afternoon.gif`, `evening.gif`, and `night.gif` in `~/.config/quickshell/caelestia/assets/`. Then restart the shell through Quick toggles panel.
+Right click on the widget to customize and select your desired media files for different times of the day. Or enable slideshow, change the greeting text and icon, and much more.
 
 </details>
 

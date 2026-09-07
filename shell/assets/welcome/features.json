@@ -47,6 +47,13 @@
       "description": "The Caelestia lock screen brings the modern Quickshell lockscreen design into native KDE Plasma 6",
       "icon": "lock",
       "media_url": "lockscreen_greeter_600.png"
+    },
+    {
+      "id": "greeter-addons#682",
+      "title": "Greeter Add-ons",
+      "description": "Add more fun elements to the greeter, such as a Slideshow mode, you can also change the media files and text, right click on the greeter widget to explore all the options!",
+      "icon": "face",
+      "media_url": "greeter_addons_682.png"
     }
   ]
 }
