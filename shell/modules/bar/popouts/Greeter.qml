@@ -2,12 +2,12 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import QtMultimedia
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Widgets
+import M3Shapes
 import Caelestia.Config
-import Caelestia.Models
 import qs.components
 import qs.components.images
 import qs.services
@@ -23,123 +23,49 @@ Item {
     property real fontScale: 1.0
     property bool _isSidebarOpen: false
 
-    readonly property string mode: Config.bar.greeter.mode
-
-    function resolvePath(p: string): string {
-        if (!p) return "";
-        if (p.startsWith("file://")) {
-            p = p.slice(7);
-        }
-        if (p.startsWith("root:/")) {
-            return Quickshell.shellPath(p.slice(6));
-        }
-        if (p.startsWith("~")) {
-            return Paths.home + p.slice(1);
-        }
-        return p;
-    }
-
-    readonly property string timeOfDayCurrentMedia: {
-        const hr = Time.hours;
-        const mStart = Config.bar.greeter.morningStart;
-        const aStart = Config.bar.greeter.afternoonStart;
-        const eStart = Config.bar.greeter.eveningStart;
-        const nStart = Config.bar.greeter.nightStart;
-
-        if (hr >= mStart && hr < aStart) {
-            return resolvePath(Config.bar.greeter.morningGif);
-        } else if (hr >= aStart && hr < eStart) {
-            return resolvePath(Config.bar.greeter.afternoonGif);
-        } else if (hr >= eStart && hr < nStart) {
-            return resolvePath(Config.bar.greeter.eveningGif);
-        } else {
-            return resolvePath(Config.bar.greeter.nightGif);
-        }
-    }
-
-    Instantiator {
-        id: folderScanners
-
-        model: Config.bar.greeter.slideshowFolders
-
-        delegate: FileSystemModel {
-            path: root.resolvePath(modelData)
-            nameFilters: Images.validImageExtensions.concat(Images.validVideoExtensions).map(e => `*.${e}`)
-            recursive: true
-        }
-    }
-
-    readonly property var allSlideshowMedia: {
-        let files = [];
-        const manualMedia = Config.bar.greeter.slideshowGifs || [];
-        for (let i = 0; i < manualMedia.length; i++) {
-            if (manualMedia[i]) files.push(root.resolvePath(manualMedia[i]));
-        }
-        for (let i = 0; i < folderScanners.count; i++) {
-            const scanner = folderScanners.objectAt(i);
-            if (scanner && scanner.entries) {
-                for (let j = 0; j < scanner.entries.length; j++) {
-                    const entry = scanner.entries[j];
-                    if (entry && entry.path && !files.includes(entry.path)) {
-                        files.push(entry.path);
-                    }
-                }
-            }
-        }
-        if (files.length === 0) {
-            return [
-                root.resolvePath(Config.bar.greeter.morningGif),
-                root.resolvePath(Config.bar.greeter.afternoonGif),
-                root.resolvePath(Config.bar.greeter.eveningGif),
-                root.resolvePath(Config.bar.greeter.nightGif)
-            ];
-        }
-        return files;
-    }
-
-    property int slideshowIndex: 0
-    property string slideshowCurrentMedia: allSlideshowMedia.length > 0 ? allSlideshowMedia[slideshowIndex % allSlideshowMedia.length] : ""
-
-    onAllSlideshowMediaChanged: {
-        if (slideshowIndex >= allSlideshowMedia.length) {
-            slideshowIndex = 0;
-        }
-        if (allSlideshowMedia.length > 0) {
-            slideshowCurrentMedia = allSlideshowMedia[slideshowIndex];
-        }
-    }
-
-    Timer {
-        id: slideshowTimer
-
-        interval: Math.max(2, Math.round(Config.bar.greeter.slideshowInterval)) * 1000
-        running: root.mode === "slideshow" && root.allSlideshowMedia.length > 1
-        repeat: true
-
-        onTriggered: {
-            const list = root.allSlideshowMedia;
-            if (list.length === 0) return;
-            if (Config.bar.greeter.slideshowRandom && list.length > 1) {
-                let nextIdx = Math.floor(Math.random() * list.length);
-                if (nextIdx === root.slideshowIndex) nextIdx = (nextIdx + 1) % list.length;
-                root.slideshowIndex = nextIdx;
-            } else {
-                root.slideshowIndex = (root.slideshowIndex + 1) % list.length;
-            }
-            root.slideshowCurrentMedia = list[root.slideshowIndex];
-        }
-    }
-
-    readonly property string mediaPath: mode === "slideshow" ? (slideshowCurrentMedia || allSlideshowMedia[0] || "") : timeOfDayCurrentMedia
+    readonly property string mediaPath: GreeterService.activeMedia
 
     readonly property int previewSize: Math.round(Tokens.sizes.bar.windowPreviewSize * scaleOffset)
+
+    property Item current: one
+    property bool completed: false
 
     implicitWidth: previewSize
     implicitHeight: previewSize
     width: implicitWidth
     height: implicitHeight
 
-    ClippingWrapperRectangle {
+    Component.onCompleted: {
+        GreeterService.activePopoutCount++;
+        if (mediaPath) {
+            one.setPath(mediaPath);
+            one.maskRadius = one.maxRadius;
+            current = one;
+            completed = true;
+        }
+    }
+
+    Component.onDestruction: {
+        GreeterService.activePopoutCount = Math.max(0, GreeterService.activePopoutCount - 1);
+    }
+
+    onMediaPathChanged: {
+        if (!mediaPath) return;
+        if (!completed) {
+            one.setPath(mediaPath);
+            one.maskRadius = one.maxRadius;
+            current = one;
+            completed = true;
+            return;
+        }
+        if (current === one) {
+            two.setPath(mediaPath);
+        } else {
+            one.setPath(mediaPath);
+        }
+    }
+
+    Item {
         id: clipRect
 
         width: root.previewSize
@@ -147,60 +73,190 @@ Item {
         implicitWidth: root.previewSize
         implicitHeight: root.previewSize
         anchors.centerIn: parent
-        color: "transparent"
-        radius: Tokens.rounding.medium
 
-        Loader {
+        layer.enabled: true
+        layer.format: ShaderEffectSource.RGBA
+        layer.effect: MultiEffect {
+            maskEnabled: true
+            maskSource: roundedCornerMask
+        }
+
+        MediaItem {
+            id: one
+        }
+
+        MediaItem {
+            id: two
+        }
+    }
+
+    Item {
+        id: roundedCornerMaskWrapper
+
+        anchors.fill: clipRect
+        visible: false
+
+        Rectangle {
             anchors.fill: parent
+            radius: Tokens.rounding.large * root.scaleOffset
+            color: "white"
+        }
+    }
 
-            sourceComponent: {
-                if (!root.mediaPath) return null;
-                if (Images.isVideo(root.mediaPath)) return videoComp;
-                if (Images.isAnimated(root.mediaPath)) return animatedComp;
-                return imageComp;
+    ShaderEffectSource {
+        id: roundedCornerMask
+
+        sourceItem: roundedCornerMaskWrapper
+        anchors.fill: clipRect
+        hideSource: true
+        visible: false
+    }
+
+    component MediaItem: Item {
+        id: mediaItem
+
+        property string currentPath: ""
+        readonly property bool isVideo: Images.isVideo(currentPath)
+        readonly property bool isAnimated: Images.isAnimated(currentPath)
+        readonly property real maxRadius: Math.sqrt(width * width + height * height)
+        property real maskRadius: 0
+        readonly property var shapes: [
+            MaterialShape.Circle, MaterialShape.Square, MaterialShape.Diamond,
+            MaterialShape.ClamShell, MaterialShape.Pentagon, MaterialShape.Gem,
+            MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Cookie6Sided
+        ]
+        property int currentShape: MaterialShape.Circle
+        readonly property bool needsMask: mediaItem.z === 1 && maskAnim.running
+
+        function setPath(p: string): void {
+            if (currentPath === p) {
+                root.current = mediaItem;
+                return;
+            }
+            currentPath = p;
+            Qt.callLater(() => {
+                if (mediaItem.isAnimated) {
+                    if (animImg.status === Image.Ready) root.current = mediaItem;
+                } else if (mediaItem.isVideo) {
+                    if (videoPlayer.playing) root.current = mediaItem;
+                } else {
+                    if (staticImg.status === Image.Ready) root.current = mediaItem;
+                }
+            });
+        }
+
+        visible: (root.current === mediaItem) || (mediaItem.z === 0 && (root.current as MediaItem)?.needsMask === true)
+        anchors.fill: parent
+        z: root.current === mediaItem ? 1 : 0
+
+        onZChanged: {
+            if (z === 1) {
+                if (!root.completed) {
+                    maskRadius = maxRadius;
+                } else {
+                    maskRadius = 0;
+                    maskAnim.restart();
+                }
+            } else {
+                maskRadius = 0;
+                currentShape = shapes[Math.floor(Math.random() * shapes.length)];
             }
         }
 
-        Component {
-            id: animatedComp
+        Item {
+            id: maskWrapper
+
+            anchors.fill: parent
+            visible: mediaItem.needsMask
+
+            MaterialShape {
+                anchors.centerIn: parent
+                width: 2000
+                height: 2000
+                shape: mediaItem.currentShape
+                color: "white"
+                scale: mediaItem.maxRadius > 0 ? (mediaItem.maskRadius * 2) / 2000 : 0
+            }
+        }
+
+        ShaderEffectSource {
+            id: maskSourceItem
+
+            sourceItem: maskWrapper
+            anchors.fill: parent
+            hideSource: true
+            visible: false
+            live: mediaItem.needsMask
+        }
+
+        Item {
+            id: contentItem
+
+            anchors.fill: parent
+            layer.enabled: mediaItem.needsMask
+            layer.format: ShaderEffectSource.RGBA
+            layer.effect: MultiEffect {
+                maskEnabled: mediaItem.needsMask
+                maskSource: maskSourceItem
+            }
 
             AnimatedImage {
+                id: animImg
+
                 anchors.fill: parent
                 cache: false
                 asynchronous: true
                 fillMode: Image.PreserveAspectCrop
-                source: root.mediaPath.startsWith("file:") || root.mediaPath.startsWith("qrc:") ? root.mediaPath : "file://" + root.mediaPath
+                source: (mediaItem.isAnimated && mediaItem.currentPath) ? (mediaItem.currentPath.startsWith("file:") || mediaItem.currentPath.startsWith("qrc:") ? mediaItem.currentPath : "file://" + mediaItem.currentPath) : ""
+                visible: mediaItem.isAnimated && mediaItem.currentPath !== ""
                 playing: true
 
                 onSourceChanged: playing = true
                 onStatusChanged: {
-                    if (status === Image.Ready) {
-                        playing = false;
-                        playing = true;
+                    if (status === Image.Ready && mediaItem.isAnimated) {
+                        root.current = mediaItem;
+                    }
+                }
+            }
+
+            CachingImage {
+                id: staticImg
+
+                anchors.fill: parent
+                path: (!mediaItem.isAnimated && !mediaItem.isVideo) ? mediaItem.currentPath : ""
+                visible: !mediaItem.isAnimated && !mediaItem.isVideo && mediaItem.currentPath !== ""
+                fillMode: Image.PreserveAspectCrop
+                onStatusChanged: {
+                    if (status === Image.Ready && !mediaItem.isAnimated && !mediaItem.isVideo) {
+                        root.current = mediaItem;
+                    }
+                }
+            }
+
+            CachingVideo {
+                id: videoPlayer
+
+                anchors.fill: parent
+                path: mediaItem.isVideo ? mediaItem.currentPath : ""
+                visible: mediaItem.isVideo && mediaItem.currentPath !== ""
+                fillMode: VideoOutput.PreserveAspectCrop
+                onPlayingChanged: {
+                    if (playing && mediaItem.isVideo) {
+                        root.current = mediaItem;
                     }
                 }
             }
         }
 
-        Component {
-            id: imageComp
+        NumberAnimation {
+            id: maskAnim
 
-            CachingImage {
-                anchors.fill: parent
-                path: root.mediaPath
-                fillMode: Image.PreserveAspectCrop
-            }
-        }
-
-        Component {
-            id: videoComp
-
-            CachingVideo {
-                anchors.fill: parent
-                path: root.mediaPath
-                fillMode: VideoOutput.PreserveAspectCrop
-            }
+            target: mediaItem
+            property: "maskRadius"
+            from: 0
+            to: mediaItem.maxRadius
+            duration: 1800
+            easing.type: Easing.OutCubic
         }
     }
 }
-

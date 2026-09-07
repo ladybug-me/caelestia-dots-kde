@@ -201,6 +201,17 @@ PageBase {
             }
         }
 
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
+            label: qsTr("Morning Greeting Text")
+            placeholderText: "Good Morning"
+            value: Config.bar.greeter?.morningText || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.morningText = text;
+                GlobalConfig.save();
+            }
+        }
+
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             icon: "light_mode"
@@ -230,6 +241,17 @@ PageBase {
             stepSize: 1
             onMoved: v => {
                 GlobalConfig.bar.greeter.afternoonStart = Math.round(v);
+                GlobalConfig.save();
+            }
+        }
+
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
+            label: qsTr("Afternoon Greeting Text")
+            placeholderText: "Good Afternoon"
+            value: Config.bar.greeter?.afternoonText || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.afternoonText = text;
                 GlobalConfig.save();
             }
         }
@@ -267,6 +289,17 @@ PageBase {
             }
         }
 
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
+            label: qsTr("Evening Greeting Text")
+            placeholderText: "Good Evening"
+            value: Config.bar.greeter?.eveningText || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.eveningText = text;
+                GlobalConfig.save();
+            }
+        }
+
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             icon: "bedtime"
@@ -288,7 +321,6 @@ PageBase {
 
         StepperRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
-            last: true
             label: qsTr("Night start time")
             subtext: root.formatHour(Config.bar.greeter?.nightStart ?? 20)
             value: Config.bar.greeter?.nightStart ?? 20
@@ -297,6 +329,18 @@ PageBase {
             stepSize: 1
             onMoved: v => {
                 GlobalConfig.bar.greeter.nightStart = Math.round(v);
+                GlobalConfig.save();
+            }
+        }
+
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
+            last: true
+            label: qsTr("Night Greeting Text")
+            placeholderText: "Good Night"
+            value: Config.bar.greeter?.nightText || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.nightText = text;
                 GlobalConfig.save();
             }
         }
@@ -326,12 +370,36 @@ PageBase {
 
         ToggleRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") === "slideshow"
-            last: true
             text: qsTr("Random shuffle")
             subtext: qsTr("Pick random media instead of cycling sequentially")
             checked: Config.bar.greeter?.slideshowRandom ?? false
             onToggled: {
                 GlobalConfig.bar.greeter.slideshowRandom = checked;
+                GlobalConfig.save();
+            }
+        }
+
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") === "slideshow"
+            label: qsTr("Slideshow Greeting Text")
+            subtext: qsTr("Optional custom text on bar, supports {user}")
+            placeholderText: "Blank for defaults"
+            value: Config.bar.greeter?.slideshowText || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.slideshowText = text;
+                GlobalConfig.save();
+            }
+        }
+
+        TextFieldRow {
+            visible: (Config.bar.greeter?.mode ?? "timeOfDay") === "slideshow"
+            last: true
+            label: qsTr("Slideshow Greeting Icon")
+            subtext: qsTr("Material icon name for the bar widget")
+            placeholderText: "Blank for defaults"
+            value: Config.bar.greeter?.slideshowIcon || ""
+            onEditingFinished: text => {
+                GlobalConfig.bar.greeter.slideshowIcon = text;
                 GlobalConfig.save();
             }
         }

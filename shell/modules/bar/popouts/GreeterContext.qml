@@ -66,9 +66,7 @@ ColumnLayout {
                 RowLayout {
                     id: settingsRow
 
-                    anchors.fill: parent
-                    anchors.leftMargin: Tokens.padding.small * root.scaleOffset
-                    anchors.rightMargin: Tokens.padding.small * root.scaleOffset
+                    anchors.centerIn: parent
                     spacing: Tokens.spacing.small * root.scaleOffset
 
                     MaterialIcon {
@@ -80,7 +78,6 @@ ColumnLayout {
 
                     StyledText {
                         Layout.alignment: Qt.AlignVCenter
-                        Layout.fillWidth: true
                         text: qsTr("Greeter settings")
                         color: Colours.palette.m3onSurface
                         font.pointSize: Tokens.font.body.medium.pointSize * root.fontScale

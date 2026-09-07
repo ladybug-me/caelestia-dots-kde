@@ -23,25 +23,38 @@ Item {
     readonly property int textSize: Math.round(effectiveThickness * 0.32)
 
     readonly property string windowTitle: {
+        const username = Quickshell.env("USER") || "User";
+        const formattedUser = username.charAt(0).toUpperCase() + username.slice(1);
+
+        const mode = Config.bar.greeter.mode;
+        if (mode === "slideshow" && (Config.bar.greeter.slideshowText || "").length > 0) {
+            const raw = Config.bar.greeter.slideshowText;
+            if (raw.includes("{user}")) {
+                return raw.replace(/{user}/g, formattedUser);
+            }
+            return raw;
+        }
+
         const hr = Time.hours;
         const mStart = Config.bar.greeter.morningStart;
         const aStart = Config.bar.greeter.afternoonStart;
         const eStart = Config.bar.greeter.eveningStart;
         const nStart = Config.bar.greeter.nightStart;
 
-        let msg = "Good Night";
+        let msg = Config.bar.greeter.nightText || "Good Night";
         if (hr >= mStart && hr < aStart) {
-            msg = "Good Morning";
+            msg = Config.bar.greeter.morningText || "Good Morning";
         } else if (hr >= aStart && hr < eStart) {
-            msg = "Good Afternoon";
+            msg = Config.bar.greeter.afternoonText || "Good Afternoon";
         } else if (hr >= eStart && hr < nStart) {
-            msg = "Good Evening";
+            msg = Config.bar.greeter.eveningText || "Good Evening";
         } else {
-            msg = "Good Night";
+            msg = Config.bar.greeter.nightText || "Good Night";
         }
 
-        const username = Quickshell.env("USER") || "User";
-        const formattedUser = username.charAt(0).toUpperCase() + username.slice(1);
+        if (msg.includes("{user}")) {
+            return msg.replace(/{user}/g, formattedUser);
+        }
         return `${msg}, ${formattedUser}!`;
     }
 
@@ -103,7 +116,9 @@ Item {
 
         fontStyle: Tokens.font.icon.builders.small.size(root.iconSize).build()
         animate: true
-        text: "waving_hand"
+        text: (Config.bar.greeter.mode === "slideshow" && (Config.bar.greeter.slideshowIcon || "").length > 0)
+            ? Config.bar.greeter.slideshowIcon
+            : "waving_hand"
         color: root.colour
     }
 

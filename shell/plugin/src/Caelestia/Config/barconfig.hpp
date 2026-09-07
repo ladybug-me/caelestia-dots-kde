@@ -79,9 +79,23 @@ class BarGreeter : public settings::ObjectNode {
     CONFIG_PROPERTY(int, eveningStart, 17)
     CONFIG_PROPERTY(int, nightStart, 20)
 
+    // Greeting texts (supports {user})
+    CONFIG_PROPERTY(QString, morningText, u"Good Morning"_s)
+    CONFIG_PROPERTY(QString, afternoonText, u"Good Afternoon"_s)
+    CONFIG_PROPERTY(QString, eveningText, u"Good Evening"_s)
+    CONFIG_PROPERTY(QString, nightText, u"Good Night"_s)
+
     // Slideshow settings
+    CONFIG_PROPERTY(QString, slideshowText, u""_s)
+    CONFIG_PROPERTY(QString, slideshowIcon, u"waving_hand"_s)
     CONFIG_PROPERTY(QStringList, slideshowFolders, QStringList())
-    CONFIG_PROPERTY(QStringList, slideshowGifs, QStringList())
+    CONFIG_PROPERTY(QStringList, slideshowGifs,
+        DEFAULT_ARG({
+            u"root:/assets/morning.gif"_s,
+            u"root:/assets/afternoon.gif"_s,
+            u"root:/assets/evening.gif"_s,
+            u"root:/assets/night.gif"_s
+        }))
     CONFIG_PROPERTY(qreal, slideshowInterval, 60.0)
     CONFIG_PROPERTY(bool, slideshowRandom, false)
 
