@@ -48,14 +48,14 @@ Item {
 
     Loader {
         anchors.fill: parent
-        active: !Config.bar.activeWindow.showOnHover
+        active: !Config.bar.greeter.showOnHover
 
         sourceComponent: MouseArea {
             cursorShape: Qt.PointingHandCursor
             hoverEnabled: true
             onPositionChanged: {
                 const popouts = root.bar.popouts;
-                if (popouts.hasCurrent && popouts.currentName !== "activewindow")
+                if (popouts.hasCurrent && popouts.currentName !== "greeter" && popouts.currentName !== "activewindow")
                     popouts.hasCurrent = false;
             }
             onClicked: {
@@ -63,7 +63,7 @@ Item {
                 if (popouts.hasCurrent) {
                     popouts.hasCurrent = false;
                 } else {
-                    popouts.currentName = "activewindow";
+                    popouts.currentName = "greeter";
                     popouts.currentCenter = bar.isHorizontal ? root.mapToItem(null, root.implicitWidth / 2, 0).x : root.mapToItem(null, 0, root.implicitHeight / 2).y;
                     popouts.hasCurrent = true;
                 }
@@ -95,7 +95,7 @@ Item {
         id: metrics
 
         text: root.windowTitle
-        font: root.Tokens.font.body.builders.small.letterSpacing(1.4).build()
+        font: Tokens.font.body.builders.small.letterSpacing(1.4).build()
 
         onTextChanged: {
             const next = root.current === text1 ? text2 : text1;
@@ -129,7 +129,7 @@ Item {
         height: bar.isHorizontal ? styledText.implicitHeight : styledText.implicitWidth
 
         anchors.horizontalCenter: bar.isHorizontal ? undefined : icon.horizontalCenter
-        anchors.verticalCenter: bar.isHorizontal ? icon.verticalCenter : undefined
+        anchors.verticalCenter: bar.isHorizontal ? parent.verticalCenter : undefined
         anchors.top: bar.isHorizontal ? undefined : icon.bottom
         anchors.topMargin: bar.isHorizontal ? 0 : Tokens.spacing.small
         anchors.left: bar.isHorizontal ? icon.right : undefined
@@ -147,7 +147,7 @@ Item {
             font.family: metrics.font.family
             color: root.colour
 
-            rotation: bar.isHorizontal ? 0 : (root.Config.bar.activeWindow.inverted ? 270 : 90)
+            rotation: bar.isHorizontal ? 0 : (Config.bar.greeter.inverted ? 270 : 90)
         }
 
         Behavior on opacity {

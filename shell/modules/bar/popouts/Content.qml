@@ -39,9 +39,9 @@ Item {
             implicitHeight: currentPopout?.item?.implicitHeight ?? 0
 
         Popout {
-            name: "activewindow"
-            previewKey: "activeWindow"
-            sourceComponent: ActiveWindow {
+            name: "greeter"
+            previewKey: "greeter"
+            sourceComponent: Greeter {
                 popouts: root.popouts
             }
         }

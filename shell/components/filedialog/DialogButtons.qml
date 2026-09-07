@@ -2,6 +2,7 @@ import QtQuick.Layouts
 import Caelestia.Config
 import qs.components
 import qs.services
+import qs.utils
 
 StyledRect {
     id: root
@@ -37,7 +38,7 @@ StyledRect {
                 anchors.fill: parent
                 anchors.margins: Tokens.padding.medium
 
-                text: `${root.dialog.filterLabel} (${root.dialog.filters.map(f => `*.${f}`).join(", ")})`
+                text: root.dialog.selectFolder ? qsTr("Folders") : `${root.dialog.filterLabel} (${root.dialog.filters.map(f => `*.${f}`).join(", ")})`
             }
         }
 
@@ -45,12 +46,25 @@ StyledRect {
             color: Colours.tPalette.m3surfaceContainerHigh
             radius: Tokens.rounding.medium
 
-            implicitWidth: cancelText.implicitWidth + Tokens.padding.medium * 2
-            implicitHeight: cancelText.implicitHeight + Tokens.padding.medium * 2
+            implicitWidth: selectText.implicitWidth + Tokens.padding.medium * 2
+            implicitHeight: selectText.implicitHeight + Tokens.padding.medium * 2
 
             StateLayer {
                 disabled: !root.dialog.selectionValid
-                onClicked: root.dialog.accepted(root.folder.currentItem.modelData.path)
+                onClicked: {
+                    if (root.dialog.selectFolder) {
+                        if (root.folder.currentItem?.modelData?.isDir) {
+                            root.dialog.accepted(root.folder.currentItem.modelData.path);
+                        } else {
+                            const currentPath = root.dialog.cwd[0] === "Home"
+                                ? (Paths.home + (root.dialog.cwd.length > 1 ? `/${root.dialog.cwd.slice(1).join("/")}` : ""))
+                                : root.dialog.cwd.join("/");
+                            root.dialog.accepted(currentPath);
+                        }
+                    } else if (root.folder.currentItem?.modelData) {
+                        root.dialog.accepted(root.folder.currentItem.modelData.path);
+                    }
+                }
             }
 
             StyledText {
@@ -59,7 +73,7 @@ StyledRect {
                 anchors.centerIn: parent
                 anchors.margins: Tokens.padding.medium
 
-                text: qsTr("Select")
+                text: root.dialog.selectFolder ? qsTr("Select Folder") : qsTr("Select")
                 color: root.dialog.selectionValid ? Colours.palette.m3onSurface : Colours.palette.m3outline
             }
         }

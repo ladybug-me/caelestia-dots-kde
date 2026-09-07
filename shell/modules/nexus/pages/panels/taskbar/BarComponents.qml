@@ -29,7 +29,8 @@ PageBase {
             available: BarComponents.GithubStore.available,
             unavailableText: qsTr("GitHub token not detected")
         },
-        "activeWindow": { icon: "dock_to_right", name: qsTr("Active window") },
+        "greeter": { icon: "waving_hand", name: qsTr("Greeter") },
+        "activeWindow": { icon: "waving_hand", name: qsTr("Greeter") },
         "tray": { icon: "expand_more", name: qsTr("System tray") },
         "updateIndicator": { icon: "update", name: qsTr("Updates") },
         "clock": { icon: "schedule", name: qsTr("Clock") },

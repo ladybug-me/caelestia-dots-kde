@@ -81,15 +81,21 @@ PageBase {
             DoubleStepperRow {
                 first: true
                 last: false
-                label: qsTr("Active window")
+                label: qsTr("Greeter")
                 
-                scaleValue: GlobalConfig.bar.previewScales.activeWindow
+                scaleValue: GlobalConfig.bar.previewScales.greeter
                 scaleFrom: -1.0; scaleTo: 1.0; scaleStepSize: 0.05
-                onScaleMoved: v => GlobalConfig.bar.previewScales.activeWindow = v
+                onScaleMoved: v => {
+                    GlobalConfig.bar.previewScales.greeter = v;
+                    GlobalConfig.bar.previewScales.activeWindow = v;
+                }
                 
-                fontValue: GlobalConfig.bar.previewFontScales.activeWindow
+                fontValue: GlobalConfig.bar.previewFontScales.greeter
                 fontFrom: -1.0; fontTo: 1.0; fontStepSize: 0.05
-                onFontMoved: v => GlobalConfig.bar.previewFontScales.activeWindow = v
+                onFontMoved: v => {
+                    GlobalConfig.bar.previewFontScales.greeter = v;
+                    GlobalConfig.bar.previewFontScales.activeWindow = v;
+                }
             }
             DoubleStepperRow {
                 first: false

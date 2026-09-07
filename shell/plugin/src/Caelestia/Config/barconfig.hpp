@@ -24,6 +24,7 @@ class BarScrollActions : public settings::ObjectNode {
 class BarPopouts : public settings::ObjectNode {
     CONFIG_NODE(BarPopouts, settings::ObjectNode)
 
+    CONFIG_PROPERTY(bool, greeter, true)
     CONFIG_PROPERTY(bool, activeWindow, true)
     CONFIG_PROPERTY(bool, tray, true)
     CONFIG_PROPERTY(bool, statusIcons, true)
@@ -57,12 +58,32 @@ class BarWorkspaces : public settings::ObjectNode {
 
 };
 
-class BarActiveWindow : public settings::ObjectNode {
-    CONFIG_NODE(BarActiveWindow, settings::ObjectNode)
+class BarGreeter : public settings::ObjectNode {
+    CONFIG_NODE(BarGreeter, settings::ObjectNode)
 
     CONFIG_PROPERTY(bool, compact, false)
     CONFIG_PROPERTY(bool, inverted, false)
     CONFIG_PROPERTY(bool, showOnHover, true)
+
+    CONFIG_PROPERTY(QString, mode, u"timeOfDay"_s)
+
+    // Time of day GIFs
+    CONFIG_PROPERTY(QString, morningGif, u"root:/assets/morning.gif"_s)
+    CONFIG_PROPERTY(QString, afternoonGif, u"root:/assets/afternoon.gif"_s)
+    CONFIG_PROPERTY(QString, eveningGif, u"root:/assets/evening.gif"_s)
+    CONFIG_PROPERTY(QString, nightGif, u"root:/assets/night.gif"_s)
+
+    // Time of day period start hours (0-23)
+    CONFIG_PROPERTY(int, morningStart, 5)
+    CONFIG_PROPERTY(int, afternoonStart, 12)
+    CONFIG_PROPERTY(int, eveningStart, 17)
+    CONFIG_PROPERTY(int, nightStart, 20)
+
+    // Slideshow settings
+    CONFIG_PROPERTY(QStringList, slideshowFolders, QStringList())
+    CONFIG_PROPERTY(QStringList, slideshowGifs, QStringList())
+    CONFIG_PROPERTY(qreal, slideshowInterval, 60.0)
+    CONFIG_PROPERTY(bool, slideshowRandom, false)
 
 };
 
@@ -131,6 +152,7 @@ class BarPerformance : public settings::ObjectNode {
 class BarPreviewScales : public settings::ObjectNode {
     CONFIG_NODE(BarPreviewScales, settings::ObjectNode)
 
+    CONFIG_PROPERTY(qreal, greeter, 0.0)
     CONFIG_PROPERTY(qreal, activeWindow, 0.0)
     CONFIG_PROPERTY(qreal, audio, 0.0)
     CONFIG_PROPERTY(qreal, battery, 0.0)
@@ -150,6 +172,7 @@ class BarPreviewScales : public settings::ObjectNode {
 class BarPreviewFontScales : public settings::ObjectNode {
     CONFIG_NODE(BarPreviewFontScales, settings::ObjectNode)
 
+    CONFIG_PROPERTY(qreal, greeter, 0.0)
     CONFIG_PROPERTY(qreal, activeWindow, 0.0)
     CONFIG_PROPERTY(qreal, audio, 0.0)
     CONFIG_PROPERTY(qreal, battery, 0.0)
@@ -202,7 +225,8 @@ class BarConfig : public settings::ObjectNode {
     CONFIG_SUBOBJECT(BarScrollActions, scrollActions)
     CONFIG_SUBOBJECT(BarPopouts, popouts)
     CONFIG_SUBOBJECT(BarWorkspaces, workspaces)
-    CONFIG_SUBOBJECT(BarActiveWindow, activeWindow)
+    CONFIG_SUBOBJECT(BarGreeter, greeter)
+    CONFIG_SUBOBJECT(BarGreeter, activeWindow)
     CONFIG_SUBOBJECT(BarTray, tray)
     CONFIG_SUBOBJECT(BarStatus, status)
     CONFIG_SUBOBJECT(BarClock, clock)
@@ -213,7 +237,7 @@ class BarConfig : public settings::ObjectNode {
         DEFAULT_ARG({
             vmap({ { u"id"_s, u"logo"_s }, { u"enabled"_s, true }, { u"zone"_s, u"left"_s } }),
             vmap({ { u"id"_s, u"workspaces"_s }, { u"enabled"_s, true }, { u"zone"_s, u"left"_s } }),
-            vmap({ { u"id"_s, u"activeWindow"_s }, { u"enabled"_s, true }, { u"zone"_s, u"left"_s } }),
+            vmap({ { u"id"_s, u"greeter"_s }, { u"enabled"_s, true }, { u"zone"_s, u"left"_s } }),
             vmap({ { u"id"_s, u"dock"_s }, { u"enabled"_s, true }, { u"zone"_s, u"middle"_s } }),
             vmap({ { u"id"_s, u"tray"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"updateIndicator"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
