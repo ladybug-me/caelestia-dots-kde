@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Caelestia.Config
@@ -23,6 +24,10 @@ PageBase {
         MenuItem { text: qsTr("Slideshow"); icon: "slideshow" }
     ]
 
+    readonly property list<string> mediaFilters: [
+        "gif", "webp", "png", "jpg", "jpeg", "svg", "mp4", "webm", "mkv", "mov", "avi"
+    ]
+
     function formatHour(h: int): string {
         if (GlobalConfig.services.useTwelveHourClock) {
             const period = h >= 12 ? "PM" : "AM";
@@ -31,6 +36,29 @@ PageBase {
         }
         return `${h < 10 ? "0" + h : h}:00`;
     }
+
+    function resetToDefaults(): void {
+        GlobalConfig.bar.resetOption("greeter");
+        GlobalConfig.bar.popouts.resetOption("greeter");
+        GlobalConfig.save();
+    }
+
+    headerActions: [
+        IconTextButton {
+            text: qsTr("Reset Defaults")
+            icon: "restart_alt"
+            type: TextButton.Tonal
+            scale: pressed ? 0.95 : 1.0
+
+            onClicked: root.resetToDefaults()
+
+            Behavior on scale {
+                Anim {
+                    type: Anim.DefaultEffects
+                }
+            }
+        }
+    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -122,7 +150,7 @@ PageBase {
             first: true
             last: true
             label: qsTr("Mode")
-            subtext: qsTr("Switch GIFs according to time of day or cycle through a slideshow")
+            subtext: qsTr("Switch media according to time of day or cycle through a slideshow")
             menuItems: root.modeItems
             active: (Config.bar.greeter?.mode === "slideshow") ? root.modeItems[1] : root.modeItems[0]
             onSelected: item => {
@@ -136,25 +164,22 @@ PageBase {
         // ==========================================
         SectionHeader {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
-            text: qsTr("Time of Day Periods & GIFs")
+            text: qsTr("Time of Day Periods & Media")
         }
 
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             first: true
             icon: "wb_twilight"
-            label: qsTr("Morning GIF")
-            status: {
-                const p = Config.bar.greeter?.morningGif || "morning.gif";
-                return p.includes("/") ? p.split("/").pop() : p;
-            }
+            label: qsTr("Morning Media")
+            status: (Config.bar.greeter?.morningGif || "").split("/").pop()
             onClicked: morningDialog.open()
 
             FileDialog {
                 id: morningDialog
-                title: qsTr("Select Morning GIF")
-                filterLabel: qsTr("GIF / Animated files")
-                filters: ["gif", "webp"]
+                title: qsTr("Select Morning Media")
+                filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
+                filters: root.mediaFilters
                 onAccepted: path => {
                     GlobalConfig.bar.greeter.morningGif = path;
                     GlobalConfig.save();
@@ -179,18 +204,15 @@ PageBase {
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             icon: "light_mode"
-            label: qsTr("Afternoon GIF")
-            status: {
-                const p = Config.bar.greeter?.afternoonGif || "afternoon.gif";
-                return p.includes("/") ? p.split("/").pop() : p;
-            }
+            label: qsTr("Afternoon Media")
+            status: (Config.bar.greeter?.afternoonGif || "").split("/").pop()
             onClicked: afternoonDialog.open()
 
             FileDialog {
                 id: afternoonDialog
-                title: qsTr("Select Afternoon GIF")
-                filterLabel: qsTr("GIF / Animated files")
-                filters: ["gif", "webp"]
+                title: qsTr("Select Afternoon Media")
+                filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
+                filters: root.mediaFilters
                 onAccepted: path => {
                     GlobalConfig.bar.greeter.afternoonGif = path;
                     GlobalConfig.save();
@@ -215,18 +237,15 @@ PageBase {
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             icon: "wb_twilight"
-            label: qsTr("Evening GIF")
-            status: {
-                const p = Config.bar.greeter?.eveningGif || "evening.gif";
-                return p.includes("/") ? p.split("/").pop() : p;
-            }
+            label: qsTr("Evening Media")
+            status: (Config.bar.greeter?.eveningGif || "").split("/").pop()
             onClicked: eveningDialog.open()
 
             FileDialog {
                 id: eveningDialog
-                title: qsTr("Select Evening GIF")
-                filterLabel: qsTr("GIF / Animated files")
-                filters: ["gif", "webp"]
+                title: qsTr("Select Evening Media")
+                filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
+                filters: root.mediaFilters
                 onAccepted: path => {
                     GlobalConfig.bar.greeter.eveningGif = path;
                     GlobalConfig.save();
@@ -251,18 +270,15 @@ PageBase {
         NavRow {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") !== "slideshow"
             icon: "bedtime"
-            label: qsTr("Night GIF")
-            status: {
-                const p = Config.bar.greeter?.nightGif || "night.gif";
-                return p.includes("/") ? p.split("/").pop() : p;
-            }
+            label: qsTr("Night Media")
+            status: (Config.bar.greeter?.nightGif || "").split("/").pop()
             onClicked: nightDialog.open()
 
             FileDialog {
                 id: nightDialog
-                title: qsTr("Select Night GIF")
-                filterLabel: qsTr("GIF / Animated files")
-                filters: ["gif", "webp"]
+                title: qsTr("Select Night Media")
+                filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
+                filters: root.mediaFilters
                 onAccepted: path => {
                     GlobalConfig.bar.greeter.nightGif = path;
                     GlobalConfig.save();
@@ -312,7 +328,7 @@ PageBase {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") === "slideshow"
             last: true
             text: qsTr("Random shuffle")
-            subtext: qsTr("Pick random GIFs instead of cycling sequentially")
+            subtext: qsTr("Pick random media instead of cycling sequentially")
             checked: Config.bar.greeter?.slideshowRandom ?? false
             onToggled: {
                 GlobalConfig.bar.greeter.slideshowRandom = checked;
@@ -330,13 +346,13 @@ PageBase {
             first: true
             last: (Config.bar.greeter?.slideshowFolders || []).length === 0
             icon: "create_new_folder"
-            label: qsTr("Add GIF folder")
-            status: qsTr("Select a folder containing GIF animations")
+            label: qsTr("Add Media Folder")
+            status: qsTr("Select a folder containing images, GIFs, or videos")
             onClicked: addFolderDialog.open()
 
             FileDialog {
                 id: addFolderDialog
-                title: qsTr("Select GIF Folder")
+                title: qsTr("Select Media Folder")
                 selectFolder: true
                 onAccepted: path => {
                     let folders = [...(GlobalConfig.bar.greeter?.slideshowFolders || [])];
@@ -399,7 +415,7 @@ PageBase {
 
         SectionHeader {
             visible: (Config.bar.greeter?.mode ?? "timeOfDay") === "slideshow"
-            text: qsTr("Individual Slideshow GIFs")
+            text: qsTr("Individual Slideshow Media")
         }
 
         NavRow {
@@ -407,15 +423,15 @@ PageBase {
             first: true
             last: (Config.bar.greeter?.slideshowGifs || []).length === 0
             icon: "add_photo_alternate"
-            label: qsTr("Add GIF file")
-            status: qsTr("Select specific GIF file to include in slideshow")
-            onClicked: addGifDialog.open()
+            label: qsTr("Add Media File")
+            status: qsTr("Select specific image, GIF, or video file to include")
+            onClicked: addMediaDialog.open()
 
             FileDialog {
-                id: addGifDialog
-                title: qsTr("Select a GIF File")
-                filterLabel: qsTr("GIF / Animated files")
-                filters: ["gif", "webp"]
+                id: addMediaDialog
+                title: qsTr("Select a Media File")
+                filterLabel: qsTr("Multimedia files (Images, GIFs, Videos)")
+                filters: root.mediaFilters
                 onAccepted: path => {
                     let files = [...(GlobalConfig.bar.greeter?.slideshowGifs || [])];
                     if (!files.includes(path)) {
@@ -450,7 +466,7 @@ PageBase {
                     spacing: Tokens.spacing.medium
 
                     MaterialIcon {
-                        text: "gif"
+                        text: "perm_media"
                         color: Colours.palette.m3secondary
                     }
 

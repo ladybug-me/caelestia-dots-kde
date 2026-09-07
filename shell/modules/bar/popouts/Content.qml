@@ -47,6 +47,22 @@ Item {
         }
 
         Popout {
+            name: "greetercontext"
+            previewKey: "greeter"
+            sourceComponent: GreeterContext {
+                popouts: root.popouts
+            }
+        }
+
+        Popout {
+            name: "activewindow"
+            previewKey: "greeter"
+            sourceComponent: Greeter {
+                popouts: root.popouts
+            }
+        }
+
+        Popout {
             id: networkPopout
 
             name: "network"

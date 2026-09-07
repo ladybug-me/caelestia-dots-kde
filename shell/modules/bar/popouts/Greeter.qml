@@ -2,12 +2,14 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtMultimedia
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
 import Caelestia.Config
 import Caelestia.Models
 import qs.components
+import qs.components.images
 import qs.services
 import qs.utils
 
@@ -21,45 +23,57 @@ Item {
     property real fontScale: 1.0
     property bool _isSidebarOpen: false
 
-    readonly property string mode: Config.bar.greeter.mode || "timeOfDay"
+    readonly property string mode: Config.bar.greeter.mode
 
-    function getTimeOfDayGif(): string {
-        const hr = new Date().getHours();
-        const mStart = Config.bar.greeter.morningStart ?? 5;
-        const aStart = Config.bar.greeter.afternoonStart ?? 12;
-        const eStart = Config.bar.greeter.eveningStart ?? 17;
-        const nStart = Config.bar.greeter.nightStart ?? 20;
-
-        let chosen = "";
-        if (hr >= mStart && hr < aStart) {
-            chosen = Config.bar.greeter.morningGif || "root:/assets/morning.gif";
-        } else if (hr >= aStart && hr < eStart) {
-            chosen = Config.bar.greeter.afternoonGif || "root:/assets/afternoon.gif";
-        } else if (hr >= eStart && hr < nStart) {
-            chosen = Config.bar.greeter.eveningGif || "root:/assets/evening.gif";
-        } else {
-            chosen = Config.bar.greeter.nightGif || "root:/assets/night.gif";
+    function resolvePath(p: string): string {
+        if (!p) return "";
+        if (p.startsWith("file://")) {
+            p = p.slice(7);
         }
-        return Paths.absolutePath(chosen);
+        if (p.startsWith("root:/")) {
+            return Quickshell.shellPath(p.slice(6));
+        }
+        if (p.startsWith("~")) {
+            return Paths.home + p.slice(1);
+        }
+        return p;
+    }
+
+    readonly property string timeOfDayCurrentMedia: {
+        const hr = Time.hours;
+        const mStart = Config.bar.greeter.morningStart;
+        const aStart = Config.bar.greeter.afternoonStart;
+        const eStart = Config.bar.greeter.eveningStart;
+        const nStart = Config.bar.greeter.nightStart;
+
+        if (hr >= mStart && hr < aStart) {
+            return resolvePath(Config.bar.greeter.morningGif);
+        } else if (hr >= aStart && hr < eStart) {
+            return resolvePath(Config.bar.greeter.afternoonGif);
+        } else if (hr >= eStart && hr < nStart) {
+            return resolvePath(Config.bar.greeter.eveningGif);
+        } else {
+            return resolvePath(Config.bar.greeter.nightGif);
+        }
     }
 
     Instantiator {
         id: folderScanners
 
-        model: Config.bar.greeter.slideshowFolders || []
+        model: Config.bar.greeter.slideshowFolders
 
         delegate: FileSystemModel {
-            path: Paths.absolutePath(modelData)
-            nameFilters: ["*.gif", "*.webp"]
+            path: root.resolvePath(modelData)
+            nameFilters: Images.validImageExtensions.concat(Images.validVideoExtensions).map(e => `*.${e}`)
             recursive: true
         }
     }
 
-    readonly property var allSlideshowGifs: {
+    readonly property var allSlideshowMedia: {
         let files = [];
-        const manualGifs = Config.bar.greeter.slideshowGifs || [];
-        for (let i = 0; i < manualGifs.length; i++) {
-            if (manualGifs[i]) files.push(Paths.absolutePath(manualGifs[i]));
+        const manualMedia = Config.bar.greeter.slideshowGifs || [];
+        for (let i = 0; i < manualMedia.length; i++) {
+            if (manualMedia[i]) files.push(root.resolvePath(manualMedia[i]));
         }
         for (let i = 0; i < folderScanners.count; i++) {
             const scanner = folderScanners.objectAt(i);
@@ -74,36 +88,36 @@ Item {
         }
         if (files.length === 0) {
             return [
-                Paths.absolutePath(Config.bar.greeter.morningGif || "root:/assets/morning.gif"),
-                Paths.absolutePath(Config.bar.greeter.afternoonGif || "root:/assets/afternoon.gif"),
-                Paths.absolutePath(Config.bar.greeter.eveningGif || "root:/assets/evening.gif"),
-                Paths.absolutePath(Config.bar.greeter.nightGif || "root:/assets/night.gif")
+                root.resolvePath(Config.bar.greeter.morningGif),
+                root.resolvePath(Config.bar.greeter.afternoonGif),
+                root.resolvePath(Config.bar.greeter.eveningGif),
+                root.resolvePath(Config.bar.greeter.nightGif)
             ];
         }
         return files;
     }
 
     property int slideshowIndex: 0
-    property string slideshowCurrentGif: allSlideshowGifs.length > 0 ? allSlideshowGifs[slideshowIndex % allSlideshowGifs.length] : ""
+    property string slideshowCurrentMedia: allSlideshowMedia.length > 0 ? allSlideshowMedia[slideshowIndex % allSlideshowMedia.length] : ""
 
-    onAllSlideshowGifsChanged: {
-        if (slideshowIndex >= allSlideshowGifs.length) {
+    onAllSlideshowMediaChanged: {
+        if (slideshowIndex >= allSlideshowMedia.length) {
             slideshowIndex = 0;
         }
-        if (allSlideshowGifs.length > 0) {
-            slideshowCurrentGif = allSlideshowGifs[slideshowIndex];
+        if (allSlideshowMedia.length > 0) {
+            slideshowCurrentMedia = allSlideshowMedia[slideshowIndex];
         }
     }
 
     Timer {
         id: slideshowTimer
 
-        interval: Math.max(2, Math.round(Config.bar.greeter.slideshowInterval || 60)) * 1000
-        running: root.mode === "slideshow" && root.allSlideshowGifs.length > 1
+        interval: Math.max(2, Math.round(Config.bar.greeter.slideshowInterval)) * 1000
+        running: root.mode === "slideshow" && root.allSlideshowMedia.length > 1
         repeat: true
 
         onTriggered: {
-            const list = root.allSlideshowGifs;
+            const list = root.allSlideshowMedia;
             if (list.length === 0) return;
             if (Config.bar.greeter.slideshowRandom && list.length > 1) {
                 let nextIdx = Math.floor(Math.random() * list.length);
@@ -112,48 +126,81 @@ Item {
             } else {
                 root.slideshowIndex = (root.slideshowIndex + 1) % list.length;
             }
-            root.slideshowCurrentGif = list[root.slideshowIndex];
+            root.slideshowCurrentMedia = list[root.slideshowIndex];
         }
     }
 
-    property string timeOfDayCurrentGif: getTimeOfDayGif()
-
-    Timer {
-        interval: 60000
-        running: root.mode !== "slideshow"
-        repeat: true
-        onTriggered: root.timeOfDayCurrentGif = root.getTimeOfDayGif()
-    }
-
-    readonly property string gifPath: mode === "slideshow" ? (slideshowCurrentGif || allSlideshowGifs[0] || "") : timeOfDayCurrentGif
+    readonly property string mediaPath: mode === "slideshow" ? (slideshowCurrentMedia || allSlideshowMedia[0] || "") : timeOfDayCurrentMedia
 
     readonly property int previewSize: Math.round(Tokens.sizes.bar.windowPreviewSize * scaleOffset)
 
-    implicitWidth: child.implicitWidth
-    implicitHeight: child.implicitHeight
+    implicitWidth: previewSize
+    implicitHeight: previewSize
+    width: implicitWidth
+    height: implicitHeight
 
-    Column {
-        id: child
+    ClippingWrapperRectangle {
+        id: clipRect
 
+        width: root.previewSize
+        height: root.previewSize
+        implicitWidth: root.previewSize
+        implicitHeight: root.previewSize
         anchors.centerIn: parent
-        spacing: Tokens.spacing.medium
+        color: "transparent"
+        radius: Tokens.rounding.medium
 
-        ClippingWrapperRectangle {
-            color: "transparent"
-            radius: Tokens.rounding.medium
-            implicitWidth: previewSize
-            implicitHeight: previewSize
+        Loader {
+            anchors.fill: parent
+
+            sourceComponent: {
+                if (!root.mediaPath) return null;
+                if (Images.isVideo(root.mediaPath)) return videoComp;
+                if (Images.isAnimated(root.mediaPath)) return animatedComp;
+                return imageComp;
+            }
+        }
+
+        Component {
+            id: animatedComp
 
             AnimatedImage {
-                id: preview
-
+                anchors.fill: parent
                 cache: false
-                source: root.gifPath
-                fillMode: root.gifPath.includes("morning.gif") ? Image.PreserveAspectFit : Image.PreserveAspectCrop
+                asynchronous: true
+                fillMode: Image.PreserveAspectCrop
+                source: root.mediaPath.startsWith("file:") || root.mediaPath.startsWith("qrc:") ? root.mediaPath : "file://" + root.mediaPath
+                playing: true
 
-                width: previewSize
-                height: previewSize
+                onSourceChanged: playing = true
+                onStatusChanged: {
+                    if (status === Image.Ready) {
+                        playing = false;
+                        playing = true;
+                    }
+                }
+            }
+        }
+
+        Component {
+            id: imageComp
+
+            CachingImage {
+                anchors.fill: parent
+                path: root.mediaPath
+                fillMode: Image.PreserveAspectCrop
+            }
+        }
+
+        Component {
+            id: videoComp
+
+            CachingVideo {
+                anchors.fill: parent
+                path: root.mediaPath
+                fillMode: VideoOutput.PreserveAspectCrop
             }
         }
     }
 }
+

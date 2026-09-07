@@ -23,8 +23,23 @@ Item {
     readonly property int textSize: Math.round(effectiveThickness * 0.32)
 
     readonly property string windowTitle: {
-        const hr = new Date().getHours();
-        const msg = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : hr < 22 ? "Good Evening" : "Good Night";
+        const hr = Time.hours;
+        const mStart = Config.bar.greeter.morningStart;
+        const aStart = Config.bar.greeter.afternoonStart;
+        const eStart = Config.bar.greeter.eveningStart;
+        const nStart = Config.bar.greeter.nightStart;
+
+        let msg = "Good Night";
+        if (hr >= mStart && hr < aStart) {
+            msg = "Good Morning";
+        } else if (hr >= aStart && hr < eStart) {
+            msg = "Good Afternoon";
+        } else if (hr >= eStart && hr < nStart) {
+            msg = "Good Evening";
+        } else {
+            msg = "Good Night";
+        }
+
         const username = Quickshell.env("USER") || "User";
         const formattedUser = username.charAt(0).toUpperCase() + username.slice(1);
         return `${msg}, ${formattedUser}!`;
@@ -46,26 +61,35 @@ Item {
     implicitWidth: bar.isHorizontal ? (icon.implicitWidth + current.width + current.anchors.leftMargin) : Math.max(icon.implicitWidth, current.width)
     implicitHeight: bar.isHorizontal ? Math.max(icon.implicitHeight, current.height) : (icon.implicitHeight + current.height + current.anchors.topMargin)
 
-    Loader {
+    MouseArea {
         anchors.fill: parent
-        active: !Config.bar.greeter.showOnHover
+        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        sourceComponent: MouseArea {
-            cursorShape: Qt.PointingHandCursor
-            hoverEnabled: true
-            onPositionChanged: {
-                const popouts = root.bar.popouts;
-                if (popouts.hasCurrent && popouts.currentName !== "greeter" && popouts.currentName !== "activewindow")
+        onPositionChanged: {
+            if (root.bar.popouts.hasCurrent && root.bar.popouts.currentName === "greetercontext") return;
+            const popouts = root.bar.popouts;
+            if (popouts.hasCurrent && popouts.currentName !== "greeter" && popouts.currentName !== "activewindow")
+                popouts.hasCurrent = false;
+        }
+        onClicked: mouse => {
+            const popouts = root.bar.popouts;
+            if (mouse.button === Qt.RightButton) {
+                popouts.currentName = "greetercontext";
+                popouts.currentCenter = bar.isHorizontal ? root.mapToItem(null, root.implicitWidth / 2, 0).x : (root.mapToItem(null, 0, root.implicitHeight / 2).y ?? 0);
+                popouts.hasCurrent = true;
+            } else if (mouse.button === Qt.LeftButton) {
+                if (!Config.bar.greeter.showOnHover) {
+                    if (popouts.hasCurrent && (popouts.currentName === "greeter" || popouts.currentName === "activewindow")) {
+                        popouts.hasCurrent = false;
+                    } else {
+                        popouts.currentName = "greeter";
+                        popouts.currentCenter = bar.isHorizontal ? root.mapToItem(null, root.implicitWidth / 2, 0).x : (root.mapToItem(null, 0, root.implicitHeight / 2).y ?? 0);
+                        popouts.hasCurrent = true;
+                    }
+                } else if (popouts.hasCurrent && popouts.currentName === "greetercontext") {
                     popouts.hasCurrent = false;
-            }
-            onClicked: {
-                const popouts = root.bar.popouts;
-                if (popouts.hasCurrent) {
-                    popouts.hasCurrent = false;
-                } else {
-                    popouts.currentName = "greeter";
-                    popouts.currentCenter = bar.isHorizontal ? root.mapToItem(null, root.implicitWidth / 2, 0).x : root.mapToItem(null, 0, root.implicitHeight / 2).y;
-                    popouts.hasCurrent = true;
                 }
             }
         }
