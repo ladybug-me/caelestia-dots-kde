@@ -205,8 +205,18 @@ fi
 # Initialize submodules
 if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     info "Initializing all submodule..."
-    git submodule sync --recursive >/dev/null 2>&1 || true
-    git submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
+    # Prune any submodule configured locally that was removed from .gitmodules
+    while IFS= read -r -d '' key; do
+        submod="${key#submodule.}"
+        submod="${submod%.url}"
+        if ! git -C "$UPD_DIR/repo" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
+            git -C "$UPD_DIR/repo" submodule deinit -f "$submod" >/dev/null 2>&1 || true
+            git -C "$UPD_DIR/repo" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
+            rm -rf "$UPD_DIR/repo/.git/modules/${submod}" 2>/dev/null || true
+        fi
+    done < <(git -C "$UPD_DIR/repo" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+    git -C "$UPD_DIR/repo" submodule sync --recursive >/dev/null 2>&1 || true
+    git -C "$UPD_DIR/repo" submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
 fi
 
 [[ -f "$UPD_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"

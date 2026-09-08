@@ -94,10 +94,20 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
     git -C "$BUNDLE_DIR" pull origin "$BRANCH" || die "Failed to pull from origin/$BRANCH"
 
     if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
-        info "Syncing src/dots submodule..."
-        git -C "$BUNDLE_DIR" submodule sync -- src/dots >/dev/null 2>&1 || true
-        git -C "$BUNDLE_DIR" submodule update --init --recursive src/dots || \
-            die "Failed to initialize src/dots submodule"
+        info "Syncing submodules..."
+        # Prune any submodule configured locally that was removed from .gitmodules
+        while IFS= read -r -d '' key; do
+            submod="${key#submodule.}"
+            submod="${submod%.url}"
+            if ! git -C "$BUNDLE_DIR" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
+                git -C "$BUNDLE_DIR" submodule deinit -f "$submod" >/dev/null 2>&1 || true
+                git -C "$BUNDLE_DIR" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
+                rm -rf "$BUNDLE_DIR/.git/modules/${submod}" 2>/dev/null || true
+            fi
+        done < <(git -C "$BUNDLE_DIR" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+        git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
+        git -C "$BUNDLE_DIR" submodule update --init --recursive || \
+            die "Failed to initialize submodules"
     fi
 
     if [ "$STASHED" -eq 1 ]; then
@@ -156,66 +166,12 @@ info "System tweaks (OSD, desktops, CLI patches) have been re-applied to keep KD
 echo
 echo "Restarting bridge and shell to apply changes..."
 
-if command -v caelestia >/dev/null 2>&1; then
-    CAELESTIA_BIN=$(command -v caelestia)
-elif [[ -x "$HOME/.local/bin/caelestia" ]]; then
-    CAELESTIA_BIN="$HOME/.local/bin/caelestia"
-elif [[ -x "/usr/local/bin/caelestia" ]]; then
-    CAELESTIA_BIN="/usr/local/bin/caelestia"
-elif [[ -x "/usr/bin/caelestia" ]]; then
-    CAELESTIA_BIN="/usr/bin/caelestia"
+RESTART_SCRIPT=$BUNDLE_DIR/shell/scripts/restart_shell.sh
+
+if [[ -x "$RESTART_SCRIPT" ]]; then
+    bash "$RESTART_SCRIPT"
+    echo "Shell restarted successfully!"
 else
-    CAELESTIA_BIN="caelestia"
+    warn "Restart script not found. Please restart the shell manually."
 fi
 
-# Resolve a reliable way to talk to the running shell instance.
-# Prefer the (now-patched) CLI; fall back to the path-based IPC wrapper.
-SHELL_IPC=""
-if [[ -x "$HOME/.local/bin/caelestia-shell-ipc" ]]; then
-    SHELL_IPC="$HOME/.local/bin/caelestia-shell-ipc"
-fi
-
-# Kill the running shell – try CLI first, then the IPC wrapper, then pkill.
-if "$CAELESTIA_BIN" shell -k 2>/dev/null; then
-    : # CLI succeeded
-elif [[ -n "$SHELL_IPC" ]] && "$SHELL_IPC" quit 2>/dev/null; then
-    : # IPC wrapper succeeded
-else
-    pkill -f "quickshell.*caelestia/shell.qml" 2>/dev/null || true
-fi
-
-STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
-SCHEME_FILE="$STATE_DIR/scheme.json"
-i=0
-while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
-    sleep 1
-    i=$((i + 1))
-done
-
-# Start the shell. The IPC wrapper is preferred over the CLI here because it
-# starts the shell as a transient user service: the CLI's `shell -d`
-# daemonizes, which points the shell's stdio at /dev/null, and every
-# application launched from the shell then inherits a stdout that goes
-# nowhere. Vesktop deadlocks when a call starts in exactly that state
-# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
-if [[ -n "$SHELL_IPC" ]]; then
-    "$SHELL_IPC" start 2>/dev/null &
-elif command -v systemd-run >/dev/null 2>&1; then
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
-    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
-    systemd-run --user --quiet --collect --unit=caelestia-shell \
-        --description="Caelestia Shell" \
-        -- "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" &
-elif command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
-    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
-else
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
-    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
-    stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
-fi
-
-echo "Shell restarted successfully!"
-echo
-echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"
