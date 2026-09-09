@@ -319,7 +319,7 @@ if [[ ! -x "$BIN" ]]; then
     echo "  C++ compilation likely failed — check g++, cmake, make."
     echo "============================================================"
     echo ""
-    echo "Press Enter to close this window..."
+    echo "Press Enter to exit..."
     read -r
     exit 1
 fi
@@ -383,7 +383,7 @@ if [[ $_show_diagnostic -eq 1 ]]; then
     fi
     echo ""
 
-    echo "Press Enter to close this window..."
+    echo "Press Enter to exit..."
     read -r
 fi
 
