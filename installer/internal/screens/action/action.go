@@ -58,11 +58,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch sel {
 		case "update":
 			return m, app.Push(branch.New(m.ctx))
-		case "uninstall", "exit":
+		case "exit":
 			m.ctx.ActionResult = sel
 			m.ctx.ExitCode = 0
 			return m, tea.Quit
-		default:
+		default: // "install" or "uninstall"
+			m.ctx.Action = sel
 			return m, app.Push(sudo.New(m.ctx))
 		}
 	case "esc":

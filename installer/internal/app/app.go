@@ -23,13 +23,15 @@ type Context struct {
 
 	SudoBinDir string
 
+	// Action is set by the Action screen before it pushes the Sudo screen:
+	// "install" or "uninstall". Sudo reads it to decide what comes next.
+	Action string
+
 	Width, Height int
 
 	// ExitCode is the process exit code once the program quits.
 	ExitCode int
-	// ActionResult is set by the Action screen: "", "update", "uninstall",
-	// or "exit". Update/uninstall are handed off to their bash scripts by
-	// main() after the Program returns.
+	// ActionResult is set by the Action screen when the user picks "exit".
 	ActionResult string
 	// Logout is set by the Complete screen when the user asks to log out.
 	Logout bool

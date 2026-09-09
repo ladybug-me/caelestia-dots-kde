@@ -13,6 +13,7 @@ import (
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/runner"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/optional"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/progress"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/uninstall"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/widgets"
 )
 
@@ -81,8 +82,12 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 }
 
 // enterConfigure mirrors the old model's enterConfigure: bundles with no menu
-// at all skip straight to installing.
+// at all skip straight to installing. Uninstall never had a menu.json to
+// begin with - it goes straight to its own remove-packages/backup picker.
 func (m Model) enterConfigure() (tea.Model, tea.Cmd) {
+	if m.ctx.Action == "uninstall" {
+		return m, app.Push(uninstall.New(m.ctx))
+	}
 	if len(m.ctx.Cfg.Menu.Menu) == 0 {
 		p := progress.New(m.ctx)
 		return m, app.Push(p)
@@ -91,9 +96,13 @@ func (m Model) enterConfigure() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
+	prompt := "Root privileges are required to install packages."
+	if m.ctx.Action == "uninstall" {
+		prompt = "Root privileges are required to remove system files."
+	}
 	var b strings.Builder
 	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, "Authentication")
-	b.WriteString(m.ctx.Theme.Normal.Render("Root privileges are required to install packages."))
+	b.WriteString(m.ctx.Theme.Normal.Render(prompt))
 	b.WriteString("\n\n")
 	b.WriteString(m.ctx.Theme.Subtle.Render("sudo"))
 	b.WriteString("\n")

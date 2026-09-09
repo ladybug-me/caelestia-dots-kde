@@ -13,6 +13,7 @@ import (
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/app"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/config"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/runner"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/sudo"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/welcome"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/theme"
 )
@@ -42,13 +43,11 @@ func run() int {
 	fmt.Fprintf(os.Stderr, "[installer] bundle dir: %s\n", bundleDir)
 
 	// Update runs update-steps.json headlessly (no TUI) - update.sh's thin
-	// shim calls this for cron/non-interactive use. Uninstall still hands
-	// the terminal straight to uninstall.sh (not yet manifest-driven).
+	// shim calls this for cron/non-interactive use. Uninstall always needs a
+	// backup to pick, so --uninstall instead starts the normal interactive
+	// TUI, just skipping straight past the Welcome/Action screens (see below).
 	if presetAction == "update" {
 		return runUpdateHeadless(bundleDir, presetArg)
-	}
-	if presetAction == "uninstall" {
-		return runExternalScript(filepath.Join(bundleDir, "uninstall.sh"))
 	}
 
 	cfg, err := config.Load(bundleDir)
@@ -66,7 +65,12 @@ func run() int {
 		BaseDistro: os.Getenv("BASE_DISTRO"),
 	}
 
-	router := app.NewRouter(ctx, welcome.New(ctx))
+	var start tea.Model = welcome.New(ctx)
+	if presetAction == "uninstall" {
+		ctx.Action = "uninstall"
+		start = sudo.New(ctx)
+	}
+	router := app.NewRouter(ctx, start)
 	p := tea.NewProgram(router, tea.WithoutSignalHandler())
 
 	signals := make(chan os.Signal, 2)
@@ -90,13 +94,8 @@ func run() int {
 		return 1
 	}
 
-	// The action screen may have handed off to uninstall.sh (uninstall isn't
-	// manifest-driven yet). Update runs inside the TUI's own Review/Progress
-	// flow and never sets ActionResult="update".
-	if ctx.ActionResult == "uninstall" {
-		return runExternalScript(filepath.Join(bundleDir, "uninstall.sh"))
-	}
-
+	// The action screen sets ActionResult="exit" when the user picks Exit.
+	// Install/Update/Uninstall all run fully inside the TUI now.
 	if ctx.ExitCode != 0 {
 		return ctx.ExitCode
 	}
@@ -190,20 +189,5 @@ func detectBundleDir() string {
 		return "."
 	}
 	return dir
-}
-
-// runExternalScript hands the restored terminal to update.sh / uninstall.sh
-// and returns the script's exit code.
-func runExternalScript(scriptPath string) int {
-	cmd := exec.Command("bash", scriptPath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err == nil {
-		return 0
-	} else if ee, ok := err.(*exec.ExitError); ok {
-		return ee.ExitCode()
-	}
-	return 1
 }
 
