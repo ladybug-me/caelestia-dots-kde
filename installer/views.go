@@ -32,6 +32,24 @@ func (m model) renderBanner() string {
 	return lipgloss.JoinVertical(lipgloss.Center, lines...)
 }
 
+func (m model) renderPageStart(b *strings.Builder, title string) {
+	b.WriteString(m.renderBanner())
+	b.WriteByte('\n')
+	b.WriteString(m.ui.title.Render(title))
+	b.WriteString("\n\n")
+}
+
+func (m model) renderFooter(b *strings.Builder, parts ...string) {
+	b.WriteString(m.ui.subtle.Render("Press "))
+	for i, part := range parts {
+		if i%2 == 0 {
+			b.WriteString(m.ui.key.Render(part))
+		} else {
+			b.WriteString(m.ui.subtle.Render(part))
+		}
+	}
+}
+
 func (m model) renderOptionList(b *strings.Builder, options []listOption, selected int) {
 	width := m.width - 2
 	if width < 20 {
@@ -80,8 +98,7 @@ func (m model) View() string {
 
 func (m model) viewWelcome() string {
 	var b strings.Builder
-	b.WriteString(m.renderBanner())
-	b.WriteString("\n\n\n")
+	m.renderPageStart(&b, "Caelestia Installer")
 
 	b.WriteString(m.ui.normal.Render("System: " + distroLabel(m.baseDistro)))
 	b.WriteString("\n\n")
@@ -101,9 +118,7 @@ func (m model) viewWelcome() string {
 	}
 	b.WriteByte('\n')
 
-	enter := m.ui.key.Render("Enter")
-	esc := m.ui.key.Render("Esc")
-	b.WriteString(m.ui.subtle.Render("Press ") + enter + m.ui.subtle.Render(" to continue, ") + esc + m.ui.subtle.Render(" to quit"))
+	m.renderFooter(&b, "Enter", " to continue, ", "Esc", " to quit")
 	return b.String()
 }
 
@@ -113,12 +128,12 @@ func (m model) viewAction() string {
 		options[i] = listOption{label: a.title, desc: a.help}
 	}
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Caelestia Setup"))
+	m.renderPageStart(&b, "Setup")
+	b.WriteString(m.ui.subtle.Render("System: " + distroLabel(m.baseDistro)))
 	b.WriteString("\n\n")
 	m.renderOptionList(&b, options, m.actionCursor)
 	b.WriteByte('\n')
-	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to navigate, ") +
-		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to select, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to quit"))
+	m.renderFooter(&b, "↑/↓", " to navigate, ", "Enter", " to select, ", "Esc", " to quit")
 	return b.String()
 }
 
@@ -128,30 +143,29 @@ func (m model) viewOptional() string {
 		{"No - keep the standard install", "Installs the shell, packages, and theming only."},
 	}
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Optional App Theming"))
-	b.WriteString("\n\n")
-	b.WriteString(m.ui.normal.Render("Caelestia can also theme your applications."))
+	m.renderPageStart(&b, "Optional App Theming")
+	b.WriteString(m.ui.normal.Render("Theme supported applications alongside Caelestia."))
 	b.WriteString("\n\n")
 	m.renderOptionList(&b, options, m.optionalCursor)
 	b.WriteByte('\n')
-	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to choose, ") +
-		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to confirm, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to cancel installation"))
+	m.renderFooter(&b, "↑/↓", " to choose, ", "Enter", " to confirm, ", "Esc", " to cancel installation")
 	return b.String()
 }
 
 func (m model) viewSudo() string {
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Privilege Escalation"))
-	b.WriteString("\n\n")
+	m.renderPageStart(&b, "Authentication")
 	b.WriteString(m.ui.normal.Render("Root privileges are required to install packages."))
 	b.WriteString("\n\n")
+	b.WriteString(m.ui.subtle.Render("sudo"))
+	b.WriteString("\n")
 	b.WriteString(m.ui.highlight.Render("Password: ") + m.password.View())
 	if m.sudoError != "" {
 		b.WriteString("\n\n")
 		b.WriteString(m.ui.errorBox.Render(m.sudoError))
 	}
 	b.WriteString("\n\n")
-	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("Enter") + m.ui.subtle.Render(" to verify, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to cancel"))
+	m.renderFooter(&b, "Enter", " to verify, ", "Esc", " to cancel")
 	return b.String()
 }
 
@@ -161,7 +175,8 @@ func (m model) viewConfigure() string {
 	}
 	frame := m.menuStack[len(m.menuStack)-1]
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render(frame.title))
+	m.renderPageStart(&b, frame.title)
+	b.WriteString(m.ui.subtle.Render("Choose the components to include in this installation."))
 	b.WriteString("\n\n")
 
 	options := make([]listOption, len(frame.items))
@@ -173,19 +188,19 @@ func (m model) viewConfigure() string {
 	}
 	m.renderOptionList(&b, options, frame.cursor)
 	b.WriteByte('\n')
-	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to navigate, ") +
-		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to toggle/select, ") + m.ui.key.Render("←/Esc") + m.ui.subtle.Render(" to go back"))
+	m.renderFooter(&b, "↑/↓", " to navigate, ", "Enter", " to toggle/select, ", "←/Esc", " to go back")
 	return b.String()
 }
 
 func (m model) viewReview() string {
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Review Installation"))
+	m.renderPageStart(&b, "Review Installation")
+	b.WriteString(m.ui.subtle.Render("The following steps will run in order."))
 	b.WriteString("\n\n")
 
 	var all []string
 	for _, ph := range m.cfg.Manifest.Phases {
-		all = append(all, m.ui.highlight.Render(ph.Name))
+		all = append(all, m.ui.sectionLabel(ph.Name))
 		for i := range m.cfg.Manifest.Steps {
 			st := m.cfg.Manifest.Steps[i]
 			if st.Phase != ph.ID {
@@ -205,7 +220,7 @@ func (m model) viewReview() string {
 		all = append(all, "")
 	}
 
-	maxRows := m.height - 8
+	maxRows := m.height - 12
 	if maxRows < 1 {
 		maxRows = 1
 	}
@@ -221,7 +236,7 @@ func (m model) viewReview() string {
 		b.WriteByte('\n')
 	}
 	b.WriteByte('\n')
-	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("Enter") + m.ui.subtle.Render(" to begin installation, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to go back"))
+	m.renderFooter(&b, "Enter", " to begin installation, ", "Esc", " to go back")
 	return b.String()
 }
 
@@ -236,90 +251,106 @@ func (m model) viewInstall() string {
 	ins := m.install
 	steps := m.cfg.Manifest.Steps
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Installing"))
-	b.WriteString("\n\n")
-	b.WriteString(m.ui.statusBar.Width(m.width - 2).Render(m.progressBar()))
-	b.WriteString("\n\n")
+	m.renderPageStart(&b, "Installing")
 
-	var all []string
-	focus := 0
+	if len(steps) == 0 || ins.current >= len(steps) {
+		b.WriteString(m.ui.success.Render(m.cfg.Glyphs["ok"] + " Installation complete"))
+		return b.String()
+	}
+
+	cur := steps[ins.current]
+	phaseName := cur.Phase
 	for _, ph := range m.cfg.Manifest.Phases {
-		ps := phaseRollup(ph.ID, steps, ins.statuses)
-		all = append(all, m.ui.statusText(ps, statusGlyph(m.cfg.Glyphs, ps)+" "+ph.Name))
-		for i := range steps {
-			if steps[i].Phase != ph.ID {
-				continue
-			}
-			status := ins.statuses[i]
-			text := "  " + statusGlyph(m.cfg.Glyphs, status) + " " + steps[i].Name
-			if i == ins.current && status == statusRunning {
-				focus = len(all)
-				rowText := "  " + spinnerFrames[ins.spinner%len(spinnerFrames)] + " " + steps[i].Name
-				all = append(all, m.ui.selectedRow(rowText, m.width-2))
-			} else {
-				all = append(all, m.ui.statusText(status, text))
-			}
+		if ph.ID == cur.Phase {
+			phaseName = ph.Name
+			break
+		}
+	}
+	spin := spinnerFrames[ins.spinner%len(spinnerFrames)]
+	stepLabel := fmt.Sprintf("%s %s", phaseName, cur.Name)
+	b.WriteString(m.ui.accent.Render(spin) + m.ui.normal.Render("  "+stepLabel))
+	b.WriteString("\n")
+	b.WriteString(m.ui.subtle.Render("    " + m.runningTime()))
+	b.WriteString("\n\n")
+	b.WriteString(ins.progress.View())
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render(fmt.Sprintf("Step %d of %d", ins.current+1, len(steps))))
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("$ bash " + cur.Script))
+
+	if len(ins.liveLines) > 0 {
+		b.WriteString("\n\n")
+		b.WriteString(m.ui.sectionLabel("Live output"))
+		b.WriteByte('\n')
+		shown := ins.liveLines
+		if len(shown) > 8 {
+			shown = shown[len(shown)-8:]
+		}
+		for _, l := range shown {
+			b.WriteString(m.renderLiveLine(l))
+			b.WriteByte('\n')
 		}
 	}
 
-	maxRows := m.height - 8
-	if maxRows < 1 {
-		maxRows = 1
-	}
-	top := 0
-	if len(all) > maxRows {
-		top = focus - maxRows/2
-		if top < 0 {
-			top = 0
-		}
-		if top > len(all)-maxRows {
-			top = len(all) - maxRows
-		}
-	}
-	for _, l := range visible(all, top, maxRows) {
-		b.WriteString(l)
-		b.WriteByte('\n')
-	}
 	b.WriteByte('\n')
-	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("L") + m.ui.subtle.Render(" for the full log, ") + m.ui.key.Render("Ctrl+C") + m.ui.subtle.Render(" to cancel"))
+	m.renderFooter(&b, "L", " for the full log, ", "Ctrl+C", " to cancel")
 	return b.String()
 }
 
-func (m model) progressBar() string {
-	total := len(m.cfg.Manifest.Steps)
-	current := m.install.current
-	if current > total {
-		current = total
+// runningTime formats the per-step and overall elapsed time for the hero line.
+func (m model) runningTime() string {
+	ins := m.install
+	if ins == nil || ins.stepStart.IsZero() {
+		return ""
 	}
-	barW := m.width - 14
-	if barW < 6 {
-		barW = 6
+	return "step " + formatDuration(time.Since(ins.stepStart)) + "  ·  total " + formatDuration(time.Since(ins.startTime))
+}
+
+func formatDuration(d time.Duration) string {
+	if d < 0 {
+		d = 0
 	}
-	done := 0
-	if total > 0 {
-		done = current * barW / total
+	s := int(d.Seconds())
+	h := s / 3600
+	min := (s % 3600) / 60
+	sec := s % 60
+	if h > 0 {
+		return fmt.Sprintf("%dh %02dm %02ds", h, min, sec)
 	}
-	if done > barW {
-		done = barW
+	if min > 0 {
+		return fmt.Sprintf("%dm %02ds", min, sec)
 	}
-	arrow := 0
-	if done < barW {
-		arrow = 1
+	return fmt.Sprintf("%ds", sec)
+}
+
+func (m model) renderLiveLine(l string) string {
+	text := fit(l, m.width-4)
+	switch {
+	case strings.Contains(l, "[ERR]"):
+		return m.ui.error.Padding(0, 1).Render(text)
+	case strings.Contains(l, "[WARN]"):
+		return m.ui.warning.Padding(0, 1).Render(text)
+	default:
+		return m.ui.subtle.Padding(0, 1).Render(text)
 	}
-	bar := strings.Repeat("=", done)
-	if arrow == 1 {
-		bar += ">"
+}
+
+func progressBarWidth(width int) int {
+	barW := width - 10
+	if barW > 72 {
+		barW = 72
 	}
-	bar += strings.Repeat(" ", barW-done-arrow)
-	return "[" + bar + "] " + fmt.Sprintf("%d/%d", current, total)
+	if barW < 12 {
+		barW = 12
+	}
+	return barW
 }
 
 func (m model) viewErrorDialog() string {
 	ins := m.install
 	step := m.cfg.Manifest.Steps[ins.current]
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render("Installation Error"))
-	b.WriteString("\n\n")
+	m.renderPageStart(&b, "Installation Error")
 
 	lines := []string{
 		m.ui.error.Render("Step failed: " + step.Name),
@@ -356,8 +387,7 @@ func (m model) viewComplete() string {
 	}
 
 	var b strings.Builder
-	b.WriteString(m.ui.title.Render(title))
-	b.WriteString("\n\n")
+	m.renderPageStart(&b, title)
 
 	if c.startEpoch > 0 {
 		elapsed := time.Now().Unix() - c.startEpoch
@@ -401,7 +431,7 @@ func (m model) viewComplete() string {
 	b.WriteString(m.ui.subtle.Render("- Full log saved to: " + c.logPath))
 	b.WriteString("\n\n")
 
-	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("L") + m.ui.subtle.Render(" to view the full log, ") + m.ui.key.Render("Y/n") + m.ui.subtle.Render(" to log out now"))
+	m.renderFooter(&b, "L", " to view the full log, ", "Y/n", " to log out now")
 	return b.String()
 }
 

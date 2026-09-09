@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -56,6 +57,10 @@ type installState struct {
 	detail          []string
 	errCursor       int
 	finished        bool
+	startTime       time.Time
+	stepStart       time.Time
+	liveLines       []string
+	progress        progress.Model
 }
 
 type completeState struct {
@@ -147,6 +152,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		if m.install != nil {
+			m.install.progress.Width = progressBarWidth(msg.Width)
+		}
 		return m, nil
 
 	case interruptMsg:
@@ -158,6 +166,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		if m.screen == screenInstall && m.install != nil && m.install.running {
 			m.install.spinner++
+			m.refreshLive()
 		}
 		if m.screen == screenLog {
 			m.refreshLog()
@@ -166,6 +175,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		return m.handleKey(msg)
+
+	case progress.FrameMsg:
+		if m.screen == screenInstall && m.install != nil {
+			updated, cmd := m.install.progress.Update(msg)
+			if next, ok := updated.(progress.Model); ok {
+				m.install.progress = next
+			}
+			return m, cmd
+		}
 	}
 	return m, nil
 }
@@ -453,9 +471,12 @@ func (m *model) beginInstall() {
 	persistInstallEnv(m.answers)
 	_ = m.prepareInstallEnv()
 	m.install = &installState{
-		statuses: make([]string, len(m.cfg.Manifest.Steps)),
-		logPath:  m.installLogPath(),
+		statuses:  make([]string, len(m.cfg.Manifest.Steps)),
+		logPath:   m.installLogPath(),
+		startTime: time.Now(),
+		progress:  progress.New(progress.WithGradient(string(m.ui.c("seed")), string(m.ui.c("secondary"))), progress.WithFillCharacters('█', '░')),
 	}
+	m.install.progress.Width = progressBarWidth(m.width)
 	for i := range m.install.statuses {
 		m.install.statuses[i] = statusPending
 	}

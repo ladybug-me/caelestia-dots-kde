@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -197,6 +198,9 @@ func (m model) prepareInstallEnv() error {
 func (m model) startStep(i int) (model, tea.Cmd) {
 	ins := m.install
 	steps := m.cfg.Manifest.Steps
+	if len(steps) > 0 {
+		ins.progress.Width = progressBarWidth(m.width)
+	}
 
 	if stepIsSkipped(steps[i], m.answers) {
 		ins.statuses[i] = statusSkipped
@@ -208,6 +212,8 @@ func (m model) startStep(i int) (model, tea.Cmd) {
 	ins.current = i
 	ins.running = true
 	ins.dialog = false
+	ins.stepStart = time.Now()
+	ins.liveLines = nil
 
 	if st, err := os.Stat(ins.logPath); err == nil {
 		ins.stepStartOffset = st.Size()
@@ -236,7 +242,7 @@ func (m model) startStep(i int) (model, tea.Cmd) {
 	}
 	ins.cmd = cmd
 
-	return m, func() tea.Msg {
+	waitCmd := func() tea.Msg {
 		werr := cmd.Wait()
 		if logf != nil {
 			logf.Close()
@@ -251,6 +257,18 @@ func (m model) startStep(i int) (model, tea.Cmd) {
 		}
 		return stepFinishedMsg{exitCode: code}
 	}
+	return m, tea.Batch(ins.setProgressTarget(len(steps)), waitCmd)
+}
+
+func (ins *installState) setProgressTarget(total int) tea.Cmd {
+	if ins == nil || total < 1 {
+		return nil
+	}
+	target := float64(ins.current) / float64(total)
+	if ins.progress.Percent() == target {
+		return nil
+	}
+	return ins.progress.SetPercent(target)
 }
 
 func (m model) advanceStep() (model, tea.Cmd) {
@@ -295,4 +313,25 @@ func (m *model) refreshLog() {
 	}
 	m.logView.lines = out
 	m.logView.issues = issues
+}
+
+// refreshLive tails only the running step's own log segment into the model so
+// the Install screen shows live output without noise from earlier steps.
+func (m *model) refreshLive() {
+	ins := m.install
+	if ins == nil || !ins.running {
+		return
+	}
+	lines := strings.Split(readLogDelta(ins.logPath, ins.stepStartOffset), "\n")
+	if len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	out := make([]string, len(lines))
+	for i, l := range lines {
+		out[i] = stripANSI(l)
+	}
+	if len(out) > 40 {
+		out = out[len(out)-40:]
+	}
+	ins.liveLines = out
 }
