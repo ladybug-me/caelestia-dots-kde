@@ -1,4 +1,5 @@
-package main
+// Package util holds small OS/string helpers with no UI or config dependency.
+package util
 
 import (
 	"os"
@@ -6,8 +7,8 @@ import (
 	"strings"
 )
 
-// fit truncates s to max runes, appending "..." when it overflows.
-func fit(s string, max int) string {
+// Fit truncates s to max runes, appending "..." when it overflows.
+func Fit(s string, max int) string {
 	if max <= 0 {
 		return ""
 	}
@@ -21,8 +22,8 @@ func fit(s string, max int) string {
 	return string(r[:max-3]) + "..."
 }
 
-// stripANSI removes ANSI escape sequences from s.
-func stripANSI(s string) string {
+// StripANSI removes ANSI escape sequences from s.
+func StripANSI(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
 	runes := []rune(s)
@@ -53,7 +54,8 @@ func stripANSI(s string) string {
 	return b.String()
 }
 
-func distroLabel(id string) string {
+// DistroLabel maps a BASE_DISTRO id to a human-readable label.
+func DistroLabel(id string) string {
 	switch id {
 	case "arch":
 		return "Arch-based Linux"
@@ -68,7 +70,10 @@ func distroLabel(id string) string {
 	return id
 }
 
-func isCaelestiaInstalled() bool {
+// IsCaelestiaInstalled reports whether the caelestia CLI is already on PATH
+// (or in the usual well-known locations), used to decide whether to offer
+// Update/Uninstall alongside Install.
+func IsCaelestiaInstalled() bool {
 	executable := func(p string) bool {
 		fi, err := os.Stat(p)
 		return err == nil && !fi.IsDir() && fi.Mode()&0111 != 0

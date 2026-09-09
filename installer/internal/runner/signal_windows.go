@@ -1,12 +1,12 @@
 //go:build windows
 
-package main
+package runner
 
 import "os"
 
-// signalTerminate is only used at runtime on Linux; on Windows builds it is a
+// SignalTerminate is only used at runtime on Linux; on Windows builds it is a
 // best-effort fallback so the package still compiles for development.
-func signalTerminate(p *os.Process) {
+func SignalTerminate(p *os.Process) {
 	if p == nil {
 		return
 	}

@@ -1,10 +1,11 @@
-package main
+// Package config loads and represents the installer's bundle-relative JSON
+// files: theme.json, menu.json, and steps.json.
+package config
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -56,8 +57,8 @@ type StepsManifest struct {
 	Steps  []Step  `json:"steps"`
 }
 
-// config bundles the three installer JSON files plus resolved glyphs.
-type config struct {
+// Config bundles the three installer JSON files plus resolved glyphs.
+type Config struct {
 	Theme    Theme
 	Menu     Menu
 	Manifest StepsManifest
@@ -73,10 +74,11 @@ func loadJSON(path string, out any) error {
 	return json.Unmarshal(b, out)
 }
 
-func loadConfig(bundleDir string) (*config, error) {
-	cfg := &config{
+// Load reads theme.json, menu.json, and steps.json from bundleDir/installer.
+func Load(bundleDir string) (*Config, error) {
+	cfg := &Config{
 		Palette: map[string]string{},
-		Glyphs:  defaultGlyphs(),
+		Glyphs:  DefaultGlyphs(),
 	}
 
 	if err := loadJSON(filepath.Join(bundleDir, "installer", "theme.json"), &cfg.Theme); err == nil {
@@ -105,7 +107,9 @@ func loadConfig(bundleDir string) (*config, error) {
 	return cfg, nil
 }
 
-func defaultGlyphs() map[string]string {
+// DefaultGlyphs returns the fallback glyph set used when theme.json doesn't
+// override a given glyph.
+func DefaultGlyphs() map[string]string {
 	return map[string]string{
 		"pending":      "[ ]",
 		"running":      "[>]",
@@ -118,15 +122,4 @@ func defaultGlyphs() map[string]string {
 		"select_left":  "<",
 		"select_right": ">",
 	}
-}
-
-func hexToRGB(s string) (int, int, int, bool) {
-	if len(s) != 7 || s[0] != '#' {
-		return 0, 0, 0, false
-	}
-	n, err := strconv.ParseUint(s[1:], 16, 32)
-	if err != nil {
-		return 0, 0, 0, false
-	}
-	return int(n>>16) & 0xff, int(n>>8) & 0xff, int(n) & 0xff, true
 }

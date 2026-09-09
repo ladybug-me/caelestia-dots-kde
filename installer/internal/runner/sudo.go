@@ -1,4 +1,4 @@
-package main
+package runner
 
 import (
 	"fmt"
@@ -39,10 +39,10 @@ func releaseKDEInhibit(cookieFile string) {
 		"org.freedesktop.ScreenSaver.UnInhibit", value).Run()
 }
 
-// setupSudoEnvironment mirrors UI::setup_sudo_environment: it creates a
+// SetupSudoEnvironment mirrors UI::setup_sudo_environment: it creates a
 // per-run askpass + sudo wrapper directory, exports SUDO_PASS, and starts the
 // screen/sleep inhibitors. It returns the wrapper directory to clean up later.
-func setupSudoEnvironment(pw string) (string, error) {
+func SetupSudoEnvironment(pw string) (string, error) {
 	dir, err := os.MkdirTemp("/tmp", "caelestia-bin.")
 	if err != nil {
 		return "", err
@@ -116,24 +116,10 @@ func setupSudoEnvironment(pw string) (string, error) {
 	return dir, nil
 }
 
-func verifySudoPassword(pw string) bool {
+// VerifySudoPassword checks pw against sudo -S without running anything else.
+func VerifySudoPassword(pw string) bool {
 	cmd := exec.Command("sudo", "-S", "true")
 	cmd.Stdin = strings.NewReader(pw + "\n")
 	cmd.Stderr = nil
 	return cmd.Run() == nil
-}
-
-// runExternalScript hands the restored terminal to update.sh / uninstall.sh
-// and returns the script's exit code.
-func runExternalScript(scriptPath string) int {
-	cmd := exec.Command("bash", scriptPath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err == nil {
-		return 0
-	} else if ee, ok := err.(*exec.ExitError); ok {
-		return ee.ExitCode()
-	}
-	return 1
 }

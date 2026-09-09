@@ -9,6 +9,12 @@ import (
 	"syscall"
 
 	tea "charm.land/bubbletea/v2"
+
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/app"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/config"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/runner"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/welcome"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/theme"
 )
 
 func main() {
@@ -36,14 +42,22 @@ func run() int {
 		return runExternalScript(filepath.Join(bundleDir, presetAction+".sh"))
 	}
 
-	cfg, err := loadConfig(bundleDir)
+	cfg, err := config.Load(bundleDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[installer] failed to load config: %v\n", err)
 		return 1
 	}
 
-	m := initialModel(cfg, bundleDir, os.Getenv("BASE_DISTRO"))
-	p := tea.NewProgram(m, tea.WithoutSignalHandler())
+	ctx := &app.Context{
+		Cfg:        cfg,
+		Theme:      theme.New(cfg),
+		Answers:    map[string]string{},
+		BundleDir:  bundleDir,
+		BaseDistro: os.Getenv("BASE_DISTRO"),
+	}
+
+	router := app.NewRouter(ctx, welcome.New(ctx))
+	p := tea.NewProgram(router, tea.WithoutSignalHandler())
 
 	signals := make(chan os.Signal, 2)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
@@ -54,41 +68,40 @@ func run() int {
 			case <-done:
 				return
 			case <-signals:
-				p.Send(interruptMsg{})
+				p.Send(app.InterruptMsg{})
 			}
 		}
 	}()
 
-	final, err := p.Run()
+	_, err = p.Run()
 	close(done)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[installer] error: %v\n", err)
 		return 1
 	}
-	fm := final.(model)
 
 	// The action screen may have handed off to update.sh / uninstall.sh.
-	if fm.actionResult == "update" || fm.actionResult == "uninstall" {
-		return runExternalScript(filepath.Join(bundleDir, fm.actionResult+".sh"))
+	if ctx.ActionResult == "update" || ctx.ActionResult == "uninstall" {
+		return runExternalScript(filepath.Join(bundleDir, ctx.ActionResult+".sh"))
 	}
 
-	if fm.exitCode != 0 {
-		return fm.exitCode
+	if ctx.ExitCode != 0 {
+		return ctx.ExitCode
 	}
-	if fm.actionResult == "exit" {
+	if ctx.ActionResult == "exit" {
 		fmt.Println("\nExiting installer.")
 		return 0
 	}
 
 	// Secure cleanup of sudo credentials and, when requested, the build cache.
-	if fm.answers["REMOVE_CACHE"] == "true" {
-		_ = os.RemoveAll(fm.cacheDir())
+	if ctx.Answers["REMOVE_CACHE"] == "true" {
+		_ = os.RemoveAll(runner.CacheDir())
 	}
-	if fm.sudoBinDir != "" {
-		_ = os.RemoveAll(fm.sudoBinDir)
+	if ctx.SudoBinDir != "" {
+		_ = os.RemoveAll(ctx.SudoBinDir)
 	}
 
-	if fm.logout {
+	if ctx.Logout {
 		fmt.Println("\nLogging out...")
 		_ = exec.Command("qdbus6", "org.kde.Shutdown", "/Shutdown", "org.kde.Shutdown.logout").Run()
 	} else {
@@ -111,3 +124,19 @@ func detectBundleDir() string {
 	}
 	return dir
 }
+
+// runExternalScript hands the restored terminal to update.sh / uninstall.sh
+// and returns the script's exit code.
+func runExternalScript(scriptPath string) int {
+	cmd := exec.Command("bash", scriptPath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err == nil {
+		return 0
+	} else if ee, ok := err.(*exec.ExitError); ok {
+		return ee.ExitCode()
+	}
+	return 1
+}
+
