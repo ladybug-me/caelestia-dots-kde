@@ -3,6 +3,7 @@
 package review
 
 import (
+	"fmt"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -55,8 +56,7 @@ func (m Model) lines() []string {
 			if manifest.StepIsSkipped(step, m.ctx.Answers) {
 				status = manifest.StatusSkipped
 			}
-			glyph := manifest.Glyph(m.ctx.Cfg.Glyphs, status)
-			all = append(all, "  "+m.ctx.Theme.StatusText(status, glyph)+" "+step.Name)
+			all = append(all, "  "+m.ctx.Theme.StatusText(status, fmt.Sprintf("%-7s", status))+" "+step.Name)
 		}
 	}
 	return all

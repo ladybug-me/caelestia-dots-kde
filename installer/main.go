@@ -50,7 +50,8 @@ func run() int {
 
 	ctx := &app.Context{
 		Cfg:        cfg,
-		Theme:      theme.New(cfg),
+		Theme:      theme.New(cfg, true),
+		IsDark:     true,
 		Answers:    map[string]string{},
 		BundleDir:  bundleDir,
 		BaseDistro: os.Getenv("BASE_DISTRO"),

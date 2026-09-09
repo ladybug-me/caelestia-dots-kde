@@ -1,19 +1,5 @@
 {
-  "palette": {
-    "primary": "#88c0d0",
-    "accent": "#81a1c1",
-    "seed": "#5e81ac",
-    "container": "#3b4252",
-    "surface": "#2e3440",
-    "on_surface": "#eceff4",
-    "secondary": "#8fbcbb",
-    "tertiary": "#b48ead",
-    "muted": "#6c7a89",
-    "success": "#a3be8c",
-    "warning": "#ebcb8b",
-    "error": "#bf616a"
-  },
-  "splash_screen": {
+  "splash": {
     "art": [
       "   _____            _           _   _       ",
       "  / ____|          | |         | | (_)      ",
@@ -26,16 +12,34 @@
     "co_author": "Co-maintainer: 0xSolanaceae",
     "art_color": "primary"
   },
-  "glyphs": {
-    "pending": "[ ]",
-    "running": "[>]",
-    "ok": "[OK]",
-    "warn": "[WARN]",
-    "failed": "[ERR]",
-    "skipped": "[SKIP]",
-    "checkbox_on": "[x]",
-    "checkbox_off": "[ ]",
-    "select_left": "<",
-    "select_right": ">"
+  "palette": {
+    "dark": {
+      "primary": "#7dd3fc",
+      "accent": "#a78bfa",
+      "seed": "#6366f1",
+      "container": "#1e293b",
+      "surface": "#0f172a",
+      "on_surface": "#e2e8f0",
+      "secondary": "#34d399",
+      "tertiary": "#f472b6",
+      "muted": "#64748b",
+      "success": "#4ade80",
+      "warning": "#fbbf24",
+      "error": "#f87171"
+    },
+    "light": {
+      "primary": "#0369a1",
+      "accent": "#6d28d9",
+      "seed": "#4338ca",
+      "container": "#e2e8f0",
+      "surface": "#f8fafc",
+      "on_surface": "#0f172a",
+      "secondary": "#047857",
+      "tertiary": "#be185d",
+      "muted": "#64748b",
+      "success": "#15803d",
+      "warning": "#b45309",
+      "error": "#b91c1c"
+    }
   }
 }

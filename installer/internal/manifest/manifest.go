@@ -5,7 +5,9 @@ package manifest
 
 import "github.com/ladybug-me/caelestia-dots-kde/installer/internal/config"
 
-// Status values a step (and, by rollup, a phase) can be in.
+// Status values a step (and, by rollup, a phase) can be in. Each constant IS
+// its own display tag - no separate glyph/icon lookup - keeping status
+// rendering to plain ASCII text plus color (see internal/theme.StatusText).
 const (
 	StatusPending = "PENDING"
 	StatusRunning = "RUNNING"
@@ -15,26 +17,6 @@ const (
 	StatusSkipped = "SKIPPED"
 	StatusIgnored = "IGNORED"
 )
-
-// Glyph returns the glyph theme.json (or the default set) assigns to status.
-func Glyph(glyphs map[string]string, status string) string {
-	switch status {
-	case StatusRunning:
-		return glyphs["running"]
-	case StatusOK:
-		return glyphs["ok"]
-	case StatusWarn:
-		return glyphs["warn"]
-	case StatusFailed:
-		return glyphs["failed"]
-	case StatusSkipped:
-		return glyphs["skipped"]
-	case StatusIgnored:
-		return "[IGNORED]"
-	default:
-		return glyphs["pending"]
-	}
-}
 
 // ColorName returns the theme palette entry a status should render with.
 func ColorName(status string) string {

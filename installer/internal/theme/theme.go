@@ -15,7 +15,8 @@ import (
 // sleek terminal UI: a quiet wordmark, highlighted selections, and restrained
 // accent usage.
 type UI struct {
-	cfg *config.Config
+	cfg    *config.Config
+	isDark bool
 
 	Banner       lipgloss.Style
 	Title        lipgloss.Style
@@ -39,48 +40,67 @@ type UI struct {
 	CodeBlock    lipgloss.Style
 }
 
-// PaletteColor resolves a named palette entry to a color, falling back to a
-// small built-in Nord-like palette when theme.json doesn't define it.
-func PaletteColor(cfg *config.Config, name string) color.Color {
-	if v, ok := cfg.Palette[name]; ok && strings.HasPrefix(v, "#") && len(v) == 7 {
+// defaultDark and defaultLight are the installer's own identity - not tied to
+// the shell's Material You palette - used whenever theme.json omits a name.
+var defaultDark = map[string]string{
+	"primary":    "#7dd3fc",
+	"accent":     "#a78bfa",
+	"seed":       "#6366f1",
+	"container":  "#1e293b",
+	"surface":    "#0f172a",
+	"on_surface": "#e2e8f0",
+	"secondary":  "#34d399",
+	"tertiary":   "#f472b6",
+	"muted":      "#64748b",
+	"success":    "#4ade80",
+	"warning":    "#fbbf24",
+	"error":      "#f87171",
+}
+
+var defaultLight = map[string]string{
+	"primary":    "#0369a1",
+	"accent":     "#6d28d9",
+	"seed":       "#4338ca",
+	"container":  "#e2e8f0",
+	"surface":    "#f8fafc",
+	"on_surface": "#0f172a",
+	"secondary":  "#047857",
+	"tertiary":   "#be185d",
+	"muted":      "#64748b",
+	"success":    "#15803d",
+	"warning":    "#b45309",
+	"error":      "#b91c1c",
+}
+
+// PaletteColor resolves a named palette entry to a color for the given
+// background mode, falling back to the installer's built-in palette when
+// theme.json doesn't define it.
+func PaletteColor(cfg *config.Config, isDark bool, name string) color.Color {
+	themed := cfg.Theme.Palette.Dark
+	fallback := defaultDark
+	if !isDark {
+		themed = cfg.Theme.Palette.Light
+		fallback = defaultLight
+	}
+	if v, ok := themed[name]; ok && strings.HasPrefix(v, "#") && len(v) == 7 {
 		return lipgloss.Color(v)
 	}
-	switch name {
-	case "primary":
-		return lipgloss.Color("#88c0d0")
-	case "accent":
-		return lipgloss.Color("#81a1c1")
-	case "seed":
-		return lipgloss.Color("#5e81ac")
-	case "container":
-		return lipgloss.Color("#3b4252")
-	case "surface":
-		return lipgloss.Color("#2e3440")
-	case "on_surface":
-		return lipgloss.Color("#eceff4")
-	case "secondary":
-		return lipgloss.Color("#8fbcbb")
-	case "tertiary":
-		return lipgloss.Color("#b48ead")
-	case "muted":
-		return lipgloss.Color("#6c7a89")
-	case "success":
-		return lipgloss.Color("#a3be8c")
-	case "warning":
-		return lipgloss.Color("#ebcb8b")
-	case "error":
-		return lipgloss.Color("#bf616a")
+	if v, ok := fallback[name]; ok {
+		return lipgloss.Color(v)
 	}
 	return lipgloss.Color("")
 }
 
-// New builds a UI style set from the loaded config.
-func New(cfg *config.Config) UI {
-	c := func(name string) color.Color { return PaletteColor(cfg, name) }
+// New builds a UI style set from the loaded config for the given background
+// mode. Call again (e.g. from the router) once the terminal's actual
+// background color is known, to switch from the default dark assumption.
+func New(cfg *config.Config, isDark bool) UI {
+	c := func(name string) color.Color { return PaletteColor(cfg, isDark, name) }
 	dark := c("surface")
 
 	return UI{
 		cfg:          cfg,
+		isDark:       isDark,
 		Banner:       lipgloss.NewStyle().Foreground(c("primary")).Bold(true).MarginBottom(1),
 		Title:        lipgloss.NewStyle().Foreground(c("primary")).Bold(true).MarginLeft(1).MarginBottom(1),
 		Normal:       lipgloss.NewStyle().Foreground(c("on_surface")),
@@ -104,8 +124,8 @@ func New(cfg *config.Config) UI {
 	}
 }
 
-// Color resolves a named palette entry using this UI's config.
-func (u UI) Color(name string) color.Color { return PaletteColor(u.cfg, name) }
+// Color resolves a named palette entry using this UI's config and mode.
+func (u UI) Color(name string) color.Color { return PaletteColor(u.cfg, u.isDark, name) }
 
 // Row renders one selectable line at the given width.
 func (u UI) Row(s string, width int) string {

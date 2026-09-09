@@ -58,16 +58,6 @@ func TestPhaseRollup(t *testing.T) {
 	}
 }
 
-func TestStatusGlyph(t *testing.T) {
-	g := config.DefaultGlyphs()
-	if got := Glyph(g, StatusOK); got != "[OK]" {
-		t.Errorf("OK glyph = %q", got)
-	}
-	if got := Glyph(g, StatusIgnored); got != "[IGNORED]" {
-		t.Errorf("IGNORED glyph = %q", got)
-	}
-}
-
 func TestSeedMenuDefaults(t *testing.T) {
 	items := []config.MenuItem{
 		{ID: "menu_packages", Type: "submenu", Items: []config.MenuItem{

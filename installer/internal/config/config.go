@@ -6,20 +6,21 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-// Theme mirrors installer/theme.json.
+// Theme mirrors installer/theme.json: a splash banner plus a light and dark
+// palette (auto-selected at runtime from the terminal's background color).
 type Theme struct {
-	Palette map[string]string `json:"palette"`
-	Colors  map[string]string `json:"colors"`
-	Splash  struct {
+	Splash struct {
 		Art      []string `json:"art"`
 		Author   string   `json:"author"`
 		CoAuthor string   `json:"co_author"`
 		ArtColor string   `json:"art_color"`
-	} `json:"splash_screen"`
-	Glyphs map[string]string `json:"glyphs"`
+	} `json:"splash"`
+	Palette struct {
+		Dark  map[string]string `json:"dark"`
+		Light map[string]string `json:"light"`
+	} `json:"palette"`
 }
 
 // MenuItem mirrors one entry in installer/menu.json.
@@ -57,13 +58,11 @@ type StepsManifest struct {
 	Steps  []Step  `json:"steps"`
 }
 
-// Config bundles the three installer JSON files plus resolved glyphs.
+// Config bundles the three installer JSON files.
 type Config struct {
 	Theme    Theme
 	Menu     Menu
 	Manifest StepsManifest
-	Palette  map[string]string
-	Glyphs   map[string]string
 }
 
 func loadJSON(path string, out any) error {
@@ -76,28 +75,11 @@ func loadJSON(path string, out any) error {
 
 // Load reads theme.json, menu.json, and steps.json from bundleDir/installer.
 func Load(bundleDir string) (*Config, error) {
-	cfg := &Config{
-		Palette: map[string]string{},
-		Glyphs:  DefaultGlyphs(),
-	}
+	cfg := &Config{}
 
-	if err := loadJSON(filepath.Join(bundleDir, "installer", "theme.json"), &cfg.Theme); err == nil {
-		for name, v := range cfg.Theme.Palette {
-			cfg.Palette[name] = v
-		}
-		if len(cfg.Palette) == 0 {
-			for name, v := range cfg.Theme.Colors {
-				cfg.Palette[name] = v
-			}
-		}
-		for name, v := range cfg.Theme.Glyphs {
-			if strings.TrimSpace(v) != "" {
-				cfg.Glyphs[name] = v
-			}
-		}
-	}
-
-	// The menu is optional; a bundle without it skips the configure phase.
+	// theme.json and menu.json are optional: a bundle without them falls
+	// back to the built-in palette, and skips the configure phase entirely.
+	_ = loadJSON(filepath.Join(bundleDir, "installer", "theme.json"), &cfg.Theme)
 	_ = loadJSON(filepath.Join(bundleDir, "installer", "menu.json"), &cfg.Menu)
 
 	if err := loadJSON(filepath.Join(bundleDir, "installer", "steps.json"), &cfg.Manifest); err != nil {
@@ -105,21 +87,4 @@ func Load(bundleDir string) (*Config, error) {
 	}
 
 	return cfg, nil
-}
-
-// DefaultGlyphs returns the fallback glyph set used when theme.json doesn't
-// override a given glyph.
-func DefaultGlyphs() map[string]string {
-	return map[string]string{
-		"pending":      "[ ]",
-		"running":      "[>]",
-		"ok":           "[OK]",
-		"warn":         "[WARN]",
-		"failed":       "[ERR]",
-		"skipped":      "[SKIP]",
-		"checkbox_on":  "[x]",
-		"checkbox_off": "[ ]",
-		"select_left":  "<",
-		"select_right": ">",
-	}
 }

@@ -16,6 +16,7 @@ import (
 type Context struct {
 	Cfg        *config.Config
 	Theme      theme.UI
+	IsDark     bool
 	Answers    map[string]string
 	BundleDir  string
 	BaseDistro string
@@ -83,6 +84,11 @@ func (r *Router) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		r.ctx.Width, r.ctx.Height = msg.Width, msg.Height
+		return r, nil
+
+	case tea.BackgroundColorMsg:
+		r.ctx.IsDark = msg.IsDark()
+		r.ctx.Theme = theme.New(r.ctx.Cfg, r.ctx.IsDark)
 		return r, nil
 
 	case tea.KeyPressMsg:

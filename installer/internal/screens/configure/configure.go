@@ -138,7 +138,7 @@ func (m Model) View() tea.View {
 	options := make([]widgets.ListOption, len(f.items))
 	for i, item := range f.items {
 		options[i] = widgets.ListOption{
-			Label: menuDisplay(item, m.ctx.Answers, m.ctx.Cfg.Glyphs),
+			Label: menuDisplay(item, m.ctx.Answers),
 			Desc:  item.Help,
 		}
 	}
@@ -148,18 +148,18 @@ func (m Model) View() tea.View {
 	return tea.NewView(b.String())
 }
 
-func menuDisplay(item config.MenuItem, answers map[string]string, glyphs map[string]string) string {
+func menuDisplay(item config.MenuItem, answers map[string]string) string {
 	switch item.Type {
 	case "submenu":
 		return item.Title + " >"
 	case "boolean":
-		glyph := glyphs["checkbox_off"]
+		checkbox := "[ ]"
 		if answers[item.ID] == "true" {
-			glyph = glyphs["checkbox_on"]
+			checkbox = "[x]"
 		}
-		return glyph + " " + item.Title
+		return checkbox + " " + item.Title
 	case "select":
-		return item.Title + ": " + glyphs["select_left"] + " " + answers[item.ID] + " " + glyphs["select_right"]
+		return item.Title + ": < " + answers[item.ID] + " >"
 	default:
 		return item.Title
 	}

@@ -20,7 +20,7 @@ func testContext(t *testing.T) *app.Context {
 	}
 	return &app.Context{
 		Cfg:        cfg,
-		Theme:      theme.New(cfg),
+		Theme:      theme.New(cfg, true),
 		Answers:    map[string]string{},
 		BundleDir:  "../../../..",
 		BaseDistro: "arch",
