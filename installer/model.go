@@ -129,7 +129,7 @@ func initialModel(cfg *config, bundleDir, baseDistro string) model {
 	return model{
 		screen:     screenWelcome,
 		cfg:        cfg,
-		ui:         ui{cfg: cfg},
+		ui:         newUI(cfg),
 		answers:    map[string]string{},
 		bundleDir:  bundleDir,
 		baseDistro: baseDistro,

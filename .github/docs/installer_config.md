@@ -15,9 +15,9 @@ The installer TUI (`caelestia-install`) is a Go program built on charmbracelet B
 ```json
 {
   "palette": {
-    "primary": "#ffb0ca",
-    "accent": "#ff4c8a",
-    "muted": "#8e6f78"
+    "primary": "#88c0d0",
+    "accent": "#81a1c1",
+    "muted": "#6c7a89"
   },
   "splash_screen": {
     "art": ["  line one", "  line two"],

@@ -1,17 +1,17 @@
 {
   "palette": {
-    "primary": "#ffb0ca",
-    "accent": "#ff4c8a",
-    "seed": "#a8627b",
-    "container": "#6f334a",
-    "surface": "#191114",
-    "on_surface": "#efdfe2",
-    "secondary": "#e2bdc7",
-    "tertiary": "#f0bc95",
-    "muted": "#8e6f78",
-    "success": "#9cd1a3",
-    "warning": "#e8c87a",
-    "error": "#ff7b8f"
+    "primary": "#88c0d0",
+    "accent": "#81a1c1",
+    "seed": "#5e81ac",
+    "container": "#3b4252",
+    "surface": "#2e3440",
+    "on_surface": "#eceff4",
+    "secondary": "#8fbcbb",
+    "tertiary": "#b48ead",
+    "muted": "#6c7a89",
+    "success": "#a3be8c",
+    "warning": "#ebcb8b",
+    "error": "#bf616a"
   },
   "splash_screen": {
     "art": [
@@ -24,7 +24,7 @@
     ],
     "author": "By @ladybug-me",
     "co_author": "Co-maintainer: 0xSolanaceae",
-    "art_color": "accent"
+    "art_color": "primary"
   },
   "glyphs": {
     "pending": "[ ]",

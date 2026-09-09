@@ -10,20 +10,48 @@ import (
 
 var spinnerFrames = []string{"|", "/", "-", "\\"}
 
-func (u ui) accentText(s string) string {
-	return lipgloss.NewStyle().Foreground(u.c("accent")).Render(s)
+type listOption struct {
+	label string
+	desc  string
 }
 
-func (u ui) errorText(s string) string {
-	return lipgloss.NewStyle().Foreground(u.c("error")).Render(s)
+func (m model) renderBanner() string {
+	art := m.cfg.Theme.Splash.Art
+	if len(art) == 0 {
+		art = []string{"Caelestia Installer"}
+	}
+	artColor := m.cfg.Theme.Splash.ArtColor
+	if artColor == "" {
+		artColor = "accent"
+	}
+	style := lipgloss.NewStyle().Foreground(m.ui.c(artColor)).Bold(true)
+	lines := make([]string, 0, len(art))
+	for _, l := range art {
+		lines = append(lines, style.Render(l))
+	}
+	return lipgloss.JoinVertical(lipgloss.Center, lines...)
 }
 
-func (u ui) warningText(s string) string {
-	return lipgloss.NewStyle().Foreground(u.c("warning")).Render(s)
-}
-
-func (u ui) successText(s string) string {
-	return lipgloss.NewStyle().Foreground(u.c("success")).Render(s)
+func (m model) renderOptionList(b *strings.Builder, options []listOption, selected int) {
+	width := m.width - 2
+	if width < 20 {
+		width = 20
+	}
+	for i, opt := range options {
+		if i == selected {
+			b.WriteString(m.ui.selectedRow(opt.label, width))
+		} else {
+			b.WriteString(m.ui.row(opt.label, width))
+		}
+		b.WriteByte('\n')
+		if opt.desc != "" {
+			b.WriteString(lipgloss.NewStyle().Foreground(m.ui.c("muted")).Padding(0, 1).Render(opt.desc))
+			b.WriteByte('\n')
+		}
+		if i < len(options)-1 {
+			b.WriteByte('\n')
+		}
+	}
 }
 
 func (m model) View() string {
@@ -51,122 +79,82 @@ func (m model) View() string {
 }
 
 func (m model) viewWelcome() string {
-	art := m.cfg.Theme.Splash.Art
-	if len(art) == 0 {
-		art = []string{"Caelestia Installer"}
-	}
-	artColor := m.cfg.Theme.Splash.ArtColor
-	if artColor == "" {
-		artColor = "accent"
-	}
-	author := m.cfg.Theme.Splash.Author
-	if author == "" {
-		author = "By @ladybug-me"
-	}
-	co := m.cfg.Theme.Splash.CoAuthor
-	if co == "" {
-		co = "Co-maintainer: 0xSolanaceae"
-	}
+	var b strings.Builder
+	b.WriteString(m.renderBanner())
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtleItalic.Render("Quickstart for a Caelestia desktop"))
+	b.WriteString("\n\n")
 
-	accent := lipgloss.NewStyle().Foreground(m.ui.c(artColor))
-	artLines := make([]string, 0, len(art))
-	for _, l := range art {
-		artLines = append(artLines, accent.Render(l))
-	}
+	b.WriteString(m.ui.normal.Render("System: " + distroLabel(m.baseDistro)))
+	b.WriteString("\n\n")
 
-	lines := []string{
-		lipgloss.JoinVertical(lipgloss.Center, artLines...),
-		m.ui.muted(author),
-		m.ui.muted(co),
-		"",
-		m.ui.title("Caelestia KDE installer"),
-		"",
-		m.ui.secondary("Detected distribution: " + distroLabel(m.baseDistro)),
-		"",
-		m.ui.muted("Press Enter to continue (Esc to quit)"),
+	b.WriteString(m.ui.sectionLabel("What you get"))
+	b.WriteString("\n\n")
+
+	features := []struct{ tag, desc string }{
+		{"[shell]", "Caelestia KDE shell (Quickshell)"},
+		{"[packages]", "fish, foot, btop, fastfetch, and more"},
+		{"[theme]", "Material You dynamic colors and Darkly"},
+		{"[config]", "keybindings, window rules, and autostart"},
 	}
-	return lipgloss.JoinVertical(lipgloss.Center, lines...)
+	tagStyle := m.ui.accent.Bold(true)
+	for _, feat := range features {
+		fmt.Fprintf(&b, "  %s %s\n", tagStyle.Render(fmt.Sprintf("%-12s", feat.tag)), m.ui.normal.Render(feat.desc))
+	}
+	b.WriteByte('\n')
+
+	enter := m.ui.key.Render("Enter")
+	esc := m.ui.key.Render("Esc")
+	b.WriteString(m.ui.subtle.Render("Press ") + enter + m.ui.subtle.Render(" to continue, ") + esc + m.ui.subtle.Render(" to quit"))
+	return b.String()
 }
 
 func (m model) viewAction() string {
-	lines := []string{m.ui.muted("Up/Down navigate  Enter select  Left/Esc back")}
+	options := make([]listOption, len(m.actions))
 	for i, a := range m.actions {
-		prefix := "  "
-		if i == m.actionCursor {
-			prefix = "> "
-		}
-		text := prefix + a.title
-		if i == m.actionCursor {
-			lines = append(lines, m.ui.selected(text))
-		} else {
-			lines = append(lines, m.ui.normal(text))
-		}
+		options[i] = listOption{label: a.title, desc: a.help}
 	}
-	if m.actionCursor < len(m.actions) {
-		lines = append(lines, "", m.ui.secondary(fit(m.actions[m.actionCursor].help, m.width-8)))
-	}
-	return m.renderScreen("CAELESTIA SETUP", "Esc - Exit", lines)
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Caelestia Setup"))
+	b.WriteString("\n\n")
+	m.renderOptionList(&b, options, m.actionCursor)
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to navigate, ") +
+		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to select, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to quit"))
+	return b.String()
 }
 
 func (m model) viewOptional() string {
-	choices := []string{
-		"Yes - also theme my applications",
-		"No - keep the standard install",
+	options := []listOption{
+		{"Yes - also theme my applications", "Adds theming for VSCode/VSCodium, Zed, Spicetify, Discord/Equibop, Todoist, and Firefox."},
+		{"No - keep the standard install", "Installs the shell, packages, and theming only."},
 	}
-	helps := []string{
-		"Adds theming for VSCode/VSCodium, Zed, Spicetify, Discord/Equibop, Todoist, and Firefox.",
-		"Installs the shell, packages, and theming only.",
-	}
-	lines := []string{
-		m.ui.muted("Up/Down navigate  Enter select  Left/Esc back"),
-		"",
-		m.ui.normal("Caelestia can also theme your applications."),
-		m.ui.normal("Install the optional app theming as well?"),
-		"",
-	}
-	for i := range choices {
-		prefix := "  "
-		if i == m.optionalCursor {
-			prefix = "> "
-		}
-		text := prefix + choices[i]
-		if i == m.optionalCursor {
-			lines = append(lines, m.ui.selected(text))
-		} else {
-			lines = append(lines, m.ui.normal(text))
-		}
-	}
-	lines = append(lines, "", m.ui.secondary(fit(helps[m.optionalCursor], m.width-8)))
-	return m.renderScreen("OPTIONAL APP THEMING", "Esc - Cancel installation", lines)
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Optional App Theming"))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.normal.Render("Caelestia can also theme your applications."))
+	b.WriteString("\n\n")
+	m.renderOptionList(&b, options, m.optionalCursor)
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to choose, ") +
+		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to confirm, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to cancel installation"))
+	return b.String()
 }
 
 func (m model) viewSudo() string {
-	lines := []string{
-		m.ui.normal("Root privileges are required to install packages."),
-		"",
-		"Password: " + m.password.View(),
-	}
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Privilege Escalation"))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.normal.Render("Root privileges are required to install packages."))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.highlight.Render("Password: ") + m.password.View())
 	if m.sudoError != "" {
-		lines = append(lines, "", m.ui.errorText(m.sudoError))
+		b.WriteString("\n\n")
+		b.WriteString(m.ui.errorBox.Render(m.sudoError))
 	}
-	return m.renderScreen("PRIVILEGE ESCALATION", "Esc - Cancel", lines)
-}
-
-func menuDisplay(item MenuItem, answers map[string]string, glyphs map[string]string) string {
-	switch item.Type {
-	case "submenu":
-		return item.Title + " >"
-	case "boolean":
-		g := glyphs["checkbox_off"]
-		if answers[item.ID] == "true" {
-			g = glyphs["checkbox_on"]
-		}
-		return g + " " + item.Title
-	case "select":
-		return item.Title + ": " + glyphs["select_left"] + " " + answers[item.ID] + " " + glyphs["select_right"]
-	default:
-		return item.Title
-	}
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("Enter") + m.ui.subtle.Render(" to verify, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to cancel"))
+	return b.String()
 }
 
 func (m model) viewConfigure() string {
@@ -174,31 +162,32 @@ func (m model) viewConfigure() string {
 		return ""
 	}
 	frame := m.menuStack[len(m.menuStack)-1]
-	lines := []string{m.ui.muted("Up/Down navigate  Enter select  Left/Esc back")}
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render(frame.title))
+	b.WriteString("\n\n")
+
+	options := make([]listOption, len(frame.items))
 	for i := range frame.items {
-		item := frame.items[i]
-		text := menuDisplay(item, m.answers, m.cfg.Glyphs)
-		prefix := "  "
-		if i == frame.cursor {
-			prefix = "> "
-		}
-		if i == frame.cursor {
-			lines = append(lines, m.ui.selected(prefix+text))
-		} else {
-			lines = append(lines, m.ui.normal(prefix+text))
+		options[i] = listOption{
+			label: menuDisplay(frame.items[i], m.answers, m.cfg.Glyphs),
+			desc:  frame.items[i].Help,
 		}
 	}
-	footer := ""
-	if frame.cursor < len(frame.items) {
-		footer = fit(frame.items[frame.cursor].Help, m.width-4)
-	}
-	return m.renderScreen(frame.title, footer, lines)
+	m.renderOptionList(&b, options, frame.cursor)
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("↑/↓") + m.ui.subtle.Render(" to navigate, ") +
+		m.ui.key.Render("Enter") + m.ui.subtle.Render(" to toggle/select, ") + m.ui.key.Render("←/Esc") + m.ui.subtle.Render(" to go back"))
+	return b.String()
 }
 
 func (m model) viewReview() string {
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Review Installation"))
+	b.WriteString("\n\n")
+
 	var all []string
 	for _, ph := range m.cfg.Manifest.Phases {
-		all = append(all, m.ui.selected(ph.Name))
+		all = append(all, m.ui.highlight.Render(ph.Name))
 		for i := range m.cfg.Manifest.Steps {
 			st := m.cfg.Manifest.Steps[i]
 			if st.Phase != ph.ID {
@@ -210,15 +199,15 @@ func (m model) viewReview() string {
 			}
 			glyph := statusGlyph(m.cfg.Glyphs, status)
 			if status == statusSkipped {
-				all = append(all, m.ui.muted("  "+glyph+" "+st.Name+" (skipped)"))
+				all = append(all, m.ui.subtle.Render("  "+glyph+" "+st.Name+" (skipped)"))
 			} else {
-				all = append(all, m.ui.normal("  "+glyph+" "+st.Name))
+				all = append(all, m.ui.normal.Render("  "+glyph+" "+st.Name))
 			}
 		}
 		all = append(all, "")
 	}
 
-	maxRows := m.height - 6
+	maxRows := m.height - 8
 	if maxRows < 1 {
 		maxRows = 1
 	}
@@ -229,10 +218,13 @@ func (m model) viewReview() string {
 	if top < 0 {
 		top = 0
 	}
-	lines := visible(all, top, maxRows)
-
-	return m.renderScreen("REVIEW INSTALLATION",
-		"Press Enter to begin installation   Esc - go back to configuration", lines)
+	for _, l := range visible(all, top, maxRows) {
+		b.WriteString(l)
+		b.WriteByte('\n')
+	}
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("Enter") + m.ui.subtle.Render(" to begin installation, ") + m.ui.key.Render("Esc") + m.ui.subtle.Render(" to go back"))
+	return b.String()
 }
 
 func (m model) viewInstall() string {
@@ -245,11 +237,14 @@ func (m model) viewInstall() string {
 
 	ins := m.install
 	steps := m.cfg.Manifest.Steps
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Installing"))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.statusBar.Width(m.width - 2).Render(m.progressBar()))
+	b.WriteString("\n\n")
 
 	var all []string
 	focus := 0
-	all = append(all, m.ui.normal(m.progressBar()))
-
 	for _, ph := range m.cfg.Manifest.Phases {
 		ps := phaseRollup(ph.ID, steps, ins.statuses)
 		all = append(all, m.ui.statusText(ps, statusGlyph(m.cfg.Glyphs, ps)+" "+ph.Name))
@@ -261,15 +256,15 @@ func (m model) viewInstall() string {
 			text := "  " + statusGlyph(m.cfg.Glyphs, status) + " " + steps[i].Name
 			if i == ins.current && status == statusRunning {
 				focus = len(all)
-				text = "  " + spinnerFrames[ins.spinner%len(spinnerFrames)] + " " + steps[i].Name
-				all = append(all, m.ui.selected(text))
+				rowText := "  " + spinnerFrames[ins.spinner%len(spinnerFrames)] + " " + steps[i].Name
+				all = append(all, m.ui.selectedRow(rowText, m.width-2))
 			} else {
 				all = append(all, m.ui.statusText(status, text))
 			}
 		}
 	}
 
-	maxRows := m.height - 6
+	maxRows := m.height - 8
 	if maxRows < 1 {
 		maxRows = 1
 	}
@@ -283,9 +278,13 @@ func (m model) viewInstall() string {
 			top = len(all) - maxRows
 		}
 	}
-	lines := visible(all, top, maxRows)
-
-	return m.renderScreen("INSTALLING", "L - Full log    Ctrl+C - Cancel", lines)
+	for _, l := range visible(all, top, maxRows) {
+		b.WriteString(l)
+		b.WriteByte('\n')
+	}
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("L") + m.ui.subtle.Render(" for the full log, ") + m.ui.key.Render("Ctrl+C") + m.ui.subtle.Render(" to cancel"))
+	return b.String()
 }
 
 func (m model) progressBar() string {
@@ -294,7 +293,7 @@ func (m model) progressBar() string {
 	if current > total {
 		current = total
 	}
-	barW := m.width - 12
+	barW := m.width - 14
 	if barW < 6 {
 		barW = 6
 	}
@@ -320,60 +319,71 @@ func (m model) progressBar() string {
 func (m model) viewErrorDialog() string {
 	ins := m.install
 	step := m.cfg.Manifest.Steps[ins.current]
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Installation Error"))
+	b.WriteString("\n\n")
+
 	lines := []string{
-		m.ui.errorText("Step failed: " + step.Name),
-		m.ui.normal("Script: " + step.Script),
-		m.ui.errorText("Last output:"),
+		m.ui.error.Render("Step failed: " + step.Name),
+		m.ui.normal.Render("Script: " + step.Script),
+		m.ui.subtle.Render("Last output:"),
 	}
 	for _, l := range ins.detail {
-		lines = append(lines, m.ui.normal(fit(l, m.width-6)))
+		lines = append(lines, m.ui.normal.Render(fit(l, m.width-6)))
 	}
+	b.WriteString(m.ui.errorBox.Render(strings.Join(lines, "\n")))
+	b.WriteString("\n\n")
+
 	opts := []string{"Retry", "Ignore", "Exit"}
 	parts := make([]string, 0, 3)
 	for i, o := range opts {
-		prefix := "  "
 		if i == ins.errCursor {
-			prefix = "> "
-		}
-		if i == ins.errCursor {
-			parts = append(parts, m.ui.selected(prefix+o))
+			parts = append(parts, m.ui.button.Render(o))
 		} else {
-			parts = append(parts, m.ui.normal(prefix+o))
+			parts = append(parts, m.ui.normal.Render("  "+o+"  "))
 		}
 	}
-	lines = append(lines, "", strings.Join(parts, "    "))
-	return m.renderScreen("INSTALLATION ERROR", "", lines)
+	b.WriteString(strings.Join(parts, "    "))
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("Use ") + m.ui.key.Render("←/→") + m.ui.subtle.Render(" to choose, ") + m.ui.key.Render("Enter") + m.ui.subtle.Render(" to confirm"))
+	return b.String()
 }
 
 func (m model) viewComplete() string {
 	c := m.complete
 	hasErrors := len(c.failedPkgs) > 0 || c.shellFailed
-	title := "INSTALLATION COMPLETE"
+	title := "Installation Complete"
 	if hasErrors {
-		title = "INSTALLATION COMPLETED WITH WARNINGS"
+		title = "Installation Completed With Warnings"
 	}
 
-	var lines []string
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render(title))
+	b.WriteString("\n\n")
+
 	if c.startEpoch > 0 {
 		elapsed := time.Now().Unix() - c.startEpoch
 		hours := elapsed / 3600
 		mins := (elapsed % 3600) / 60
 		secs := elapsed % 60
-		lines = append(lines, m.ui.successText(fmt.Sprintf("%s Finished in %dh %dm %ds",
-			m.cfg.Glyphs["ok"], hours, mins, secs)))
+		b.WriteString(m.ui.success.Render(fmt.Sprintf("%s Finished in %dh %dm %ds", m.cfg.Glyphs["ok"], hours, mins, secs)))
+		b.WriteString("\n\n")
 	}
 
 	if hasErrors {
-		lines = append(lines, "", m.ui.errorText("ATTENTION NEEDED"))
+		lines := []string{m.ui.error.Render("Attention needed")}
 		if c.shellFailed {
-			lines = append(lines, m.ui.errorText("- Shell build failed (check missing dependencies in log)."))
+			lines = append(lines, m.ui.normal.Render("- Shell build failed (check missing dependencies in log)."))
 		}
 		if len(c.failedPkgs) > 0 {
-			lines = append(lines, m.ui.errorText("- Failed packages: "+strings.Join(c.failedPkgs, ", ")))
+			lines = append(lines, m.ui.normal.Render("- Failed packages: "+strings.Join(c.failedPkgs, ", ")))
 		}
+		b.WriteString(m.ui.errorBox.Render(strings.Join(lines, "\n")))
+		b.WriteString("\n\n")
 	}
 
-	lines = append(lines, "", m.ui.selected("QUICK START & SHORTCUTS"))
+	b.WriteString(m.ui.sectionLabel("Quick start & shortcuts"))
+	b.WriteString("\n\n")
 	for _, s := range []string{
 		"Super / Super+Space   Application Launcher",
 		"Super+Return          Terminal",
@@ -382,14 +392,19 @@ func (m model) viewComplete() string {
 		"Super+Shift+S         Screenshot Tool",
 		"Super+B               Sidebar & Notifications",
 	} {
-		lines = append(lines, m.ui.normal("  "+s))
+		b.WriteString(m.ui.normal.Render("  " + s))
+		b.WriteByte('\n')
 	}
+	b.WriteByte('\n')
+	b.WriteString(m.ui.sectionLabel("Next steps"))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.normal.Render("- Log out and back in to start your new Caelestia session."))
+	b.WriteByte('\n')
+	b.WriteString(m.ui.subtle.Render("- Full log saved to: " + c.logPath))
+	b.WriteString("\n\n")
 
-	lines = append(lines, "", m.ui.selected("NEXT STEPS"))
-	lines = append(lines, m.ui.normal("- Log out and back in to start your new Caelestia session."))
-	lines = append(lines, m.ui.muted("- Full log saved to: "+c.logPath))
-
-	return m.renderScreen(title, "Press L to view the full log   Log out now? (Y/n)", lines)
+	b.WriteString(m.ui.subtle.Render("Press ") + m.ui.key.Render("L") + m.ui.subtle.Render(" to view the full log, ") + m.ui.key.Render("Y/n") + m.ui.subtle.Render(" to log out now"))
+	return b.String()
 }
 
 func (m model) viewLog() string {
@@ -416,26 +431,48 @@ func (m model) viewLog() string {
 		}
 	}
 
-	var lines []string
+	var b strings.Builder
+	b.WriteString(m.ui.title.Render("Install Log"))
+	b.WriteString("\n\n")
 	for i := 0; i < show && lv.viewTop+i < len(lv.lines); i++ {
 		l := lv.lines[lv.viewTop+i]
-		text := fit(l, m.width-6)
+		text := fit(l, m.width-2)
 		switch {
 		case strings.Contains(l, "[ERR]"):
-			lines = append(lines, m.ui.errorText(text))
+			b.WriteString(m.ui.error.Render(text))
 		case strings.Contains(l, "[WARN]"):
-			lines = append(lines, m.ui.warningText(text))
+			b.WriteString(m.ui.warning.Render(text))
 		default:
-			lines = append(lines, m.ui.normal(text))
+			b.WriteString(m.ui.normal.Render(text))
 		}
+		b.WriteByte('\n')
 	}
 
 	status := "Following"
 	if !lv.follow {
 		status = "Paused"
 	}
-	footer := status + "    Up/Down/PgUp/PgDn scroll   n/p - next issue   L - back"
-	return m.renderScreen("INSTALL LOG", footer, lines)
+	b.WriteString(m.ui.statusBar.Render(status))
+	b.WriteString("\n\n")
+	b.WriteString(m.ui.subtle.Render("↑/↓/PgUp/PgDn scroll, n/p next issue, ") + m.ui.key.Render("L") + m.ui.subtle.Render(" to go back"))
+	return b.String()
+}
+
+func menuDisplay(item MenuItem, answers map[string]string, glyphs map[string]string) string {
+	switch item.Type {
+	case "submenu":
+		return item.Title + " >"
+	case "boolean":
+		g := glyphs["checkbox_off"]
+		if answers[item.ID] == "true" {
+			g = glyphs["checkbox_on"]
+		}
+		return g + " " + item.Title
+	case "select":
+		return item.Title + ": " + glyphs["select_left"] + " " + answers[item.ID] + " " + glyphs["select_right"]
+	default:
+		return item.Title
+	}
 }
 
 func visible(lines []string, top, maxRows int) []string {
