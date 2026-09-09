@@ -7,6 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/app"
+	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/branch"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/screens/sudo"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/util"
 	"github.com/ladybug-me/caelestia-dots-kde/installer/internal/widgets"
@@ -55,7 +56,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case "enter", "space":
 		sel := m.items[m.cursor].id
 		switch sel {
-		case "update", "uninstall", "exit":
+		case "update":
+			return m, app.Push(branch.New(m.ctx))
+		case "uninstall", "exit":
 			m.ctx.ActionResult = sel
 			m.ctx.ExitCode = 0
 			return m, tea.Quit

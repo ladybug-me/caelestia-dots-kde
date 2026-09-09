@@ -88,3 +88,12 @@ func Load(bundleDir string) (*Config, error) {
 
 	return cfg, nil
 }
+
+// LoadManifest reads a standalone steps manifest (e.g. update-steps.json or
+// uninstall-steps.json, same shape as steps.json) from bundleDir/installer.
+// Used to swap Config.Manifest when the Update/Uninstall flow starts.
+func LoadManifest(bundleDir, filename string) (StepsManifest, error) {
+	var m StepsManifest
+	err := loadJSON(filepath.Join(bundleDir, "installer", filename), &m)
+	return m, err
+}

@@ -1,0 +1,14 @@
+{
+  "phases": [
+    { "id": "source", "name": "Source" },
+    { "id": "core", "name": "Core Updates" },
+    { "id": "restart", "name": "Restart" }
+  ],
+  "steps": [
+    { "name": "Update source code", "script": "scripts/u00-update-source.sh", "phase": "source" },
+    { "name": "Deploy config files", "script": "scripts/03-deploy-configs.sh", "phase": "core" },
+    { "name": "Build Caelestia shell", "script": "scripts/08-build-shell.sh", "phase": "core" },
+    { "name": "Apply system tweaks", "script": "scripts/09-system-tweaks.sh", "phase": "core" },
+    { "name": "Restart shell", "script": "scripts/u01-restart-shell.sh", "phase": "restart" }
+  ]
+}

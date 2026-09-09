@@ -154,6 +154,32 @@ func PersistInstallEnv(answers map[string]string) {
 	_ = os.WriteFile(filepath.Join(cfgDir, "install.env"), []byte(b.String()), 0644)
 }
 
+// LoadInstallEnv reads install.env's KEY='value' lines (written by
+// PersistInstallEnv) so a later Update run can restore the install-time menu
+// choices (default shell, lockscreen plugin, ...) that the deploy/tweak
+// scripts would otherwise fall back to hardcoded defaults for.
+func LoadInstallEnv() map[string]string {
+	home := os.Getenv("HOME")
+	if home == "" {
+		return nil
+	}
+	b, err := os.ReadFile(filepath.Join(home, ".config", "caelestia-kde", "install.env"))
+	if err != nil {
+		return nil
+	}
+	out := map[string]string{}
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		key, val, ok := strings.Cut(line, "=")
+		if !ok || !validShellName(key) {
+			continue
+		}
+		val = strings.TrimSuffix(strings.TrimPrefix(val, "'"), "'")
+		out[key] = strings.ReplaceAll(val, "'\\''", "'")
+	}
+	return out
+}
+
 // PrepareInstallEnv sets the environment the step scripts expect and (re)opens
 // the shared install log.
 func PrepareInstallEnv(cacheDir, baseDistro, bundleDir, sudoBinDir string) error {
