@@ -1,9 +1,10 @@
 package main
 
 import (
+	"image/color"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // ui holds resolved styles built from the theme palette for a minimal,
@@ -34,7 +35,7 @@ type ui struct {
 	codeBlock    lipgloss.Style
 }
 
-func paletteColor(cfg *config, name string) lipgloss.Color {
+func paletteColor(cfg *config, name string) color.Color {
 	if v, ok := cfg.Palette[name]; ok && strings.HasPrefix(v, "#") && len(v) == 7 {
 		return lipgloss.Color(v)
 	}
@@ -68,7 +69,7 @@ func paletteColor(cfg *config, name string) lipgloss.Color {
 }
 
 func newUI(cfg *config) ui {
-	c := func(name string) lipgloss.Color { return paletteColor(cfg, name) }
+	c := func(name string) color.Color { return paletteColor(cfg, name) }
 	dark := c("surface")
 
 	return ui{
@@ -96,7 +97,7 @@ func newUI(cfg *config) ui {
 	}
 }
 
-func (u ui) c(name string) lipgloss.Color { return paletteColor(u.cfg, name) }
+func (u ui) c(name string) color.Color { return paletteColor(u.cfg, name) }
 
 // row renders one selectable line at the given width.
 func (u ui) row(s string, width int) string {

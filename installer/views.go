@@ -5,7 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 var spinnerFrames = []string{"|", "/", "-", "\\"}
@@ -72,28 +73,31 @@ func (m model) renderOptionList(b *strings.Builder, options []listOption, select
 	}
 }
 
-func (m model) View() string {
+func (m model) View() tea.View {
+	var content string
 	switch m.screen {
 	case screenWelcome:
-		return m.viewWelcome()
+		content = m.viewWelcome()
 	case screenAction:
-		return m.viewAction()
+		content = m.viewAction()
 	case screenOptional:
-		return m.viewOptional()
+		content = m.viewOptional()
 	case screenSudo:
-		return m.viewSudo()
+		content = m.viewSudo()
 	case screenConfigure:
-		return m.viewConfigure()
+		content = m.viewConfigure()
 	case screenReview:
-		return m.viewReview()
+		content = m.viewReview()
 	case screenInstall:
-		return m.viewInstall()
+		content = m.viewInstall()
 	case screenLog:
-		return m.viewLog()
+		content = m.viewLog()
 	case screenComplete:
-		return m.viewComplete()
+		content = m.viewComplete()
 	}
-	return ""
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 func (m model) viewWelcome() string {

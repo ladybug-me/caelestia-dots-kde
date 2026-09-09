@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func run() int {
 	}
 
 	m := initialModel(cfg, bundleDir, os.Getenv("BASE_DISTRO"))
-	p := tea.NewProgram(m, tea.WithAltScreen(), tea.WithoutSignalHandler())
+	p := tea.NewProgram(m, tea.WithoutSignalHandler())
 
 	signals := make(chan os.Signal, 2)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)

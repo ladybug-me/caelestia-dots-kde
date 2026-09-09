@@ -5,9 +5,9 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/charmbracelet/bubbles/progress"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/progress"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
 )
 
 type screen int
@@ -153,7 +153,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		if m.install != nil {
-			m.install.progress.Width = progressBarWidth(msg.Width)
+			m.install.progress.SetWidth(progressBarWidth(msg.Width))
 		}
 		return m, nil
 
@@ -173,15 +173,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, m.tickCmd()
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		return m.handleKey(msg)
 
 	case progress.FrameMsg:
 		if m.screen == screenInstall && m.install != nil {
 			updated, cmd := m.install.progress.Update(msg)
-			if next, ok := updated.(progress.Model); ok {
-				m.install.progress = next
-			}
+			m.install.progress = updated
 			return m, cmd
 		}
 	}
@@ -204,7 +202,7 @@ func (m model) handleInterrupt() (tea.Model, tea.Cmd) {
 	return m, tea.Quit
 }
 
-func (m model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
 
 	if key == "ctrl+c" {
@@ -214,7 +212,7 @@ func (m model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch m.screen {
 	case screenWelcome:
 		switch key {
-		case "enter", " ":
+		case "enter", "space":
 			m.screen = screenAction
 			return m, nil
 		case "esc":
@@ -261,7 +259,7 @@ func (m model) handleActionKey(key string) (tea.Model, tea.Cmd) {
 		if m.actionCursor < len(m.actions)-1 {
 			m.actionCursor++
 		}
-	case "enter", " ":
+	case "enter", "space":
 		sel := m.actions[m.actionCursor].id
 		switch sel {
 		case "update", "uninstall", "exit":
@@ -293,7 +291,7 @@ func (m model) handleOptionalKey(key string) (tea.Model, tea.Cmd) {
 		if m.optionalCursor < 1 {
 			m.optionalCursor++
 		}
-	case "enter", " ":
+	case "enter", "space":
 		if m.optionalCursor == 0 {
 			enableOptionalApps(m.cfg.Menu, m.answers)
 		}
@@ -306,7 +304,7 @@ func (m model) handleOptionalKey(key string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) handleSudoKey(msg tea.KeyMsg, key string) (tea.Model, tea.Cmd) {
+func (m model) handleSudoKey(msg tea.KeyPressMsg, key string) (tea.Model, tea.Cmd) {
 	switch key {
 	case "esc":
 		m.exitCode = 0
@@ -386,7 +384,7 @@ func (m model) handleConfigureKey(key string) (tea.Model, tea.Cmd) {
 		if item.Type == "select" {
 			m.cycleSelect(frame, item, 1)
 		}
-	case "enter", " ":
+	case "enter", "space":
 		return m.activateMenuItem()
 	case "esc":
 		return m.backOutOfMenu()
@@ -448,7 +446,7 @@ func (m model) cycleSelect(frame *menuFrame, item MenuItem, dir int) {
 
 func (m model) handleReviewKey(key string) (tea.Model, tea.Cmd) {
 	switch key {
-	case "enter", " ":
+	case "enter", "space":
 		m.beginInstall()
 		return m, m.installCmd()
 	case "esc", "left":
@@ -474,9 +472,9 @@ func (m *model) beginInstall() {
 		statuses:  make([]string, len(m.cfg.Manifest.Steps)),
 		logPath:   m.installLogPath(),
 		startTime: time.Now(),
-		progress:  progress.New(progress.WithGradient(string(m.ui.c("seed")), string(m.ui.c("secondary"))), progress.WithFillCharacters('█', '░')),
+		progress:  progress.New(progress.WithColors(m.ui.c("seed"), m.ui.c("secondary")), progress.WithFillCharacters('█', '░')),
 	}
-	m.install.progress.Width = progressBarWidth(m.width)
+	m.install.progress.SetWidth(progressBarWidth(m.width))
 	for i := range m.install.statuses {
 		m.install.statuses[i] = statusPending
 	}
@@ -541,7 +539,7 @@ func (m model) handleInstallKey(key string) (tea.Model, tea.Cmd) {
 			if ins.errCursor < 2 {
 				ins.errCursor++
 			}
-		case "enter", " ":
+		case "enter", "space":
 			switch ins.errCursor {
 			case 0: // retry
 				ins.dialog = false

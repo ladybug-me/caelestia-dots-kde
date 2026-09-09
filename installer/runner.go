@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // Marker scanning contract: a step's own output segment is scanned for the
@@ -199,7 +199,7 @@ func (m model) startStep(i int) (model, tea.Cmd) {
 	ins := m.install
 	steps := m.cfg.Manifest.Steps
 	if len(steps) > 0 {
-		ins.progress.Width = progressBarWidth(m.width)
+		ins.progress.SetWidth(progressBarWidth(m.width))
 	}
 
 	if stepIsSkipped(steps[i], m.answers) {
