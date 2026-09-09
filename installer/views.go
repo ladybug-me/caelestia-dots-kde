@@ -81,9 +81,7 @@ func (m model) View() string {
 func (m model) viewWelcome() string {
 	var b strings.Builder
 	b.WriteString(m.renderBanner())
-	b.WriteByte('\n')
-	b.WriteString(m.ui.subtleItalic.Render("Quickstart for a Caelestia desktop"))
-	b.WriteString("\n\n")
+	b.WriteString("\n\n\n")
 
 	b.WriteString(m.ui.normal.Render("System: " + distroLabel(m.baseDistro)))
 	b.WriteString("\n\n")
