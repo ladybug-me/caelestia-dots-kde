@@ -11,8 +11,8 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    // Plugin support is not wired up yet; always 0 for now
-    readonly property int pluginCount: 0
+
+    property string pluginCount
 
     property string quickshellVersion
     property string cliVersion
@@ -44,6 +44,13 @@ PageBase {
                     const m = text.match(/caelestia-cli\S*\s+(\d+(?:\.\d+)*)/);
                     root.cliVersion = m ? m[1] : "";
                 }
+            }
+        }
+        Process {
+            running: true
+            command: ["caelestia", "shell", "plugins", "count"]
+            stdout: StdioCollector {
+                onStreamFinished: root.pluginCount = text.trim()
             }
         }
 
@@ -151,7 +158,7 @@ PageBase {
             first: true
             last: true
             label: qsTr("Loaded plugins")
-            value: root.pluginCount.toString()
+            value: root.pluginCount || "…"
         }
 
         // Advanced

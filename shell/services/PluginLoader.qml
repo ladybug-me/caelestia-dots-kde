@@ -11,6 +11,8 @@ Item {
 
     // Map of plugin id -> live QML object instance
     property var pluginInstances: ({})
+    property int loadedCount: 0
+    property int enabledCount: 0
 
     property var discovered: []
     property bool loadRequested: false
@@ -25,6 +27,16 @@ Item {
 
     signal pluginsReloaded()
 
+    function updateEnabledCount() {
+        let count = 0;
+        for (let i = 0; i < discovered.length; i++) {
+            let meta = discovered[i];
+            if (meta.enabled)
+                count++;
+        }
+        enabledCount = count;
+    }
+
     function loadPlugin(meta) {
         let id = meta.id || meta.name;
         if (pluginInstances[id]) return; // already loaded
@@ -38,6 +50,8 @@ Item {
                 let obj = component.createObject(pluginLoader);
                 if (obj !== null) {
                     pluginInstances[id] = obj;
+                    pluginInstances = pluginInstances;
+                    loadedCount = Object.keys(pluginInstances).length;
                 } else {
                     console.log("Plugin createObject failed: " + mainFile);
                 }
@@ -58,6 +72,7 @@ Item {
             pluginInstances[id].destroy();
             delete pluginInstances[id];
             pluginInstances = pluginInstances; // force notify
+            loadedCount = Object.keys(pluginInstances).length;
             console.log("Plugin unloaded: " + id);
         }
     }
@@ -81,6 +96,13 @@ Item {
             let itemId = item.id || item.name;
             if (itemId === name || item.name === name) {
                 av.setProperty(i, "enabled", enable);
+                for (let j = 0; j < discovered.length; j++) {
+                    let discoveredId = discovered[j].id || discovered[j].name;
+                    if (discoveredId === itemId) {
+                        discovered[j].enabled = enable;
+                        break;
+                    }
+                }
                 if (item.restart === true || item.restart === "true") {
                     PluginStore.restartRequired = true;
                 }
@@ -89,6 +111,7 @@ Item {
                 } else {
                     unloadPlugin(itemId);
                 }
+                updateEnabledCount();
             }
         }
     }
@@ -105,6 +128,7 @@ Item {
             if (pluginInstances[key]) pluginInstances[key].destroy();
         }
         pluginInstances = {};
+        loadedCount = 0;
 
         for (let k = 0; k < discovered.length; k++) {
             let meta = discovered[k];
@@ -114,6 +138,7 @@ Item {
                 loadPlugin(meta);
             }
         }
+        updateEnabledCount();
         pluginsReloaded();
     }
 
@@ -281,6 +306,7 @@ Item {
                     if (meta.enabled) {
                         pluginLoader.loadPlugin(meta);
                     }
+                    pluginLoader.updateEnabledCount();
                 } catch(e) {
                     console.log("addPluginToAvailable: error parsing metadata:", e);
                 }
