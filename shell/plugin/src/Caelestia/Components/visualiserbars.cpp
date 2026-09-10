@@ -124,7 +124,17 @@ void VisualiserBars::setValues(const QVector<double>& values) {
         m_displayValues.resize(values.size(), 0.0);
     }
 
-    if (m_settled) {
+    if (values.isEmpty()) {
+        // Nothing to animate, so there is nothing to settle and the frame loop in
+        // Visualiser.qml has no work to do. Report settled so that loop stops:
+        // advance() returns early for an empty list, so nothing else would ever set
+        // this, and the loop would repaint the whole desktop, blurred wallpaper
+        // included, every frame for as long as the shell runs.
+        if (!m_settled) {
+            m_settled = true;
+            emit settledChanged();
+        }
+    } else if (m_settled) {
         m_settled = false;
         emit settledChanged();
     }
