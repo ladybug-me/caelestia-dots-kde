@@ -8100,11 +8100,12 @@
         <location line="+9" />
         <location line="+9" />
         <location line="+9" />
+        <location line="+10" />
         <source>Start</source>
         <translation>开始</translation>
     </message>
     <message>
-        <location line="-19" />
+        <location line="-29" />
         <source>Record with Sound</source>
         <translation>带声音录制</translation>
     </message>
@@ -8117,6 +8118,11 @@
         <location line="+9" />
         <source>Both Sound &amp; Microphone</source>
         <translation>声音与麦克风</translation>
+    </message>
+    <message>
+        <location line="+10" />
+        <source>Record GIF</source>
+        <translation>录制 GIF</translation>
     </message>
     <message>
         <location line="+9" />
@@ -9931,6 +9937,16 @@ Keyboard layout: %1</source>
         <location line="+1" />
         <source>Show the Screen Recorder card</source>
         <translation>显示屏幕录制卡片</translation>
+    </message>
+    <message>
+        <location line="+6" />
+        <source>GIF Recorder</source>
+        <translation>GIF 录制</translation>
+    </message>
+    <message>
+        <location line="+1" />
+        <source>Show the Record GIF option in the recorder menu</source>
+        <translation>在录制菜单中显示 GIF 录制选项</translation>
     </message>
     <message>
         <location line="+7" />

@@ -36,6 +36,13 @@ PageBase {
         }
 
         ToggleRow {
+            text: qsTr("GIF Recorder")
+            subtext: qsTr("Show the Record GIF option in the recorder menu")
+            checked: Config.utilities.showGifRecorder
+            onToggled: GlobalConfig.utilities.showGifRecorder = checked
+        }
+
+        ToggleRow {
             last: true
             text: qsTr("Quick Toggles")
             subtext: qsTr("Show the Quick Toggles card")
