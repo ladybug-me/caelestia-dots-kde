@@ -104,7 +104,8 @@ PageBase {
             ConnectedRect {
                 id: activeDelegate
 
-                anchors.fill: parent
+                width: parent.width
+                height: parent.height
                 radius: Tokens.rounding.medium
                 color: isPlaceholder ? "transparent" : (sourceList !== "library" ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainerLowest)
                 border.width: isPlaceholder ? 1 : 0
@@ -135,10 +136,15 @@ PageBase {
                     enabled: !isPlaceholder
 
                     onPressed: {
-                        root.isGlobalDragging = true;
                         root.globalDragSourceList = sourceList;
                         root.globalDragSourceIndex = delegateWrapper.index;
                         root.globalDragHoveredList = sourceList;
+                    }
+
+                    onPositionChanged: {
+                        if (drag.active && !root.isGlobalDragging) {
+                            root.isGlobalDragging = true;
+                        }
                     }
 
                     onReleased: {

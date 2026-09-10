@@ -119,6 +119,11 @@ _open_dir() {
 ACTION="start"
 SOUND_OUTPUT=false
 SOUND_INPUT=false
+GIF_MODE=false
+GIF_MARKER="${STATE_DIR}/is_gif"
+GIF_WIDTH=720
+GIF_FPS=30
+GIF_DITHER="bayer:bayer_scale=5"
 
 for arg in "$@"; do
     case "$arg" in
@@ -140,12 +145,16 @@ for arg in "$@"; do
         -i|--input|--mic)
             SOUND_INPUT=true
             ;;
+        --gif)
+            GIF_MODE=true
+            ;;
         -h|--help)
-            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] | --pause | --stop | --open" >&2
+            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] [--gif] | --pause | --stop | --open" >&2
             echo "Options:" >&2
             echo "  start (default)   Start recording (no audio)" >&2
             echo "  -s, --sound       Record system audio (default_output)" >&2
             echo "  -i, --input       Record microphone audio (default_input)" >&2
+            echo "  --gif             Record as GIF (auto-convert after stop)" >&2
             echo "  -p, --pause       Toggle pause/resume" >&2
             echo "  --stop            Stop recording" >&2
             echo "  --open            Open recordings folder" >&2
@@ -153,7 +162,7 @@ for arg in "$@"; do
             ;;
         *)
             echo "Unknown argument: $arg" >&2
-            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] | --pause | --stop | --open" >&2
+            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] [--gif] | --pause | --stop | --open" >&2
             exit 1
             ;;
     esac
@@ -181,6 +190,16 @@ case "$ACTION" in
 
         rr=$(_get_focused_refresh_rate)
         [[ "$rr" -le 0 ]] && rr=60
+
+        # GIF mode: mark this session so stop will auto-convert
+        if [[ "$GIF_MODE" == "true" ]]; then
+            if ! command -v ffmpeg >/dev/null 2>&1; then
+                _notify critical "GIF failed" "ffmpeg not found, cannot convert to GIF"
+                rm -f "$LOCK_FILE"
+                exit 1
+            fi
+            touch "$GIF_MARKER"
+        fi
 
         # Unique per-recording filename so a new recording never clobbers the
         # previous one.
@@ -241,8 +260,33 @@ case "$ACTION" in
 
     stop)
         if _is_recording; then
+            # Capture recording path before _stop_recording clears it
+            local saved_path=""
+            [[ -f "$CURRENT_FILE" ]] && saved_path=$(cat "$CURRENT_FILE" 2>/dev/null || true)
+
             _stop_recording
-            _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
+
+            # GIF conversion: if marker exists and we have a valid recording, convert it
+            if [[ -f "$GIF_MARKER" ]] && [[ -n "$saved_path" ]] && [[ -f "$saved_path" ]]; then
+                rm -f "$GIF_MARKER"
+                _notify normal "GIF" "Converting to GIF..."
+
+                gif_dir="${RECS_DIR}/gif"
+                mkdir -p "$gif_dir"
+                gif_out="${gif_dir}/$(basename "${saved_path%.mp4}.gif")"
+
+                filters="fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${GIF_DITHER}"
+
+                if ffmpeg -y -v error -i "$saved_path" -vf "$filters" "$gif_out"; then
+                    rm -f "$saved_path"
+                    _notify normal "GIF saved" "$gif_out"
+                else
+                    _notify critical "GIF failed" "Conversion failed, original kept"
+                fi
+            else
+                rm -f "$GIF_MARKER"
+                _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
+            fi
         fi
         ;;
 
