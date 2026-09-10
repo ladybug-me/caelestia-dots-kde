@@ -191,6 +191,12 @@ PageBase {
                         activeDelegate.y = 0;
                         save();
                     }
+
+                    onCanceled: {
+                        root.isGlobalDragging = false;
+                        activeDelegate.x = 0;
+                        activeDelegate.y = 0;
+                    }
                 }
 
                 StateLayer {

@@ -172,8 +172,30 @@ case "$ACTION" in
     start)
         # Already recording? Toggle stop.
         if _is_recording; then
+            # Capture recording path before _stop_recording clears it
+            saved_path=""
+            [[ -f "$CURRENT_FILE" ]] && saved_path=$(cat "$CURRENT_FILE" 2>/dev/null || true)
+
             _stop_recording
-            _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
+
+            # GIF conversion via toggle: same logic as stop)
+            if [[ -f "$GIF_MARKER" ]] && [[ -n "$saved_path" ]] && [[ -f "$saved_path" ]]; then
+                rm -f "$GIF_MARKER"
+                _notify normal "GIF" "Converting to GIF..."
+
+                gif_out="${RECS_DIR}/$(basename "${saved_path%.mp4}.gif")"
+                filters="fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${GIF_DITHER}"
+
+                if ffmpeg -y -v error -i "$saved_path" -vf "$filters" "$gif_out"; then
+                    rm -f "$saved_path"
+                    _notify normal "GIF saved" "$gif_out"
+                else
+                    _notify critical "GIF failed" "Conversion failed, original kept"
+                fi
+            else
+                rm -f "$GIF_MARKER"
+                _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
+            fi
             exit 0
         fi
 
@@ -246,6 +268,7 @@ case "$ACTION" in
         if [[ -f "$REC_PATH" ]]; then
             _notify low "Recording started" "Recording..."
         else
+            rm -f "$GIF_MARKER"
             _notify critical "Recording failed" "gpu-screen-recorder did not start"
             rm -f "$LOCK_FILE" "$CURRENT_FILE"
             exit 1
@@ -261,7 +284,7 @@ case "$ACTION" in
     stop)
         if _is_recording; then
             # Capture recording path before _stop_recording clears it
-            local saved_path=""
+            saved_path=""
             [[ -f "$CURRENT_FILE" ]] && saved_path=$(cat "$CURRENT_FILE" 2>/dev/null || true)
 
             _stop_recording
@@ -271,9 +294,7 @@ case "$ACTION" in
                 rm -f "$GIF_MARKER"
                 _notify normal "GIF" "Converting to GIF..."
 
-                gif_dir="${RECS_DIR}/gif"
-                mkdir -p "$gif_dir"
-                gif_out="${gif_dir}/$(basename "${saved_path%.mp4}.gif")"
+                gif_out="${RECS_DIR}/$(basename "${saved_path%.mp4}.gif")"
 
                 filters="fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${GIF_DITHER}"
 
