@@ -5,6 +5,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/toolchain.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
@@ -357,15 +358,9 @@ else
     # lrelease compiles shell/translations into the .qm catalogues the shell loads.
     # Checked here rather than with the other dependencies so it also covers a fresh
     # setup run; without it CMake just warns and the shell ships English only.
-    if ! command -v lrelease >/dev/null 2>&1 && [[ ! -x /usr/lib/qt6/bin/lrelease ]]; then
+    if ! linguist_tools_available; then
         info "Installing Qt Linguist tools for UI translations..."
-        if command -v pacman >/dev/null; then
-            sudo pacman -S --needed --noconfirm qt6-tools || warn "qt6-tools install failed; the shell will stay in English."
-        elif command -v dnf >/dev/null; then
-            sudo dnf install -y qt6-qttools-devel || warn "qt6-qttools-devel install failed; the shell will stay in English."
-        elif command -v apt-get >/dev/null; then
-            sudo apt-get install -y qt6-l10n-tools qt6-tools-dev || warn "Linguist tools install failed; the shell will stay in English."
-        fi
+        install_linguist_tools || warn "Linguist tools install failed; the shell will stay in English."
     fi
 
     info "Configuring CMake..."

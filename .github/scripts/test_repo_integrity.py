@@ -214,6 +214,22 @@ class InstallStepSafetyTests(unittest.TestCase):
         )
 
 
+    def test_privileged_package_installs_go_through_the_escalation_helper(self) -> None:
+        """#664: a GUI-triggered update has no terminal, so bare sudo fails silently."""
+        script = (ROOT / "scripts" / "08-build-shell.sh").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "install_linguist_tools",
+            script,
+            "08-build-shell.sh should install the Linguist tools via the shared helper",
+        )
+        self.assertNotIn(
+            "sudo pacman -S --needed --noconfirm qt6-tools",
+            script,
+            "the Linguist tools install must not escalate with bare sudo",
+        )
+
+
 class VersionConsistencyTests(unittest.TestCase):
     def test_cmake_has_no_hardcoded_version(self) -> None:
         """version.env is the single source of truth - CMakeLists derives from it."""

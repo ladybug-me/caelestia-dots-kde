@@ -104,11 +104,15 @@ cleanup_tmpdirs() {
 #
 # Writes an executable stub named <name> into <dir> (created if needed) so a
 # test can put <dir> first on PATH and observe how the code under test shells
-# out. Echoes nothing; the body defaults to succeeding.
+# out. The body defaults to succeeding.
+#
+# The shebang is the absolute /bin/bash rather than /usr/bin/env bash: tests
+# that restrict PATH to a stub directory would otherwise have no way for env
+# to locate an interpreter.
 stub_bin() {
     local dir="$1" name="$2" body="${3:-exit 0}"
     mkdir -p "$dir"
-    printf '#!/usr/bin/env bash\n%s\n' "$body" > "$dir/$name"
+    printf '#!/bin/bash\n%s\n' "$body" > "$dir/$name"
     chmod +x "$dir/$name"
 }
 
@@ -129,6 +133,23 @@ calls_to() {
     local log="$1" name="$2"
     [[ -f "$log" ]] || return 0
     awk -v want="$name" '$1 == want { sub(/^[^ ]+ /, ""); print }' "$log"
+}
+
+# with_path <dir> <linguist-fallback-path> <command> [args...]
+#
+# Run <command> in a subshell where PATH contains only <dir>, so the code under
+# test sees exactly the stubs the test installed and nothing from the host.
+# CAELESTIA_LRELEASE_FALLBACK is overridden too: it defaults to a fixed absolute
+# path that a developer machine may well have and a CI runner may not, which
+# would otherwise make the check non-deterministic.
+with_path() {
+    local dir="$1" fallback="$2"
+    shift 2
+    (
+        PATH="$dir"
+        export CAELESTIA_LRELEASE_FALLBACK="$fallback"
+        "$@"
+    )
 }
 
 run_tests() {
