@@ -269,6 +269,31 @@ class ShellSurfaceTests(unittest.TestCase):
             "a token that GitHub rejects must be readable here too, not only in the log",
         )
 
+    def test_the_github_widget_ships_disabled(self) -> None:
+        """The widget needs a personal access token, so default-on nags every fresh install.
+
+        The bar only builds entries with enabled: true, so shipping it off is also
+        what keeps the missing-token notice away from people who never asked for
+        GitHub activity.
+        """
+        config = (
+            ROOT / "shell" / "plugin" / "src" / "Caelestia" / "Config" / "barconfig.hpp"
+        ).read_text(encoding="utf-8")
+        compiled = re.search(r'u"id"_s, u"github"_s \}, \{ u"enabled"_s, (\w+) \}', config)
+        self.assertIsNotNone(compiled, "the compiled defaults must still list a github entry")
+        self.assertEqual(compiled.group(1), "false", "the GitHub widget must ship disabled")
+
+        page = (
+            ROOT / "shell" / "modules" / "nexus" / "pages" / "panels" / "taskbar" / "BarComponents.qml"
+        ).read_text(encoding="utf-8")
+        mirrored = re.search(r'\{ id: "github", enabled: (\w+)', page)
+        self.assertIsNotNone(mirrored, "the Nexus defaults must still list a github entry")
+        self.assertEqual(
+            mirrored.group(1),
+            "false",
+            "the Nexus defaults must match the compiled default, or resetting re-enables it",
+        )
+
     def test_settings_search_waits_for_a_pause_in_typing(self) -> None:
         """The published query drives two fzf searches, each building a delegate per hit.
 
@@ -314,6 +339,56 @@ class ShellSurfaceTests(unittest.TestCase):
                 any("font" in line.lower() for line in entries),
                 f'the "{label}" entry needs a font keyword, or searching "font" misses it',
             )
+
+    def test_every_settings_subpage_is_reachable_from_search(self) -> None:
+        """PageDictionary is the only thing search indexes, so a page missing from it is a dead end.
+
+        Nothing else notices: the page still renders and is still reachable by
+        clicking through, so a sub-page can sit unsearchable indefinitely. The
+        audit also reports the section headers and setting rows that are not
+        indexed individually; only the sub-pages are gated.
+        """
+        script = Path(".github", "scripts", "audit_search_coverage.py")
+        self.assertTrue((ROOT / script).is_file(), f"expected {script.as_posix()} to exist")
+
+        result = subprocess.run(
+            [sys.executable, script.as_posix()],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "search coverage audit failed:\n" + (result.stdout or "") + (result.stderr or ""),
+        )
+
+    def test_the_dev_timeline_rewrites_commit_subjects(self) -> None:
+        """Raw subjects read as a git log dump rather than as what changed.
+
+        On the dev branch every row showed the commit subject verbatim, so half the
+        list was "Merge pull request #697 from somebody/branch" and the type was
+        printed twice, once as a chip and once as the "fix(scope):" prefix.
+        """
+        timeline = (
+            ROOT / "shell" / "modules" / "nexus" / "common" / "UpdateTimeline.qml"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn(
+            'text: entry.modelData.subject || ""',
+            timeline,
+            "the raw subject must be rewritten before it is rendered",
+        )
+        self.assertIn(
+            "function mergedSubject",
+            timeline,
+            "a pull-request merge must be shown as what landed, not as the merge itself",
+        )
+        self.assertIn(
+            "function typeStrippedSubject",
+            timeline,
+            "the type chip already names the commit type, so the subject must not repeat it",
+        )
 
 
 class MetadataConsistencyTests(unittest.TestCase):
