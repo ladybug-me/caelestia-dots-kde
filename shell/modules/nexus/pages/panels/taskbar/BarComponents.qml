@@ -104,8 +104,8 @@ PageBase {
             ConnectedRect {
                 id: activeDelegate
 
-                width: parent.width
-                height: parent.height
+                width: delegateWrapper.width
+                height: 50
                 radius: Tokens.rounding.medium
                 color: isPlaceholder ? "transparent" : (sourceList !== "library" ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainerLowest)
                 border.width: isPlaceholder ? 1 : 0
@@ -142,7 +142,7 @@ PageBase {
                     }
 
                     onPositionChanged: {
-                        if (drag.active && !root.isGlobalDragging) {
+                        if (activeDragArea.drag.active && !root.isGlobalDragging) {
                             root.isGlobalDragging = true;
                         }
                     }
