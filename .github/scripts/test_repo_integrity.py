@@ -424,6 +424,92 @@ class ShellSurfaceTests(unittest.TestCase):
         )
         self.assertIn("partCollisionName", row, "the collision must still be reported")
 
+    def test_the_desktop_is_not_painted_black_while_the_wallpaper_loads(self) -> None:
+        """The desktop went black whenever the shell started or restarted.
+
+        The background window was created black, while the wallpaper is loaded
+        asynchronously and only starts loading a couple of event loop turns later,
+        so a starting shell showed a black desktop for as long as the image took to
+        decode. The fallback colour now waits for the wallpaper to report that it
+        has something to show, and until then the desktop the compositor already
+        has keeps showing through.
+        """
+        background = (
+            ROOT / "shell" / "modules" / "background" / "Background.qml"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn(
+            'color: Config.background.wallpaperEnabled ? "black" : "transparent"',
+            background,
+            "the desktop must not be painted black before the wallpaper is up",
+        )
+        self.assertIn(
+            "wallpaperUp: wallpaper.item?.shown",
+            background,
+            "the fallback black has to wait for the wallpaper to be shown",
+        )
+        self.assertIn(
+            "Config.background.wallpaperEnabled && wallpaperHasBeenUp",
+            background,
+            "readiness must latch, or a flipping status blinks the desktop surface",
+        )
+
+        wallpaper = (
+            ROOT / "shell" / "modules" / "background" / "Wallpaper.qml"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "readonly property bool shown",
+            wallpaper,
+            "the wallpaper has to report being shown",
+        )
+        self.assertIn(
+            "? wallpaperVideo.playing : wallpaperImage.status === Image.Ready",
+            wallpaper,
+            "an image is shown once it has decoded, a video once it plays",
+        )
+
+    def test_the_visualiser_does_not_spin_without_audio(self) -> None:
+        """The desktop repainted every frame from boot, which reads as flashing.
+
+        VisualiserBars::setValues() cleared settled on every update, including an
+        empty value list, and advance() returns early for an empty list, so nothing
+        ever set it back. The frame loop in Visualiser.qml is gated on !settled, so
+        it ran every frame for as long as the shell was up, repainting the whole
+        desktop surface and its blurred wallpaper again and again. Nothing on
+        screen changes while that happens, which is why a screenshot looks static.
+        """
+        bars = (
+            ROOT / "shell" / "plugin" / "src" / "Caelestia" / "Components" / "visualiserbars.cpp"
+        ).read_text(encoding="utf-8")
+
+        start = bars.find("void VisualiserBars::setValues")
+        end = bars.find("bool VisualiserBars::settled")
+        self.assertNotEqual(start, -1, "setValues should still exist")
+        self.assertNotEqual(end, -1, "settled() should still exist")
+        body = bars[start:end]
+
+        self.assertIn(
+            "values.isEmpty()",
+            body,
+            "an empty value list means the bars have nothing to animate",
+        )
+        self.assertIn(
+            "m_settled = true",
+            body,
+            "nothing to animate has to report settled, or the frame loop never stops",
+        )
+
+        visualiser = (
+            ROOT / "shell" / "modules" / "background" / "Visualiser.qml"
+        ).read_text(encoding="utf-8")
+        frame_at = visualiser.find("FrameAnimation")
+        self.assertNotEqual(frame_at, -1, "the visualiser should still drive the bars by frame")
+        self.assertIn(
+            "Audio.cava?.values?.length",
+            visualiser[frame_at:frame_at + 600],
+            "the frame loop must not run without values to advance",
+        )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
