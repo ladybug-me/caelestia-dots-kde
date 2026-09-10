@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QKeySequence>
 #include <QProcess>
+#include <QStringList>
 #include <QTextStream>
 #include <cstdlib>
 
@@ -168,7 +169,50 @@ void GlobalShortcut::rebuildCollisionIndex() {
             }
         }
     }
+
+    // Two Caelestia shortcuts bound to the same key. KGlobalAccel resolves this
+    // last-write-wins, so one of them silently stops working. The steal scan in
+    // updateShortcut() skips our own component names by design, which means a
+    // Caelestia-vs-Caelestia clash never reached the index and nothing in the
+    // shortcut manager flagged it (#569).
+    QHash<QString, QList<const GlobalShortcut*>> owners;
+    for (const GlobalShortcut* sc : s_registry) {
+        for (const QKeySequence& seq : sc->m_activeKeys) {
+            owners[seq.toString(QKeySequence::PortableText)].append(sc);
+        }
+    }
+
+    for (auto it = owners.constBegin(); it != owners.constEnd(); ++it) {
+        if (it.value().size() < 2)
+            continue;
+
+        // A key already in the index was taken from a third-party shortcut, and
+        // that row is flagged already. Leave the label naming the app whose
+        // binding was overridden rather than replacing it.
+        if (dispatcher->m_collisionIndex.contains(it.key()))
+            continue;
+
+        QStringList names;
+        for (const GlobalShortcut* sc : it.value()) {
+            const QString label = sc->displayLabel();
+            if (!names.contains(label))
+                names.append(label);
+        }
+        names.sort(); // QHash iteration order is unspecified; keep the label stable.
+
+        dispatcher->m_collisionIndex.insert(it.key(),
+            QStringLiteral("Caelestia - ") + names.join(QStringLiteral(", ")));
+    }
+
     emit dispatcher->collisionIndexChanged();
+}
+
+QString GlobalShortcut::displayLabel() const {
+    if (!m_description.isEmpty())
+        return m_description;
+    if (!m_name.isEmpty())
+        return m_name;
+    return QStringLiteral("unnamed shortcut");
 }
 
 QHash<QString, GlobalShortcut*> GlobalShortcut::s_registry;

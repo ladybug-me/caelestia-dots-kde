@@ -59,6 +59,10 @@ public:
     QString getCollisionNameForKey(const QString& keyPart) const;
     int stolenCount() const { return m_stolenShortcuts.size(); }
 
+    // Human-readable label for this shortcut, used when naming it as one of the
+    // parties in a collision between two Caelestia shortcuts.
+    QString displayLabel() const;
+
 signals:
     void nameChanged();
     void keyChanged();
