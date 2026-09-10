@@ -119,11 +119,6 @@ _open_dir() {
 ACTION="start"
 SOUND_OUTPUT=false
 SOUND_INPUT=false
-GIF_MODE=false
-GIF_MARKER="${STATE_DIR}/is_gif"
-GIF_WIDTH=720
-GIF_FPS=30
-GIF_DITHER="bayer:bayer_scale=5"
 
 for arg in "$@"; do
     case "$arg" in
@@ -145,16 +140,12 @@ for arg in "$@"; do
         -i|--input|--mic)
             SOUND_INPUT=true
             ;;
-        --gif)
-            GIF_MODE=true
-            ;;
         -h|--help)
-            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] [--gif] | --pause | --stop | --open" >&2
+            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] | --pause | --stop | --open" >&2
             echo "Options:" >&2
             echo "  start (default)   Start recording (no audio)" >&2
             echo "  -s, --sound       Record system audio (default_output)" >&2
             echo "  -i, --input       Record microphone audio (default_input)" >&2
-            echo "  --gif             Record as GIF (auto-convert after stop)" >&2
             echo "  -p, --pause       Toggle pause/resume" >&2
             echo "  --stop            Stop recording" >&2
             echo "  --open            Open recordings folder" >&2
@@ -162,7 +153,7 @@ for arg in "$@"; do
             ;;
         *)
             echo "Unknown argument: $arg" >&2
-            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] [--gif] | --pause | --stop | --open" >&2
+            echo "Usage: caelestia-record [start] [-s|--sound] [-i|--input] | --pause | --stop | --open" >&2
             exit 1
             ;;
     esac
@@ -191,26 +182,15 @@ case "$ACTION" in
         rr=$(_get_focused_refresh_rate)
         [[ "$rr" -le 0 ]] && rr=60
 
-        # GIF mode: mark this session so stop will auto-convert
-        if [[ "$GIF_MODE" == "true" ]]; then
-            if ! command -v ffmpeg >/dev/null 2>&1; then
-                _notify critical "GIF failed" "ffmpeg not found, cannot convert to GIF"
-                exit 1
-            fi
-            touch "$GIF_MARKER"
-        else
-            rm -f "$GIF_MARKER"
-        fi
-
         # Unique per-recording filename so a new recording never clobbers the
         # previous one.
         REC_PATH="${RECS_DIR}/recording_$(date +%Y%m%d_%H-%M-%S).mp4"
         echo "$REC_PATH" > "$CURRENT_FILE"
 
-        # Detect active monitor from kscreen-doctor to avoid portal cursor mode issues
-        monitor="portal"
+        # Detect active monitor from kscreen-doctor for portal fallback
+        active_monitor=""
         if command -v kscreen-doctor >/dev/null 2>&1; then
-            active_output=$(kscreen-doctor -j 2>/dev/null | python3 -c "
+            active_monitor=$(kscreen-doctor -j 2>/dev/null | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
 for o in data.get('outputs', []):
@@ -218,55 +198,73 @@ for o in data.get('outputs', []):
         print(o.get('name'))
         break
 " 2>/dev/null || true)
-            if [[ -n "$active_output" ]]; then
-                monitor="$active_output"
+        fi
+
+        _build_args() {
+            local mode="$1"
+            args=("$RECORDER")
+            args+=("-w" "$mode")
+            args+=("-f" "$rr")
+            if [[ "$SOUND_OUTPUT" == "true" ]] && [[ "$SOUND_INPUT" == "true" ]]; then
+                args+=("-a" "default_output|default_input")
+            elif [[ "$SOUND_OUTPUT" == "true" ]]; then
+                args+=("-a" "default_output")
+            elif [[ "$SOUND_INPUT" == "true" ]]; then
+                args+=("-a" "default_input")
+            fi
+            args+=("-fallback-cpu-encoding" "yes")
+            args+=("-ipc" "$IPC_SOCK")
+            args+=("-o" "$REC_PATH")
+        }
+
+        # Try portal mode first (shows screen picker), fallback to direct monitor
+        _build_args "portal"
+
+        _launch_recorder() {
+            (
+                exec "${args[@]}" >/tmp/gpu-screen-recorder.log 2>&1 &
+                echo $! > "$PID_FILE"
+                wait
+                rm -f "$PID_FILE" "$LOCK_FILE" "$CURRENT_FILE"
+            ) &
+            disown
+
+            # Wait briefly for PID file to be populated
+            pid=""
+            waited=0
+            while [[ -z "$pid" ]] && [[ $waited -lt 20 ]]; do
+                [[ -f "$PID_FILE" ]] && pid=$(cat "$PID_FILE" 2>/dev/null || true)
+                sleep 0.05
+                waited=$((waited + 1))
+            done
+
+            # Wait while the recorder process is alive and the recording file has not yet appeared (e.g. portal dialog is open)
+            while [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null && [[ ! -f "$REC_PATH" ]]; do
+                sleep 0.1
+            done
+
+            [[ -f "$REC_PATH" ]]
+        }
+
+        # Try portal mode first (shows screen picker dialog)
+        if ! _launch_recorder; then
+            # Portal failed (e.g. cursor mode issue), fallback to direct monitor
+            rm -f "$LOCK_FILE" "$CURRENT_FILE" "$REC_PATH"
+            if [[ -n "$active_monitor" ]]; then
+                _build_args "$active_monitor"
+                if ! _launch_recorder; then
+                    _notify critical "Recording failed" "gpu-screen-recorder did not start"
+                    rm -f "$LOCK_FILE" "$CURRENT_FILE"
+                    exit 1
+                fi
+            else
+                _notify critical "Recording failed" "gpu-screen-recorder did not start"
+                rm -f "$LOCK_FILE" "$CURRENT_FILE"
+                exit 1
             fi
         fi
 
-        args=("$RECORDER")
-        args+=("-w" "$monitor")
-        args+=("-f" "$rr")
-        if [[ "$SOUND_OUTPUT" == "true" ]] && [[ "$SOUND_INPUT" == "true" ]]; then
-            args+=("-a" "default_output|default_input")
-        elif [[ "$SOUND_OUTPUT" == "true" ]]; then
-            args+=("-a" "default_output")
-        elif [[ "$SOUND_INPUT" == "true" ]]; then
-            args+=("-a" "default_input")
-        fi
-        args+=("-fallback-cpu-encoding" "yes")
-        args+=("-ipc" "$IPC_SOCK")
-        args+=("-o" "$REC_PATH")
-
-        # Launch in background via a subshell so we can capture the PID
-        (
-            exec "${args[@]}" >/tmp/gpu-screen-recorder.log 2>&1 &
-            echo $! > "$PID_FILE"
-            wait
-            rm -f "$PID_FILE" "$LOCK_FILE" "$CURRENT_FILE"
-        ) &
-        disown
-
-        # Wait briefly for PID file to be populated
-        pid=""
-        waited=0
-        while [[ -z "$pid" ]] && [[ $waited -lt 20 ]]; do
-            [[ -f "$PID_FILE" ]] && pid=$(cat "$PID_FILE" 2>/dev/null || true)
-            sleep 0.05
-            waited=$((waited + 1))
-        done
-
-        # Wait while the recorder process is alive and the recording file has not yet appeared (e.g. portal dialog is open)
-        while [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null && [[ ! -f "$REC_PATH" ]]; do
-            sleep 0.1
-        done
-
-        if [[ -f "$REC_PATH" ]]; then
-            _notify low "Recording started" "Recording..."
-        else
-            _notify critical "Recording failed" "gpu-screen-recorder did not start"
-            rm -f "$LOCK_FILE" "$CURRENT_FILE"
-            exit 1
-        fi
+        _notify low "Recording started" "Recording..."
         ;;
 
     pause)
@@ -277,33 +275,8 @@ for o in data.get('outputs', []):
 
     stop)
         if _is_recording; then
-            # Grab the recording path before stopping (so we can convert it)
-            saved_path=""
-            [[ -f "$CURRENT_FILE" ]] && saved_path=$(cat "$CURRENT_FILE" 2>/dev/null || true)
-
             _stop_recording
-
-            # GIF conversion: if marker exists and we have a valid recording, convert it
-            if [[ -f "$GIF_MARKER" ]] && [[ -n "$saved_path" ]] && [[ -f "$saved_path" ]]; then
-                rm -f "$GIF_MARKER"
-                _notify normal "GIF" "Converting to GIF..."
-
-                gif_dir="${RECS_DIR}/gif"
-                mkdir -p "$gif_dir"
-                gif_out="${gif_dir}/$(basename "${saved_path%.mp4}.gif")"
-
-                filters="fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${GIF_DITHER}"
-
-                if ffmpeg -y -v error -i "$saved_path" -vf "$filters" "$gif_out"; then
-                    rm -f "$saved_path"
-                    _notify normal "GIF saved" "$gif_out"
-                else
-                    _notify critical "GIF failed" "Conversion failed, original kept"
-                fi
-            else
-                rm -f "$GIF_MARKER"
-                _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
-            fi
+            _notify normal "Recording stopped" "Recording saved to $RECS_DIR"
         fi
         ;;
 
