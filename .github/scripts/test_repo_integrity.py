@@ -128,6 +128,34 @@ class ShellSurfaceTests(unittest.TestCase):
             "a failed write needs the reason from secret-tool, not just an exit code",
         )
 
+    def test_shortcut_descriptions_are_translatable(self) -> None:
+        """#692: shortcut labels are rendered from this data, so it must reach the catalogue.
+
+        The shortcut manager renders `GlobalShortcut.description` verbatim, and
+        lupdate can only extract `qsTr()` calls with a literal argument. A bare
+        literal is therefore invisible to the catalogue and stays English no
+        matter which locale is active.
+        """
+        offenders: list[str] = []
+
+        for path in sorted((ROOT / "shell").rglob("*.qml")):
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                match = re.match(r'^\s*description:\s*"([^"]*)"', line)
+                if not match or not match.group(1):
+                    continue
+                # Values substituted into generated QML come from the caller, so
+                # translating them belongs at the call site, not here.
+                if "${" in match.group(1):
+                    continue
+                offenders.append(f"{path.relative_to(ROOT).as_posix()}:{number}")
+
+        self.assertEqual(
+            offenders,
+            [],
+            "shortcut descriptions must be wrapped in qsTr() so lupdate can extract them:\n"
+            + "\n".join(offenders),
+        )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
