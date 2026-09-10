@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -51,6 +52,8 @@ PageBase {
                     color: Colours.palette.m3onSurface
                 }
                 StyledInputField {
+                    id: keyInput
+
                     Layout.fillWidth: true
                     horizontalAlignment: TextInput.AlignLeft
                     text: keyField.value
@@ -67,19 +70,51 @@ PageBase {
             font: Tokens.font.label.small
             wrapMode: Text.Wrap
         }
+
+        // Re-read the stored value once a write attempt finishes. Typing breaks
+        // the text binding above, so without this a failed save would keep
+        // showing a key that never reached the keyring.
+        Connections {
+            target: root
+
+            onKeyringRevisionChanged: {
+                keyInput.text = keyField.value;
+            }
+        }
     }
 
     // Keys are held in the session keyring, not shell.json — see AiAssistant.
     property var keyringKeys: ({})
+
+    // Bumped after every write attempt so an open field re-reads what the
+    // keyring actually holds instead of keeping whatever was typed into it.
+    property int keyringRevision: 0
+
+    // The key write currently in flight. The Process below holds a single
+    // command, so starting a write also makes it the one its exit applies to.
+    property string pendingProvider: ""
+
+    property string pendingKey: ""
+
+    property string lastKeyStoreError: ""
 
     function apiKeyFor(p) {
         return root.keyringKeys[p] || "";
     }
 
     function storeApiKey(p, key) {
-        const m = root.keyringKeys;
-        m[p] = key;
-        root.keyringKeys = Object.assign({}, m);
+        // editingFinished also fires when the field merely loses focus, so a
+        // commit carrying the value already in the keyring is not a write.
+        if (key === root.apiKeyFor(p))
+            return;
+        root.startKeyStore(p, key);
+    }
+
+    function startKeyStore(p, key) {
+        root.pendingProvider = p;
+        root.pendingKey = key;
+        root.lastKeyStoreError = "";
+
         const attr = "caelestia-ai-" + p;
         const script = key === ""
             ? "secret-tool clear service caelestia key " + JSON.stringify(attr)
@@ -87,6 +122,32 @@ PageBase {
               " service caelestia key " + JSON.stringify(attr);
         keyStoreProc.command = key === "" ? ["sh", "-c", script] : ["sh", "-c", script, "--", key];
         keyStoreProc.running = true;
+    }
+
+    // Apply the result of the write that just finished. keyringKeys is not
+    // touched until secret-tool has actually succeeded, so a missing binary, a
+    // locked keyring or a rejected store can no longer leave the field showing a
+    // key that was never persisted (#652).
+    function finishKeyStore(code, detail) {
+        const p = root.pendingProvider;
+        const key = root.pendingKey;
+        root.pendingProvider = "";
+        root.pendingKey = "";
+
+        if (code === 0) {
+            const m = root.keyringKeys;
+            m[p] = key;
+            root.keyringKeys = Object.assign({}, m);
+
+            // Clearing a key is its own visible outcome; only announce saves.
+            if (key !== "")
+                Toaster.toast(qsTr("API key saved"), p, "key");
+        } else {
+            const reason = detail !== "" ? detail : qsTr("secret-tool exited with code %1").arg(code);
+            Toaster.toast(qsTr("Couldn't save API key"), reason, "key_off", Toast.Error);
+        }
+
+        root.keyringRevision += 1;
     }
 
     property string claudeVersion: ""
@@ -266,6 +327,12 @@ PageBase {
         // property is one Item; Process objects are kept as layout resources).
         Process {
             id: keyStoreProc
+
+            stderr: StdioCollector {
+                onStreamFinished: root.lastKeyStoreError = (text || "").trim()
+            }
+
+            onExited: code => root.finishKeyStore(code, root.lastKeyStoreError)
         }
 
         Component {

@@ -103,6 +103,32 @@ class BashHelperTestSuite(unittest.TestCase):
         )
 
 
+class ShellSurfaceTests(unittest.TestCase):
+    """Invariants for shell QML surfaces that CI cannot execute.
+
+    There is no Qt/Quickshell toolchain in this job, so the checks here pin the
+    specific behaviour the reports describe as silent - a surface that claims
+    success while doing nothing.
+    """
+
+    def test_ai_key_writes_wait_for_the_keyring_result(self) -> None:
+        """#652: committing the field before secret-tool replies claims a save that may not have happened."""
+        page = (ROOT / "shell" / "modules" / "nexus" / "pages" / "AiSettingsPage.qml").read_text(encoding="utf-8")
+
+        result_at = page.find("function finishKeyStore")
+        self.assertNotEqual(result_at, -1, "the key write result must be applied by finishKeyStore")
+        self.assertNotIn(
+            "root.keyringKeys = Object.assign",
+            page[:result_at],
+            "keyringKeys must not be updated before the write result is known",
+        )
+        self.assertIn(
+            "stderr: StdioCollector",
+            page,
+            "a failed write needs the reason from secret-tool, not just an exit code",
+        )
+
+
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
         cmake_text = (ROOT / "shell" / "CMakeLists.txt").read_text(encoding="utf-8")
