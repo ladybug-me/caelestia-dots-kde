@@ -15,7 +15,7 @@ import qs.utils
 Item {
     id: root
 
-    readonly property string shellName: "fish"
+    readonly property string shellName: "zsh"
 
     property string outputBuffer: ""
     property string currentDirectory: Paths.home
@@ -169,9 +169,9 @@ Item {
             return;
         }
 
-        // Spawn command dynamically under fish shell - no pipe buffering issue!
+        // Spawn command dynamically under zsh shell (interactive to load .zshrc)
         activeShellProcess = shellProcessComp.createObject(root, {
-            command: ["fish", "-c", trimmed],
+            command: ["zsh", "-i", "-c", trimmed],
             workingDirectory: currentDirectory,
             running: true
         });
@@ -182,7 +182,7 @@ Item {
             path = Paths.home + path.substring(1);
         }
         pwdResolverComp.createObject(root, {
-            command: ["fish", "-c", "cd " + path + " && pwd"],
+            command: ["zsh", "-i", "-c", "cd " + path + " && pwd"],
             workingDirectory: currentDirectory,
             running: true
         });
@@ -439,14 +439,17 @@ Item {
                                 event.accepted = true;
                             }
 
-                            // Trigger native fish autocompletion on Tab key press
+                            // Trigger zsh autocompletion on Tab key press
                             Keys.onTabPressed: event => {
                                 let typed = text;
                                 if (typed.trim() === "")
                                     return;
 
+                                // Use zsh's commands hash for command completion
                                 autocompleterComp.createObject(root, {
-                                    command: ["fish", "-c", "complete -C\"" + typed.replace(/"/g, "\\\"") + "\""],
+                                    command: ["zsh", "-fc",
+                                        "print -l -- ${(ok)commands[(I)" + typed.replace(/'/g, "'\\''") + "*]}"
+                                    ],
                                     workingDirectory: currentDirectory,
                                     running: true
                                 });

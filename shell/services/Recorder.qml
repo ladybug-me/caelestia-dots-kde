@@ -24,6 +24,12 @@ Singleton {
         checkProc.running = true;
     }
 
+    function startGif(): void {
+        needsStart = true;
+        startArgs = ["--gif"];
+        checkProc.running = true;
+    }
+
     function stop(): void {
         needsStop = true;
         checkProc.running = true;
