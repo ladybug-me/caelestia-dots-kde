@@ -54,6 +54,22 @@ Item {
         return root.commitTypes[match[1].toLowerCase()] || null;
     }
 
+    // The type chip already shows "fix", so drop the prefix from the line the
+    // reader actually reads: "fix(recorder): scope the gif" reads as noise twice.
+    function typeStrippedSubject(subject) {
+        const stripped = (subject || "").replace(/^\w+(\([^)]*\))?!?:\s*/, "");
+        return stripped === "" ? (subject || "") : stripped;
+    }
+
+    // "Merge pull request #697 from Alkxcx/fix/gif-and-drag-v2" -> "#697 · fix/gif-and-drag-v2".
+    // Which fork it came from is of no interest to the reader; what landed is.
+    function mergedSubject(subject) {
+        const match = /^Merge pull request #(\d+) from [^/]+\/(.+)$/.exec(subject || "");
+        if (!match)
+            return subject || "";
+        return "#" + match[1] + " · " + match[2];
+    }
+
     implicitWidth: 200
     implicitHeight: root.entries.length * root.rowHeight
 
@@ -88,6 +104,11 @@ Item {
             // null for merges, releases, or subjects that don't follow the
             // convention, in which case the dot falls back to a neutral tone.
             readonly property var typeInfo: (!isRelease && !isMerge) ? root.commitType(modelData.subject) : null
+            readonly property string displaySubject: {
+                if (isRelease || !modelData.subject)
+                    return "";
+                return isMerge ? root.mergedSubject(modelData.subject) : root.typeStrippedSubject(modelData.subject);
+            }
             readonly property color typeColor: {
                 if (isMerge) return Colours.palette.m3secondaryFixedDim;
                 if (typeInfo) return typeInfo.color;
@@ -208,15 +229,14 @@ Item {
                         Layout.fillWidth: true
                         text: entry.modelData.label
                         font: entry.isCurrent ? Tokens.font.body.medium : Tokens.font.body.small
-                        // Colour-code the hash/label itself by commit type
-                        // (not just the small dot) so the dev timeline reads
-                        // as an unmistakably colourful git log at a glance.
-                        // Releases (main branch) stay neutral to keep that
-                        // channel visually plain/compact by contrast.
+                        // Releases (main branch) are named by this line, so it stays
+                        // prominent for them. On the dev timeline it is only a hash:
+                        // the subject underneath is what the reader is here for, and
+                        // the type already has the dot plus the chip.
                         color: {
                             if (entry.isCurrent || entry.isSelected) return Colours.palette.m3primary;
                             if (entry.isRelease) return entry.isAvailable ? Colours.palette.m3onSurface : Colours.palette.m3outline;
-                            return entry.typeColor;
+                            return Colours.palette.m3onSurfaceVariant;
                         }
                         elide: Text.ElideRight
 
@@ -266,10 +286,10 @@ Item {
 
                 StyledText {
                     width: parent.width
-                    visible: !!entry.modelData.subject
-                    text: entry.modelData.subject || ""
-                    font: Tokens.font.label.small
-                    color: Colours.palette.m3onSurfaceVariant
+                    visible: entry.displaySubject !== ""
+                    text: entry.displaySubject
+                    font: Tokens.font.body.small
+                    color: Colours.palette.m3onSurface
                     elide: Text.ElideRight
                 }
 
