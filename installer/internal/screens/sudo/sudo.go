@@ -29,6 +29,9 @@ func New(ctx *app.Context) Model {
 	ti.Placeholder = "sudo password"
 	ti.EchoMode = textinput.EchoPassword
 	ti.CharLimit = 256
+	// Width must be > 0 or the placeholder view truncates to a single char
+	// (the vendored textinput allocates a Width+1 rune buffer).
+	ti.SetWidth(24)
 	ti.Focus()
 	return Model{ctx: ctx, password: ti}
 }
@@ -61,7 +64,7 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	m.errMsg = "Verifying..."
 
 	if runner.VerifySudoPassword(pw) {
-		dir, err := runner.SetupSudoEnvironment(pw)
+		dir, err := runner.SetupSudoEnvironment(pw, m.ctx.Action)
 		if err != nil {
 			m.errMsg = "Could not prepare secure sudo helpers."
 			m.password.SetValue("")

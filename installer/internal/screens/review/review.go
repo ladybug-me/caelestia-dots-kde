@@ -80,8 +80,14 @@ func visible(lines []string, top, maxRows int) []string {
 }
 
 func (m Model) View() tea.View {
+	title := "Review Installation"
+	footerAction := "installation"
+	if m.ctx.Action == "uninstall" {
+		title = "Review Uninstall"
+		footerAction = "uninstall"
+	}
 	var b strings.Builder
-	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, "Review Installation")
+	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, title)
 	b.WriteString(m.ctx.Theme.Normal.Render("These steps will run in order. Skipped steps are shown but not run."))
 	b.WriteString("\n\n")
 
@@ -92,6 +98,6 @@ func (m Model) View() tea.View {
 		b.WriteByte('\n')
 	}
 	b.WriteByte('\n')
-	widgets.RenderFooter(&b, m.ctx.Theme, "Enter", " to begin installation, ", "Esc", " to go back")
+	widgets.RenderFooter(&b, m.ctx.Theme, "Enter", " to begin "+footerAction+", ", "Esc", " to go back")
 	return tea.NewView(b.String())
 }

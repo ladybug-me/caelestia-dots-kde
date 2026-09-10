@@ -115,6 +115,8 @@ func run() int {
 	if ctx.Logout {
 		fmt.Println("\nLogging out...")
 		_ = exec.Command("qdbus6", "org.kde.Shutdown", "/Shutdown", "org.kde.Shutdown.logout").Run()
+	} else if ctx.Action == "uninstall" {
+		fmt.Println("\nCaelestia uninstall complete. Remember to log out to fully return to your previous session.")
 	} else {
 		fmt.Println("\nCaelestia installation complete. Remember to log out to activate your new session.")
 	}

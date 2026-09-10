@@ -42,7 +42,7 @@ func releaseKDEInhibit(cookieFile string) {
 // SetupSudoEnvironment mirrors UI::setup_sudo_environment: it creates a
 // per-run askpass + sudo wrapper directory, exports SUDO_PASS, and starts the
 // screen/sleep inhibitors. It returns the wrapper directory to clean up later.
-func SetupSudoEnvironment(pw string) (string, error) {
+func SetupSudoEnvironment(pw, action string) (string, error) {
 	dir, err := os.MkdirTemp("/tmp", "caelestia-bin.")
 	if err != nil {
 		return "", err
@@ -97,9 +97,15 @@ func SetupSudoEnvironment(pw string) (string, error) {
 	}
 	releaseKDEInhibit(cookieFile)
 
+	who, why := "Caelestia Installer", "Installation in progress"
+	if action == "uninstall" {
+		who, why = "Caelestia Uninstaller", "Uninstallation in progress"
+	}
+
 	inhibit := exec.Command("systemd-inhibit", "--what=idle:sleep",
-		"--who=Caelestia Installer", "--why=Installation in progress",
+		"--who="+who, "--why="+why,
 		"bash", "-c", "while :; do sleep 600; done")
+	inhibit.SysProcAttr = detachedSysProcAttr()
 	if err := inhibit.Start(); err == nil {
 		_ = os.WriteFile(pidFile, []byte(fmt.Sprintf("%d\n", inhibit.Process.Pid)), 0600)
 	}
@@ -107,7 +113,7 @@ func SetupSudoEnvironment(pw string) (string, error) {
 	cookie, err := os.OpenFile(cookieFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err == nil {
 		c := exec.Command("qdbus6", "org.freedesktop.ScreenSaver", "/ScreenSaver",
-			"org.freedesktop.ScreenSaver.Inhibit", "Caelestia Installer", "Installation in progress")
+			"org.freedesktop.ScreenSaver.Inhibit", who, why)
 		c.Stdout = cookie
 		_ = c.Run()
 		cookie.Close()

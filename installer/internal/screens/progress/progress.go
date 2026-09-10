@@ -284,8 +284,13 @@ func (m *Model) View() tea.View {
 		return tea.NewView(m.viewErrorDialog())
 	}
 
+	title := "Installing"
+	if m.ctx.Action == "uninstall" {
+		title = "Uninstalling"
+	}
+
 	var b strings.Builder
-	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, "Installing")
+	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, title)
 
 	step := m.ctx.Cfg.Manifest.Steps[m.current]
 	phaseName := step.Phase
@@ -327,8 +332,12 @@ func (m *Model) View() tea.View {
 }
 
 func (m *Model) viewErrorDialog() string {
+	title := "Installation Error"
+	if m.ctx.Action == "uninstall" {
+		title = "Uninstall Error"
+	}
 	var b strings.Builder
-	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, "Installation Error")
+	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, title)
 
 	step := m.ctx.Cfg.Manifest.Steps[m.current]
 	fmt.Fprintf(&b, "%s failed.\n", step.Name)

@@ -67,9 +67,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() tea.View {
 	var b strings.Builder
-	title := "Installation Complete"
+	verb := "Installation"
+	if m.ctx.Action == "uninstall" {
+		verb = "Uninstall"
+	}
+	title := verb + " Complete"
 	if m.hasErrors() {
-		title = "Installation Finished With Issues"
+		title = verb + " Finished With Issues"
 	}
 	widgets.RenderPageStart(&b, m.ctx.Theme, m.ctx.Cfg, title)
 
@@ -92,25 +96,32 @@ func (m Model) View() tea.View {
 		b.WriteString("\n\n")
 	}
 
-	b.WriteString(m.ctx.Theme.SectionLabel("Quick start & shortcuts"))
-	b.WriteByte('\n')
-	for _, s := range []string{
-		"Super            Application launcher",
-		"Super+Q          Close window",
-		"Super+Return     Terminal",
-		"Super+E          File manager",
-		"Super+L          Lock screen",
-		"Super+Shift+S    Screenshot",
-	} {
-		b.WriteString(m.ctx.Theme.Normal.Render("  " + s))
+	if m.ctx.Action == "uninstall" {
+		b.WriteString(m.ctx.Theme.SectionLabel("Next steps"))
 		b.WriteByte('\n')
-	}
-	b.WriteByte('\n')
+		b.WriteString(m.ctx.Theme.Normal.Render("  Log out and back in to return to your previous desktop session."))
+		b.WriteString("\n\n")
+	} else {
+		b.WriteString(m.ctx.Theme.SectionLabel("Quick start & shortcuts"))
+		b.WriteByte('\n')
+		for _, s := range []string{
+			"Super            Application launcher",
+			"Super+Q          Close window",
+			"Super+Return     Terminal",
+			"Super+E          File manager",
+			"Super+L          Lock screen",
+			"Super+Shift+S    Screenshot",
+		} {
+			b.WriteString(m.ctx.Theme.Normal.Render("  " + s))
+			b.WriteByte('\n')
+		}
+		b.WriteByte('\n')
 
-	b.WriteString(m.ctx.Theme.SectionLabel("Next steps"))
-	b.WriteByte('\n')
-	b.WriteString(m.ctx.Theme.Normal.Render("  Log out and back in for all changes to take effect."))
-	b.WriteString("\n\n")
+		b.WriteString(m.ctx.Theme.SectionLabel("Next steps"))
+		b.WriteByte('\n')
+		b.WriteString(m.ctx.Theme.Normal.Render("  Log out and back in for all changes to take effect."))
+		b.WriteString("\n\n")
+	}
 
 	b.WriteString(m.ctx.Theme.Subtle.Render("Log: " + m.logPath))
 	b.WriteString("\n\n")
