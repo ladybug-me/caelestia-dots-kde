@@ -308,7 +308,6 @@ class InstallStepSafetyTests(unittest.TestCase):
             "the shell-config backup must run before the prebuilt archive is extracted over $HOME",
         )
 
-
     def test_privileged_package_installs_go_through_the_escalation_helper(self) -> None:
         """#664: a GUI-triggered update has no terminal, so bare sudo fails silently."""
         script = (ROOT / "scripts" / "08-build-shell.sh").read_text(encoding="utf-8")
