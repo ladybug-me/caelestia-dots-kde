@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -51,6 +52,8 @@ PageBase {
                     color: Colours.palette.m3onSurface
                 }
                 StyledInputField {
+                    id: keyInput
+
                     Layout.fillWidth: true
                     horizontalAlignment: TextInput.AlignLeft
                     text: keyField.value
@@ -67,19 +70,68 @@ PageBase {
             font: Tokens.font.label.small
             wrapMode: Text.Wrap
         }
+
+        // Re-read the stored value once a write attempt finishes. Typing breaks
+        // the text binding above, so without this a failed save would keep
+        // showing a key that never reached the keyring.
+        Connections {
+            target: root
+
+            onKeyringRevisionChanged: {
+                keyInput.text = keyField.value;
+            }
+        }
     }
 
     // Keys are held in the session keyring, not shell.json — see AiAssistant.
     property var keyringKeys: ({})
 
+    // Bumped after every write attempt so an open field re-reads what the
+    // keyring actually holds instead of keeping whatever was typed into it.
+    property int keyringRevision: 0
+
+    // The key write currently in flight, plus any that arrived while it was
+    // running. secret-tool calls are serialised because the Process below holds
+    // a single command: starting a second write mid-flight would leave the
+    // first one's exit code being applied to the second one's value, marking a
+    // key as saved that was never stored.
+    property string pendingProvider: ""
+
+    property string pendingKey: ""
+
+    property var queuedKeyWrites: []
+
+    property string lastKeyStoreError: ""
+
     function apiKeyFor(p) {
         return root.keyringKeys[p] || "";
     }
 
-    function storeApiKey(p, key) {
+    function setApiKey(p, key) {
         const m = root.keyringKeys;
         m[p] = key;
         root.keyringKeys = Object.assign({}, m);
+    }
+
+    function storeApiKey(p, key) {
+        // editingFinished also fires when the field merely loses focus, so a
+        // commit carrying the value already in the keyring is not a write.
+        if (key === root.apiKeyFor(p))
+            return;
+
+        if (keyStoreProc.running) {
+            root.queuedKeyWrites = root.queuedKeyWrites.concat([{ provider: p, key: key }]);
+            return;
+        }
+
+        root.startKeyStore(p, key);
+    }
+
+    function startKeyStore(p, key) {
+        root.pendingProvider = p;
+        root.pendingKey = key;
+        root.lastKeyStoreError = "";
+
         const attr = "caelestia-ai-" + p;
         const script = key === ""
             ? "secret-tool clear service caelestia key " + JSON.stringify(attr)
@@ -87,6 +139,38 @@ PageBase {
               " service caelestia key " + JSON.stringify(attr);
         keyStoreProc.command = key === "" ? ["sh", "-c", script] : ["sh", "-c", script, "--", key];
         keyStoreProc.running = true;
+    }
+
+    // Apply the result of the write that just finished. keyringKeys is not
+    // touched until secret-tool has actually succeeded, so a missing binary, a
+    // locked keyring or a rejected store can no longer leave the field showing a
+    // key that was never persisted (#652).
+    function finishKeyStore(code, detail) {
+        const p = root.pendingProvider;
+        const key = root.pendingKey;
+        const clearing = key === "";
+        root.pendingProvider = "";
+        root.pendingKey = "";
+
+        if (code === 0) {
+            root.setApiKey(p, key);
+
+            // Removing a key is its own visible outcome; only announce saves.
+            if (!clearing)
+                Toaster.toast(qsTr("API key saved"), p, "key");
+        } else {
+            const reason = detail !== "" ? detail : qsTr("secret-tool exited with code %1").arg(code);
+            Toaster.toast(clearing ? qsTr("Couldn't remove API key") : qsTr("Couldn't save API key"),
+                reason, "key_off", Toast.Error);
+        }
+
+        root.keyringRevision += 1;
+
+        if (root.queuedKeyWrites.length > 0) {
+            const next = root.queuedKeyWrites[0];
+            root.queuedKeyWrites = root.queuedKeyWrites.slice(1);
+            root.startKeyStore(next.provider, next.key);
+        }
     }
 
     property string claudeVersion: ""
@@ -266,6 +350,15 @@ PageBase {
         // property is one Item; Process objects are kept as layout resources).
         Process {
             id: keyStoreProc
+
+            stderr: StdioCollector {
+                onStreamFinished: root.lastKeyStoreError = (text || "").trim()
+            }
+
+            // Qt.callLater so the stderr collector's handler gets a chance to run
+            // first. Reading lastKeyStoreError straight from here can race the
+            // stream and lose the reason secret-tool gave.
+            onExited: code => Qt.callLater(() => root.finishKeyStore(code, root.lastKeyStoreError))
         }
 
         Component {
@@ -281,11 +374,8 @@ PageBase {
                 stdout: StdioCollector {
                     onStreamFinished: {
                         const k = (text || "").trim();
-                        if (k !== "") {
-                            const m = root.keyringKeys;
-                            m[kl.provider] = k;
-                            root.keyringKeys = Object.assign({}, m);
-                        }
+                        if (k !== "")
+                            root.setApiKey(kl.provider, k);
                         kl.destroy();
                     }
                 }

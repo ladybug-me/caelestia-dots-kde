@@ -289,7 +289,9 @@ PageBase {
             { id: "dock", enabled: true, zone: "middle" },
             { id: "tray", enabled: true, zone: "right" },
             { id: "updateIndicator", enabled: true, zone: "right" },
-            { id: "github", enabled: true, zone: "right" },
+            // Mirrors the compiled default in barconfig.hpp: the GitHub widget
+            // needs a token, so it ships off.
+            { id: "github", enabled: false, zone: "right" },
             { id: "clock", enabled: true, zone: "right" },
             { id: "statusIcons", enabled: true, zone: "right" },
             { id: "kbLayoutIndicator", enabled: false, zone: "right" },

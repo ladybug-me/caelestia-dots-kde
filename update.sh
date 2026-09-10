@@ -8,6 +8,7 @@ set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/install-fs.sh"
 
 section() {
     local title="$1"
@@ -186,11 +187,6 @@ fi
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 SCHEME_FILE="$STATE_DIR/scheme.json"
-i=0
-while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
-    sleep 1
-    i=$((i + 1))
-done
 
 # Start the shell. The IPC wrapper is preferred over the CLI here because it
 # starts the shell as a transient user service: the CLI's `shell -d`
@@ -214,6 +210,20 @@ else
     export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
     export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
     stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+fi
+
+# The lock screen reads scheme.json before any user session exists, so it has
+# to be on disk for the greeter to render with the right colours. Wait for the
+# shell that was just started to write it.
+#
+# This wait used to sit between the kill and the start, polling for a file to
+# be produced by a process that had already been killed: it either returned
+# instantly on the previous run's file, or spent the full 15s waiting for
+# something that could not happen (#666). With the file normally already
+# present the common case still returns immediately; the wait only bites on a
+# fresh install or a wiped state directory, which is when it matters.
+if ! wait_for_nonempty_file "$SCHEME_FILE" 15; then
+    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colours."
 fi
 
 echo "Shell restarted successfully!"

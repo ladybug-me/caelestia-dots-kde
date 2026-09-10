@@ -43,9 +43,12 @@ Item {
     function loadPlugin(meta) {
         let id = meta.id || meta.name;
         if (pluginInstances[id]) return; // already loaded
-        if (meta.type !== "quickshell") return;
+        // Quickshell plugins load main.qml; other types (a kwineffect that ships
+        // a settings front-end) opt in through the manifest's `ui` field.
+        let ui = meta.ui || (meta.type === "quickshell" ? "main.qml" : "");
+        if (!ui) return;
 
-        let mainFile = meta.path + "/main.qml";
+        let mainFile = meta.path + "/" + ui;
         let component = Qt.createComponent("file://" + mainFile);
 
         let finishLoad = () => {

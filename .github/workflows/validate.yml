@@ -73,6 +73,11 @@ jobs:
       - name: Run repository integrity tests
         run: python3 .github/scripts/test_repo_integrity.py
 
+      - name: Audit settings search coverage
+        # Gates on settings sub-pages that no search entry can open, and reports
+        # the section headers and setting rows that are still not indexed.
+        run: python3 .github/scripts/audit_search_coverage.py
+
   # ═══════════════════════════════════════════════════════════
   # Job 3: JSON configuration validation
   # ═══════════════════════════════════════════════════════════

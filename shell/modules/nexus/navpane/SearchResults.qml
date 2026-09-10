@@ -20,7 +20,7 @@ VerticalFadeFlickable {
     topMargin: Tokens.padding.large
     bottomMargin: Tokens.padding.large
     contentHeight: content.implicitHeight
-    
+
     // So it can receive focus
     focus: true
 
@@ -30,12 +30,12 @@ VerticalFadeFlickable {
         selectedIndex = Math.max(0, selectedIndex - 1);
         positionViewAtIndex(selectedIndex);
     }
-    
+
     function moveDown() {
         selectedIndex = Math.min(list.count - 1, selectedIndex + 1);
         positionViewAtIndex(selectedIndex);
     }
-    
+
     function executeSelected() {
         if (list.count > 0 && selectedIndex >= 0 && selectedIndex < list.count) {
             const entry = root.filteredEntries[selectedIndex];
@@ -80,7 +80,7 @@ VerticalFadeFlickable {
 
                 required property var modelData
                 required property int index
-                
+
                 readonly property string settingLabel: modelData.settingLabel
                 readonly property string pageLabel: modelData.pageLabel
                 readonly property string pageIcon: modelData.pageIcon
@@ -162,7 +162,7 @@ VerticalFadeFlickable {
                             elide: Text.ElideRight
                         }
                     }
-                    
+
                     MaterialIcon {
                         text: "chevron_right"
                         color: Colours.palette.m3onSurfaceVariant

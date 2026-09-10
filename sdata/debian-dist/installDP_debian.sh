@@ -70,6 +70,9 @@ CORE_PACKAGES=(
     # Media, Calculation & Security
     ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
     libqalculate-dev qalc libvulkan-dev libsecret-1-dev ksshaskpass libx11-dev
+    # secret-tool lives in libsecret-tools here, not in the -dev package the
+    # shell is built against; the AI API key fields shell out to it at runtime.
+    libsecret-tools
 )
 
 SHELL_PACKAGES=(

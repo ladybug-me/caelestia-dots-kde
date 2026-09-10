@@ -15,12 +15,12 @@ Item {
     required property var entries
     property string selectedId: ""
 
-    // Commit rows (dev branch) carry an author/subject/type chip and need
-    // extra vertical room; plain release rows (main branch) stay compact so
-    // the two channels remain visually distinct at a glance.
+    // Commit rows (dev branch) carry a subject plus an identifier line and need
+    // room for both; plain release rows (main branch) stay compact so the two
+    // channels remain visually distinct at a glance.
     readonly property bool richMode: root.entries.some(e => !e.isRelease && (!!e.author || !!e.subject))
 
-    readonly property int rowHeight: root.richMode ? 68 : 44
+    readonly property int rowHeight: root.richMode ? 56 : 44
 
     readonly property int gutterWidth: 32
 
@@ -52,6 +52,22 @@ Item {
         if (!match)
             return null;
         return root.commitTypes[match[1].toLowerCase()] || null;
+    }
+
+    // The type chip already shows "fix", so drop the prefix from the line the
+    // reader actually reads: "fix(recorder): scope the gif" reads as noise twice.
+    function typeStrippedSubject(subject) {
+        const stripped = (subject || "").replace(/^\w+(\([^)]*\))?!?:\s*/, "");
+        return stripped === "" ? (subject || "") : stripped;
+    }
+
+    // "Merge pull request #697 from Alkxcx/fix/gif-and-drag-v2" -> "#697 · fix/gif-and-drag-v2".
+    // Which fork it came from is of no interest to the reader; what landed is.
+    function mergedSubject(subject) {
+        const match = /^Merge pull request #(\d+) from [^/]+\/(.+)$/.exec(subject || "");
+        if (!match)
+            return subject || "";
+        return "#" + match[1] + " · " + match[2];
     }
 
     implicitWidth: 200
@@ -88,6 +104,21 @@ Item {
             // null for merges, releases, or subjects that don't follow the
             // convention, in which case the dot falls back to a neutral tone.
             readonly property var typeInfo: (!isRelease && !isMerge) ? root.commitType(modelData.subject) : null
+            readonly property string displaySubject: {
+                if (isRelease || !modelData.subject)
+                    return "";
+                return isMerge ? root.mergedSubject(modelData.subject) : root.typeStrippedSubject(modelData.subject);
+            }
+            // "288b2c1d · Solanaceae · 9/10/26 12:52 PM". Releases only need their
+            // author and date: the version is already the row's title.
+            readonly property string metaLine: {
+                const parts = [];
+                if (!isRelease && modelData.label !== "")
+                    parts.push(modelData.label);
+                if (entry.tooltipText !== "")
+                    parts.push(entry.tooltipText);
+                return parts.join(" · ");
+            }
             readonly property color typeColor: {
                 if (isMerge) return Colours.palette.m3secondaryFixedDim;
                 if (typeInfo) return typeInfo.color;
@@ -180,7 +211,9 @@ Item {
                 Behavior on border.color { ColorAnimation { duration: 150 } }
             }
 
-            // Label + subject text
+            // Subject first, then the identifiers. A reader scanning the dev
+            // timeline is looking for what changed; the hash only tells them
+            // which commit it was, which is reference material.
             Column {
                 anchors {
                     left: parent.left
@@ -196,7 +229,7 @@ Item {
                     spacing: Tokens.spacing.extraSmall
 
                     // Tag icon marks release rows so the main-branch timeline
-                    // reads distinctly from the colourful dev commit log.
+                    // reads distinctly from the dev commit log.
                     MaterialIcon {
                         visible: entry.isRelease
                         fontStyle: Tokens.font.icon.small
@@ -206,17 +239,15 @@ Item {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: entry.modelData.label
+                        // A release is named by its version, a commit by what changed.
+                        text: entry.isRelease ? entry.modelData.label : entry.displaySubject
                         font: entry.isCurrent ? Tokens.font.body.medium : Tokens.font.body.small
-                        // Colour-code the hash/label itself by commit type
-                        // (not just the small dot) so the dev timeline reads
-                        // as an unmistakably colourful git log at a glance.
-                        // Releases (main branch) stay neutral to keep that
-                        // channel visually plain/compact by contrast.
                         color: {
                             if (entry.isCurrent || entry.isSelected) return Colours.palette.m3primary;
                             if (entry.isRelease) return entry.isAvailable ? Colours.palette.m3onSurface : Colours.palette.m3outline;
-                            return entry.typeColor;
+                            // A merge is structure rather than a change, so it stays
+                            // behind the commits it brought in.
+                            return entry.isMerge ? Colours.palette.m3onSurfaceVariant : Colours.palette.m3onSurface;
                         }
                         elide: Text.ElideRight
 
@@ -264,21 +295,12 @@ Item {
                     }
                 }
 
+                // Hash, author and date on one quiet line: enough to identify the
+                // commit without competing with the subject above it.
                 StyledText {
                     width: parent.width
-                    visible: !!entry.modelData.subject
-                    text: entry.modelData.subject || ""
-                    font: Tokens.font.label.small
-                    color: Colours.palette.m3onSurfaceVariant
-                    elide: Text.ElideRight
-                }
-
-                // Author • date — always visible now instead of hover-only,
-                // so the dev timeline reads like a real git log at a glance.
-                StyledText {
-                    width: parent.width
-                    visible: entry.tooltipText !== ""
-                    text: entry.tooltipText
+                    visible: entry.metaLine !== ""
+                    text: entry.metaLine
                     font: Tokens.font.label.small
                     color: Colours.palette.m3onSurfaceVariant
                     elide: Text.ElideRight

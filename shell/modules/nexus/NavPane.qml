@@ -12,6 +12,20 @@ ColumnLayout {
 
     required property NexusState nState
 
+    // Both result panes search the index and build a delegate per hit, so the
+    // query is published once typing pauses instead of on every keystroke.
+    function publishQuery(): void {
+        searchDebounce.stop();
+        root.nState.searchQuery = searchField.text;
+    }
+
+    // Clearing is not a search: the locations list has to come back at once
+    // rather than after the debounce window.
+    function clearQuery(): void {
+        searchDebounce.stop();
+        root.nState.searchQuery = "";
+    }
+
     spacing: Tokens.spacing.large
 
     SearchBar {
@@ -30,10 +44,17 @@ ColumnLayout {
         clearIcon.font: Tokens.font.icon.medium
         clearIcon.padding: Tokens.padding.extraSmall
 
-        onTextChanged: root.nState.searchQuery = text
+        onTextChanged: {
+            if (text === "")
+                root.clearQuery();
+            else
+                searchDebounce.restart();
+        }
 
         Keys.onReturnPressed: {
             if (root.nState.searchOpen) {
+                // Enter before the pause still has to act on what is typed.
+                root.publishQuery();
                 searchResults.executeSelected();
             }
         }
@@ -68,6 +89,16 @@ ColumnLayout {
             }
 
             target: root.nState
+        }
+
+        // Publishes the query once typing pauses. Both result panes search the
+        // index and build a delegate per hit, so running that per keystroke is
+        // what made typing feel laggy.
+        Timer {
+            id: searchDebounce
+
+            interval: 180
+            onTriggered: root.publishQuery()
         }
     }
 

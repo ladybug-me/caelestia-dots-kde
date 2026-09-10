@@ -41,9 +41,9 @@ Singleton {
 
         FloatingWindow {
             id: win
-            
+
             property alias nexus: nexus
-            
+
             property int initialPageIdx: 0
             property int initialSubPageIdx: -1
 
@@ -55,7 +55,7 @@ Singleton {
             color: Colours.tPalette.m3surface
             // Commented because nexus bg depends on the above
             // color: GlobalConfig.appearance.transparency.enabled ? Qt.alpha(Colours.tPalette.m3surface, 0) : Colours.tPalette.m3surface
-            
+
             surfaceFormat.opaque: false
 
             BackgroundEffect.blurRegion: Region {
