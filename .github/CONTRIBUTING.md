@@ -14,6 +14,9 @@ Make your changes in the cloned repo, test them (see below), then open a PR. Tha
 
 ## What makes a good PR?
 
+> [!WARNING]
+> Only PRs to **dev** branch are accepted!
+
 - **One thing at a time.** If you have three features, send three PRs - it's much faster to review.
 - **Keep your personal config out.** Don't include your wallpaper path, custom keybinds, or local settings.
 - **Experimental features off by default.** If it's flashy or niche, add a config toggle and default it to `false`.
