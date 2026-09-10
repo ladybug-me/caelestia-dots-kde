@@ -12,7 +12,6 @@ Validates cross-cutting concerns:
   - Git-tracked docs/ files referenced in installer_config.md exist
 """
 
-import py_compile
 import re
 import shutil
 import subprocess
@@ -66,13 +65,26 @@ class ScriptSyntaxTests(unittest.TestCase):
         self.assertFalse(failures, "Shell syntax failures:\n\n" + "\n\n".join(failures))
 
     def test_python_scripts_compile(self) -> None:
-        failures: list[str] = []
+        """Syntax-check every Python file without writing bytecode.
 
-        for path in repo_files("*.py"):
+        py_compile drops a .pyc next to the source, which fails with EIO on a
+        read-only checkout (a shared folder, a container image, a Nix store).
+        compile() checks the same thing and touches nothing.
+
+        Only git-tracked files are checked. A filesystem walk also picks up a
+        checked-out virtualenv - thousands of files that are not ours, and slow
+        to read over a network mount.
+        """
+        failures: list[str] = []
+        paths = git_tracked_files("*.py") or [
+            path.relative_to(ROOT).as_posix() for path in repo_files("*.py")
+        ]
+
+        for rel_path in paths:
             try:
-                py_compile.compile(str(path), doraise=True)
-            except py_compile.PyCompileError as exc:
-                failures.append(f"{path.relative_to(ROOT)}\n{exc.msg}")
+                compile((ROOT / rel_path).read_text(encoding="utf-8"), rel_path, "exec")
+            except (SyntaxError, ValueError, UnicodeDecodeError) as exc:
+                failures.append(f"{rel_path}\n{exc}")
 
         self.assertFalse(failures, "Python compile failures:\n\n" + "\n\n".join(failures))
 
