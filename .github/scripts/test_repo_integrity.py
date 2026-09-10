@@ -229,6 +229,21 @@ class InstallStepSafetyTests(unittest.TestCase):
             "the Linguist tools install must not escalate with bare sudo",
         )
 
+    def test_scheme_wait_happens_after_the_shell_restart(self) -> None:
+        """#666: waiting before the restart polls for a file from a killed process."""
+        script = (ROOT / "update.sh").read_text(encoding="utf-8")
+
+        start_at = script.find('"$SHELL_IPC" start')
+        wait_at = script.find("wait_for_nonempty_file")
+
+        self.assertNotEqual(start_at, -1, "update.sh should still start the shell through the IPC wrapper")
+        self.assertNotEqual(wait_at, -1, "update.sh should wait for the restarted shell to persist the scheme")
+        self.assertLess(
+            start_at,
+            wait_at,
+            "the scheme.json wait must run after the shell is restarted, not before",
+        )
+
 
 class VersionConsistencyTests(unittest.TestCase):
     def test_cmake_has_no_hardcoded_version(self) -> None:

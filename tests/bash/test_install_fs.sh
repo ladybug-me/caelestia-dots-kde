@@ -136,4 +136,48 @@ test_snapshot_dir_keeps_the_newest_snapshot_when_pruning() {
     assert_eq "revision-2" "$(cat "$newest/metadata.json")" "pruning should never remove the newest snapshot"
 }
 
+test_wait_for_nonempty_file_returns_immediately_when_it_is_there() {
+    local tmp status
+    tmp="$(new_tmpdir)"
+    printf 'scheme\n' > "$tmp/scheme.json"
+
+    wait_for_nonempty_file "$tmp/scheme.json" 0
+    status=$?
+
+    assert_status 0 "$status" "an existing file should not be waited on"
+}
+
+test_wait_for_nonempty_file_times_out_on_a_missing_file() {
+    local tmp status
+    tmp="$(new_tmpdir)"
+
+    wait_for_nonempty_file "$tmp/absent.json" 0
+    status=$?
+
+    assert_status 1 "$status" "a file that never arrives should report a timeout"
+}
+
+test_wait_for_nonempty_file_treats_an_empty_file_as_absent() {
+    local tmp status
+    tmp="$(new_tmpdir)"
+    : > "$tmp/scheme.json"
+
+    wait_for_nonempty_file "$tmp/scheme.json" 0
+    status=$?
+
+    assert_status 1 "$status" "a truncated file is not yet usable"
+}
+
+test_wait_for_nonempty_file_returns_once_the_file_lands() {
+    local tmp status
+    tmp="$(new_tmpdir)"
+
+    ( sleep 1; printf 'scheme\n' > "$tmp/scheme.json" ) &
+    wait_for_nonempty_file "$tmp/scheme.json" 5
+    status=$?
+    wait
+
+    assert_status 0 "$status" "the wait should end as soon as the file is written"
+}
+
 run_tests

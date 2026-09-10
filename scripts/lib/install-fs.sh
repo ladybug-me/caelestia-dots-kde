@@ -9,6 +9,7 @@
 #   atomic_replace_tree  Swap a directory for a new copy without a window
 #                        where the destination is missing or half-written
 #   snapshot_dir         Timestamped copy of a directory, pruned to a limit
+#   wait_for_nonempty_file  Block until a file the shell writes shows up
 #
 # These helpers never log; callers decide what to tell the user.
 
@@ -122,4 +123,28 @@ snapshot_dir() {
 
     printf '%s\n' "$dest"
     return 0
+}
+
+# wait_for_nonempty_file <path> <timeout-seconds>
+#
+# Wait for <path> to exist and hold something. Returns 0 as soon as it does,
+# 1 once <timeout-seconds> have elapsed without it. A timeout of 0 makes the
+# check once and reports what it found, which is what callers want when the
+# file is usually already there.
+#
+# Emptiness counts as absent: the consumers of these files parse them, and a
+# zero-byte file left behind by an interrupted write is not usable.
+wait_for_nonempty_file() {
+    local path="$1" timeout="$2" waited=0
+
+    while :; do
+        if [[ -s "$path" ]]; then
+            return 0
+        fi
+        if (( waited >= timeout )); then
+            return 1
+        fi
+        sleep 1
+        waited=$((waited + 1))
+    done
 }
