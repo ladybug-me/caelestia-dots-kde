@@ -114,7 +114,7 @@ ConnectedRect {
                                 shadowColor: Colours.palette.m3error
                                 shadowBlur: 0.8
                             }
-                            
+
                             MouseArea {
                                 anchors.fill: parent
                                 hoverEnabled: true
@@ -128,7 +128,7 @@ ConnectedRect {
                             text: "close"
                             fontStyle: Tokens.font.icon.small
                             color: maClose.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
-                            
+
                             MouseArea {
                                 id: maClose
 
@@ -146,14 +146,14 @@ ConnectedRect {
                     }
                 }
             }
-            
+
             MaterialIcon {
                 id: addIcon
 
                 text: "add"
                 color: maAdd.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                 fontStyle: Tokens.font.icon.medium
-                
+
                 MouseArea {
                     id: maAdd
 
@@ -170,7 +170,7 @@ ConnectedRect {
                 text: "settings_backup_restore"
                 color: maReset.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
                 fontStyle: Tokens.font.icon.medium
-                
+
                 MouseArea {
                     id: maReset
 
