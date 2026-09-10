@@ -11,6 +11,8 @@ Item {
 
     // Map of plugin id -> live QML object instance
     property var pluginInstances: ({})
+    property int loadedCount: 0
+    property int enabledCount: 0
 
     property var discovered: []
     property bool loadRequested: false
@@ -25,6 +27,19 @@ Item {
 
     signal pluginsReloaded()
 
+    function isCountedPlugin(meta) {
+        return meta.enabled && (meta.type === "quickshell" || meta.type === "kwineffect");
+    }
+
+    function updateEnabledCount() {
+        let count = 0;
+        for (let i = 0; i < discovered.length; i++) {
+            if (isCountedPlugin(discovered[i]))
+                count++;
+        }
+        enabledCount = count;
+    }
+
     function loadPlugin(meta) {
         let id = meta.id || meta.name;
         if (pluginInstances[id]) return; // already loaded
@@ -38,6 +53,8 @@ Item {
                 let obj = component.createObject(pluginLoader);
                 if (obj !== null) {
                     pluginInstances[id] = obj;
+                    pluginInstances = pluginInstances;
+                    loadedCount = Object.keys(pluginInstances).length;
                 } else {
                     console.log("Plugin createObject failed: " + mainFile);
                 }
@@ -58,6 +75,7 @@ Item {
             pluginInstances[id].destroy();
             delete pluginInstances[id];
             pluginInstances = pluginInstances; // force notify
+            loadedCount = Object.keys(pluginInstances).length;
             console.log("Plugin unloaded: " + id);
         }
     }
@@ -81,6 +99,13 @@ Item {
             let itemId = item.id || item.name;
             if (itemId === name || item.name === name) {
                 av.setProperty(i, "enabled", enable);
+                for (let j = 0; j < discovered.length; j++) {
+                    let discoveredId = discovered[j].id || discovered[j].name;
+                    if (discoveredId === itemId) {
+                        discovered[j].enabled = enable;
+                        break;
+                    }
+                }
                 if (item.restart === true || item.restart === "true") {
                     PluginStore.restartRequired = true;
                 }
@@ -89,6 +114,7 @@ Item {
                 } else {
                     unloadPlugin(itemId);
                 }
+                updateEnabledCount();
             }
         }
     }
@@ -105,6 +131,7 @@ Item {
             if (pluginInstances[key]) pluginInstances[key].destroy();
         }
         pluginInstances = {};
+        loadedCount = 0;
 
         for (let k = 0; k < discovered.length; k++) {
             let meta = discovered[k];
@@ -114,6 +141,7 @@ Item {
                 loadPlugin(meta);
             }
         }
+        updateEnabledCount();
         pluginsReloaded();
     }
 
@@ -204,13 +232,20 @@ Item {
 
     function removePluginFromAvailable(id) {
         unloadPlugin(id);
+        for (let j = 0; j < discovered.length; j++) {
+            if ((discovered[j].id || discovered[j].name) === id) {
+                discovered.splice(j, 1);
+                break;
+            }
+        }
         for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
             if (CaelestiaApi.plugins.available.get(i).id === id) {
                 CaelestiaApi.plugins.available.remove(i);
-                pluginsReloaded();
-                return;
+                break;
             }
         }
+        updateEnabledCount();
+        pluginsReloaded();
     }
 
     function _internalAppendPlugin(meta) {
@@ -225,7 +260,9 @@ Item {
         let aUrl = meta.author ? (meta.author.url || "") : "";
         meta.icon = meta.icon || "extension";
 
+        discovered.push(meta);
         CaelestiaApi.plugins.available.append(meta);
+        updateEnabledCount();
         pluginLoader.pluginsReloaded();
     }
 
@@ -273,6 +310,7 @@ Item {
                     }
 
                     console.log("addPluginToAvailable: adding", meta.id, "to available list. mediaurl:", meta.mediaurl);
+                    pluginLoader.discovered.push(meta);
                     CaelestiaApi.plugins.available.append(meta);
                     pluginsReloaded();
                     if (meta.restart) {
@@ -281,6 +319,7 @@ Item {
                     if (meta.enabled) {
                         pluginLoader.loadPlugin(meta);
                     }
+                    pluginLoader.updateEnabledCount();
                 } catch(e) {
                     console.log("addPluginToAvailable: error parsing metadata:", e);
                 }
@@ -288,5 +327,13 @@ Item {
                 console.log("addPluginToAvailable: cat failed, code:", code, "text:", addMetaOut.text);
             }
         }
+    }
+
+    IpcHandler {
+        function count(): string {
+            return pluginLoader.enabledCount.toString()
+        }
+
+        target: "plugins"
     }
 }
