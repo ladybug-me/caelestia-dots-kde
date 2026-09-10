@@ -156,6 +156,21 @@ class ShellSurfaceTests(unittest.TestCase):
             + "\n".join(offenders),
         )
 
+    def test_about_page_links_the_plugin_count_to_the_plugin_manager(self) -> None:
+        """#578: a plugin count with no way through to the plugin page is a dead end."""
+        page = (ROOT / "shell" / "modules" / "nexus" / "pages" / "AboutPage.qml").read_text(encoding="utf-8")
+
+        self.assertIn(
+            'PageRegistry.indexForKey("plugins")',
+            page,
+            "the plugin count must link to the plugin manager, resolved by page key",
+        )
+        self.assertNotIn(
+            "value: root.pluginCount",
+            page,
+            "the plugin count must be rendered by a navigating row, not a static info row",
+        )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:

@@ -6,6 +6,7 @@ import Caelestia.Config
 import qs.components
 import qs.services
 import qs.utils
+import qs.modules.nexus
 import qs.modules.nexus.common
 
 PageBase {
@@ -154,11 +155,22 @@ PageBase {
             text: qsTr("Plugins")
         }
 
-        InfoRow {
+        // Reports the count and links through to the plugin manager. A bare
+        // number with nothing behind it is a dead end: the page that lists the
+        // plugins is where anyone reading this number wants to go (#578).
+        NavRow {
             first: true
             last: true
+            icon: "extension"
             label: qsTr("Enabled plugins")
-            value: root.pluginCount || "…"
+            status: root.pluginCount || "…"
+            onClicked: {
+                // Resolve by key rather than a literal index: PageDictionary is
+                // positional and entries must not be reordered independently.
+                const index = PageRegistry.indexForKey("plugins");
+                if (index >= 0)
+                    root.nState.currentPageIdx = index;
+            }
         }
 
         // Advanced
