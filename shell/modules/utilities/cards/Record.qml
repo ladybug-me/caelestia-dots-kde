@@ -117,6 +117,7 @@ StyledRect {
                         }
                     },
                     MenuItem {
+                        visible: Config.utilities.showGifRecorder
                         icon: "animated_images"
                         text: qsTr("Record GIF")
                         activeText: qsTr("Start")
