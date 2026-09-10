@@ -13,7 +13,9 @@ VerticalFadeFlickable {
 
     required property NexusState nState
     readonly property string normalizedQuery: root.nState.searchQuery.trim().toLowerCase()
-    readonly property var filteredPages: PageRegistry.fuzzyPages(root.normalizedQuery)
+    // A hidden Repeater still builds its delegates, so leave the page list empty
+    // while the search results are the thing on screen.
+    readonly property var filteredPages: root.nState.searchOpen ? [] : PageRegistry.fuzzyPages(root.normalizedQuery)
 
     topMargin: Tokens.padding.large
     bottomMargin: Tokens.padding.large

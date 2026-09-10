@@ -269,6 +269,52 @@ class ShellSurfaceTests(unittest.TestCase):
             "a token that GitHub rejects must be readable here too, not only in the log",
         )
 
+    def test_settings_search_waits_for_a_pause_in_typing(self) -> None:
+        """The published query drives two fzf searches, each building a delegate per hit.
+
+        Publishing it straight from the text field meant both panes were rebuilt on
+        every keystroke, which is what made typing feel laggy. Clearing the field is
+        the exception: the locations list has to come back without a delay.
+        """
+        pane = (ROOT / "shell" / "modules" / "nexus" / "NavPane.qml").read_text(encoding="utf-8")
+
+        self.assertNotIn(
+            "onTextChanged: root.nState.searchQuery = text",
+            pane,
+            "the query must not be published on every keystroke",
+        )
+        self.assertIn("Timer {", pane, "a debounce timer has to gate the query")
+        self.assertIn(
+            "searchDebounce.restart()",
+            pane,
+            "each keystroke must restart the debounce window",
+        )
+        self.assertIn("root.clearQuery()", pane, "emptying the field must bypass the debounce")
+        self.assertIn(
+            'root.nState.searchQuery = ""',
+            pane,
+            "clearing the field must apply at once, not after the debounce window",
+        )
+
+    def test_the_font_controls_are_reachable_from_search(self) -> None:
+        """Search is driven by PageDictionary, so a section missing from it is invisible.
+
+        The Appearance page holds the font and monospace font pickers, but the only
+        entry that mentioned fonts was the page description, so searching "font"
+        returned the page and nothing that leads to those pickers.
+        """
+        lines = (
+            ROOT / "shell" / "modules" / "nexus" / "PageDictionary.qml"
+        ).read_text(encoding="utf-8").splitlines()
+
+        for label in ("Font", "Monospace font", "Font scale"):
+            entries = [line for line in lines if f'label: qsTr("{label}")' in line]
+            self.assertTrue(entries, f'"{label}" must be a searchable settings entry')
+            self.assertTrue(
+                any("font" in line.lower() for line in entries),
+                f'the "{label}" entry needs a font keyword, or searching "font" misses it',
+            )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
