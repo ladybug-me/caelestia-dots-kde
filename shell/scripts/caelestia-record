@@ -207,8 +207,24 @@ case "$ACTION" in
         REC_PATH="${RECS_DIR}/recording_$(date +%Y%m%d_%H-%M-%S).mp4"
         echo "$REC_PATH" > "$CURRENT_FILE"
 
+        # Detect active monitor from kscreen-doctor to avoid portal cursor mode issues
+        monitor="portal"
+        if command -v kscreen-doctor >/dev/null 2>&1; then
+            active_output=$(kscreen-doctor -j 2>/dev/null | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for o in data.get('outputs', []):
+    if o.get('connected') and o.get('enabled'):
+        print(o.get('name'))
+        break
+" 2>/dev/null || true)
+            if [[ -n "$active_output" ]]; then
+                monitor="$active_output"
+            fi
+        fi
+
         args=("$RECORDER")
-        args+=("-w" "portal")
+        args+=("-w" "$monitor")
         args+=("-f" "$rr")
         if [[ "$SOUND_OUTPUT" == "true" ]] && [[ "$SOUND_INPUT" == "true" ]]; then
             args+=("-a" "default_output|default_input")
