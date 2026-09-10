@@ -21,16 +21,23 @@ Variants {
         required property ShellScreen modelData
         readonly property var drawerVisibilities: Visibilities.screens.get(Hypr.monitorFor(modelData)) ?? Visibilities.screens.get(modelData.name)
         readonly property bool isOverviewOpen: drawerVisibilities ? drawerVisibilities.overview : false
+        readonly property bool wallpaperUp: wallpaper.item?.shown ?? false
+        // The fallback black waits for the wallpaper to have something to show, so a
+        // starting shell does not cover the desktop in black while the image is still
+        // decoding. It latches: readiness comes from an image decode status and from
+        // video playback, and letting it flip would blink the whole desktop surface
+        // between black and transparent for as long as the state kept changing.
+        property bool wallpaperHasBeenUp: false
+
+        onWallpaperUpChanged: {
+            if (wallpaperUp)
+                wallpaperHasBeenUp = true;
+        }
 
         screen: modelData
         name: "background"
         isDesktopWidget: true
-        // The fallback black waits for the wallpaper to have something to show.
-        // Painting it from creation covers the desktop in black while the image is
-        // still decoding, which is the black screen when the shell starts or
-        // restarts. Until then the window stays transparent, so the desktop the
-        // compositor already has keeps showing through.
-        color: (Config.background.wallpaperEnabled && (wallpaper.item?.shown ?? false)) ? "black" : "transparent"
+        color: (Config.background.wallpaperEnabled && wallpaperHasBeenUp) ? "black" : "transparent"
         surfaceFormat.opaque: false
         // If Quickshell wallpaper is disabled, use empty mask so KDE desktop gets clicks
         // If enabled, use null mask so Quickshell captures clicks
