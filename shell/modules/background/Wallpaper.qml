@@ -21,6 +21,11 @@ Item {
     property bool skipTransition: false
     property var screen: null
 
+    // True once this wallpaper has something to show, or has nothing to load at
+    // all. Background.qml keeps its fallback black until then, so a shell that is
+    // still starting does not paint the desktop black while the image decodes.
+    readonly property bool shown: root.current ? (root.current.shown || root.source === "") : false
+
     function isVideo(path: string): bool {
         if (!path)
             return false;
@@ -149,6 +154,13 @@ Item {
         property string videoPath: ""
         property bool isVideoImage: root.isVideo(root.source)
         property var screen: null
+        // Content is on screen for this element: an image reports it through the
+        // decode status, a video through playback actually starting.
+        readonly property bool shown: {
+            if (root.source === "")
+                return false;
+            return img.isVideoImage ? wallpaperVideo.playing : wallpaperImage.status === Image.Ready;
+        }
         readonly property real maxRadius: Math.sqrt(width * width + height * height)
         property real maskRadius: root.skipTransition ? maxRadius : 0
         readonly property var shapes: [
@@ -321,6 +333,8 @@ Item {
                 }
             }
             CachingVideo {
+                id: wallpaperVideo
+
                 anchors.fill: parent
                 path: img.videoPath
                 screen: root.screen

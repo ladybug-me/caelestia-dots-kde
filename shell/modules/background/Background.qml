@@ -25,7 +25,12 @@ Variants {
         screen: modelData
         name: "background"
         isDesktopWidget: true
-        color: Config.background.wallpaperEnabled ? "black" : "transparent"
+        // The fallback black waits for the wallpaper to have something to show.
+        // Painting it from creation covers the desktop in black while the image is
+        // still decoding, which is the black screen when the shell starts or
+        // restarts. Until then the window stays transparent, so the desktop the
+        // compositor already has keeps showing through.
+        color: (Config.background.wallpaperEnabled && (wallpaper.item?.shown ?? false)) ? "black" : "transparent"
         surfaceFormat.opaque: false
         // If Quickshell wallpaper is disabled, use empty mask so KDE desktop gets clicks
         // If enabled, use null mask so Quickshell captures clicks
