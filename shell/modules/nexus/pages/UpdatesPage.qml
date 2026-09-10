@@ -152,7 +152,10 @@ PageBase {
                     date: c.date || ""
                 });
             }
-            return result;
+            // Merges carry no user-facing change of their own and made up half the
+            // list. Drop them, except when the running shell is sitting on one:
+            // the timeline has to keep marking the commit it is installed at.
+            return result.filter(e => !e.isMerge || e.state === "current");
         }
     }
 

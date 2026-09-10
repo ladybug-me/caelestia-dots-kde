@@ -390,6 +390,40 @@ class ShellSurfaceTests(unittest.TestCase):
             "the type chip already names the commit type, so the subject must not repeat it",
         )
 
+    def test_the_dev_timeline_hides_merge_commits(self) -> None:
+        """Merges carry no change of their own and made up half of the dev list.
+
+        The commit the running shell is installed at has to stay, though: it is how
+        the timeline marks where the user is.
+        """
+        page = (
+            ROOT / "shell" / "modules" / "nexus" / "pages" / "UpdatesPage.qml"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            'filter(e => !e.isMerge || e.state === "current")',
+            page,
+            "merge commits must be dropped from the dev timeline, except the installed one",
+        )
+
+    def test_the_shortcut_list_does_not_animate_endlessly(self) -> None:
+        """An endless animation in a settings list recomposites the window every frame.
+
+        The collision marker pulsed forever; on a translucent window with a backdrop
+        blur that reads as the whole window blinking. A static dot and its tooltip
+        carry the same warning.
+        """
+        row = (
+            ROOT / "shell" / "modules" / "nexus" / "common" / "ShortcutRow.qml"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn(
+            "Animation.Infinite",
+            row,
+            "nothing in the shortcut list may run an endless animation, or the window repaints forever",
+        )
+        self.assertIn("partCollisionName", row, "the collision must still be reported")
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
