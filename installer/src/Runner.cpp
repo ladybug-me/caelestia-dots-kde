@@ -161,6 +161,8 @@ vector<Step> steps = {
     {"Download wallpapers", "scripts/03a-wallpapers.sh", "PENDING",
      "configure"},
     {"Apply KDE theme", "scripts/04-deploy-kde.sh", "PENDING", "configure"},
+    {"Install SDDM theme", "scripts/05-sddm-theme.sh", "PENDING",
+     "configure"},
     {"Enable system services", "scripts/06-services.sh", "PENDING",
      "configure"},
     {"Configure KDE applications", "scripts/07-kde-apps.sh", "PENDING",
@@ -178,6 +180,9 @@ vector<Step> steps = {
 bool step_is_skipped(const Step& step) {
   if (step.name == "Update system") {
     return answer_is_true("SKIP_SYSTEM_UPDATE");
+  }
+  if (step.name == "Install SDDM theme") {
+    return !answer_is_true("INSTALL_SDDM");
   }
   if (step.name == "Install optional components") {
     static const char* opt[] = {"INSTALL_VSCODE",  "INSTALL_ZED",

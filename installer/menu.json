@@ -14,6 +14,7 @@
         "APPLY_MATERIAL_YOU": true,
         "APPLY_FONTS": true,
         "APPLY_LOCKSCREEN": true,
+        "INSTALL_SDDM": true,
         "INSTALL_VSCODE": true,
         "INSTALL_ZED": true,
         "INSTALL_SPICETIFY": true,
@@ -133,6 +134,24 @@
           "title": "Custom lockscreen",
           "help": "Install the Caelestia lock screen greeter for KDE Plasma.",
           "default": true
+        },
+        {
+          "id": "INSTALL_SDDM",
+          "type": "boolean",
+          "title": "SDDM greeter theme",
+          "help": "Material You themed login screen with wallpaper and color sync.",
+          "default": false
+        },
+        {
+          "id": "SDDM_THEME_VARIANT",
+          "type": "select",
+          "title": "SDDM theme variant",
+          "help": "Full: clock, system info, quotes, avatar, blur effects. Mini: centered login card, clean and minimal.",
+          "default": "full",
+          "options": [
+            "full",
+            "mini"
+          ]
         },
         {
           "id": "action_back",

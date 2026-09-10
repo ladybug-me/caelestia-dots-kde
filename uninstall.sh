@@ -616,6 +616,56 @@ if [[ -f /etc/sudoers.d/ydotoold-nopasswd ]]; then
     ok "Removed sudoers rule: ydotoold-nopasswd"
 fi
 
+# sudoers file for SDDM sync
+if [[ -f /etc/sudoers.d/caelestia-sddm-sync ]]; then
+    sudo rm -f /etc/sudoers.d/caelestia-sddm-sync
+    ok "Removed sudoers rule: caelestia-sddm-sync"
+fi
+
+# SDDM theme and config
+if [[ -d /usr/share/sddm/themes/caelestia ]]; then
+    sudo rm -rf /usr/share/sddm/themes/caelestia
+    ok "Removed SDDM theme: /usr/share/sddm/themes/caelestia"
+fi
+if [[ -f /etc/sddm.conf.d/caelestia.conf ]]; then
+    sudo rm -f /etc/sddm.conf.d/caelestia.conf
+    ok "Removed SDDM config drop-in: caelestia.conf"
+fi
+
+# SDDM posthooks from cli.json
+CLI_JSON="$HOME/.config/caelestia/cli.json"
+if [[ -f "$CLI_JSON" ]] && command -v python3 &>/dev/null; then
+    python3 - "$CLI_JSON" <<'PYEOF'
+import json, sys, os, re
+cli_path = sys.argv[1]
+if not os.path.exists(cli_path):
+    sys.exit(0)
+with open(cli_path) as f:
+    config = json.load(f)
+changed = False
+for section in ("wallpaper", "theme"):
+    hook = config.get(section, {}).get("postHook", "")
+    if not hook:
+        continue
+    cleaned = re.sub(r'\s*&&\s*sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook', '', hook)
+    cleaned = re.sub(r'sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook\s*&&\s*', '', cleaned)
+    cleaned = re.sub(r'sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook', '', cleaned).strip()
+    if cleaned != hook:
+        changed = True
+        if cleaned:
+            config[section]["postHook"] = cleaned
+        else:
+            del config[section]["postHook"]
+if changed:
+    with open(cli_path, "w") as f:
+        json.dump(config, f, indent=4)
+PYEOF
+    ok "Removed SDDM posthooks from cli.json"
+fi
+
+# SDDM template config
+rm -f "$HOME/.config/caelestia/templates/sddm-theme.conf"
+
 # Compatibility symlinks and manually installed binaries
 for link in /usr/local/bin/sass /usr/local/bin/qdbus6 /usr/local/bin/caelestia /usr/local/bin/wl-clip-persist /usr/local/bin/gpu-screen-recorder; do
     if [[ -L "$link" || -f "$link" ]]; then
