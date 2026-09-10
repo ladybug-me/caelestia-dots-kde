@@ -28,7 +28,7 @@ Item {
     signal pluginsReloaded()
 
     function isCountedPlugin(meta) {
-        return meta.enabled && (meta.type === "quickshell" || meta.type === "kwin");
+        return meta.enabled && (meta.type === "quickshell" || meta.type === "kwineffect");
     }
 
     function updateEnabledCount() {
