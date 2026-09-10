@@ -233,6 +233,15 @@ info "Executing build scripts (GUI prompts will appear if required)..."
 
 export BUNDLE_DIR="$UPD_DIR/repo"
 
+# Helpers come from the revision that was just checked out, the same way the
+# step scripts below are run from it. A reverted target predating the helper
+# simply leaves the call unavailable, which is harmless: the recorded revision
+# then stays as it was rather than becoming wrong.
+if [[ -f "$BUNDLE_DIR/scripts/lib/update-state.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "$BUNDLE_DIR/scripts/lib/update-state.sh"
+fi
+
 # 4. Deploy Configs
 echo "PROGRESS: 3/5: Deploying configuration files..."
 echo
@@ -273,16 +282,17 @@ else
     fi
 fi
 
-# 6. Save current commit hash
-if [ -d "$UPD_DIR/repo/.git" ]; then
-    COMMIT_HASH=$(git rev-parse HEAD)
-    mkdir -p ~/.config/quickshell/caelestia
-    echo "$COMMIT_HASH" > ~/.config/quickshell/caelestia/.current_commit
-
-    # Persist installed version from the checked-out commit, even when sparse checkout omits files.
-    git show HEAD:.github/version.env > ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-
-    info "Saved commit hash: $COMMIT_HASH"
+# 6. Record which revision is actually installed.
+#
+# record_installed_revision() refuses while CAELESTIA_SKIP_BUILD=1: the
+# checkout below moved to the target ref, but the shell in front of the user
+# was deliberately not rebuilt, so claiming the new revision would make every
+# version readout describe a state nobody can see (#651). When that happens the
+# previous value is left in place - it still names the shell that is running.
+if record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia"; then
+    info "Saved commit hash: $(cat "$HOME/.config/quickshell/caelestia/.current_commit" 2>/dev/null || true)"
+elif [[ "${CAELESTIA_SKIP_BUILD:-0}" == "1" ]]; then
+    info "Shell build skipped; the recorded revision still describes the running shell."
 fi
 
 echo "PROGRESS: done: Update completed successfully"

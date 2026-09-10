@@ -23,6 +23,12 @@ fail() {
     printf '    FAIL: %s\n' "$*" >&2
 }
 
+# Report a test as skipped because a prerequisite for it is missing on this
+# machine. Counts as neither a pass nor a failure; the test still returns 0.
+skip_test() {
+    printf '    SKIP: %s\n' "$1"
+}
+
 # Like fail, but show the output of a command that was expected to succeed.
 fail_with_output() {
     local message="$1" output="$2"

@@ -272,16 +272,26 @@ class VersionConsistencyTests(unittest.TestCase):
             f"version.env must contain VERSION=vX.Y.Z, got: {env_text!r}"
         )
 
-    def test_updater_scripts_have_current_commit_logic(self) -> None:
-        """Update scripts should save commit hash to .current_commit for delta checks."""
+    def test_updater_records_the_installed_revision_through_the_shared_helper(self) -> None:
+        """Update scripts must record the installed commit for delta checks.
+
+        Writing it inline here is what let the updater claim a revision whose
+        build was skipped (#651); the shared helper refuses to in that case.
+        """
         update_script = ROOT / "src" / "bin" / "caelestia-update"
         if not update_script.is_file():
             return  # not required if file doesn't exist yet
 
         content = update_script.read_text(encoding="utf-8")
         self.assertIn(
-            ".current_commit", content,
-            "caelestia-update must save commit hash to .current_commit for update detection"
+            "record_installed_revision",
+            content,
+            "caelestia-update must record the installed revision for update detection",
+        )
+        self.assertNotIn(
+            "> ~/.config/quickshell/caelestia/.current_commit",
+            content,
+            "the revision must be written by the shared helper, not inline",
         )
 
 

@@ -6,6 +6,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/toolchain.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/update-state.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
@@ -573,22 +574,10 @@ else
     warn "Failed to copy yet-another-monochrome-icon-set."
 fi
 
-# Save current commit and branch for the update checker
-mkdir -p ~/.config/quickshell/caelestia
-if [ -d "$BUNDLE_DIR/.git" ]; then
-    git -C "$BUNDLE_DIR" rev-parse HEAD > ~/.config/quickshell/caelestia/.current_commit 2>/dev/null || true
-    git -C "$BUNDLE_DIR" rev-parse --abbrev-ref HEAD > ~/.config/quickshell/caelestia/.update_branch 2>/dev/null || true
-
-    # Persist the installed version too. The update checker resolves
-    # unrecognised commits through its bare cache repo, which only mirrors
-    # origin branches - a commit that exists only in this local checkout
-    # would otherwise resolve to "unknown" in the Updates page.
-    if [ -f "$BUNDLE_DIR/.github/version.env" ]; then
-        cp "$BUNDLE_DIR/.github/version.env" ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    else
-        git -C "$BUNDLE_DIR" show HEAD:.github/version.env > ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    fi
-fi
+# Record which revision the artefacts just installed came from, for the update
+# checker. The build has happened by this point, so the checkout is what the
+# running shell really is.
+record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia" || true
 
 # Lockscreen Installation is at the end because if system gets locked during update, lockscreen may fail to start.
 if [[ "${CAELESTIA_SKIP_DEPLOY:-0}" == "0" && "${APPLY_LOCKSCREEN:-true}" != "false" ]]; then
