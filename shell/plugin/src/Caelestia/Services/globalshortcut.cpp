@@ -193,10 +193,14 @@ void GlobalShortcut::rebuildCollisionIndex() {
             continue;
 
         QStringList names;
+        QList<const GlobalShortcut*> counted;
         for (const GlobalShortcut* sc : it.value()) {
-            const QString label = sc->displayLabel();
-            if (!names.contains(label))
-                names.append(label);
+            // De-duplicate by instance, not by label: two different actions can
+            // carry the same description and both are parties to the collision.
+            if (counted.contains(sc))
+                continue;
+            counted.append(sc);
+            names.append(sc->displayLabel());
         }
         names.sort(); // QHash iteration order is unspecified; keep the label stable.
 

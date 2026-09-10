@@ -141,23 +141,6 @@ calls_to() {
     awk -v want="$name" '$1 == want { sub(/^[^ ]+ /, ""); print }' "$log"
 }
 
-# with_path <dir> <linguist-fallback-path> <command> [args...]
-#
-# Run <command> in a subshell where PATH contains only <dir>, so the code under
-# test sees exactly the stubs the test installed and nothing from the host.
-# CAELESTIA_LRELEASE_FALLBACK is overridden too: it defaults to a fixed absolute
-# path that a developer machine may well have and a CI runner may not, which
-# would otherwise make the check non-deterministic.
-with_path() {
-    local dir="$1" fallback="$2"
-    shift 2
-    (
-        PATH="$dir"
-        export CAELESTIA_LRELEASE_FALLBACK="$fallback"
-        "$@"
-    )
-}
-
 run_tests() {
     local fn
     while IFS= read -r fn; do

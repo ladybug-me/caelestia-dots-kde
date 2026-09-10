@@ -115,12 +115,25 @@ class ShellSurfaceTests(unittest.TestCase):
         """#652: committing the field before secret-tool replies claims a save that may not have happened."""
         page = (ROOT / "shell" / "modules" / "nexus" / "pages" / "AiSettingsPage.qml").read_text(encoding="utf-8")
 
-        result_at = page.find("function finishKeyStore")
-        self.assertNotEqual(result_at, -1, "the key write result must be applied by finishKeyStore")
+        store_at = page.find("function storeApiKey")
+        start_at = page.find("function startKeyStore")
+        self.assertNotEqual(store_at, -1, "the page should still have storeApiKey")
+        self.assertNotEqual(start_at, -1, "the page should still have startKeyStore")
+        self.assertNotEqual(
+            page.find("function finishKeyStore"),
+            -1,
+            "the key write result must be applied by finishKeyStore",
+        )
+
         self.assertNotIn(
-            "root.keyringKeys = Object.assign",
-            page[:result_at],
-            "keyringKeys must not be updated before the write result is known",
+            "keyringKeys",
+            page[store_at:start_at],
+            "storeApiKey must not commit the key before the write result is known",
+        )
+        self.assertIn(
+            "queuedKeyWrites",
+            page,
+            "a second key write must wait for the one in flight, or its exit code is applied to the wrong key",
         )
         self.assertIn(
             "stderr: StdioCollector",
@@ -129,12 +142,13 @@ class ShellSurfaceTests(unittest.TestCase):
         )
 
     def test_shortcut_descriptions_are_translatable(self) -> None:
-        """#692: shortcut labels are rendered from this data, so it must reach the catalogue.
+        """#692: shortcut labels are rendered from this data, so it must be extractable.
 
         The shortcut manager renders `GlobalShortcut.description` verbatim, and
         lupdate can only extract `qsTr()` calls with a literal argument. A bare
         literal is therefore invisible to the catalogue and stays English no
-        matter which locale is active.
+        matter which locale is active. This checks the source is extractable;
+        it cannot check that a translation exists, which is Crowdin's job.
         """
         offenders: list[str] = []
 
