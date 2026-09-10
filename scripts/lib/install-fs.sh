@@ -8,6 +8,7 @@
 #
 #   atomic_replace_tree  Swap a directory for a new copy without a window
 #                        where the destination is missing or half-written
+#   snapshot_dir         Timestamped copy of a directory, pruned to a limit
 #
 # These helpers never log; callers decide what to tell the user.
 
@@ -71,5 +72,54 @@ atomic_replace_tree() {
     if [[ "$had_dest" -eq 1 ]]; then
         rm -rf -- "$previous"
     fi
+    return 0
+}
+
+# snapshot_dir <src-dir> <dest-root> <name-prefix> <keep>
+#
+# Copy <src-dir> to <dest-root>/<name-prefix>-<timestamp> and prune older
+# snapshots so at most <keep> remain. Echoes the snapshot path on success.
+#
+# Returns 1 without copying anything when <src-dir> does not exist: there is
+# nothing to preserve, and creating an empty snapshot would push a real one out
+# of the retention window.
+snapshot_dir() {
+    local src="$1" root="$2" prefix="$3" keep="$4"
+
+    [[ -d "$src" ]] || return 1
+    mkdir -p -- "$root" || return 1
+
+    # Snapshots taken within the same second would otherwise collide, and the
+    # caller would silently overwrite the one it just took.
+    local stamp dest counter
+    stamp="$(date +%Y%m%d_%H%M%S)"
+    dest="$root/$prefix-$stamp"
+    counter=1
+    while [[ -e "$dest" ]]; do
+        counter=$((counter + 1))
+        dest="$root/$prefix-$stamp-$(printf '%02d' "$counter")"
+    done
+
+    if ! cp -R -- "$src" "$dest"; then
+        rm -rf -- "$dest"
+        return 1
+    fi
+
+    # Zero-padded in case a caller asks not to prune; the suffix keeps names in
+    # creation order so the newest snapshots are the ones that survive.
+    local -a existing=()
+    shopt -s nullglob
+    existing=( "$root"/"$prefix"-* )
+    shopt -u nullglob
+
+    local total=${#existing[@]}
+    local limit=$keep
+    ((limit < 1)) && limit=1
+    local index
+    for ((index = 0; index < total - limit; index++)); do
+        rm -rf -- "${existing[$index]}"
+    done
+
+    printf '%s\n' "$dest"
     return 0
 }

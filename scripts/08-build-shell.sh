@@ -312,6 +312,33 @@ try_download_prebuilt_shell() {
     return 0
 }
 
+# Snapshot the live shell tree before either install path overwrites it, so
+# local edits made per CONTRIBUTING.md survive an update instead of vanishing.
+#
+# This runs before the prebuilt download is attempted, not inside the
+# local-build branch: the prebuilt path extracts the release archive straight
+# over ~/.config, and it is the default on Arch/x86_64 - so a backup taken only
+# on the build path never happened for most users (issue #663).
+backup_shell_config() {
+    local src="$HOME/.config/quickshell/caelestia"
+    local root="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
+
+    if [[ ! -d "$src" ]]; then
+        return 0
+    fi
+
+    local dest
+    if ! dest="$(snapshot_dir "$src" "$root" "quickshell-caelestia" 3)"; then
+        err "Could not back up shell configuration into: $root"
+        return 1
+    fi
+
+    info "Backed up shell configuration to $dest"
+    return 0
+}
+
+backup_shell_config || exit 1
+
 # Prefer the prebuilt shell from the release when available so a fresh install
 # downloads the compiled .so files instead of building Qt6/C++ locally. The
 # workspace-tracker KWin effect is still built locally either way (its ABI is
@@ -363,28 +390,8 @@ else
         exit 1
     fi
 
-    # Snapshot the live shell tree before install overwrites it, so local
-    # edits made per CONTRIBUTING.md survive an update instead of vanishing.
-    QS_CONF="$HOME/.config/quickshell/caelestia"
-    if [[ -d "$QS_CONF" ]]; then
-        _qs_backup_dir="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
-        mkdir -p "$_qs_backup_dir" || {
-            err "Could not create shell backup directory: $_qs_backup_dir"
-            exit 1
-        }
-        _qs_backup="$_qs_backup_dir/quickshell-caelestia-$(date +%Y%m%d_%H%M%S)"
-        if ! cp -r "$QS_CONF" "$_qs_backup"; then
-            err "Could not back up shell configuration to: $_qs_backup"
-            exit 1
-        fi
-        _qs_backups=( "$_qs_backup_dir"/quickshell-caelestia-* )
-        if [[ -e "${_qs_backups[0]}" ]]; then
-            for ((i = 0; i < ${#_qs_backups[@]} - 3; i++)); do
-                rm -rf -- "${_qs_backups[$i]}"
-            done
-        fi
-    fi
-
+    # The live shell tree was snapshotted by backup_shell_config() before either
+    # install path ran.
     info "Installing to user local dir..."
     if ! cmake --install build 2>&1 | tee -a "$BUILD_LOG"; then
         err "Installation failed. Full log: $BUILD_LOG"

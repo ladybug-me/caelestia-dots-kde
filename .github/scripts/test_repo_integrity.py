@@ -190,6 +190,30 @@ class InstallerTests(unittest.TestCase):
                 prev_num = num
 
 
+class InstallStepSafetyTests(unittest.TestCase):
+    """Ordering and wiring invariants for the install/update step scripts.
+
+    These are guarantees no single-file syntax or lint check can see, and that
+    the reports behind them describe as silent: the step reports success while
+    doing the wrong thing.
+    """
+
+    def test_shell_config_backup_precedes_the_prebuilt_install(self) -> None:
+        """#663: the prebuilt path extracts over $HOME, so it must be backed up first."""
+        script = (ROOT / "scripts" / "08-build-shell.sh").read_text(encoding="utf-8")
+
+        backup_at = script.find("backup_shell_config ||")
+        prebuilt_at = script.find("if try_download_prebuilt_shell;")
+
+        self.assertNotEqual(backup_at, -1, "08-build-shell.sh should back up the shell config")
+        self.assertNotEqual(prebuilt_at, -1, "08-build-shell.sh should still use the prebuilt download")
+        self.assertLess(
+            backup_at,
+            prebuilt_at,
+            "the shell-config backup must run before the prebuilt archive is extracted over $HOME",
+        )
+
+
 class VersionConsistencyTests(unittest.TestCase):
     def test_cmake_has_no_hardcoded_version(self) -> None:
         """version.env is the single source of truth - CMakeLists derives from it."""
