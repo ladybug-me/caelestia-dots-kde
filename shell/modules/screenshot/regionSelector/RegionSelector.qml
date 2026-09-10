@@ -29,7 +29,7 @@ Scope {
 
         category: "Screenshot"
     }
-    
+
     Variants {
         model: Quickshell.screens
         delegate: Loader {

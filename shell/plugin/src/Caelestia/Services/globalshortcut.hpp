@@ -54,7 +54,7 @@ public:
 
     QString description() const;
     void setDescription(const QString &description);
-    
+
     QString getCollisionName() const;
     QString getCollisionNameForKey(const QString& keyPart) const;
     int stolenCount() const { return m_stolenShortcuts.size(); }
@@ -84,7 +84,7 @@ private:
     QString m_key;
     QString m_description;
     QAction *m_action;
-    
+
     int m_registerGeneration = 0;
 
     static QHash<QString, GlobalShortcut*> s_registry;
