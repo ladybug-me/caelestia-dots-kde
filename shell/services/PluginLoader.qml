@@ -27,14 +27,6 @@ Item {
 
     signal pluginsReloaded()
 
-    IpcHandler {
-        function count(): string {
-            return pluginLoader.enabledCount.toString()
-        }
-
-        target: "plugins"
-    }
-
     function updateEnabledCount() {
         let count = 0;
         for (let i = 0; i < discovered.length; i++) {
@@ -322,5 +314,13 @@ Item {
                 console.log("addPluginToAvailable: cat failed, code:", code, "text:", addMetaOut.text);
             }
         }
+    }
+
+    IpcHandler {
+        function count(): string {
+            return pluginLoader.enabledCount.toString()
+        }
+
+        target: "plugins"
     }
 }
