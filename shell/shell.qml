@@ -35,16 +35,6 @@ ShellRoot {
 
     settings.watchFiles: false
 
-    readonly property int loadedPluginCount: PluginLoader.enabledCount
-
-    IpcHandler {
-        target: "plugins"
-
-        function count(): string {
-            return root.loadedPluginCount.toString()
-        }
-    }
-
     Binding {
         target: ShellState
         property: "shellRoot"

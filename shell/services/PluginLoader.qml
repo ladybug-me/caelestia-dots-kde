@@ -27,6 +27,14 @@ Item {
 
     signal pluginsReloaded()
 
+    IpcHandler {
+        function count(): string {
+            return pluginLoader.enabledCount.toString()
+        }
+
+        target: "plugins"
+    }
+
     function updateEnabledCount() {
         let count = 0;
         for (let i = 0; i < discovered.length; i++) {
