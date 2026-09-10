@@ -157,7 +157,7 @@ PageBase {
         InfoRow {
             first: true
             last: true
-            label: qsTr("Loaded plugins")
+            label: qsTr("Enabled plugins")
             value: root.pluginCount || "…"
         }
 

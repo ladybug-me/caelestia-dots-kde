@@ -27,11 +27,14 @@ Item {
 
     signal pluginsReloaded()
 
+    function isCountedPlugin(meta) {
+        return meta.enabled && (meta.type === "quickshell" || meta.type === "kwin");
+    }
+
     function updateEnabledCount() {
         let count = 0;
         for (let i = 0; i < discovered.length; i++) {
-            let meta = discovered[i];
-            if (meta.enabled)
+            if (isCountedPlugin(discovered[i]))
                 count++;
         }
         enabledCount = count;
@@ -229,13 +232,20 @@ Item {
 
     function removePluginFromAvailable(id) {
         unloadPlugin(id);
+        for (let j = 0; j < discovered.length; j++) {
+            if ((discovered[j].id || discovered[j].name) === id) {
+                discovered.splice(j, 1);
+                break;
+            }
+        }
         for (let i = 0; i < CaelestiaApi.plugins.available.count; i++) {
             if (CaelestiaApi.plugins.available.get(i).id === id) {
                 CaelestiaApi.plugins.available.remove(i);
-                pluginsReloaded();
-                return;
+                break;
             }
         }
+        updateEnabledCount();
+        pluginsReloaded();
     }
 
     function _internalAppendPlugin(meta) {
@@ -250,7 +260,9 @@ Item {
         let aUrl = meta.author ? (meta.author.url || "") : "";
         meta.icon = meta.icon || "extension";
 
+        discovered.push(meta);
         CaelestiaApi.plugins.available.append(meta);
+        updateEnabledCount();
         pluginLoader.pluginsReloaded();
     }
 
@@ -298,6 +310,7 @@ Item {
                     }
 
                     console.log("addPluginToAvailable: adding", meta.id, "to available list. mediaurl:", meta.mediaurl);
+                    pluginLoader.discovered.push(meta);
                     CaelestiaApi.plugins.available.append(meta);
                     pluginsReloaded();
                     if (meta.restart) {
