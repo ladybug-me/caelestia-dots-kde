@@ -248,7 +248,7 @@ The screenshot tool uses `spectacle` (KDE's native screenshot utility) via the `
 
 ### 4.1 Lock Screen Greeter Diagnostic
 
-The Caelestia lock screen runs as a native KDE Plasma 6 shell package (`caelestia.desktop`),   directly by KDE's `kscreenlocker_greet`.
+The Caelestia lock screen runs as a native KDE Plasma 6 shell package (`caelestia.desktop`), loaded directly by KDE's `kscreenlocker_greet`.
 
 **Diagnostic commands:**
 ```bash
