@@ -90,13 +90,16 @@ ColumnLayout {
 
             target: root.nState
         }
-    }
 
-    Timer {
-        id: searchDebounce
+        // Publishes the query once typing pauses. Both result panes search the
+        // index and build a delegate per hit, so running that per keystroke is
+        // what made typing feel laggy.
+        Timer {
+            id: searchDebounce
 
-        interval: 180
-        onTriggered: root.publishQuery()
+            interval: 180
+            onTriggered: root.publishQuery()
+        }
     }
 
     NavLocations {
