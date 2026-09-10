@@ -77,6 +77,32 @@ class ScriptSyntaxTests(unittest.TestCase):
         self.assertFalse(failures, "Python compile failures:\n\n" + "\n\n".join(failures))
 
 
+class BashHelperTestSuite(unittest.TestCase):
+    """Run tests/bash/run-tests.sh so the shell helpers get real behavior coverage.
+
+    scripts/lib/ helpers cannot be exercised from Python, so this delegates to
+    the bash runner and fails on any non-zero exit. Adding a test there is
+    enough to have it enforced here and in CI.
+    """
+
+    @unittest.skipUnless(shutil.which("bash"), "bash is required for the helper suite")
+    def test_bash_helper_suite_passes(self) -> None:
+        runner = Path("tests", "bash", "run-tests.sh")
+        self.assertTrue((ROOT / runner).is_file(), f"expected {runner.as_posix()} to exist")
+
+        result = subprocess.run(
+            ["bash", runner.as_posix()],
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "bash helper suite failed:\n" + (result.stdout or "") + (result.stderr or ""),
+        )
+
+
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
         cmake_text = (ROOT / "shell" / "CMakeLists.txt").read_text(encoding="utf-8")

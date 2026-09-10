@@ -4,6 +4,7 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
@@ -121,13 +122,13 @@ install_lockscreen_greeter() {
     fi
 
     info "Installing Caelestia lock screen greeter."
-    if ! mkdir -p "$(dirname "$dest")" || ! rm -rf "$dest" || ! cp -r "$src" "$dest"; then
-        warn "Failed to copy Caelestia lock screen greeter to $dest"
-        return 1
-    fi
-
-    if [[ ! -d "$dest" || ! -f "$dest/metadata.json" ]]; then
-        warn "Caelestia lock screen greeter installation verification failed at $dest"
+    # Swap the tree in atomically. The installed greeter is the only working
+    # copy the user has, so an interrupted copy has to leave it alone rather
+    # than delete it first and fail to replace it - that strands the session
+    # with no greeter at all (issue #662). `metadata.json` is the file Plasma
+    # needs to load the package, so it doubles as the completeness check.
+    if ! atomic_replace_tree "$src" "$dest" metadata.json; then
+        warn "Failed to install Caelestia lock screen greeter to $dest"
         return 1
     fi
 
