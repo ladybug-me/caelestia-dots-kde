@@ -197,6 +197,78 @@ class ShellSurfaceTests(unittest.TestCase):
             "the plugin count must be rendered by a navigating row, not a static info row",
         )
 
+    def test_a_missing_github_token_is_announced_in_the_ui(self) -> None:
+        """The GitHub widget hides itself from the bar unless a fetch has succeeded.
+
+        Aborting inside the provider script therefore made the shell log the only
+        place that mentioned the missing token: the widget vanished and the Nexus
+        page that fixes it said nothing about why. The state has to be visible
+        where the token is configured, not just in an error line.
+        """
+
+        def handler_body(source: str, marker: str) -> str:
+            start = source.index(marker)
+            depth = 0
+            for index in range(start, len(source)):
+                if source[index] == "{":
+                    depth += 1
+                elif source[index] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return source[start : index + 1]
+            raise AssertionError(f"unbalanced braces after {marker!r}")
+
+        bar_dir = ROOT / "shell" / "modules" / "bar"
+        activity = (bar_dir / "components" / "GithubActivity.qml").read_text(encoding="utf-8")
+        store = (bar_dir / "components" / "GithubStore.qml").read_text(encoding="utf-8")
+        page = (
+            ROOT / "shell" / "modules" / "nexus" / "pages" / "panels" / "taskbar" / "BarGithub.qml"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn(
+            ': "\\${GITHUB_TOKEN:?',
+            activity,
+            "a bare bash expansion failure reports a configuration state as an error; "
+            "use an exit status that can only mean 'no token stored'",
+        )
+        self.assertIn("exit 3", activity, "the provider needs its own status for 'no token stored'")
+        self.assertIn("code === 3", activity, "the widget must route 'no token' away from the failure path")
+
+        self.assertIn(
+            "function setTokenMissing",
+            activity,
+            "the widget needs a handler for the unconfigured state",
+        )
+        body = handler_body(activity, "function setTokenMissing")
+        self.assertNotIn("console.error", body, "an unconfigured widget is not a failure")
+        self.assertIn("Toaster.toast", body, "the user must be told on screen, not only in the log")
+        self.assertIn(
+            "GithubStore.tokenNoticeShown",
+            body,
+            "the notice must be tracked on the singleton, or every screen's bar repeats it",
+        )
+
+        self.assertIn(
+            "property bool tokenMissing",
+            store,
+            "the widget and the settings page must share the state",
+        )
+        self.assertIn(
+            "GithubStore.tokenMissing = false",
+            activity,
+            "a saved token must clear the missing-token state, or the page keeps reporting it",
+        )
+        self.assertIn(
+            "GithubStore.tokenMissing",
+            page,
+            "the settings page is where the token is set, so it must report a missing one",
+        )
+        self.assertIn(
+            "GithubStore.lastError",
+            page,
+            "a token that GitHub rejects must be readable here too, not only in the log",
+        )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:

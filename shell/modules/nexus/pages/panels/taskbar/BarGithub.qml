@@ -17,6 +17,35 @@ PageBase {
     title: qsTr("GitHub")
     isSubPage: true
 
+    // Report what the widget currently knows, so a missing or rejected token is
+    // visible here - the page that fixes it - instead of only in the shell log.
+    readonly property bool githubProblem: BarComponents.GithubStore.tokenMissing || BarComponents.GithubStore.lastError !== ""
+
+    readonly property string githubStatusLabel: {
+        if (BarComponents.GithubStore.tokenMissing)
+            return qsTr("No token set");
+        if (BarComponents.GithubStore.lastError !== "")
+            return qsTr("Last fetch failed");
+        if (BarComponents.GithubStore.available) {
+            return BarComponents.GithubStore.username !== ""
+                ? qsTr("Connected as %1").arg(BarComponents.GithubStore.username)
+                : qsTr("Connected");
+        }
+        return qsTr("Not fetched yet");
+    }
+
+    readonly property string githubStatusDetail: {
+        if (BarComponents.GithubStore.tokenMissing)
+            return qsTr("Paste a token below and save it to enable the widget");
+        if (BarComponents.GithubStore.lastError !== "")
+            return BarComponents.GithubStore.lastError;
+        return "";
+    }
+
+    readonly property string githubStatusIcon: githubProblem ? "error" : (BarComponents.GithubStore.available ? "check_circle" : "hourglass_empty")
+
+    readonly property color githubStatusColour: githubProblem ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
+
     function saveToken(token: string): void {
         if (!token) {
             saveProc.command = ["secret-tool", "clear", "service", "caelestia-shell", "account", "github"];
@@ -59,9 +88,16 @@ PageBase {
             text: qsTr("Configuration")
         }
 
+        InfoRow {
+            first: true
+            icon: root.githubStatusIcon
+            iconColour: root.githubStatusColour
+            label: root.githubStatusLabel
+            subtext: root.githubStatusDetail
+        }
+
         ToggleRow {
             Layout.fillWidth: true
-            first: true
             text: qsTr("Component background")
             subtext: qsTr("Render a solid background behind the GitHub activity widget")
             checked: Config.bar.github.background
