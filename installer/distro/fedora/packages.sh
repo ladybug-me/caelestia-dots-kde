@@ -3,6 +3,10 @@
 
 set -uo pipefail
 
+# shellcheck source=scripts/lib/toolchain.sh
+source "${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}/scripts/lib/toolchain.sh"
+
+
 log()  { printf '  [INFO]  %s\n' "$*"; }
 err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
@@ -189,7 +193,7 @@ for pkg in "${COPR_PKGS[@]}"; do
             fi
             ;;
         libcava)
-            if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-fedora.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+            if install_cava_sdk fedora; then
                 log "Installed prebuilt CAVA SDK from release."
                 COPR_FAILED="no"
             elif sudo dnf copr enable -y celestelove/libcava && sudo dnf install -y libcava-devel; then

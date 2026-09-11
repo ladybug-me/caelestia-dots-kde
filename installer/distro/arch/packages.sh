@@ -3,6 +3,10 @@
 
 set -uo pipefail
 
+# shellcheck source=scripts/lib/toolchain.sh
+source "${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}/scripts/lib/toolchain.sh"
+
+
 log()  { printf '  [INFO]  %s\n' "$*"; }
 err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
@@ -92,7 +96,7 @@ fi
 
 # Developer SDK (libcava) extracted from prebuilt release assets.
 if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "core" ]]; then
-    if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-arch.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+    if install_cava_sdk arch; then
         log "Installed prebuilt CAVA SDK from release."
     else
         PACKAGES+=(libcava)

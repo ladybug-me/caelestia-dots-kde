@@ -120,4 +120,51 @@ test_install_linguist_tools_fails_when_no_package_manager_is_known() {
     assert_status 1 "$status" "an unknown distro should be reported as a failure, not a success"
 }
 
+test_install_cava_sdk_fetches_and_extracts_for_arch() {
+    local tmp stub log status
+    tmp="$(new_tmpdir)"
+    stub="$tmp/bin"
+    log="$tmp/calls.log"
+    recording_stub "$stub" curl "$log"
+    recording_stub "$stub" tar "$log"
+    stub_bin "$stub" caelestia_sudo "printf 'caelestia_sudo %s\n' \"\$*\" >> '$log'
+\"\$@\""
+
+    with_path "$stub" "" install_cava_sdk arch
+    status=$?
+
+    assert_status 0 "$status" "installing the cava sdk for arch should succeed"
+    assert_contains "$(calls_to "$log" curl)" "cava-x86_64-arch.tar.gz" "curl must fetch the arch archive"
+    assert_contains "$(calls_to "$log" tar)" "--exclude=bin" "tar must pass --exclude=bin"
+}
+
+test_install_cava_sdk_maps_debian_to_ubuntu() {
+    local tmp stub log status
+    tmp="$(new_tmpdir)"
+    stub="$tmp/bin"
+    log="$tmp/calls.log"
+    recording_stub "$stub" curl "$log"
+    recording_stub "$stub" tar "$log"
+    stub_bin "$stub" caelestia_sudo "printf 'caelestia_sudo %s\n' \"\$*\" >> '$log'
+\"\$@\""
+
+    with_path "$stub" "" install_cava_sdk debian
+    status=$?
+
+    assert_status 0 "$status" "installing the cava sdk for debian should succeed"
+    assert_contains "$(calls_to "$log" curl)" "cava-x86_64-ubuntu.tar.gz" "curl must fetch the ubuntu archive for debian"
+}
+
+test_install_cava_sdk_fails_on_unknown_distro() {
+    local tmp stub status
+    tmp="$(new_tmpdir)"
+    stub="$tmp/bin"
+    mkdir -p "$stub"
+
+    with_path "$stub" "" install_cava_sdk unknown
+    status=$?
+
+    assert_status 1 "$status" "an unknown distro should be reported as a failure"
+}
+
 run_tests

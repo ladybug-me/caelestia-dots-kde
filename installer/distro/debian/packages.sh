@@ -3,6 +3,10 @@
 
 set -uo pipefail
 
+# shellcheck source=scripts/lib/toolchain.sh
+source "${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}/scripts/lib/toolchain.sh"
+
+
 log()  { printf '  [INFO]  %s\n' "$*"; }
 err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
@@ -178,7 +182,7 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             sudo apt-get install -y quickshell || { err "Failed to install quickshell from PPA."; FAILED_PKGS+=("$pkg"); }
             ;;
         libcava)
-            if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-ubuntu.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+            if install_cava_sdk debian; then
                 log "Installed prebuilt CAVA SDK from release."
             else
                 log "Attempting to install cava from PPA..."

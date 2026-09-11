@@ -219,7 +219,8 @@ jobs:
       - name: Install Prebuilt CAVA SDK (Arch)
         run: |
           set -euo pipefail
-          curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-arch.tar.gz" | tar -C /usr -xzf -
+          source scripts/lib/toolchain.sh
+          install_cava_sdk arch
 
       - name: Load Release Tag
         run: |
