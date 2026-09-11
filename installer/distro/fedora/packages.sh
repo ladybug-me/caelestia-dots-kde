@@ -189,7 +189,10 @@ for pkg in "${COPR_PKGS[@]}"; do
             fi
             ;;
         libcava)
-            if sudo dnf copr enable -y celestelove/libcava && sudo dnf install -y libcava-devel; then
+            if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-fedora.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+                log "Installed prebuilt CAVA SDK from release."
+                COPR_FAILED="no"
+            elif sudo dnf copr enable -y celestelove/libcava && sudo dnf install -y libcava-devel; then
                 COPR_FAILED="no"
             fi
             ;;

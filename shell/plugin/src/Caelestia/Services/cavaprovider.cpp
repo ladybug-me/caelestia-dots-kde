@@ -108,7 +108,11 @@ void CavaProcessor::initCava() {
         return;
     }
 
+#ifdef CAVA_SCALING_LINEAR
+    m_plan = cava_init(m_bars, ac::SAMPLE_RATE, 1, 1, 0.85, 50, 10000, CAVA_SCALING_LINEAR);
+#else
     m_plan = cava_init(m_bars, ac::SAMPLE_RATE, 1, 1, 0.85, 50, 10000);
+#endif
     m_out = new double[static_cast<size_t>(m_bars)];
 }
 

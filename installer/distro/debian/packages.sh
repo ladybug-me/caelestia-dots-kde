@@ -91,19 +91,19 @@ UTILITY_PACKAGES=(
 
 # Packages that need manual build or script fallback on Debian if apt package missing
 FALLBACK_PKGS=(
-    quickshell starship cava app2unit gpu-screen-recorder cliphist wl-clip-persist satty adw-gtk3 uv konsave
+    quickshell starship libcava app2unit gpu-screen-recorder cliphist wl-clip-persist satty adw-gtk3 uv konsave
 )
 
 # Build final package list based on selected group
 PACKAGES=()
 FALLBACK_TARGETS=()
 case "$PACKAGE_GROUP" in
-    core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("cava" "app2unit" "cliphist") ;;
+    core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit" "cliphist") ;;
     shell)  PACKAGES=("${SHELL_PACKAGES[@]}");  FALLBACK_TARGETS=("quickshell" "starship") ;;
     themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=("adw-gtk3") ;;
     utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "uv" "konsave") ;;
     all|*)  PACKAGES=("${CORE_PACKAGES[@]}" "${SHELL_PACKAGES[@]}" "${THEME_PACKAGES[@]}" "${UTILITY_PACKAGES[@]}")
-            FALLBACK_TARGETS=("quickshell" "starship" "cava" "app2unit" "gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "adw-gtk3" "uv" "konsave") ;;
+            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "adw-gtk3" "uv" "konsave") ;;
 esac
 
 log "Installing packages (group: $PACKAGE_GROUP)..."
@@ -177,18 +177,20 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             sudo apt-get update || true
             sudo apt-get install -y quickshell || { err "Failed to install quickshell from PPA."; FAILED_PKGS+=("$pkg"); }
             ;;
-        cava)
-            # Package-manager only: cava ships in Debian 12 (Bookworm) and
-            # Ubuntu 20.10+; older Ubuntu uses the community PPA. Never built
-            # from source.
-            sudo apt-get install -y software-properties-common || true
-            sudo add-apt-repository -y ppa:hsheth2/ppa || true
-            sudo apt-get update || true
-            if sudo apt-get install -y cava; then
-                log "cava installed via apt."
+        libcava)
+            if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-ubuntu.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+                log "Installed prebuilt CAVA SDK from release."
             else
-                err "apt failed to install cava; no cava package available for this release."
-                FAILED_PKGS+=("$pkg")
+                log "Attempting to install cava from PPA..."
+                sudo apt-get install -y software-properties-common || true
+                sudo add-apt-repository -y ppa:hsheth2/ppa || true
+                sudo apt-get update || true
+                if sudo apt-get install -y cava; then
+                    log "cava installed via PPA."
+                else
+                    err "Failed to install libcava SDK / cava."
+                    FAILED_PKGS+=("$pkg")
+                fi
             fi
             ;;
         app2unit)

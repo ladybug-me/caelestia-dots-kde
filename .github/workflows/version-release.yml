@@ -214,21 +214,12 @@ jobs:
             libqalculate pipewire libpipewire aubio lm_sensors extra-cmake-modules \
             fftw ncurses alsa-lib iniparser libglvnd sdl2 portaudio sndio libpulse
 
-      # Arch's `cava` package only ships the CLI binary, not the shared
-      # library/headers the shell links against (see shell/plugin/CMakeLists.txt).
-      # Build `libcava` from AUR instead so pkg-config/find_library actually
-      # picks it up and the audio visualizer is compiled into the release asset.
-      - name: Build and Install libcava (AUR)
+      # Download prebuilt CAVA SDK (libcava + headers) from the CAVA continuous release
+      # so the audio visualizer plugin links against it without building AUR libcava from source.
+      - name: Install Prebuilt CAVA SDK (Arch)
         run: |
           set -euo pipefail
-          useradd -m builder
-          su builder -c '
-            set -euo pipefail
-            git clone --depth 1 https://aur.archlinux.org/libcava.git /tmp/libcava
-            cd /tmp/libcava
-            makepkg --noconfirm
-          '
-          pacman -U --noconfirm /tmp/libcava/libcava-*.pkg.tar.zst
+          curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-arch.tar.gz" | tar -C /usr -xzf -
 
       - name: Load Release Tag
         run: |

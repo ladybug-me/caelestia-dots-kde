@@ -90,11 +90,13 @@ if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "themes" ]]; then
     fi
 fi
 
-# libcava and darkly are installed from the AUR. Darkly is published as the
-# prebuilt darkly-bin package, so it is never compiled on the machine; libcava
-# has no -bin package and compiles from source.
+# Developer SDK (libcava) extracted from prebuilt release assets.
 if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "core" ]]; then
-    PACKAGES+=(libcava)
+    if curl -fsSL "https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-arch.tar.gz" | sudo tar -C /usr -xzf - --exclude='bin' 2>/dev/null; then
+        log "Installed prebuilt CAVA SDK from release."
+    else
+        PACKAGES+=(libcava)
+    fi
 fi
 if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "themes" ]]; then
     if [[ "$INSTALL_DARKLY" == "true" ]]; then
