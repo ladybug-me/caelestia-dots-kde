@@ -473,7 +473,7 @@ FloatingWindow {
                         AnimatedImage {
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.small
-                            source: hasMedia ? Qt.resolvedUrl("../../assets/welcome/" + featureData.media_url) : ""
+                            source: hasMedia ? Qt.resolvedUrl("../../assets/whatsnew/" + featureData.media_url) : ""
                             visible: hasMedia && !root.isVideo(featureData.media_url)
                             fillMode: Image.PreserveAspectFit
                             playing: visible
@@ -495,7 +495,7 @@ FloatingWindow {
                         MediaPlayer {
                             videoOutput: vidOut
                             audioOutput: aOut
-                            source: hasMedia ? Qt.resolvedUrl("../../assets/welcome/" + featureData.media_url) : ""
+                            source: hasMedia ? Qt.resolvedUrl("../../assets/whatsnew/" + featureData.media_url) : ""
                             loops: MediaPlayer.Infinite
 
                             Component.onCompleted: {
@@ -523,7 +523,7 @@ FloatingWindow {
     } // End Container Item
     Process {
         id: readProcess
-        command: ["bash", "-c", "mkdir -p ~/.local/share/caelestia/state && touch ~/.local/share/caelestia/state/seen_features.txt && FEATURES_JSON=\"$(cat ~/.config/quickshell/caelestia/assets/welcome/features.json 2>/dev/null || echo '{}')\" && SEEN=\"$(cat ~/.local/share/caelestia/state/seen_features.txt)\" && echo \"$FEATURES_JSON\" && echo \"---SEEN---\" && echo \"$SEEN\""]
+        command: ["bash", "-c", "mkdir -p ~/.local/share/caelestia/state && touch ~/.local/share/caelestia/state/seen_features.txt && FEATURES_JSON=\"$(cat ~/.config/quickshell/caelestia/assets/whatsnew/features.json 2>/dev/null || echo '{}')\" && SEEN=\"$(cat ~/.local/share/caelestia/state/seen_features.txt)\" && echo \"$FEATURES_JSON\" && echo \"---SEEN---\" && echo \"$SEEN\""]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

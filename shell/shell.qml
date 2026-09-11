@@ -18,7 +18,7 @@ import "modules/lock"
 import "modules/polkit"
 import "modules/screenshot/regionSelector"
 import "modules/overview"
-import "modules/welcome" as Welcome
+import "modules/whatsnew" as WhatsNew
 import qs.services.api
 import QtQuick
 import QtQml
@@ -124,7 +124,7 @@ ShellRoot {
     }
 
     Services.StartupTasks {}
-    Welcome.WelcomeWidget {}
+    WhatsNew.WhatsNewWindow {}
 
     Process {
         id: bbdxCheckProcess

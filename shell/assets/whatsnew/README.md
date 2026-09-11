@@ -1,11 +1,11 @@
-# Welcome Widget Assets
+# What's New Assets
 
-This directory contains the assets and configuration used by the `WelcomeWidget` module to display "What's New" updates to the user.
+This directory contains the assets used by the `WhatsNewWindow` module to display "What's New" updates to the user.
 
 ## File Locations
 
-* **Features JSON** (`shell/assets/welcome/features.json`): The core configuration file that defines all the features and updates shown in the Welcome Widget.
-* **Media Assets** (`shell/assets/welcome/`): Any images, GIFs, or videos referenced by `features.json` should typically be placed in this directory (or relatively referenced from it).
+* **Features JSON** (`shell/assets/whatsnew/features.json`): The core configuration file that defines all the features and updates shown in the What's New window.
+* **Media Assets** (`shell/assets/whatsnew/`): Any images, GIFs, or videos referenced by `features.json` should typically be placed in this directory (or relatively referenced from it).
 * **State File** (`~/.local/share/caelestia/state/seen_features.txt`):
 The Welcome Widget tracks which features the user has already acknowledged by saving their IDs to a local state file. 
 If a feature ID is present in this file, it will no longer be shown in the startup screen or the "What's New" page. 
@@ -22,7 +22,6 @@ If a feature ID is present in this file, it will no longer be shown in the start
 > * **PR/Issue Number**: If applicable, use the pull request or issue tracker number (e.g., `feature_name_pr42`).
 
 The `features.json` file uses the following structure. It expects a single `features` array containing objects for each update item.
-
 
 * `id` (string): A unique identifier for the feature. **Important:** The widget tracks seen features by their `id`.
 * `title` (string): The headline displayed in the list and header.

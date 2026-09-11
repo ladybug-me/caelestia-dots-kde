@@ -7,7 +7,7 @@ blank-before-close-brace	modules/sidebar/AiAssistant.qml	no blank line expected 
 blank-before-close-brace	services/Audio.qml	no blank line expected before closing brace
 blank-before-close-brace	services/DiscordRPC.qml	no blank line expected before closing brace
 missing-section-separator	modules/screenshot/regionSelector/RegionSelection.qml	blank line expected between bindings and property declarations
-missing-section-separator	modules/welcome/WelcomeWidget.qml	blank line expected between id and bindings
+missing-section-separator	modules/whatsnew/WhatsNewWindow.qml	blank line expected between id and bindings
 section-order	components/PolkitDialog.qml	bindings should appear before child objects (seen at line N)
 section-order	components/PolkitDialog.qml	property declarations should appear before bindings (seen at line N)
 section-order	components/controls/CustomSpinBox.qml	functions should appear before bindings (seen at line N)
@@ -127,7 +127,7 @@ section-order	modules/sidebar/News.qml	functions should appear before bindings (
 section-order	modules/sidebar/News.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/sidebar/NotifDock.qml	property declarations should appear before bindings (seen at line N)
 section-order	modules/utilities/cards/Toggles.qml	property declarations should appear before bindings (seen at line N)
-section-order	modules/welcome/WelcomeWidget.qml	bindings should appear before child objects (seen at line N)
+section-order	modules/whatsnew/WhatsNewWindow.qml	bindings should appear before child objects (seen at line N)
 section-order	services/Audio.qml	bindings should appear before child objects (seen at line N)
 section-order	services/Audio.qml	functions should appear before child objects (seen at line N)
 section-order	services/AutoScheme.qml	functions should appear before bindings (seen at line N)
