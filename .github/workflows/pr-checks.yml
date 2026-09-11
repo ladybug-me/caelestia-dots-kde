@@ -78,7 +78,7 @@ jobs:
           fi
 
           # Detect installer C++ changes - these affect the TUI installer
-          if grep -q '^installer/src/.*\.(cpp|hpp|h)$' /tmp/changed_files.txt; then
+          if grep -q '^installer/tui/.*\.(cpp|hpp|h)$' /tmp/changed_files.txt; then
             echo "Installer C++ changes - compilation will be verified by validate workflow." >> $GITHUB_STEP_SUMMARY
           fi
 

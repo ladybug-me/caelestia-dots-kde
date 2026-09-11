@@ -96,7 +96,7 @@ The project enables ccache in both `installer/CMakeLists.txt` and `shell/CMakeLi
 
 | Issue | Cause |
 |---|---|
-| `yay` fails to install | Network issues, AUR down, or PKGBUILD changes. The script (`installDP.sh`) retries individually and falls back to `makepkg -si`. |
+| `yay` fails to install | Network issues, AUR down, or PKGBUILD changes. The script (`installer/distro/arch/packages.sh`) retries individually and falls back to `makepkg -si`. |
 | `pacman` errors during install | The script uses `-Sy --noconfirm` (refresh DB) then `-S --needed --noconfirm`. If the system update step (`00a-system-update.sh`) was skipped, partial upgrades can cause conflicts. |
 
 **AUR packages used by Caelestia:**

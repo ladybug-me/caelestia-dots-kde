@@ -550,7 +550,7 @@ class InstallerTests(unittest.TestCase):
             self.assertTrue((ROOT / rel_path).is_file(), f"Missing installer entrypoint: {rel_path.as_posix()}")
 
     def test_setup_references_existing_step_scripts(self) -> None:
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         matches = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         self.assertTrue(matches, "No installer steps found in Runner.cpp")
@@ -562,7 +562,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_no_duplicate_step_names(self) -> None:
         """Runner.cpp must not define two steps with the same display name."""
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         names = re.findall(r'\{"([^"]+)",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
         display_names = [n[0] for n in names]
 
@@ -583,7 +583,7 @@ class InstallerTests(unittest.TestCase):
         is informational - Runner.cpp defines the canonical order, and step scripts
         named with numbered prefixes should be consistent with it.
         """
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         scripts = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         prev_num = -1
@@ -777,7 +777,7 @@ class DocsReferenceTests(unittest.TestCase):
         # Check that Runner.cpp is referenced and exists
         if "Runner.cpp" in text:
             self.assertTrue(
-                (ROOT / "installer" / "src" / "Runner.cpp").is_file(),
+                (ROOT / "installer" / "tui" / "Runner.cpp").is_file(),
                 "installer_config.md references Runner.cpp which doesn't exist"
             )
 

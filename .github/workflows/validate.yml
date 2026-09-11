@@ -130,6 +130,7 @@ jobs:
         continue-on-error: true
         with:
           globs: |
+            README.md
             docs/**/*.md
             .github/*.md
             .github/CONTRIBUTING.md

@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-1. Open `installer/theme.json`
+1. Open `installer/data/theme.json`
 2. Modify the JSON values to your liking
 3. Run `bash scripts/setup.sh` to see the changes instantly—automated C++ recompilation.
 
@@ -169,7 +169,7 @@ Allows overriding of standard status indicators used in the `step_list`.
 # Interactive Menu Configuration
 
 The Caelestia Installer features a nested, dynamic JSON-driven menu system. 
-Questions, checkboxes, and nested submenus are defined in `installer/menu.json`. User inputs are automatically exported as Bash Environment Variables to the executing Tmux session.
+Questions, checkboxes, and nested submenus are defined in `installer/data/menu.json`. User inputs are automatically exported as Bash Environment Variables to the executing Tmux session.
 
 ## `menu.json` Schema
 

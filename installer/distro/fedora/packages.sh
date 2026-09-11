@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# installDP_fedora.sh - Fedora package installation for Caelestia KDE Port
+# packages.sh - Fedora package installation for Caelestia KDE Port
 
 set -uo pipefail
 

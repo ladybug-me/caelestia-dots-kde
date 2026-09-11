@@ -29,8 +29,8 @@ Make your changes in the cloned repo, test them (see below), then open a PR. Tha
 | Shell UI (launcher, bar, notifications, etc.) | `shell/` | QML + Quickshell |
 | Lock screen greeter (Plasma 6 shell) | `src/kde/shells/caelestia.desktop/` | QML + KDE ScreenLocker |
 | KWin plugin (window management, shortcuts) | `shell/plugin/` | C++ |
-| TUI installer | `installer/src/` | C++ |
-| Installer theme & menus | `installer/theme.json`, `installer/menu.json` | JSON |
+| TUI installer | `installer/tui/` | C++ |
+| Installer theme & menus | `installer/data/theme.json`, `installer/data/menu.json` | JSON |
 | Install step scripts | `scripts/` | Bash |
 | User-facing update scripts | `src/bin/` | Bash |
 
@@ -83,9 +83,8 @@ kwriteconfig6 --file plasmashellrc --group "Shell" --key "ShellPackage" "caelest
 ### For installer changes
 
 ```bash
-cd installer
-cmake -B build && cmake --build build   # Compile
-./build/caelestia-install               # Run (use with care!)
+cmake -B installer/build -S installer/tui && cmake --build installer/build   # Compile
+./installer/build/caelestia-install                                         # Run (use with care!)
 ```
 
 ### For translation changes
@@ -97,7 +96,7 @@ scripts/update-translations.sh es       # start a new one (Spanish here)
 
 Translate `shell/translations/caelestia_<code>.ts`, rebuild the shell, then pick
 the language in Nexus -> Language & region. See
-[Translations](docs/translations.md) for the full guide.
+[Translations](../docs/translations.md) for the full guide.
 
 ### For creating plugins
 
@@ -136,10 +135,10 @@ Head to [caelestia-kde-plugins](https://github.com/ladybug-me/caelestia-kde-plug
 
 ## Architecture docs
 
-- [KWin port architecture](docs/kwin_port_architecture.md) - C++ plugin design and QML APIs
-- [Installer configuration](docs/installer_config.md) - theme.json and menu.json reference
-- [Lock screen architecture](docs/lockscreen_architecture.md) - native Plasma 6 greeter design and component structure
-- [Translations](docs/translations.md) - i18n pipeline and how to add a language
+- [KWin port architecture](../docs/architecture/kwin_port_architecture.md) - C++ plugin design and QML APIs
+- [Installer configuration](../docs/installer_config.md) - theme.json and menu.json reference
+- [Lock screen architecture](../docs/architecture/lockscreen_architecture.md) - native Plasma 6 greeter design and component structure
+- [Translations](../docs/translations.md) - i18n pipeline and how to add a language
 
 ## Stuck?
 

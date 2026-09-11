@@ -177,7 +177,7 @@ For detailed debug logs, enable Debug Mode in Nexus -> About -> Advanced, then r
 
 ## License
 
-[GPLv3](../LICENSE)
+[GPLv3](LICENSE)
 
 ---
 

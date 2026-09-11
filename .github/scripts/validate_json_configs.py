@@ -2,9 +2,9 @@
 """Validate JSON configuration files for schema and internal consistency.
 
 Validates:
-  1. installer/theme.json - required top-level keys, color references are valid,
+  1. installer/data/theme.json - required top-level keys, color references are valid,
      ANSI codes match expected pattern.
-  2. installer/menu.json - valid menu tree, unique IDs, all action IDs are recognized,
+  2. installer/data/menu.json - valid menu tree, unique IDs, all action IDs are recognized,
      select options are non-empty, text defaults are strings.
 """
 
@@ -264,8 +264,8 @@ def validate_menu(filepath: Path) -> None:
 
 
 def main() -> int:
-    theme_path = ROOT / "installer" / "theme.json"
-    menu_path = ROOT / "installer" / "menu.json"
+    theme_path = ROOT / "installer" / "data" / "theme.json"
+    menu_path = ROOT / "installer" / "data" / "menu.json"
 
     if theme_path.is_file():
         validate_theme(theme_path)

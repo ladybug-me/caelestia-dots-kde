@@ -101,8 +101,8 @@ int main(int argc, char** argv) {
 
     // Verify critical files exist before attempting the full UI flow
     {
-        std::string theme_path = g_bundle_dir + "/installer/theme.json";
-        std::string menu_path  = g_bundle_dir + "/installer/menu.json";
+        std::string theme_path = g_bundle_dir + "/installer/data/theme.json";
+        std::string menu_path  = g_bundle_dir + "/installer/data/menu.json";
         std::string scripts_dir = g_bundle_dir + "/scripts";
         if (!std::ifstream(theme_path).good())
             std::cerr << "[installer] WARNING: theme.json not found at " << theme_path << std::endl;

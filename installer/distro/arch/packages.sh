@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# installDP.sh - Arch package installation for Caelestia KDE Port
+# packages.sh - Arch package installation for Caelestia KDE Port
 
 set -uo pipefail
 

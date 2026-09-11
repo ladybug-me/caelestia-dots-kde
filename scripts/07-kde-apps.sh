@@ -121,7 +121,7 @@ else
 fi
 
 #  darkly (plasma theme)
-# (installed by the installDP.sh scripts as a prebuilt package, COPR, or AUR)
+# (installed by installer/distro/<distro>/packages.sh as a prebuilt package, COPR, or AUR)
 
 # Update plasma configuration for default look/feel if needed
     kwriteconfig6 --file plasmarc --group "Theme" --key "name" "darkly" 2>/dev/null || true

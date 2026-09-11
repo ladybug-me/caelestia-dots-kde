@@ -164,7 +164,7 @@ BIN="$BUNDLE_DIR/caelestia-install"
 # when it reports the same version - a stale release binary would otherwise
 # render old screens and ignore new menu actions (e.g. action_review).
 tui_version() {
-    tr -d '[:space:]' < "$BUNDLE_DIR/installer/tui.version" 2>/dev/null || true
+    tr -d '[:space:]' < "$BUNDLE_DIR/installer/data/tui.version" 2>/dev/null || true
 }
 
 # The release tag this checkout corresponds to. The prebuilt installer is
@@ -280,7 +280,7 @@ else
         mkdir -p "$BUILD_DIR"
         (
             cd "$BUILD_DIR" || exit 1
-            cmake -DCMAKE_BUILD_TYPE=Release .. >"$BUILD_LOG" 2>&1 || exit 1
+            cmake -DCMAKE_BUILD_TYPE=Release "$BUNDLE_DIR/installer/tui" >"$BUILD_LOG" 2>&1 || exit 1
             make -j"$(nproc 2>/dev/null || echo 1)" >>"$BUILD_LOG" 2>&1 || exit 1
         ) || {
             stop_spinner
