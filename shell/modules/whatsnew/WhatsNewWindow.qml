@@ -12,6 +12,7 @@ import Caelestia // Required for CUtils
 import Caelestia.Config
 import Caelestia.Blobs // Required for BlobGroup and BlobInvertedRect
 import qs.components
+import qs.components.misc
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -75,7 +76,7 @@ FloatingWindow {
         root.acknowledge(root.entries.map(entry => entry.revision));
     }
 
-    function open(entry: var): void {
+    function openEntry(entry: var): void {
         root.acknowledge([entry.revision]);
         stackView.push(featurePage, { "featureData": entry });
     }
@@ -129,6 +130,13 @@ FloatingWindow {
     function close(): void {
         root.shown = false;
         root.applyVisibility();
+    }
+
+    function toggle(): void {
+        if (root.visible)
+            root.close();
+        else
+            root.show(false);
     }
 
     function applyVisibility(): void {
@@ -208,6 +216,26 @@ FloatingWindow {
         }
     }
 
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "whatsnew"
+        description: qsTr("What's New")
+        onPressed: root.toggle()
+    }
+
+    IpcHandler {
+        function open(): void {
+            root.show(false);
+        }
+
+        function toggle(): void {
+            root.toggle();
+        }
+
+        target: "whatsnew"
+    }
+
     Item {
         id: container
 
@@ -255,7 +283,7 @@ FloatingWindow {
                 function openCurrent(): void {
                     const entry = root.history[featuresList.currentIndex];
                     if (entry)
-                        root.open(entry);
+                        root.openEntry(entry);
                 }
 
                 anchors.fill: parent
@@ -375,7 +403,7 @@ FloatingWindow {
                             bottomLeftRadius: parent.radius
                             bottomRightRadius: parent.radius
 
-                            onClicked: root.open(feature)
+                            onClicked: root.openEntry(feature)
                         }
 
                         ColumnLayout {
