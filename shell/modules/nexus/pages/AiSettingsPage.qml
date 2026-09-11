@@ -173,6 +173,39 @@ PageBase {
         }
     }
 
+    // ── Ollama ────────────────────────────────────────────────
+    // The toggle below only flips a config bool. Without a status check the
+    // assistant just fails to connect when the daemon is missing, and nothing
+    // in the UI says why (issue #654).
+    property string ollamaVersion: ""
+
+    property string ollamaService: ""
+
+    property bool ollamaInstalling: false
+
+    property string ollamaInstallStatus: ""
+
+    readonly property bool ollamaInstalled: ollamaVersion !== "" && ollamaVersion !== "NOT_INSTALLED"
+
+    readonly property bool ollamaActionVisible: GlobalConfig.ai.enableOllama && ollamaVersion !== "" && !ollamaInstalled
+
+    readonly property string ollamaStatusText: {
+        if (ollamaVersion === "")
+            return qsTr("Checking…");
+        if (!ollamaInstalled)
+            return qsTr("Not installed");
+        const m = (ollamaVersion || "").match(/[0-9]+\.[0-9]+\.[0-9]+/);
+        return m ? m[0] : ollamaVersion;
+    }
+
+    readonly property string ollamaHintText: {
+        if (ollamaInstallStatus !== "")
+            return ollamaInstallStatus;
+        if (ollamaInstalled && ollamaService !== "active")
+            return qsTr("Daemon not running - start it with: sudo systemctl start ollama");
+        return "";
+    }
+
     property string claudeVersion: ""
 
     readonly property bool claudeInstalled: claudeVersion !== "" && claudeVersion !== "NOT_INSTALLED"
@@ -210,9 +243,18 @@ PageBase {
         return homeDir() + "/.local/bin/claude";
     }
 
+    function ollamaScriptPath() {
+        return Quickshell.shellPath("scripts/ollama_setup.sh");
+    }
+
     function refreshStatus() {
         statusProc.running = false;
         statusProc.running = true;
+    }
+
+    function refreshOllamaStatus() {
+        ollamaStatusProc.running = false;
+        ollamaStatusProc.running = true;
     }
 
     // Real login names / emails resolved from each account's .claude.json.
@@ -412,6 +454,47 @@ PageBase {
             }
         }
 
+        // Ollama is a system service with a CLI, so status comes from the CLI
+        // and the install goes through pkexec - the shell's polkit dialog is
+        // what asks for the password.
+        Process {
+            id: ollamaStatusProc
+
+            running: true
+            command: ["sh", "-c", "if ! command -v ollama >/dev/null 2>&1; then echo VERSION=NOT_INSTALLED; exit 0; fi; echo \"VERSION=$(ollama --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1)\"; echo \"SERVICE=$(systemctl is-active ollama 2>/dev/null || true)\""]
+            stdout: SplitParser {
+                onRead: line => {
+                    const t = (line || "").trim();
+                    if (t.startsWith("VERSION="))
+                        root.ollamaVersion = t.slice(8) || "unknown";
+                    else if (t.startsWith("SERVICE="))
+                        root.ollamaService = t.slice(8);
+                }
+            }
+        }
+
+        Process {
+            id: ollamaInstallProc
+
+            command: ["pkexec", "bash", root.ollamaScriptPath(), "--models", GlobalConfig.ai.defaultOllamaModel || "llama3"]
+            stdout: SplitParser {
+                onRead: line => root.ollamaInstallStatus = line
+            }
+            stderr: SplitParser {
+                onRead: line => root.ollamaInstallStatus = line
+            }
+            onExited: code => {
+                root.ollamaInstalling = false;
+                if (code === 0)
+                    root.ollamaInstallStatus = qsTr("Installed.");
+                else if (code === 126)
+                    root.ollamaInstallStatus = qsTr("Cancelled."); // pkexec: prompt dismissed
+                else
+                    root.ollamaInstallStatus = qsTr("Failed") + " (" + code + ")";
+                root.refreshOllamaStatus();
+            }
+        }
+
         Process {
             id: loginProc
         }
@@ -460,10 +543,33 @@ PageBase {
 
         ToggleRow {
             first: true
-            last: true
+            last: !GlobalConfig.ai.enableOllama
             text: qsTr("Ollama")
             checked: GlobalConfig.ai.enableOllama
             onToggled: GlobalConfig.ai.enableOllama = checked
+        }
+
+        InfoRow {
+            visible: GlobalConfig.ai.enableOllama
+            last: !root.ollamaActionVisible
+            label: qsTr("Status")
+            value: root.ollamaStatusText
+            subtext: root.ollamaHintText
+        }
+
+        NavRow {
+            visible: root.ollamaActionVisible
+            last: true
+            icon: "download"
+            label: qsTr("Download Ollama")
+            status: root.ollamaInstalling ? (root.ollamaInstallStatus || qsTr("Installing…")) : root.ollamaInstallStatus
+            onClicked: {
+                if (root.ollamaInstalling)
+                    return;
+                root.ollamaInstalling = true;
+                root.ollamaInstallStatus = qsTr("Installing…");
+                ollamaInstallProc.running = true;
+            }
         }
 
         SectionHeader {
