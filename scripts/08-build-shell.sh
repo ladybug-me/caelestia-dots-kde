@@ -7,6 +7,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/toolchain.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/update-state.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/submodules.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
@@ -174,11 +175,12 @@ if [[ "${CAELESTIA_SETUP_RUNNING:-0}" == "0" ]]; then
 
     if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
         info "Initializing all submodules..."
-        git submodule sync --recursive >/dev/null 2>&1 || true
+        prune_removed_submodules "$BUNDLE_DIR"
+        git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
         # submodule update already checks out the exact commit the superproject
         # pins. Do not force a hardcoded tag over it afterwards - that silently
         # discarded any submodule bump.
-        git submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || die "Failed to initialize all submodules"
+        git -C "$BUNDLE_DIR" submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || die "Failed to initialize all submodules"
     fi
 
     info "Installing Caelestia Services..."

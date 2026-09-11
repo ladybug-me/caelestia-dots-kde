@@ -205,8 +205,21 @@ fi
 # Initialize submodules
 if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     info "Initializing all submodule..."
-    git submodule sync --recursive >/dev/null 2>&1 || true
-    git submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
+    # shellcheck source=/dev/null
+    if [[ -f "$UPD_DIR/repo/scripts/lib/submodules.sh" ]]; then
+        source "$UPD_DIR/repo/scripts/lib/submodules.sh"
+    fi
+    if declare -f prune_removed_submodules >/dev/null 2>&1; then
+        prune_removed_submodules "$UPD_DIR/repo"
+    else
+        # The helper ships in the same commit as this updater and the sparse
+        # checkout always pulls scripts/, so a lib that is missing here means
+        # the checkout is damaged. Say so instead of keeping a second copy of
+        # the prune that can drift away from the tested one.
+        warn "scripts/lib/submodules.sh is missing; skipping the submodule prune."
+    fi
+    git -C "$UPD_DIR/repo" submodule sync --recursive >/dev/null 2>&1 || true
+    git -C "$UPD_DIR/repo" submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
 fi
 
 [[ -f "$UPD_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
