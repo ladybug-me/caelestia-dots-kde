@@ -321,6 +321,58 @@ class ShellSurfaceTests(unittest.TestCase):
             "clearing the field must apply at once, not after the debounce window",
         )
 
+        window = re.search(r"id: searchDebounce\s*\n\s*interval: (\d+)", pane)
+        self.assertIsNotNone(window, "the debounce timer needs an interval to be read here")
+        self.assertGreaterEqual(
+            int(window.group(1)),
+            300,
+            "a window shorter than the gap between two keystrokes still fires mid-word",
+        )
+
+    def test_a_search_result_opens_its_subpage_on_the_first_try(self) -> None:
+        """Opening a sub-page of a page that has not been built yet has to be queued.
+
+        The page swap is animated, so openSubPage right after changing page still
+        reaches the page on its way out. When that page has no sub-page at that
+        index it calls closeSubPage, which pops the request, and the page that
+        arrives opens at the top: the first search lands on the page, and only a
+        second search, now that the page is already showing, lands on the section.
+        """
+        results = (
+            ROOT / "shell" / "modules" / "nexus" / "navpane" / "SearchResults.qml"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn(
+            "nState.openSubPage(",
+            results,
+            "a search result must not open a sub-page itself: the outgoing page would take it",
+        )
+        self.assertIn(
+            "nState.goToSubPage(",
+            results,
+            "both the click and the Enter key have to navigate through goToSubPage",
+        )
+
+        state = (ROOT / "shell" / "modules" / "nexus" / "NexusState.qml").read_text(encoding="utf-8")
+        self.assertIn(
+            "property int pendingSubPageIdx",
+            state,
+            "the request has to outlive the page swap, so it needs somewhere to wait",
+        )
+        self.assertIn(
+            "function goToSubPage(pageIdx: int, subPageIdx: int)",
+            state,
+            "page plus sub-page navigation needs one entry point that knows about the swap",
+        )
+
+        stack = (
+            ROOT / "shell" / "modules" / "nexus" / "common" / "StackPage.qml"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "nState.pendingSubPageIdx",
+            stack,
+            "the incoming page is the only one that can open a queued sub-page",
+        )
+
     def test_the_font_controls_are_reachable_from_search(self) -> None:
         """Search is driven by PageDictionary, so a section missing from it is invisible.
 

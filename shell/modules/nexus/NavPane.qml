@@ -93,11 +93,14 @@ ColumnLayout {
 
         // Publishes the query once typing pauses. Both result panes search the
         // index and build a delegate per hit, so running that per keystroke is
-        // what made typing feel laggy.
+        // what made typing feel laggy. The window has to outlast the gap
+        // between two keystrokes or it fires mid-word, which is why it is
+        // longer than the 180ms that saving a config value uses. Enter and
+        // clearing the field still take effect at once.
         Timer {
             id: searchDebounce
 
-            interval: 180
+            interval: 400
             onTriggered: root.publishQuery()
         }
     }

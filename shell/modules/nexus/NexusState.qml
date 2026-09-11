@@ -23,6 +23,13 @@ QtObject {
     // Pre-filled SSID for AddNetworkPage when password is needed for an unsaved network
     property string pendingNetworkSsid: ""
 
+    // A sub-page to open as soon as the page it belongs to has been built.
+    // Changing page and opening a sub-page of the new page cannot be done with
+    // openSubPage: the swap is animated, so the outgoing page is still the one
+    // listening and it either opens a sub-page of its own at that index or, if
+    // it has none, cancels the request. The incoming page collects this.
+    property int pendingSubPageIdx: -1
+
     signal close
     signal subPageOpened(idx: int)
     signal subPageClosed
@@ -32,10 +39,27 @@ QtObject {
         subPageOpened(idx);
     }
 
+    // Navigation that changes page, such as a search result. Landing on the
+    // page that is already showing still opens immediately: nothing to wait for.
+    function goToSubPage(pageIdx: int, subPageIdx: int): void {
+        if (pageIdx === currentPageIdx) {
+            pendingSubPageIdx = -1;
+            if (subPageIdx >= 0)
+                openSubPage(subPageIdx);
+            return;
+        }
+        currentPageIdx = pageIdx;
+        // After the page change: changing page clears whatever was pending.
+        pendingSubPageIdx = subPageIdx;
+    }
+
     function closeSubPage(): void {
         subPageClosed();
         subPageIdxStack.pop();
     }
 
-    onCurrentPageIdxChanged: subPageIdxStack.length = 0
+    onCurrentPageIdxChanged: {
+        subPageIdxStack.length = 0;
+        pendingSubPageIdx = -1;
+    }
 }
