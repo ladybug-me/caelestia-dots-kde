@@ -30,12 +30,33 @@ export PATH="/usr/local/bin:$PATH"
 # something to talk to as soon as the install finishes.
 MODELS=("llama3")
 
+# Report what is installed so the AI settings page can show it, then exit. Needs
+# no privileges, so it runs before any elevation.
+report_status() {
+    if ! command -v ollama >/dev/null 2>&1; then
+        echo "VERSION=NOT_INSTALLED"
+        return 0
+    fi
+    echo "VERSION=$(ollama --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
+    # "unknown" rather than an empty line when there is no systemd to ask: the
+    # caller must not read a missing answer as "not running".
+    if command -v systemctl >/dev/null 2>&1; then
+        echo "SERVICE=$(systemctl is-active ollama 2>/dev/null || true)"
+    else
+        echo "SERVICE=unknown"
+    fi
+}
+
 usage() {
-    echo "Usage: ollama_setup.sh [--models model[,model...]] [--no-models]"
+    echo "Usage: ollama_setup.sh [--status] [--models model[,model...]] [--no-models]"
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --status)
+            report_status
+            exit 0
+            ;;
         --models)
             if [[ $# -lt 2 ]]; then
                 echo "--models needs a value" >&2
@@ -74,9 +95,15 @@ as_root() {
 echo "Installing Ollama..."
 curl -fsSL https://ollama.com/install.sh | as_root sh  # ci:allow-curl-pipe
 
-# 2. Enable and start the systemd service
-echo "Starting the Ollama daemon..."
-as_root systemctl enable --now ollama
+# 2. Start the daemon. If something already answers on the Ollama port - a
+# user-level `ollama serve`, which is common on a dev machine - the system
+# service would have no port to bind, so leave the running daemon alone.
+if ollama list >/dev/null 2>&1; then
+    echo "An Ollama daemon is already answering; leaving the service alone."
+else
+    echo "Starting the Ollama daemon..."
+    as_root systemctl enable --now ollama
+fi
 
 # 3. Pull the requested models through the daemon, which owns the model store -
 # not through the home directory of whoever happened to run this.

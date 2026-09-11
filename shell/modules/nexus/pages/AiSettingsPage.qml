@@ -201,7 +201,7 @@ PageBase {
     readonly property string ollamaHintText: {
         if (ollamaInstallStatus !== "")
             return ollamaInstallStatus;
-        if (ollamaInstalled && ollamaService !== "active")
+        if (ollamaInstalled && (ollamaService === "inactive" || ollamaService === "failed"))
             return qsTr("Daemon not running - start it with: sudo systemctl start ollama");
         return "";
     }
@@ -454,14 +454,14 @@ PageBase {
             }
         }
 
-        // Ollama is a system service with a CLI, so status comes from the CLI
-        // and the install goes through pkexec - the shell's polkit dialog is
-        // what asks for the password.
+        // Ollama is a system service with a CLI, so the status and the install
+        // both belong to the script: --status needs no privileges, and the
+        // install goes through pkexec, which is what asks for the password.
         Process {
             id: ollamaStatusProc
 
             running: true
-            command: ["sh", "-c", "if ! command -v ollama >/dev/null 2>&1; then echo VERSION=NOT_INSTALLED; exit 0; fi; echo \"VERSION=$(ollama --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -n1)\"; echo \"SERVICE=$(systemctl is-active ollama 2>/dev/null || true)\""]
+            command: ["bash", root.ollamaScriptPath(), "--status"]
             stdout: SplitParser {
                 onRead: line => {
                     const t = (line || "").trim();
