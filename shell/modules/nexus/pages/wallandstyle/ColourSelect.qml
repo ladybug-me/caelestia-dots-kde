@@ -181,6 +181,81 @@ PageBase {
             }
         }
 
+        StyledText {
+            Layout.topMargin: Tokens.spacing.large
+            text: qsTr("Variants")
+            font: Tokens.font.title.medium
+        }
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: 2
+            rowSpacing: Tokens.spacing.medium
+            columnSpacing: Tokens.spacing.medium
+
+            Repeater {
+                model: M3Variants.list
+
+                StyledRect {
+                    id: varDelegateRect
+
+                    required property var modelData
+
+                    readonly property bool isSelected: modelData?.variant === Schemes.currentVariant
+
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: 1
+                    implicitHeight: varCol.implicitHeight + Tokens.padding.large * 2
+                    radius: Tokens.rounding.large
+                    color: isSelected ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainer
+                    border.width: isSelected ? 2 : 1
+                    border.color: isSelected ? Colours.palette.m3secondary : Colours.palette.m3surfaceVariant
+
+                    StateLayer {
+                        radius: parent.radius
+                        onClicked: varDelegateRect.modelData?.onClicked(null)
+                    }
+
+                    RowLayout {
+                        id: varCol
+
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: Tokens.padding.large
+                        spacing: Tokens.spacing.large
+
+                        MaterialIcon {
+                            Layout.alignment: Qt.AlignTop
+                            text: varDelegateRect.modelData?.icon ?? ""
+                            fontStyle: Tokens.font.icon.extraLarge
+                            color: varDelegateRect.isSelected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: Tokens.spacing.extraSmall
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: varDelegateRect.modelData?.name ?? ""
+                                font: Tokens.font.title.small
+                                color: varDelegateRect.isSelected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: varDelegateRect.modelData?.description ?? ""
+                                font: Tokens.font.body.medium
+                                color: varDelegateRect.isSelected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurfaceVariant
+                                wrapMode: Text.Wrap
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
 
         StyledRect {

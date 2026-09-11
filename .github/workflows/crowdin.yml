@@ -59,7 +59,7 @@ jobs:
       - name: Regenerate the Source Catalogue
         run: |
           set -euo pipefail
-          scripts/update-translations.sh en
+          tools/update-translations.sh en
           test -s shell/translations/caelestia_en.ts
 
       - name: Synchronize with Crowdin

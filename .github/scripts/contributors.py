@@ -5,11 +5,11 @@ Generate a contributor stats snippet for the README.
 Queries the GitHub API for the ladybug-me/caelestia-dots-kde repository and
 counts issues and pull requests authored by each contributor.  Outputs a
 Markdown table suitable for pasting between the <!-- contributors-start -->
-and <!-- contributors-end --> markers in .github/README.md.
+and <!-- contributors-end --> markers in README.md.
 
 Usage:
     python3 .github/scripts/contributors.py                    # print table only
-    python3 .github/scripts/contributors.py --update-readme    # update .github/README.md in-place
+    python3 .github/scripts/contributors.py --update-readme    # update README.md in-place
     python3 .github/scripts/contributors.py --json             # machine-readable output
 """
 
@@ -213,7 +213,7 @@ def main():
     parser.add_argument(
         "--update-readme",
         action="store_true",
-        help="Update .github/README.md in-place",
+        help="Update README.md in-place",
     )
     parser.add_argument(
         "--json",

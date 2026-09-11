@@ -148,6 +148,10 @@ Item {
         authHandler.startLogin(pass);
     }
 
+    function ensureAuthenticating() {
+        authHandler.ensureAuthenticating();
+    }
+
     ServiceRef { service: Cpu }
     ServiceRef { service: Memory }
     ServiceRef { service: Storage }
@@ -555,12 +559,16 @@ Item {
         opacity: lockScreenUi.ready ? 1.0 : 0.0
 
         Keys.onPressed: event => {
+            authHandler.ensureAuthenticating();
             if (activePasswordPill) activePasswordPill.forceActiveFocus();
             event.accepted = false;
         }
-        Keys.onEscapePressed: root.clearPassword()
+        Keys.onEscapePressed: {
+            authHandler.ensureAuthenticating();
+            root.clearPassword();
+        }
 
-        Component.onCompleted: authenticator.startAuthenticating()
+        Component.onCompleted: authHandler.ensureAuthenticating()
 
         Behavior on opacity {
             NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
@@ -570,7 +578,9 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.ArrowCursor
+            onPositionChanged: authHandler.ensureAuthenticating()
             onPressed: mouse => {
+                authHandler.ensureAuthenticating();
                 if (activePasswordPill) activePasswordPill.forceActiveFocus();
                 mouse.accepted = false;
             }

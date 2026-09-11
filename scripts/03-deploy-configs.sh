@@ -21,8 +21,8 @@ if [[ -z "${BACKUP_DIR:-}" ]]; then
     # Only reuse the cached backup dir if it belongs to *this* bundle's backups and matches the timestamp format.
     if [[ -n "$BACKUP_DIR" ]]; then
         case "$BACKUP_DIR" in
-            "$BUNDLE_DIR/backups/"[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]) ;; 
-            *) BACKUP_DIR="" ;; 
+            "$BUNDLE_DIR/backups/"[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]) ;;
+            *) BACKUP_DIR="" ;;
         esac
     fi
 
@@ -201,7 +201,7 @@ if [[ -f "$DOTS_DIR/starship.toml" ]]; then
     fi
 fi
 
-#  Deploy Bridge Files 
+#  Deploy Bridge Files
 info "Deploying bridge files (bin, applications, systemd, kwin script)..."
 mkdir -p \
     "$HOME/.local/bin" \

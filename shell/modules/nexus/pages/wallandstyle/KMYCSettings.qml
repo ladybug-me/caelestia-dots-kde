@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import "../../../../utils/scripts/solartime.js" as Solar
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -14,8 +15,15 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Advanced Colors")
-    isSubPage: true
+    readonly property list<MenuItem> autoSchemeItems: [
+        MenuItem {
+            text: qsTr("Sunrise and sunset")
+        },
+        MenuItem {
+            text: qsTr("Fixed times")
+        }
+    ]
+    readonly property list<string> autoSchemeValues: ["solar", "fixed"]
 
     property bool showAdvanced: false
 
@@ -75,6 +83,20 @@ PageBase {
 
     property bool kdeRoundedCornersEffectOutline: false
 
+    /// The hour of an "HH:MM" config value, for the steppers.
+    function schemeHour(time: string): int {
+        const minutes = Solar.parseTime(time);
+        return minutes < 0 ? 0 : Math.floor(minutes / 60);
+    }
+
+    /// Replaces only the hour, so minutes set by hand in the config file are
+    /// not thrown away by touching the stepper.
+    function withHour(time: string, hour: int): string {
+        const minutes = Solar.parseTime(time);
+        const mins = minutes < 0 ? 0 : minutes % 60;
+        return `${String(hour).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+    }
+
     function parseConfig(text: string): void {
         const lines = text.split('\n');
         for (let i = 0; i < lines.length; i++) {
@@ -128,6 +150,9 @@ PageBase {
         Quickshell.execDetached(["bash", scriptPath, "--set", key, value]);
     }
 
+    title: qsTr("Advanced Colors")
+    isSubPage: true
+
     ColumnLayout {
         id: contentLayout
 
@@ -139,7 +164,7 @@ PageBase {
         FileView {
             id: configFile
 
-            path: `${Paths.config}/kde-material-you-colors/config.conf`
+            path: `${Quickshell.env("XDG_CONFIG_HOME") || `${Paths.home}/.config`}/kde-material-you-colors/config.conf`
             watchChanges: true
             onLoaded: root.parseConfig(text())
             onFileChanged: reload()
@@ -147,6 +172,60 @@ PageBase {
 
         Item {
             Layout.preferredHeight: Tokens.spacing.small
+        }
+
+        SectionHeader {
+            text: qsTr("Theme Automation")
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+            ToggleRow {
+                first: true
+                text: qsTr("Smart color scheme")
+                subtext: qsTr("Disable this to set Variants manually")
+                checked: GlobalConfig.services.smartScheme
+                onToggled: GlobalConfig.services.smartScheme = checked
+            }
+
+            ToggleRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2
+                text: qsTr("Automatic light and dark")
+                subtext: qsTr("Switch the theme mode on a schedule")
+                checked: GlobalConfig.services.autoSchemeEnabled
+                onToggled: GlobalConfig.services.autoSchemeEnabled = checked
+            }
+
+            SelectRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2
+                label: qsTr("Schedule")
+                subtext: AutoScheme.coords ? qsTr("Sunrise and sunset use your weather location") : qsTr("Set a weather location to use sunrise and sunset")
+                menuItems: root.autoSchemeItems
+                active: root.autoSchemeItems[Math.max(0, root.autoSchemeValues.indexOf(GlobalConfig.services.autoSchemeMode))]
+                onSelected: item => GlobalConfig.services.autoSchemeMode = root.autoSchemeValues[root.autoSchemeItems.indexOf(item)]
+            }
+
+            StepperRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2
+                label: qsTr("Light mode hour")
+                subtext: qsTr("Switches at %1").arg(GlobalConfig.services.autoSchemeLightTime)
+                value: root.schemeHour(GlobalConfig.services.autoSchemeLightTime)
+                from: 0
+                to: 23
+                onMoved: h => GlobalConfig.services.autoSchemeLightTime = root.withHour(GlobalConfig.services.autoSchemeLightTime, h)
+            }
+
+            StepperRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2
+                last: true
+                label: qsTr("Dark mode hour")
+                subtext: qsTr("Switches at %1, also used when sunrise and sunset are unavailable").arg(GlobalConfig.services.autoSchemeDarkTime)
+                value: root.schemeHour(GlobalConfig.services.autoSchemeDarkTime)
+                from: 0
+                to: 23
+                onMoved: h => GlobalConfig.services.autoSchemeDarkTime = root.withHour(GlobalConfig.services.autoSchemeDarkTime, h)
+            }
         }
 
         SectionHeader {
@@ -206,7 +285,6 @@ PageBase {
                 checked: root.pywalLight
                 onToggled: root.setOption("pywal_light", checked ? "True" : "False")
             }
-
         }
 
         ToggleRow {

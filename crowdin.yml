@@ -1,5 +1,5 @@
 # Crowdin project mapping. Credentials come from the environment; see
-# .github/workflows/crowdin.yml and .github/docs/translations.md.
+# .github/workflows/crowdin.yml and docs/translations.md.
 project_id_env: CROWDIN_PROJECT_ID
 api_token_env: CROWDIN_PERSONAL_TOKEN
 base_path: "."
@@ -17,7 +17,14 @@ files:
   #
   # Two variants of one language (pt-BR and pt-PT, zh-CN and zh-TW) would both
   # want the bare code. That collides only once both are actually translated,
-  # since untranslated files are not exported at all; give them explicit names
-  # through languages_mapping when it happens.
+  # since untranslated files are not exported at all; both Chinese catalogues
+  # are translated, so the file below names them explicitly.
   - source: /shell/translations/caelestia_en.ts
     translation: /shell/translations/caelestia_%two_letters_code%.ts
+    # Per-file rather than top-level: the CLI drops unknown root keys, so a copy
+    # at the root is silently ignored instead of rejected. The values are the
+    # locale names Qt looks for.
+    languages_mapping:
+      two_letters_code:
+        zh-CN: zh_CN
+        zh-TW: zh_TW

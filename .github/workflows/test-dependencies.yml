@@ -1,42 +1,67 @@
 name: Test Dependencies
 
 on:
+  push:
+    branches: ["main"]
   schedule:
     - cron: '0 0 * * 0' # Runs every Sunday at midnight
   workflow_dispatch:
+    inputs:
+      distro:
+        description: 'Distribution to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'arch'
+          - 'fedora'
+          - 'ubuntu'
 
 env:
   NONINTERACTIVE: "1"
   CI: "1"
+  CAELESTIA_SETUP_RUNNING: "1"
+  CAELESTIA_FORCE_BUILD_SHELL: "true"
+  CONFIRM_ARG: "--noconfirm"
   INSTALL_FISH: "false"
   INSTALL_PAPIRUS: "false"
-  INSTALL_DARKLY: "false"
+  INSTALL_DARKLY: "true"
+  INSTALL_VSCODE: "false"
+  INSTALL_ZED: "false"
+  INSTALL_SPICETIFY: "false"
+  INSTALL_DISCORD: "false"
+  INSTALL_TODOIST: "false"
+  INSTALL_FIREFOX_THEME: "false"
 
 jobs:
   test-arch:
+    name: Test Arch Linux
+    if: ${{ !inputs.distro || inputs.distro == 'all' || inputs.distro == 'arch' }}
     runs-on: ubuntu-latest
     container: archlinux:latest
-    strategy:
-      matrix:
-        branch: [main, dev]
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.branch }}
-      - name: Prepare Arch
+      - name: Prepare Arch Environment
         run: |
-          pacman -Syu --noconfirm base-devel git sudo
+          pacman -Syu --noconfirm base-devel git sudo python cmake nodejs
           useradd -m builduser
           echo "builduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builduser
           # yay and makepkg refuse to run as root, so we install it as our builduser
           su - builduser -c "git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin && cd /tmp/yay-bin && makepkg -si --noconfirm"
-      - name: Verify Arch Dependencies
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build Installer Binary
         run: |
-          # Give builduser ownership of the workspace so it can run the script
           chown -R builduser:builduser .
-          su - builduser -c "cd $GITHUB_WORKSPACE && ./sdata/arch-dist/installDP.sh || true"
-          
+          su - builduser -c "cd $GITHUB_WORKSPACE && mkdir -p installer/build && cd installer/build && cmake -DCMAKE_BUILD_TYPE=Release ../tui && make -j\$(nproc)"
+      - name: Run Installer Steps
+        run: |
+          chown -R builduser:builduser .
+          su - builduser -c "cd $GITHUB_WORKSPACE && python3 .github/scripts/run_installer_steps.py"
+      - name: Verify Package Installation
+        run: |
           if [ -s /home/builduser/.cache/caelestia-kde/failed_packages.txt ]; then
             FAILED=$(cat /home/builduser/.cache/caelestia-kde/failed_packages.txt | tr '\n' ' ')
             echo "::error::[ARCH] Failed to install packages: $FAILED"
@@ -44,21 +69,26 @@ jobs:
           fi
 
   test-fedora:
+    name: Test Fedora
+    if: ${{ !inputs.distro || inputs.distro == 'all' || inputs.distro == 'fedora' }}
     runs-on: ubuntu-latest
     container: fedora:latest
-    strategy:
-      matrix:
-        branch: [main, dev]
     steps:
+      - name: Prepare Fedora Environment
+        run: dnf install -y git sudo python3 gcc-c++ cmake make nodejs
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.branch }}
-      - name: Prepare Fedora
-        run: dnf install -y git sudo
-      - name: Verify Fedora Dependencies
+          submodules: recursive
+      - name: Build Installer Binary
         run: |
-          ./sdata/fedora-dist/installDP_fedora.sh || true
+          mkdir -p installer/build && cd installer/build
+          cmake -DCMAKE_BUILD_TYPE=Release ../tui
+          make -j$(nproc)
+      - name: Run Installer Steps
+        run: python3 .github/scripts/run_installer_steps.py
+      - name: Verify Package Installation
+        run: |
           if [ -s ~/.cache/caelestia-kde/failed_packages.txt ]; then
             FAILED=$(cat ~/.cache/caelestia-kde/failed_packages.txt | tr '\n' ' ')
             echo "::error::[FEDORA] Failed to install packages: $FAILED"
@@ -66,23 +96,28 @@ jobs:
           fi
 
   test-ubuntu:
+    name: Test Ubuntu
+    if: ${{ !inputs.distro || inputs.distro == 'all' || inputs.distro == 'ubuntu' }}
     runs-on: ubuntu-latest
-    container: ubuntu:latest
-    strategy:
-      matrix:
-        branch: [main, dev]
+    container: ubuntu:rolling
     steps:
+      - name: Prepare Ubuntu Environment
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y git sudo curl unzip fontconfig tzdata software-properties-common python3 build-essential g++ cmake make nodejs
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.branch }}
-      - name: Prepare Ubuntu
+          submodules: recursive
+      - name: Build Installer Binary
         run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y git sudo curl unzip fontconfig tzdata software-properties-common
-      - name: Verify Ubuntu Dependencies
+          mkdir -p installer/build && cd installer/build
+          cmake -DCMAKE_BUILD_TYPE=Release ../tui
+          make -j$(nproc)
+      - name: Run Installer Steps
+        run: python3 .github/scripts/run_installer_steps.py
+      - name: Verify Package Installation
         run: |
-          ./sdata/debian-dist/installDP_debian.sh || true
           if [ -s ~/.cache/caelestia-kde/failed_packages.txt ]; then
             FAILED=$(cat ~/.cache/caelestia-kde/failed_packages.txt | tr '\n' ' ')
             echo "::error::[UBUNTU] Failed to install packages: $FAILED"

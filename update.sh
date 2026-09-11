@@ -8,6 +8,7 @@ set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/install-fs.sh"
 
 section() {
     local title="$1"
@@ -175,3 +176,47 @@ else
     warn "Restart script not found. Please restart the shell manually."
 fi
 
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
+SCHEME_FILE="$STATE_DIR/scheme.json"
+
+# Start the shell. The IPC wrapper is preferred over the CLI here because it
+# starts the shell as a transient user service: the CLI's `shell -d`
+# daemonizes, which points the shell's stdio at /dev/null, and every
+# application launched from the shell then inherits a stdout that goes
+# nowhere. Vesktop deadlocks when a call starts in exactly that state
+# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
+if [[ -n "$SHELL_IPC" ]]; then
+    "$SHELL_IPC" start 2>/dev/null &
+elif command -v systemd-run >/dev/null 2>&1; then
+    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    systemd-run --user --quiet --collect --unit=caelestia-shell \
+        --description="Caelestia Shell" \
+        -- "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" &
+elif command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
+    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
+else
+    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+fi
+
+# The lock screen reads scheme.json before any user session exists, so it has
+# to be on disk for the greeter to render with the right colours. Wait for the
+# shell that was just started to write it.
+#
+# This wait used to sit between the kill and the start, polling for a file to
+# be produced by a process that had already been killed: it either returned
+# instantly on the previous run's file, or spent the full 15s waiting for
+# something that could not happen (#666). With the file normally already
+# present the common case still returns immediately; the wait only bites on a
+# fresh install or a wiped state directory, which is when it matters.
+if ! wait_for_nonempty_file "$SCHEME_FILE" 15; then
+    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colours."
+fi
+
+echo "Shell restarted successfully!"
+echo
+echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"

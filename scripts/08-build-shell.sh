@@ -4,11 +4,14 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/toolchain.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/update-state.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
 
-# Setting Caelestia force build shell to true for now.
+# Setting force build to true for dev branch
 CAELESTIA_FORCE_BUILD_SHELL="${CAELESTIA_FORCE_BUILD_SHELL:-true}"
 
 # Prefer Ninja for faster builds; fall back to CMake's default generator when
@@ -121,13 +124,13 @@ install_lockscreen_greeter() {
     fi
 
     info "Installing Caelestia lock screen greeter."
-    if ! mkdir -p "$(dirname "$dest")" || ! rm -rf "$dest" || ! cp -r "$src" "$dest"; then
-        warn "Failed to copy Caelestia lock screen greeter to $dest"
-        return 1
-    fi
-
-    if [[ ! -d "$dest" || ! -f "$dest/metadata.json" ]]; then
-        warn "Caelestia lock screen greeter installation verification failed at $dest"
+    # Swap the tree in atomically. The installed greeter is the only working
+    # copy the user has, so an interrupted copy has to leave it alone rather
+    # than delete it first and fail to replace it - that strands the session
+    # with no greeter at all (issue #662). `metadata.json` is the file Plasma
+    # needs to load the package, so it doubles as the completeness check.
+    if ! atomic_replace_tree "$src" "$dest" metadata.json; then
+        warn "Failed to install Caelestia lock screen greeter to $dest"
         return 1
     fi
 
@@ -321,6 +324,33 @@ try_download_prebuilt_shell() {
     return 0
 }
 
+# Snapshot the live shell tree before either install path overwrites it, so
+# local edits made per CONTRIBUTING.md survive an update instead of vanishing.
+#
+# This runs before the prebuilt download is attempted, not inside the
+# local-build branch: the prebuilt path extracts the release archive straight
+# over ~/.config, and it is the default on Arch/x86_64 - so a backup taken only
+# on the build path never happened for most users (issue #663).
+backup_shell_config() {
+    local src="$HOME/.config/quickshell/caelestia"
+    local root="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
+
+    if [[ ! -d "$src" ]]; then
+        return 0
+    fi
+
+    local dest
+    if ! dest="$(snapshot_dir "$src" "$root" "quickshell-caelestia" 3)"; then
+        err "Could not back up shell configuration into: $root"
+        return 1
+    fi
+
+    info "Backed up shell configuration to $dest"
+    return 0
+}
+
+backup_shell_config || exit 1
+
 # Prefer the prebuilt shell from the release when available so a fresh install
 # downloads the compiled .so files instead of building Qt6/C++ locally. The
 # workspace-tracker KWin effect is still built locally either way (its ABI is
@@ -339,15 +369,9 @@ else
     # lrelease compiles shell/translations into the .qm catalogues the shell loads.
     # Checked here rather than with the other dependencies so it also covers a fresh
     # setup run; without it CMake just warns and the shell ships English only.
-    if ! command -v lrelease >/dev/null 2>&1 && [[ ! -x /usr/lib/qt6/bin/lrelease ]]; then
+    if ! linguist_tools_available; then
         info "Installing Qt Linguist tools for UI translations..."
-        if command -v pacman >/dev/null; then
-            sudo pacman -S --needed --noconfirm qt6-tools || warn "qt6-tools install failed; the shell will stay in English."
-        elif command -v dnf >/dev/null; then
-            sudo dnf install -y qt6-qttools-devel || warn "qt6-qttools-devel install failed; the shell will stay in English."
-        elif command -v apt-get >/dev/null; then
-            sudo apt-get install -y qt6-l10n-tools qt6-tools-dev || warn "Linguist tools install failed; the shell will stay in English."
-        fi
+        install_linguist_tools || warn "Linguist tools install failed; the shell will stay in English."
     fi
 
     info "Configuring CMake..."
@@ -372,28 +396,8 @@ else
         exit 1
     fi
 
-    # Snapshot the live shell tree before install overwrites it, so local
-    # edits made per CONTRIBUTING.md survive an update instead of vanishing.
-    QS_CONF="$HOME/.config/quickshell/caelestia"
-    if [[ -d "$QS_CONF" ]]; then
-        _qs_backup_dir="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
-        mkdir -p "$_qs_backup_dir" || {
-            err "Could not create shell backup directory: $_qs_backup_dir"
-            exit 1
-        }
-        _qs_backup="$_qs_backup_dir/quickshell-caelestia-$(date +%Y%m%d_%H%M%S)"
-        if ! cp -r "$QS_CONF" "$_qs_backup"; then
-            err "Could not back up shell configuration to: $_qs_backup"
-            exit 1
-        fi
-        _qs_backups=( "$_qs_backup_dir"/quickshell-caelestia-* )
-        if [[ -e "${_qs_backups[0]}" ]]; then
-            for ((i = 0; i < ${#_qs_backups[@]} - 3; i++)); do
-                rm -rf -- "${_qs_backups[$i]}"
-            done
-        fi
-    fi
-
+    # The live shell tree was snapshotted by backup_shell_config() before either
+    # install path ran.
     info "Installing to user local dir..."
     if ! cmake --install build 2>&1 | tee -a "$BUILD_LOG"; then
         err "Installation failed. Full log: $BUILD_LOG"
@@ -580,22 +584,10 @@ else
     warn "Failed to copy yet-another-monochrome-icon-set."
 fi
 
-# Save current commit and branch for the update checker
-mkdir -p ~/.config/quickshell/caelestia
-if [ -d "$BUNDLE_DIR/.git" ]; then
-    git -C "$BUNDLE_DIR" rev-parse HEAD > ~/.config/quickshell/caelestia/.current_commit 2>/dev/null || true
-    git -C "$BUNDLE_DIR" rev-parse --abbrev-ref HEAD > ~/.config/quickshell/caelestia/.update_branch 2>/dev/null || true
-
-    # Persist the installed version too. The update checker resolves
-    # unrecognised commits through its bare cache repo, which only mirrors
-    # origin branches - a commit that exists only in this local checkout
-    # would otherwise resolve to "unknown" in the Updates page.
-    if [ -f "$BUNDLE_DIR/.github/version.env" ]; then
-        cp "$BUNDLE_DIR/.github/version.env" ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    else
-        git -C "$BUNDLE_DIR" show HEAD:.github/version.env > ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    fi
-fi
+# Record which revision the artefacts just installed came from, for the update
+# checker. The build has happened by this point, so the checkout is what the
+# running shell really is.
+record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia" || true
 
 # Lockscreen Installation is at the end because if system gets locked during update, lockscreen may fail to start.
 if [[ "${CAELESTIA_SKIP_DEPLOY:-0}" == "0" && "${APPLY_LOCKSCREEN:-true}" != "false" ]]; then

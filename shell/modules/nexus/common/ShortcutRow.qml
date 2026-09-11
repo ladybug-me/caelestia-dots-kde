@@ -102,13 +102,11 @@ ConnectedRect {
                             radius: width / 2
                             color: Colours.palette.m3error
 
-                            SequentialAnimation on opacity {
-                                loops: Animation.Infinite
-
-                                NumberAnimation { from: 0.3; to: 1.0; duration: 1000 }
-                                NumberAnimation { from: 1.0; to: 0.3; duration: 1000 }
-                            }
-
+                            // Deliberately static. An endless animation inside a
+                            // settings list made the shell recomposite the window
+                            // every frame, which on a translucent window with a
+                            // backdrop blur reads as the whole thing blinking. The
+                            // dot and its tooltip carry the warning without it.
                             layer.enabled: true
 
                             layer.effect: MultiEffect {
@@ -116,7 +114,7 @@ ConnectedRect {
                                 shadowColor: Colours.palette.m3error
                                 shadowBlur: 0.8
                             }
-                            
+
                             MouseArea {
                                 anchors.fill: parent
                                 hoverEnabled: true
@@ -130,7 +128,7 @@ ConnectedRect {
                             text: "close"
                             fontStyle: Tokens.font.icon.small
                             color: maClose.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
-                            
+
                             MouseArea {
                                 id: maClose
 
@@ -148,14 +146,14 @@ ConnectedRect {
                     }
                 }
             }
-            
+
             MaterialIcon {
                 id: addIcon
 
                 text: "add"
                 color: maAdd.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                 fontStyle: Tokens.font.icon.medium
-                
+
                 MouseArea {
                     id: maAdd
 
@@ -172,7 +170,7 @@ ConnectedRect {
                 text: "settings_backup_restore"
                 color: maReset.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
                 fontStyle: Tokens.font.icon.medium
-                
+
                 MouseArea {
                     id: maReset
 

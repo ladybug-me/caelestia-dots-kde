@@ -56,7 +56,7 @@ case $MODEL_CHOICE in
     2) pull_model "phi3" ;;
     3) pull_model "gemma" ;;
     4) pull_model "mistral" ;;
-    5) 
+    5)
         pull_model "llama3"
         pull_model "phi3"
         pull_model "gemma"

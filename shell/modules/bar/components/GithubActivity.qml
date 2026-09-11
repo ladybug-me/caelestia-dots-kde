@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Io
 import M3Shapes
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -18,6 +19,10 @@ StyledRect {
     property var weekDays: []
     property int total: 0
     property string lastError: ""
+    // A missing token is a configuration state rather than a fetch failure, so it
+    // gets its own flag. Without it the widget just disappears from the bar and
+    // the only trace is a line in the log.
+    property bool tokenMissing: false
     property int refreshInterval: 1800
     property color colour: Colours.palette.m3secondary
     readonly property int padding: Config.bar.github.background ? Tokens.padding.medium : Tokens.padding.small
@@ -55,9 +60,31 @@ StyledRect {
     function setUnavailable(message: string): void {
         const msg = root.redact(message);
         root.lastError = msg;
+        root.tokenMissing = false;
         BarComponents.GithubStore.lastError = msg;
+        BarComponents.GithubStore.tokenMissing = false;
         BarComponents.GithubStore.available = false;
         console.error("[GitHubWidget] " + msg);
+    }
+
+    // No credential stored yet. Say so once in the UI, pointing at the page that
+    // fixes it, instead of leaving the user to find it in the log.
+    function setTokenMissing(): void {
+        root.lastError = "";
+        root.tokenMissing = true;
+        BarComponents.GithubStore.lastError = "";
+        BarComponents.GithubStore.tokenMissing = true;
+        BarComponents.GithubStore.available = false;
+
+        // The flag lives on the singleton: one notice per shell session, not one
+        // per screen's bar.
+        if (BarComponents.GithubStore.tokenNoticeShown)
+            return;
+        BarComponents.GithubStore.tokenNoticeShown = true;
+        console.warn("[GitHubWidget] no token configured");
+        Toaster.toast(qsTr("GitHub widget needs a token"),
+            qsTr("Add a personal access token in Settings → Panels → Taskbar → GitHub."),
+            "key_off", Toast.Warning);
     }
 
     readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
@@ -120,7 +147,7 @@ StyledRect {
         command: ["bash", "-c", `
         set -Eeuo pipefail
         export GITHUB_TOKEN="$(secret-tool lookup service caelestia-shell account github 2>/dev/null || echo '')"
-        : "\${GITHUB_TOKEN:?No token set - go to Settings → Panels → Taskbar → GitHub to add one}"
+        if [ -z "$GITHUB_TOKEN" ]; then echo "no GitHub token configured" >&2; exit 3; fi
 
         # Resolve login via token if GITHUB_USERNAME is unset
         login="\${GITHUB_USERNAME-}"
@@ -189,6 +216,10 @@ PY
         }
 
         onExited: code => { // qmllint disable signal-handler-parameters
+            if (code === 3) {
+                root.setTokenMissing();
+                return;
+            }
             if (code !== 0) {
                 root.setUnavailable(err.text || ("fetch failed (exit " + code + ")"));
                 return;
@@ -253,11 +284,13 @@ PY
                 root.weekDays = window;
                 root.total = window.reduce((a, b) => a + (b.count || 0), 0);
                 root.lastError = "";
+                root.tokenMissing = false;
 
                 BarComponents.GithubStore.days = window;
                 BarComponents.GithubStore.total = root.total;
                 BarComponents.GithubStore.username = root.username;
                 BarComponents.GithubStore.lastError = "";
+                BarComponents.GithubStore.tokenMissing = false;
                 BarComponents.GithubStore.available = true;
             } catch (e) {
                 root.setUnavailable("parse error: " + e + " | first 200B: " + raw.slice(0, 200));
@@ -271,10 +304,10 @@ PY
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            // Don't re-poll if the token is known to be absent — it won't change until
-            // the user saves one via Settings → Panels → Taskbar → GitHub, which fires
+            // Don't re-poll while no token is configured - it cannot change until the
+            // user saves one via Settings → Panels → Taskbar → GitHub, which fires
             // GithubStore.refresh() and restarts the process directly.
-            if ((root.lastError.includes("No token set") || root.lastError.includes("Missing GITHUB_TOKEN")) && !BarComponents.GithubStore.available)
+            if (root.tokenMissing)
                 return;
             proc.exec(proc.command);
         }
@@ -285,7 +318,9 @@ PY
 
         function onRefresh(): void {
             root.lastError = "";
+            root.tokenMissing = false;
             BarComponents.GithubStore.lastError = "";
+            BarComponents.GithubStore.tokenMissing = false;
             BarComponents.GithubStore.available = false;
             proc.exec(proc.command);
         }

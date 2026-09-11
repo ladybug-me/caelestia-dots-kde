@@ -104,7 +104,8 @@ PageBase {
             ConnectedRect {
                 id: activeDelegate
 
-                anchors.fill: parent
+                width: delegateWrapper.width
+                height: 50
                 radius: Tokens.rounding.medium
                 color: isPlaceholder ? "transparent" : (sourceList !== "library" ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainerLowest)
                 border.width: isPlaceholder ? 1 : 0
@@ -135,10 +136,15 @@ PageBase {
                     enabled: !isPlaceholder
 
                     onPressed: {
-                        root.isGlobalDragging = true;
                         root.globalDragSourceList = sourceList;
                         root.globalDragSourceIndex = delegateWrapper.index;
                         root.globalDragHoveredList = sourceList;
+                    }
+
+                    onPositionChanged: {
+                        if (activeDragArea.drag.active && !root.isGlobalDragging) {
+                            root.isGlobalDragging = true;
+                        }
                     }
 
                     onReleased: {
@@ -184,6 +190,12 @@ PageBase {
                         activeDelegate.x = 0;
                         activeDelegate.y = 0;
                         save();
+                    }
+
+                    onCanceled: {
+                        root.isGlobalDragging = false;
+                        activeDelegate.x = 0;
+                        activeDelegate.y = 0;
                     }
                 }
 
@@ -277,7 +289,9 @@ PageBase {
             { id: "dock", enabled: true, zone: "middle" },
             { id: "tray", enabled: true, zone: "right" },
             { id: "updateIndicator", enabled: true, zone: "right" },
-            { id: "github", enabled: true, zone: "right" },
+            // Mirrors the compiled default in barconfig.hpp: the GitHub widget
+            // needs a token, so it ships off.
+            { id: "github", enabled: false, zone: "right" },
             { id: "clock", enabled: true, zone: "right" },
             { id: "statusIcons", enabled: true, zone: "right" },
             { id: "kbLayoutIndicator", enabled: false, zone: "right" },

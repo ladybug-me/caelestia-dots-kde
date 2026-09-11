@@ -159,7 +159,7 @@ Rectangle {
                 width: parent.width + wl
                 height: Math.max(0, Math.min(parent.height, parent.height * res.fillPercent))
                 visible: height > 0
-                
+
                 Behavior on height {
                     NumberAnimation { duration: 1000; easing.type: Easing.OutCubic }
                 }

@@ -54,10 +54,14 @@ public:
 
     QString description() const;
     void setDescription(const QString &description);
-    
+
     QString getCollisionName() const;
     QString getCollisionNameForKey(const QString& keyPart) const;
     int stolenCount() const { return m_stolenShortcuts.size(); }
+
+    // Human-readable label for this shortcut, used when naming it as one of the
+    // parties in a collision between two Caelestia shortcuts.
+    QString displayLabel() const;
 
 signals:
     void nameChanged();
@@ -80,7 +84,7 @@ private:
     QString m_key;
     QString m_description;
     QAction *m_action;
-    
+
     int m_registerGeneration = 0;
 
     static QHash<QString, GlobalShortcut*> s_registry;
