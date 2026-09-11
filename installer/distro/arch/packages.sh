@@ -3,6 +3,10 @@
 
 set -uo pipefail
 
+# shellcheck source=scripts/lib/toolchain.sh
+source "${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}/scripts/lib/toolchain.sh"
+
+
 log()  { printf '  [INFO]  %s\n' "$*"; }
 err()  { printf '  [ERR]   %s\n' "$*" >&2; }
 
@@ -90,11 +94,13 @@ if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "themes" ]]; then
     fi
 fi
 
-# libcava and darkly are installed from the AUR. Darkly is published as the
-# prebuilt darkly-bin package, so it is never compiled on the machine; libcava
-# has no -bin package and compiles from source.
+# Developer SDK (libcava) extracted from prebuilt release assets.
 if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "core" ]]; then
-    PACKAGES+=(libcava)
+    if install_cava_sdk arch; then
+        log "Installed prebuilt CAVA SDK from release."
+    else
+        PACKAGES+=(libcava)
+    fi
 fi
 if [[ "$PACKAGE_GROUP" == "all" || "$PACKAGE_GROUP" == "themes" ]]; then
     if [[ "$INSTALL_DARKLY" == "true" ]]; then

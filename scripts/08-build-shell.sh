@@ -33,11 +33,13 @@ fi
 # Only the feature version is fingerprinted: patch releases (6.11.2 -> 6.11.3)
 # keep their ABI and their headers hash the same in ccache, so wiping the build
 # directory for one costs a full rebuild and buys nothing.
+# Cava had a version change and hence requires a clean rebuild.
 caelestia_toolchain_stamp() {
-    local cmake_ver qt_ver
+    local cmake_ver qt_ver cava_state
     cmake_ver="$(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1)"
     qt_ver="$(pkg-config --modversion Qt6Core 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+' || true)"
-    printf 'bundle:%s cmake:%s qt6core:%s gen:%s\n' "$BUNDLE_DIR" "$cmake_ver" "$qt_ver" "$CMAKE_GENERATOR"
+    cava_state="$(pkg-config --modversion libcava 2>/dev/null || pkg-config --modversion cava 2>/dev/null || { [[ -f /usr/include/cava/cavacore.h ]] && echo "sdk"; } || echo "none")"
+    printf 'bundle:%s cmake:%s qt6core:%s gen:%s cava:%s\n' "$BUNDLE_DIR" "$cmake_ver" "$qt_ver" "$CMAKE_GENERATOR" "$cava_state"
 }
 
 # Stamps written before the fingerprint dropped patch versions carried the full

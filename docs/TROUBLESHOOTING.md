@@ -60,7 +60,7 @@ The shell build (`08-build-shell.sh`) requires **Qt 6.9+** and several system li
 | `libqalculate` | `libqalculate` | `libqalculate-devel` |
 | `libpipewire-0.3` | `pipewire` | `pipewire-devel` |
 | `aubio` | `aubio` | `aubio-devel` |
-| `libcava` | `libcava` | `celestelove/libcava` (COPR) |
+| `libcava` | Prebuilt release asset / `libcava` | Prebuilt release asset / `celestelove/libcava` (COPR) |
 | `libpulse` | `libpulse` | `pulseaudio-libs-devel` |
 | `libpam` | `pam` | `pam-devel` |
 | `lm_sensors` (Fedora) | not needed | `lm_sensors-devel` |
@@ -115,7 +115,7 @@ The project enables ccache in both `installer/CMakeLists.txt` and `shell/CMakeLi
 | `quickshell-git` | `errornointernet/quickshell` | COPR may be out of date |
 | `gpu-screen-recorder` | `brycensranch/gpu-screen-recorder-git` | May need `ffmpeg` from RPM Fusion |
 | `app2unit` | `celestelove/app2unit` | Falls back to `make install` |
-| `libcava` | `celestelove/libcava` | Package-manager only; no source build |
+| `libcava` | Prebuilt release asset / `celestelove/libcava` | Downloads prebuilt SDK from release; falls back to COPR |
 | `starship` | `atim/starship` | Stable, rarely fails |
 | `wl-clip-persist` | `leloubil/wl-clip-persist` | Needed for clipboard persistence |
 
