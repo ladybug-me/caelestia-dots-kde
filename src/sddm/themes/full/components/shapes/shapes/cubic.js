@@ -307,15 +307,15 @@ class Cubic {
         const rotatedP1 = p1d.rotate90();
         const clockwise = rotatedP0.dotProductScalar(x1 - centerX, y1 - centerY) >= 0;
         const cosa = p0d.dotProduct(p1d);
-        
+
         if (cosa > 0.999) {
             return Cubic.straightLine(x0, y0, x1, y1);
         }
 
-        const k = distance(x0 - centerX, y0 - centerY) * 4/3 * 
-                 (Math.sqrt(2 * (1 - cosa)) - Math.sqrt(1 - cosa * cosa)) / 
+        const k = distance(x0 - centerX, y0 - centerY) * 4/3 *
+                 (Math.sqrt(2 * (1 - cosa)) - Math.sqrt(1 - cosa * cosa)) /
                  (1 - cosa) * (clockwise ? 1 : -1);
-                 
+
         return new Cubic([
             x0, y0,
             x0 + rotatedP0.x * k,

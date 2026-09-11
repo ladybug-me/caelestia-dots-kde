@@ -90,8 +90,8 @@ cmake -B installer/build -S installer/tui && cmake --build installer/build   # C
 ### For translation changes
 
 ```bash
-scripts/update-translations.sh          # refresh every catalogue
-scripts/update-translations.sh es       # start a new one (Spanish here)
+tools/update-translations.sh          # refresh every catalogue
+tools/update-translations.sh es       # start a new one (Spanish here)
 ```
 
 Translate `shell/translations/caelestia_<code>.ts`, rebuild the shell, then pick

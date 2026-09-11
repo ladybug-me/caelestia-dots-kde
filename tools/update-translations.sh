@@ -3,8 +3,8 @@
 # every catalogue in shell/translations.
 #
 # Usage:
-#   scripts/update-translations.sh              # update all existing catalogues
-#   scripts/update-translations.sh tr es pt_BR  # also create these catalogues
+#   tools/update-translations.sh              # update all existing catalogues
+#   tools/update-translations.sh tr es pt_BR  # also create these catalogues
 
 set -euo pipefail
 
@@ -59,7 +59,7 @@ fi
 
 if [[ ${#LANGS[@]} -eq 0 ]]; then
     echo "[FAIL]  No catalogues in $TS_DIR and no languages given." >&2
-    echo "        Try: scripts/update-translations.sh en tr" >&2
+    echo "        Try: tools/update-translations.sh en tr" >&2
     exit 1
 fi
 

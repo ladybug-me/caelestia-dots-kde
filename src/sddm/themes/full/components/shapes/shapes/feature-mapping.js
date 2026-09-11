@@ -101,7 +101,7 @@ function featureMapper(features1, features2) {
  */
 function doMapping(features1, features2) {
     const distanceVertexList = [];
-    
+
     for (const f1 of features1) {
         for (const f2 of features2) {
             const d = featureDistSquared(f1.feature, f2.feature);
@@ -110,7 +110,7 @@ function doMapping(features1, features2) {
             }
         }
     }
-    
+
     distanceVertexList.sort((a, b) => a.distance - b.distance);
 
     // Special cases

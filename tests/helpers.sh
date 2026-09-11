@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # helpers.sh - Assertions and fixtures for the bash test suite.
 #
-# Sourced by every tests/bash/test_*.sh:
+# Sourced by every tests/test_*.sh:
 #
 #     source "$(dirname "${BASH_SOURCE[0]}")/helpers.sh"
 #

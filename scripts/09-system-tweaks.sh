@@ -289,6 +289,8 @@ if old in text:
 #
 tweak_user_avatar_symlinks() {
     if [[ -e "$HOME/.face.icon" || -L "$HOME/.face.icon" ]]; then
+        # A message to the user, not a path: the tilde is intentional here.
+        # shellcheck disable=SC2088
         info "~/.face.icon already exists. Skipping avatar setup."
         return 0
     fi

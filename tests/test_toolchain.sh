@@ -4,7 +4,7 @@
 set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/helpers.sh"
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/toolchain.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/toolchain.sh"
 
 # `caelestia_sudo` comes from privileges.sh in real use. These tests deliberately
 # do NOT define it as a shell function: a function would shadow the stub on PATH

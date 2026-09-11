@@ -148,9 +148,9 @@ class MeasuredCubic {
         const t = this.polygon.measurer.findCubicCutPoint(this.cubic, relativeProgress * this.measuredSize)
 
         const {a: c1, b: c2} = this.cubic.split(t)
-        return { 
-            a: new MeasuredCubic(this.polygon, c1, this.startOutlineProgress, boundedCutOutlineProgress), 
-            b: new MeasuredCubic(this.polygon, c2, boundedCutOutlineProgress, this.endOutlineProgress) 
+        return {
+            a: new MeasuredCubic(this.polygon, c1, this.startOutlineProgress, boundedCutOutlineProgress),
+            b: new MeasuredCubic(this.polygon, c2, boundedCutOutlineProgress, this.endOutlineProgress)
         }
     }
 }

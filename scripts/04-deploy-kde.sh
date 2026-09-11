@@ -33,7 +33,7 @@ echo ""
 
 #  Darkly Theme
 if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
-    #  Darkly: Plasma style 
+    #  Darkly: Plasma style
     info "Applying Darkly plasma style..."
     kwriteconfig6 --file plasmarc --group "Theme" --key "name" "darkly" 2>/dev/null || true
 
@@ -44,7 +44,7 @@ if [[ "${APPLY_DARKLY:-true}" == "true" ]]; then
         ln -sfn "/usr/share/plasma/desktoptheme/darkly" "${XDG_DATA_HOME:-$HOME/.local/share}/plasma/desktoptheme/darkly" 2>/dev/null || true
     fi
 
-    #  Darkly: Application style (Qt widget style) 
+    #  Darkly: Application style (Qt widget style)
     info "Applying Darkly application style..."
     kwriteconfig6 --file kdeglobals --group "KDE" --key "widgetStyle" "darkly" 2>/dev/null || true
     kwriteconfig6 --file kdeglobals --group "General" --key "ColorScheme" "Darkly" 2>/dev/null || true
@@ -85,7 +85,7 @@ else
     skip "Skipping custom fonts application."
 fi
 
-#  Cliphist Service 
+#  Cliphist Service
 info "Setting up cliphist background service..."
 mkdir -p "$HOME/.config/systemd/user"
 cat > "$HOME/.config/systemd/user/cliphist.service" << 'EOF'

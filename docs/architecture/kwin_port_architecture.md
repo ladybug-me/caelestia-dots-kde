@@ -42,7 +42,7 @@ Provides real-time information about active windows, monitors, and the global wi
 * `activeWindow` (`QVariantMap`): The currently focused window.
   * Fields: `address` (String uuid), `title` (String), `class` (String appId), `fullscreen` (Boolean), `maximized` (Boolean).
 * `activeOutputName` (`QString`): The name of the monitor/output where the active window resides.
-* `windowList` (`QVariantList` of `QVariantMap`): An array containing all active windows across the system. 
+* `windowList` (`QVariantList` of `QVariantMap`): An array containing all active windows across the system.
   * Each map contains: `address`, `title`, `class`, `floating`, `fullscreen`, `x`, `y`, `width`, `height`.
 
 **Methods (Invokables):**
@@ -78,7 +78,7 @@ Provides real-time tracking of KDE Plasma virtual desktops (workspaces) and trac
 ### `GlobalShortcut` (Component)
 A QML component used to register global keyboard shortcuts through KDE's native `kglobalaccel` system.
 
-**Properties:** `name`, `key` (semicolon-separated multi-key), `description`  
+**Properties:** `name`, `key` (semicolon-separated multi-key), `description`
 **Signal:** `activated()`
 
 ### `KeybindsModel` & `GlobalShortcutDispatcher` (Singletons)

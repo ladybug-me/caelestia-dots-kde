@@ -90,7 +90,7 @@ class ScriptSyntaxTests(unittest.TestCase):
 
 
 class BashHelperTestSuite(unittest.TestCase):
-    """Run tests/bash/run-tests.sh so the shell helpers get real behavior coverage.
+    """Run tests/run-tests.sh so the shell helpers get real behavior coverage.
 
     scripts/lib/ helpers cannot be exercised from Python, so this delegates to
     the bash runner and fails on any non-zero exit. Adding a test there is
@@ -99,7 +99,7 @@ class BashHelperTestSuite(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("bash"), "bash is required for the helper suite")
     def test_bash_helper_suite_passes(self) -> None:
-        runner = Path("tests", "bash", "run-tests.sh")
+        runner = Path("tests", "run-tests.sh")
         self.assertTrue((ROOT / runner).is_file(), f"expected {runner.as_posix()} to exist")
 
         result = subprocess.run(

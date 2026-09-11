@@ -45,7 +45,7 @@ namespace Term {
             settings.c_cc[VMIN] = 0;
             settings.c_cc[VTIME] = 0;
             tcsetattr(STDIN_FILENO, TCSANOW, &settings);
-            
+
             cout << "\x1b[?1049h\x1b[?25l" << flush; // enter alt screen, hide cursor
             initialized = true;
             atexit(restore);

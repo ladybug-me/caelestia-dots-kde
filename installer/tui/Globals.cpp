@@ -57,7 +57,7 @@ void load_theme() {
     } else {
         std::cerr << "Could not open theme.json at " << path << std::endl;
     }
-    
+
     std::string menu_path = g_bundle_dir + "/installer/data/menu.json";
     std::ifstream f2(menu_path);
     if (f2.is_open()) {

@@ -89,10 +89,10 @@ jobs:
 
           if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$VERSION" ]; then
             git fetch origin dev:refs/remotes/origin/dev --force || true
-            
+
             # Find the merge commit on dev where LAST_TAG was synced back (fixes Squash & Merge pollution)
             SYNC_COMMIT=$(git rev-list "$LAST_TAG..origin/dev" --ancestry-path --merges | tail -n 1 || true)
-            
+
             if [ -n "$SYNC_COMMIT" ]; then
               git log "$SYNC_COMMIT..origin/dev" --no-merges --invert-grep --grep='\[skip ci\]' --pretty='- %s (%h)' > commit_notes.txt
             else

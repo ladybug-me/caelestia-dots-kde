@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
         string cache_dir = string(getenv("XDG_CACHE_HOME") ? getenv("XDG_CACHE_HOME") : (string(getenv("HOME")) + "/.cache")) + "/caelestia-kde";
         system(("rm -rf \"" + cache_dir + "\"").c_str());
     }
-    
+
     // Secure cleanup of sudo credentials
     if (!g_sudo_bin_dir.empty()) {
         system(("rm -rf \"" + g_sudo_bin_dir + "\"").c_str());

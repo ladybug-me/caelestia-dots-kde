@@ -12,8 +12,8 @@ edit it by hand.
 Refresh them after changing `qsTr()` strings, or start a new language:
 
 ```bash
-scripts/update-translations.sh          # update every catalogue here
-scripts/update-translations.sh es       # add Spanish
+tools/update-translations.sh          # update every catalogue here
+tools/update-translations.sh es       # add Spanish
 ```
 
 Translations are also synchronized with Crowdin, so a language can be worked on

@@ -168,7 +168,7 @@ Allows overriding of standard status indicators used in the `step_list`.
 
 # Interactive Menu Configuration
 
-The Caelestia Installer features a nested, dynamic JSON-driven menu system. 
+The Caelestia Installer features a nested, dynamic JSON-driven menu system.
 Questions, checkboxes, and nested submenus are defined in `installer/data/menu.json`. User inputs are automatically exported as Bash Environment Variables to the executing Tmux session.
 
 ## `menu.json` Schema

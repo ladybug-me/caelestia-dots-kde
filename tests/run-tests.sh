@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # run-tests.sh - Execute the bash test suite.
 #
-#     bash tests/bash/run-tests.sh                     # every tests/bash/test_*.sh
-#     bash tests/bash/run-tests.sh test_install_fs.sh  # just one file
+#     bash tests/run-tests.sh                     # every tests/test_*.sh
+#     bash tests/run-tests.sh test_install_fs.sh  # just one file
 #
 # Each test file runs in its own `bash` process, so a file that leaks state,
 # changes directory, or exits early cannot affect its neighbours.
@@ -11,8 +11,8 @@
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TESTS_DIR="$REPO_ROOT/tests/bash"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TESTS_DIR="$REPO_ROOT/tests"
 
 if ! command -v bash >/dev/null 2>&1; then
     echo "bash is required to run the test suite" >&2
