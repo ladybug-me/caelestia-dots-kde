@@ -16,6 +16,7 @@ Item {
     required property var bar
     required property ShellScreen screen
     required property bool fullscreen
+    Config.screen: root.screen.name
     readonly property int barThickness: bar.thickness
 
     implicitWidth: container.implicitWidth
@@ -83,7 +84,7 @@ Item {
         }
         readonly property int groupOffset: Math.floor((activeWsId - 1) / container.workspaceCount) * container.workspaceCount
         property real blur: onSpecial ? 1 : 0
-        readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
+        readonly property bool isHorizontal: root.bar.isHorizontal
         // Force QML dependency tracker to bind to windowList correctly
         property var kwinWindowList: KWinActiveWindowBridge.windowList
 

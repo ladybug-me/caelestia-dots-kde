@@ -15,6 +15,7 @@ Item {
     id: root
 
     required property ShellScreen screen
+    Config.screen: screen.name
     required property DrawerVisibilities visibilities
     required property BarPopouts.Wrapper popouts
     required property bool fullscreen
@@ -73,7 +74,7 @@ Item {
     readonly property int visualThickness: !disabled && (Config.bar.persistent || visibilities.bar) ? contentWidth : Config.border.thickness
     readonly property bool shouldBeVisible: !fullscreen && !disabled && !visibilities.overview && (keptOpen || visibilities.bar || isHovered)
     property bool isHovered
-    readonly property bool isHorizontal: Config.bar.position === "top" || Config.bar.position === "bottom"
+    readonly property bool isHorizontal: root.position === "top" || root.position === "bottom"
     readonly property int clampedThickness: Math.max(Config.border.minThickness, isHorizontal ? implicitHeight : implicitWidth)
     readonly property int clampedWidth: isHorizontal ? root.width : clampedThickness
     readonly property int clampedHeight: isHorizontal ? clampedThickness : root.height
@@ -165,7 +166,7 @@ Item {
         states: [
             State {
                 name: "left"
-                when: Config.bar.position === "left"
+                when: root.position === "left"
 
                 AnchorChanges {
                     target: content
@@ -177,7 +178,7 @@ Item {
             },
             State {
                 name: "right"
-                when: Config.bar.position === "right"
+                when: root.position === "right"
 
                 AnchorChanges {
                     target: content
@@ -189,7 +190,7 @@ Item {
             },
             State {
                 name: "top"
-                when: Config.bar.position === "top"
+                when: root.position === "top"
 
                 AnchorChanges {
                     target: content
@@ -201,7 +202,7 @@ Item {
             },
             State {
                 name: "bottom"
-                when: Config.bar.position === "bottom"
+                when: root.position === "bottom"
 
                 AnchorChanges {
                     target: content
