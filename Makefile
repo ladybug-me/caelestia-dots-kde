@@ -62,7 +62,7 @@ test-bash: ## Run the bash helper and step-unit tests
 test-repo: ## Check cross-cutting invariants (paths, versions, workflows, submodules)
 	$(PYTHON) $(CI_DIR)/test_repo_integrity.py
 
-validate: ## Validate installer/menu.json and installer/theme.json
+validate: ## Validate the installer's menu.json and theme.json
 	$(PYTHON) $(CI_DIR)/validate_json_configs.py
 
 hygiene: ## Check file sizes, merge markers, trailing whitespace, line endings

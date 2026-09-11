@@ -84,8 +84,14 @@ kwriteconfig6 --file plasmashellrc --group "Shell" --key "ShellPackage" "caelest
 
 ```bash
 cmake -B installer/build -S installer/tui && cmake --build installer/build   # Compile
-./installer/build/caelestia-install                                         # Run (use with care!)
+./installer/build/caelestia-install "$PWD"    # Run from the repo root (use with care!)
 ```
+
+The installer reads `installer/data/theme.json` and `installer/data/menu.json`
+relative to its bundle directory, which is the executable's own directory unless
+you pass one as the first argument. That is why the run above passes `$PWD`;
+`setup.sh` copies the binary to the repo root instead, where no argument is
+needed.
 
 ### For translation changes
 
