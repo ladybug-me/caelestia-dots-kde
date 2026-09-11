@@ -125,6 +125,7 @@ test_install_cava_sdk_fetches_and_extracts_for_arch() {
     tmp="$(new_tmpdir)"
     stub="$tmp/bin"
     log="$tmp/calls.log"
+    stub_bin "$stub" uname "echo x86_64"
     recording_stub "$stub" curl "$log"
     recording_stub "$stub" tar "$log"
     stub_bin "$stub" caelestia_sudo "printf 'caelestia_sudo %s\n' \"\$*\" >> '$log'
@@ -138,11 +139,30 @@ test_install_cava_sdk_fetches_and_extracts_for_arch() {
     assert_contains "$(calls_to "$log" tar)" "--exclude=bin" "tar must pass --exclude=bin"
 }
 
+test_install_cava_sdk_fetches_for_aarch64() {
+    local tmp stub log status
+    tmp="$(new_tmpdir)"
+    stub="$tmp/bin"
+    log="$tmp/calls.log"
+    stub_bin "$stub" uname "echo aarch64"
+    recording_stub "$stub" curl "$log"
+    recording_stub "$stub" tar "$log"
+    stub_bin "$stub" caelestia_sudo "printf 'caelestia_sudo %s\n' \"\$*\" >> '$log'
+\"\$@\""
+
+    with_path "$stub" "" install_cava_sdk arch
+    status=$?
+
+    assert_status 0 "$status" "installing the cava sdk for aarch64 arch should succeed"
+    assert_contains "$(calls_to "$log" curl)" "cava-aarch64-arch.tar.gz" "curl must fetch the aarch64 arch archive"
+}
+
 test_install_cava_sdk_maps_debian_to_ubuntu() {
     local tmp stub log status
     tmp="$(new_tmpdir)"
     stub="$tmp/bin"
     log="$tmp/calls.log"
+    stub_bin "$stub" uname "echo x86_64"
     recording_stub "$stub" curl "$log"
     recording_stub "$stub" tar "$log"
     stub_bin "$stub" caelestia_sudo "printf 'caelestia_sudo %s\n' \"\$*\" >> '$log'

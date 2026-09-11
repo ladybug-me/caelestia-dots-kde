@@ -60,6 +60,11 @@ install_linguist_tools() {
 #
 # Returns 0 on success, 1 on failure.
 install_cava_sdk() {
+    local arch="${CAELESTIA_TARGET_ARCH:-}"
+    if [[ -z "$arch" ]]; then
+        arch="$(uname -m 2>/dev/null || echo "x86_64")"
+    fi
+
     local distro="${1:-${BASE_DISTRO:-}}"
     if [[ -z "$distro" ]]; then
         if command -v pacman >/dev/null 2>&1; then
@@ -79,7 +84,7 @@ install_cava_sdk() {
         *) return 1 ;;
     esac
 
-    local url="https://github.com/ladybug-me/cava/releases/download/continuous/cava-x86_64-${asset_suffix}.tar.gz"
+    local url="https://github.com/ladybug-me/cava/releases/download/continuous/cava-${arch}-${asset_suffix}.tar.gz"
     local tar_cmd=(tar -C /usr -xzf - --exclude='bin')
     if [[ "$EUID" -ne 0 ]]; then
         if command -v caelestia_sudo >/dev/null 2>&1; then
