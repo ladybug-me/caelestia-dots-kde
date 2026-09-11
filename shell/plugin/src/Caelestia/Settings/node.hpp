@@ -26,7 +26,7 @@ public:
     void detachFallback(); // Recursive, unlinks this and its children from the fallback layer
 
     [[nodiscard]] Q_INVOKABLE bool isGlobalOnly() const;
-    [[nodiscard]] bool isOverride(const QString& key) const;
+    [[nodiscard]] Q_INVOKABLE bool isOverride(const QString& key) const;
     [[nodiscard]] const QSet<QString>& overrides() const;
     [[nodiscard]] bool hasContent() const; // Recursive
 

@@ -53,7 +53,7 @@ QtObject {
             description: qsTr("Dashboard, taskbar, launcher, sidebar"),
             category: "personalization",
             settings: [
-                { label: qsTr("Taskbar"), pagePath: "panels/TaskbarPanel.qml", subPageIdx: 2 },
+                { label: qsTr("Taskbar"), pagePath: "panels/TaskbarPanel.qml", keywords: ["per-monitor", "position", "screen"], subPageIdx: 2 },
                 { label: qsTr("Dashboard"), pagePath: "panels/DashboardPanel.qml", subPageIdx: 1 },
                 { label: qsTr("Launcher"), pagePath: "panels/LauncherPanel.qml", subPageIdx: 3 },
                 { label: qsTr("Sidebar"), pagePath: "panels/SidebarPanel.qml", subPageIdx: 4 },
