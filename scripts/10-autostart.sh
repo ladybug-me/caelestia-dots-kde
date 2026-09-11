@@ -157,12 +157,18 @@ if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
 [Unit]
 Description=KDE Material You Colors
 PartOf=graphical-session.target
-After=graphical-session.target
+After=graphical-session.target plasma-plasmashell.service
 
 [Service]
 Type=simple
 ExecStart=$KMYC_PATH
-Restart=on-failure
+# KMY reads the wallpaper and the current colour scheme out of the running
+# Plasma session. Started before plasmashell exists it can see neither and
+# applies a built-in default, which is what used to leave the desktop on the
+# wrong colours until the service was restarted by hand once the session had
+# settled. Restart=always, not on-failure, because it can also give up early
+# and exit cleanly.
+Restart=always
 RestartSec=3
 
 [Install]

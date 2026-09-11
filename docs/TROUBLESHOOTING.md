@@ -218,11 +218,25 @@ avoids Caelestia's use of the protocol entirely.
 | Colors not updating with wallpaper | Check service: `systemctl status --user kde-material-you-colors.service` |
 | Service failed to start | On Fedora, installed via `uv`. If `uv` isn't in PATH at login, the service fails. |
 | Old schemes accumulating | The installer removes old `MaterialYou*.colors`, but multiple restarts can recreate them. |
+| Colours come back as the built-in default (Mocha) | The CLI derives dynamic colours from the wallpaper it was last told about. When it has none it writes nothing, the shell keeps its own default palette and pushes that into KMY, so the whole desktop follows. The shell now re-derives from the wallpaper it is showing at every start. |
+| The service has to be restarted after every login | It was started with the session, before plasmashell existed, so it could read neither the wallpaper nor the current scheme. The unit is now ordered after `plasma-plasmashell.service` and restarts on a clean early exit too. |
 
 **Manual restart:**
 ```bash
 systemctl --user restart kde-material-you-colors.service
 journalctl --user -u kde-material-you-colors.service -n 50
+```
+
+An existing install keeps the old unit until the step that writes it runs again,
+so re-run `scripts/10-autostart.sh` (or the installer/update) once to pick up the
+ordering and the restart policy.
+
+The shell re-derives the scheme from the wallpaper at every start, so a palette
+stuck on the built-in default corrects itself on the next shell restart. To do it
+without restarting the shell:
+
+```bash
+~/.config/quickshell/caelestia/scripts/reseed-scheme.sh
 ```
 
 ### 3.5 Screen Recording Issues

@@ -562,6 +562,78 @@ class ShellSurfaceTests(unittest.TestCase):
             "the frame loop must not run without values to advance",
         )
 
+    def test_the_material_you_service_waits_for_the_desktop(self) -> None:
+        """KMY reads the wallpaper and the current scheme out of the running Plasma session.
+
+        Started before plasmashell exists it can see neither and applies a
+        built-in default, which leaves the whole desktop on the wrong colours
+        until the service is restarted by hand once the session has settled.
+        Ordering against the plasmashell unit is what removes that restart, and
+        Restart=always covers KMY giving up early and exiting cleanly, which
+        on-failure does not.
+        """
+        script = (ROOT / "scripts" / "10-autostart.sh").read_text(encoding="utf-8")
+        marker = script.find('kde-material-you-colors.service" << EOF')
+        self.assertNotEqual(marker, -1, "the KMY unit must still be written by this step")
+        body_at = script.find("\n", marker) + 1
+        unit = script[body_at:script.find("\nEOF\n", body_at)]
+        self.assertTrue(unit.strip(), "the unit body should not be empty")
+
+        self.assertIn(
+            "After=graphical-session.target plasma-plasmashell.service",
+            unit,
+            "the service has to come up after plasmashell, not merely with the session",
+        )
+        self.assertIn(
+            "Restart=always",
+            unit,
+            "on-failure misses a clean early exit, which is what left the service inactive",
+        )
+        self.assertIn(
+            "PartOf=graphical-session.target",
+            unit,
+            "it still has to stop when the session ends",
+        )
+
+    def test_a_startup_reseed_takes_the_scheme_from_the_wallpaper(self) -> None:
+        """The CLI derives dynamic colours from the wallpaper it was last told about.
+
+        path.txt is written directly by the deploy script and by the wallpaper
+        picker's still-frame path, so the CLI can be left without a wallpaper.
+        `scheme set -n dynamic` then writes nothing, the palette stays on the
+        CLI's built-in default, and the shell pushes that default into
+        kde-material-you-colors, which is what puts the whole desktop on it
+        until something re-derives. Deriving once per start from the wallpaper
+        on screen fixes it at the source; leaving a scheme the user picked alone
+        is what keeps this from undoing their choice.
+        """
+        colours = (ROOT / "shell" / "services" / "Colours.qml").read_text(encoding="utf-8")
+        self.assertIn(
+            'Quickshell.shellPath("scripts/reseed-scheme.sh")',
+            colours,
+            "the shell has to re-derive its scheme at start, not only when the user picks one",
+        )
+        self.assertIn(
+            "reseedTimer.start()",
+            colours,
+            "the reseed has to run on its own at startup",
+        )
+
+        script_path = ROOT / "shell" / "scripts" / "reseed-scheme.sh"
+        self.assertTrue(script_path.is_file(), "reseed-scheme.sh must exist to be run")
+        script = script_path.read_text(encoding="utf-8")
+
+        self.assertIn(
+            '"$CURRENT" != "dynamic"',
+            script,
+            "a scheme the user picked must not be overwritten, even by a fix for this",
+        )
+        self.assertIn(
+            "caelestia wallpaper -f",
+            script,
+            "the CLI needs the wallpaper before it can derive dynamic colours",
+        )
+
 
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
