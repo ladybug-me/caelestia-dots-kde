@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QMap>
 #include <QObject>
 #include <QQmlEngine>
 #include <QVariantMap>
@@ -100,8 +101,7 @@ signals:
 
 private:
     void setKWinConfig(const QString& key, const QString& value);
-    QString getKWinConfig(const QString& key, const QString& defaultValue = "");
-    bool isLayoutEnabled(const QString& key, int defaultOrder = -1);
+    void setKWinConfig(const QMap<QString, QString>& values);
     void setLayoutEnabled(const QString& key, bool enabled);
 
     int m_screenGapBetween = 0;
