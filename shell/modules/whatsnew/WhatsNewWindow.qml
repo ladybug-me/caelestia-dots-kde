@@ -115,28 +115,28 @@ FloatingWindow {
 
         root.loaded = true;
         if (root.unreadCount > 0)
-            root.show(true);
+            root.reveal(true);
         else
             root.applyVisibility();
     }
 
-    function show(animate: bool): void {
+    function reveal(animate: bool): void {
         if (!animate)
             root.hasAnimated = true;
         root.shown = true;
         root.applyVisibility();
     }
 
-    function close(): void {
+    function dismiss(): void {
         root.shown = false;
         root.applyVisibility();
     }
 
     function toggle(): void {
         if (root.visible)
-            root.close();
+            root.dismiss();
         else
-            root.show(false);
+            root.reveal(false);
     }
 
     function applyVisibility(): void {
@@ -226,7 +226,7 @@ FloatingWindow {
 
     IpcHandler {
         function open(): void {
-            root.show(false);
+            root.reveal(false);
         }
 
         function toggle(): void {
@@ -289,7 +289,7 @@ FloatingWindow {
                 anchors.fill: parent
                 state: root.hasAnimated ? "loaded" : "startup"
 
-                Keys.onEscapePressed: root.close()
+                Keys.onEscapePressed: root.dismiss()
 
                 Timer {
                     id: startupTimer
