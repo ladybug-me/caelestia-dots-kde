@@ -205,16 +205,26 @@ fi
 # Initialize submodules
 if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     info "Initializing all submodule..."
-    # Prune any submodule configured locally that was removed from .gitmodules
-    while IFS= read -r -d '' key; do
-        submod="${key#submodule.}"
-        submod="${submod%.url}"
-        if ! git -C "$UPD_DIR/repo" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
-            git -C "$UPD_DIR/repo" submodule deinit -f "$submod" >/dev/null 2>&1 || true
-            git -C "$UPD_DIR/repo" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
-            rm -rf "$UPD_DIR/repo/.git/modules/${submod}" 2>/dev/null || true
-        fi
-    done < <(git -C "$UPD_DIR/repo" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+    # shellcheck source=/dev/null
+    if [[ -f "$UPD_DIR/repo/scripts/lib/submodules.sh" ]]; then
+        source "$UPD_DIR/repo/scripts/lib/submodules.sh"
+    fi
+    if declare -f prune_removed_submodules >/dev/null 2>&1; then
+        prune_removed_submodules "$UPD_DIR/repo"
+    else
+        # Fallback: inline prune (pre-lib versions of the bundle).
+        while IFS= read -r -d '' key; do
+            submod="${key#submodule.}"
+            submod="${submod%.url}"
+            if ! git -C "$UPD_DIR/repo" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
+                wt_path=$(git -C "$UPD_DIR/repo" config --get "submodule.${submod}.path" 2>/dev/null || echo "$submod")
+                git -C "$UPD_DIR/repo" submodule deinit -f "$submod" >/dev/null 2>&1 || true
+                git -C "$UPD_DIR/repo" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
+                rm -rf "$UPD_DIR/repo/.git/modules/${submod}"
+                rm -rf "$UPD_DIR/repo/${wt_path}"
+            fi
+        done < <(git -C "$UPD_DIR/repo" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+    fi
     git -C "$UPD_DIR/repo" submodule sync --recursive >/dev/null 2>&1 || true
     git -C "$UPD_DIR/repo" submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
 fi

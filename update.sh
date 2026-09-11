@@ -9,6 +9,7 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/install-fs.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/submodules.sh"
 
 section() {
     local title="$1"
@@ -96,16 +97,7 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
 
     if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
         info "Syncing submodules..."
-        # Prune any submodule configured locally that was removed from .gitmodules
-        while IFS= read -r -d '' key; do
-            submod="${key#submodule.}"
-            submod="${submod%.url}"
-            if ! git -C "$BUNDLE_DIR" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
-                git -C "$BUNDLE_DIR" submodule deinit -f "$submod" >/dev/null 2>&1 || true
-                git -C "$BUNDLE_DIR" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
-                rm -rf "$BUNDLE_DIR/.git/modules/${submod}" 2>/dev/null || true
-            fi
-        done < <(git -C "$BUNDLE_DIR" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+        prune_removed_submodules "$BUNDLE_DIR"
         git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
         git -C "$BUNDLE_DIR" submodule update --init --recursive || \
             die "Failed to initialize submodules"
@@ -167,13 +159,32 @@ info "System tweaks (OSD, desktops, CLI patches) have been re-applied to keep KD
 echo
 echo "Restarting bridge and shell to apply changes..."
 
-RESTART_SCRIPT=$BUNDLE_DIR/shell/scripts/restart_shell.sh
-
-if [[ -x "$RESTART_SCRIPT" ]]; then
-    bash "$RESTART_SCRIPT"
-    echo "Shell restarted successfully!"
+if command -v caelestia >/dev/null 2>&1; then
+    CAELESTIA_BIN=$(command -v caelestia)
+elif [[ -x "$HOME/.local/bin/caelestia" ]]; then
+    CAELESTIA_BIN="$HOME/.local/bin/caelestia"
+elif [[ -x "/usr/local/bin/caelestia" ]]; then
+    CAELESTIA_BIN="/usr/local/bin/caelestia"
+elif [[ -x "/usr/bin/caelestia" ]]; then
+    CAELESTIA_BIN="/usr/bin/caelestia"
 else
-    warn "Restart script not found. Please restart the shell manually."
+    CAELESTIA_BIN="caelestia"
+fi
+
+# Resolve a reliable way to talk to the running shell instance.
+# Prefer the (now-patched) CLI; fall back to the path-based IPC wrapper.
+SHELL_IPC=""
+if [[ -x "$HOME/.local/bin/caelestia-shell-ipc" ]]; then
+    SHELL_IPC="$HOME/.local/bin/caelestia-shell-ipc"
+fi
+
+# Kill the running shell – try CLI first, then the IPC wrapper, then pkill.
+if "$CAELESTIA_BIN" shell -k 2>/dev/null; then
+    : # CLI succeeded
+elif [[ -n "$SHELL_IPC" ]] && "$SHELL_IPC" quit 2>/dev/null; then
+    : # IPC wrapper succeeded
+else
+    pkill -f "quickshell.*caelestia/shell.qml" 2>/dev/null || true
 fi
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
