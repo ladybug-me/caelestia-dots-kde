@@ -16,69 +16,206 @@ import qs.services
 import qs.utils
 import qs.modules.nexus.common
 
+// The release notes window. It opens by itself at startup while there is
+// anything the user has not acknowledged, and opens again on demand from the
+// whatsnew shortcut or the launcher. Acknowledgement is recorded per entry,
+// against the entry's revision, in the shell's state directory; opening an
+// entry acknowledges it, closing the window does not.
 FloatingWindow {
     id: root
 
-    property var features: []
-    property var unseenFeatures: []
-    property int expandedIndex: -1
+    readonly property var entries: entriesModel.list
+    readonly property var history: entriesModel.list.slice().sort((a, b) => b.revision - a.revision)
+    readonly property int unreadCount: entriesModel.list.filter(entry => !root.acknowledged.includes(entry.revision)).length
+
+    // Ids used by the pre-revision seen_features.txt. Delete once no user can
+    // still have that file.
+    readonly property var legacyEntryIds: ({
+        "welcome_widget_intro#491": "welcome_intro",
+        "update_indicator_9b5fa56": "update_indicator",
+        "permanent_shell_#495": "permanent_shell",
+        "text_recognition#512": "text_recognition",
+        "window_region_selector#516": "window_region_selector",
+        "plugin_system#546": "plugin_system",
+        "lockscreen-greeter#600": "lockscreen_greeter",
+        "greeter-addons#682": "greeter_addons"
+    })
+
+    property var acknowledged: []
+    property var legacyIds: []
+    property bool stateResolved: false
+    property bool legacyResolved: false
+    property bool resolved: false
     property bool loaded: false
+    property bool shown: false
     property bool hasAnimated: false
 
-    function isVideo(url) {
+    function isUnread(entry: var): bool {
+        return !root.acknowledged.includes(entry.revision);
+    }
+
+    function isVideo(url: var): bool {
         if (!url) return false;
-        let lower = url.toLowerCase();
+        const lower = String(url).toLowerCase();
         return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".avi") || lower.endsWith(".mov");
     }
 
-    // Append the given feature ids to the seen state file. Ids are passed as
-    // argv (never interpolated into the script) so ids containing '#' or
-    // quotes cannot break the shell command or be interpreted as comments.
-    function persistSeen(ids: var): void {
-        if (!ids || ids.length === 0) return;
-        let args = [
-            "bash", "-c",
-            "mkdir -p ~/.local/share/caelestia/state && for id in \"$@\"; do echo \"$id\"; done >> ~/.local/share/caelestia/state/seen_features.txt",
-            "mark-seen"
-        ];
-        for (let i = 0; i < ids.length; ++i)
-            args.push(String(ids[i]));
-        writeStateProcess.command = args;
-        writeStateProcess.running = true;
+    function acknowledge(revisions: var): void {
+        const next = root.acknowledged.slice();
+        for (const revision of revisions)
+            if (!next.includes(revision))
+                next.push(revision);
+        if (next.length === root.acknowledged.length)
+            return;
+        root.acknowledged = next;
+        root.saveState();
+    }
+
+    function acknowledgeAll(): void {
+        root.acknowledge(root.entries.map(entry => entry.revision));
+    }
+
+    function open(entry: var): void {
+        root.acknowledge([entry.revision]);
+        stackView.push(featurePage, { "featureData": entry });
+    }
+
+    function saveState(): void {
+        stateFile.setText(JSON.stringify({
+            "schemaVersion": 1,
+            "acknowledged": root.acknowledged
+        }));
+    }
+
+    // The old file recorded one seen id per line; translate the ids we still
+    // know about into the revisions they became.
+    function importLegacyIds(ids: var): var {
+        const revisions = [];
+        for (const legacyId of ids) {
+            const entryId = root.legacyEntryIds[legacyId];
+            if (!entryId)
+                continue;
+            const entry = root.entries.find(candidate => candidate.id === entryId);
+            if (entry && !revisions.includes(entry.revision))
+                revisions.push(entry.revision);
+        }
+        return revisions;
+    }
+
+    // The two state files load independently, and only once both are known can
+    // the one-time import be decided.
+    function resolveState(): void {
+        if (root.resolved || !root.stateResolved || !root.legacyResolved)
+            return;
+        root.resolved = true;
+
+        if (stateFile.missing)
+            root.acknowledged = root.importLegacyIds(root.legacyIds);
+
+        root.loaded = true;
+        if (root.unreadCount > 0)
+            root.show(true);
+        else
+            root.applyVisibility();
+    }
+
+    function show(animate: bool): void {
+        if (!animate)
+            root.hasAnimated = true;
+        root.shown = true;
+        root.applyVisibility();
+    }
+
+    function close(): void {
+        root.shown = false;
+        root.applyVisibility();
+    }
+
+    function applyVisibility(): void {
+        root.visible = root.loaded && root.shown;
     }
 
     color: Colours.tPalette.m3surface
     surfaceFormat.opaque: false
     title: qsTr("What's New in Caelestia")
 
-    visible: loaded && unseenFeatures.length > 0
-
-    // Dismissing the window (close button/Esc rather than "got it"/"done
-    // all") still has to mark the remaining features as seen, otherwise the
-    // popup comes back on every shell restart.
-    onVisibleChanged: {
-        if (!visible && loaded && unseenFeatures.length > 0) {
-            persistSeen(unseenFeatures.map(f => f.id));
-            unseenFeatures = [];
-        }
-    }
-
     implicitWidth: 680 // Not to be changed
     implicitHeight: 480 // Text and image proportions were set according to these numbers
     minimumSize.width: 680
     minimumSize.height: 480
+
+    onVisibleChanged: {
+        // A window-manager close is a dismissal, not an acknowledgement.
+        if (!root.visible && root.shown)
+            root.shown = false;
+    }
 
     BackgroundEffect.blurRegion: Region {
         Region { x: -10; y: -10; width: 1; height: 1 } // Prevent full-window blur fallback when disabled
         Region { item: (GlobalConfig.appearance.transparency.enabled && GlobalConfig.appearance.blur) ? container : null }
     }
 
+    Entries {
+        id: entriesModel
+    }
+
+    FileView {
+        id: stateFile
+
+        property bool missing: false
+
+        printErrors: false
+        path: `${Paths.state}/whatsnew.json`
+
+        onLoaded: {
+            try {
+                const data = JSON.parse(text());
+                root.acknowledged = Array.isArray(data.acknowledged) ? data.acknowledged : [];
+            } catch (e) {
+                console.warn("WhatsNewWindow: ignoring unreadable state: " + e);
+                root.acknowledged = [];
+            }
+            root.stateResolved = true;
+            root.resolveState();
+        }
+
+        onLoadFailed: err => {
+            if (err !== FileViewError.FileNotFound)
+                console.warn("WhatsNewWindow: could not read state: " + err);
+            stateFile.missing = true;
+            root.stateResolved = true;
+            root.resolveState();
+        }
+    }
+
+    FileView {
+        id: legacyStateFile
+
+        printErrors: false
+        path: `${Paths.data}/state/seen_features.txt`
+
+        onLoaded: {
+            root.legacyIds = text().split("\n").map(line => line.trim()).filter(line => line.length > 0);
+            root.legacyResolved = true;
+            root.resolveState();
+        }
+
+        onLoadFailed: err => {
+            if (err !== FileViewError.FileNotFound)
+                console.warn("WhatsNewWindow: could not read the legacy seen list: " + err);
+            root.legacyResolved = true;
+            root.resolveState();
+        }
+    }
+
     Item {
         id: container
+
         anchors.fill: parent
 
         BlobGroup {
             id: blobGroup
+
             smoothing: Tokens.rounding.medium
             color: Colours.tPalette.m3surfaceContainerLow
         }
@@ -96,6 +233,7 @@ FloatingWindow {
 
         StackView {
             id: stackView
+
             anchors.fill: parent
             anchors.margins: Tokens.padding.large
             initialItem: homePage
@@ -114,33 +252,29 @@ FloatingWindow {
                 readonly property real startupBlockHeight: 90.38 + Tokens.spacing.large + titleText.implicitHeight
                 readonly property real startupBlockY: (homeRoot.height - startupBlockHeight) / 2 - 40
 
-                property bool isAnimatingState: false
+                function openCurrent(): void {
+                    const entry = root.history[featuresList.currentIndex];
+                    if (entry)
+                        root.open(entry);
+                }
 
                 anchors.fill: parent
-
                 state: root.hasAnimated ? "loaded" : "startup"
+
+                Keys.onEscapePressed: root.close()
 
                 Timer {
                     id: startupTimer
+
                     interval: 2300
-                    running: !root.hasAnimated
-                    onTriggered: {
-                        homeRoot.isAnimatingState = true
-                        root.hasAnimated = true
-                        homeRoot.state = "loaded"
-                        finishAnimTimer.start()
-                    }
-                }
+                    running: root.shown && !root.hasAnimated
 
-                Timer {
-                    id: finishAnimTimer
-                    interval: 850 // slightly longer than the 800ms animation
-                    onTriggered: homeRoot.isAnimatingState = false
+                    onTriggered: root.hasAnimated = true
                 }
-
 
                 Item {
                     id: logoItem
+
                     width: 128
                     height: 90.38
                     transformOrigin: Item.TopLeft
@@ -150,20 +284,24 @@ FloatingWindow {
 
                     AnimatedLogo {
                         id: logoAnim
+
                         anchors.fill: parent
                     }
                 }
 
                 StyledText {
                     id: titleText
-                    text: "What's New in Caelestia"
+
+                    text: qsTr("What's New in Caelestia")
                     font: Tokens.font.title.builders.large.weight(Font.Medium).build()
                     color: Colours.palette.m3onSurface
                     x: homeRoot.state === "startup" ? (homeRoot.width - implicitWidth) / 2 : logoItem.x + 64 + Tokens.spacing.medium
                     y: homeRoot.state === "startup" ? homeRoot.startupBlockY + 90.38 + Tokens.spacing.large : (46 - implicitHeight) / 2
                 }
+
                 StyledText {
                     id: startupVersionText
+
                     text: CUtils.version ? "v" + CUtils.version : ""
                     font: Tokens.font.body.builders.medium.weight(Font.Medium).build()
                     color: Colours.palette.m3onSurfaceVariant
@@ -173,9 +311,11 @@ FloatingWindow {
                     opacity: homeRoot.state === "startup" ? 1 : 0
                 }
 
-                // Features List
+                // Every entry ever shipped, newest first, with the ones the user
+                // has not opened marked as unread.
                 ListView {
                     id: featuresList
+
                     anchors.top: parent.top
                     anchors.topMargin: 46 + Tokens.spacing.large
                     anchors.left: parent.left
@@ -185,9 +325,18 @@ FloatingWindow {
                     opacity: homeRoot.state === "startup" ? 0 : 1
                     clip: true
                     spacing: Tokens.spacing.medium
-                    model: root.unseenFeatures
+                    model: root.history
+                    keyNavigationEnabled: true
+                    currentIndex: -1
+                    focus: stackView.depth === 1
 
-                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    onCurrentIndexChanged: {
+                        if (featuresList.currentIndex >= 0)
+                            featuresList.positionViewAtIndex(featuresList.currentIndex, ListView.Contain);
+                    }
+
+                    Keys.onReturnPressed: homeRoot.openCurrent()
+                    Keys.onEnterPressed: homeRoot.openCurrent()
 
                     footer: Item {
                         width: featuresList.width
@@ -205,7 +354,6 @@ FloatingWindow {
                     delegate: StyledRect {
                         id: delegateRect
 
-                        required property int index
                         required property var modelData
 
                         property var feature: modelData
@@ -213,27 +361,26 @@ FloatingWindow {
 
                         width: ListView.view.width
                         height: contentColumn.implicitHeight + Tokens.padding.large * 2
-
                         radius: Tokens.rounding.extraLarge
                         color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
+                        border.width: (featuresList.activeFocus && ListView.isCurrentItem) ? 2 : 0
+                        border.color: Colours.palette.m3primary
 
                         Behavior on color { CAnim {} }
 
                         StateLayer {
-                            id: stateLayer
                             anchors.fill: parent
                             topLeftRadius: parent.radius
                             topRightRadius: parent.radius
                             bottomLeftRadius: parent.radius
                             bottomRightRadius: parent.radius
 
-                            onClicked: {
-                                stackView.push(featurePage, { featureData: feature, currentIndex: index })
-                            }
+                            onClicked: root.open(feature)
                         }
 
                         ColumnLayout {
                             id: contentColumn
+
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.top: parent.top
@@ -259,6 +406,17 @@ FloatingWindow {
                                         fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                                         grade: 25
                                         fill: 1
+                                    }
+
+                                    // Unread marker
+                                    StyledRect {
+                                        anchors.top: parent.top
+                                        anchors.right: parent.right
+                                        width: 12
+                                        height: 12
+                                        radius: Tokens.rounding.full
+                                        color: Colours.palette.m3primary
+                                        visible: root.isUnread(feature)
                                     }
                                 }
 
@@ -295,28 +453,32 @@ FloatingWindow {
                             }
                         }
                     }
+
+                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                 }
 
                 Item {
                     id: fabContainer
+
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.margins: Tokens.spacing.large
                     width: 56
                     height: 56
-
                     opacity: homeRoot.state === "startup" ? 0 : 1
+                    visible: root.unreadCount > 0
 
                     Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
 
                     StyledRect {
                         id: markAllBtn
+
                         anchors.fill: parent
                         radius: Tokens.rounding.full
                         color: Colours.palette.m3primary
 
                         opacity: markAllMouse.pressed ? 0.85 : (markAllMouse.containsMouse ? 0.95 : 1.0)
-                        scale: markAllMouse.pressed ? 0.95 : (markAllMouse.containsMouse ? 1.05 : 1.0)
+                        scale: markAllMouse.pressed ? 0.95 : ((markAllMouse.containsMouse || markAllMouse.activeFocus) ? 1.05 : 1.0)
 
                         Behavior on opacity { CAnim { duration: 150 } }
                         Behavior on scale { CAnim { duration: 150 } }
@@ -330,13 +492,16 @@ FloatingWindow {
 
                         MouseArea {
                             id: markAllMouse
+
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                root.persistSeen(root.unseenFeatures.map(f => f.id))
-                                root.unseenFeatures = []
-                            }
+                            activeFocusOnTab: true
+
+                            onClicked: root.acknowledgeAll()
+
+                            Keys.onReturnPressed: root.acknowledgeAll()
+                            Keys.onSpacePressed: root.acknowledgeAll()
                         }
                     }
                 }
@@ -348,203 +513,153 @@ FloatingWindow {
 
             Item {
                 property var featureData
-                property int currentIndex: -1
                 property bool hasMedia: featureData && !!featureData.mediaUrl
+
+                focus: stackView.depth === 2
+
+                Keys.onEscapePressed: stackView.pop()
 
                 ColumnLayout {
                     anchors.fill: parent
                     spacing: Tokens.spacing.large
 
-                // Header with Back Button
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Tokens.spacing.medium
-
-                    StyledRect {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
-                        radius: Tokens.rounding.full
-                        color: stateLayer.containsMouse ? Colours.palette.m3surfaceVariant : "transparent"
-
-                        Behavior on color { CAnim {} }
-
-                        StateLayer {
-                            id: stateLayer
-                            anchors.fill: parent
-                            topLeftRadius: parent.radius
-                            topRightRadius: parent.radius
-                            bottomLeftRadius: parent.radius
-                            bottomRightRadius: parent.radius
-
-                            onClicked: stackView.pop()
-                        }
-
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: "arrow_back"
-                            color: Colours.palette.m3onSurface
-                            fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
-                        }
-                    }
-
-                    StyledText {
+                    // Header with Back Button
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: featureData ? featureData.title : ""
-                        font: Tokens.font.title.builders.large.weight(Font.Medium).build()
-                        color: Colours.palette.m3onSurface
-                        verticalAlignment: Text.AlignVCenter
-                        horizontalAlignment: Text.AlignHCenter
-                        elide: Text.ElideRight
-                    }
+                        spacing: Tokens.spacing.medium
 
-                    StyledRect {
-                        Layout.preferredWidth: 48
-                        Layout.preferredHeight: 48
-                        radius: Tokens.rounding.full
-                        color: gotItLayer.containsMouse ? Colours.palette.m3surfaceVariant : "transparent"
+                        StyledRect {
+                            Layout.preferredWidth: 48
+                            Layout.preferredHeight: 48
+                            radius: Tokens.rounding.full
+                            color: backLayer.containsMouse ? Colours.palette.m3surfaceVariant : "transparent"
 
-                        Behavior on color { CAnim {} }
+                            Behavior on color { CAnim {} }
 
-                        StateLayer {
-                            id: gotItLayer
-                            anchors.fill: parent
-                            topLeftRadius: parent.radius
-                            topRightRadius: parent.radius
-                            bottomLeftRadius: parent.radius
-                            bottomRightRadius: parent.radius
+                            StateLayer {
+                                id: backLayer
 
-                            onClicked: {
-                                let currentId = featureData.id
-                                root.persistSeen([currentId])
+                                anchors.fill: parent
+                                topLeftRadius: parent.radius
+                                topRightRadius: parent.radius
+                                bottomLeftRadius: parent.radius
+                                bottomRightRadius: parent.radius
 
-                                stackView.pop()
+                                onClicked: stackView.pop()
+                            }
 
-                                let newUnseen = root.unseenFeatures.filter(f => f.id !== currentId)
-                                root.unseenFeatures = newUnseen
+                            MaterialIcon {
+                                anchors.centerIn: parent
+                                text: "arrow_back"
+                                color: Colours.palette.m3onSurface
+                                fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                             }
                         }
 
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: "check"
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: featureData ? featureData.title : ""
+                            font: Tokens.font.title.builders.large.weight(Font.Medium).build()
                             color: Colours.palette.m3onSurface
-                            fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
+                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                        }
+
+                        // Keeps the title centred against the back button
+                        Item {
+                            Layout.preferredWidth: 48
+                            Layout.preferredHeight: 48
+                        }
+                    }
+
+                    // Expanded Content
+                    ScrollView {
+                        id: expandedScrollView
+
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentWidth: availableWidth
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        clip: true
+
+                        ColumnLayout {
+                            width: expandedScrollView.availableWidth
+                            spacing: Tokens.spacing.large
+
+                            // Media Container
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 280
+                                visible: hasMedia
+
+                                StyledRect {
+                                    anchors.fill: parent
+                                    radius: Tokens.rounding.small
+                                    color: Colours.palette.m3surface
+                                    opacity: 0.5
+                                    visible: {
+                                        if (!featureData) return false;
+                                        if (featureData.mediaTransparent) return false;
+                                        if (featureData.mediaUrl) {
+                                            const url = featureData.mediaUrl.toLowerCase();
+                                            if (url.endsWith(".png") || url.endsWith(".svg") || url.endsWith(".gif"))
+                                                return false;
+                                        }
+                                        return true;
+                                    }
+                                }
+
+                                AnimatedImage {
+                                    anchors.fill: parent
+                                    anchors.margins: Tokens.padding.small
+                                    source: hasMedia ? entriesModel.mediaSource(featureData) : ""
+                                    visible: hasMedia && !root.isVideo(featureData.mediaUrl)
+                                    fillMode: Image.PreserveAspectFit
+                                    playing: visible
+                                }
+
+                                VideoOutput {
+                                    id: vidOut
+
+                                    anchors.fill: parent
+                                    anchors.margins: Tokens.padding.small
+                                    visible: hasMedia && root.isVideo(featureData.mediaUrl)
+                                    fillMode: VideoOutput.PreserveAspectFit
+                                }
+
+                                AudioOutput {
+                                    id: aOut
+
+                                    muted: true
+                                }
+
+                                MediaPlayer {
+                                    videoOutput: vidOut
+                                    audioOutput: aOut
+                                    source: hasMedia ? entriesModel.mediaSource(featureData) : ""
+                                    loops: MediaPlayer.Infinite
+
+                                    Component.onCompleted: {
+                                        if (hasMedia && root.isVideo(featureData.mediaUrl))
+                                            play();
+                                    }
+                                }
+                            }
+
+                            // Description Full
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: featureData ? featureData.description : ""
+                                font: Tokens.font.body.large
+                                color: Colours.palette.m3onSurfaceVariant
+                                wrapMode: Text.WordWrap
+                                horizontalAlignment: Text.AlignHCenter
+                            }
                         }
                     }
                 }
-
-                // Expanded Content
-                ScrollView {
-                    id: expandedScrollView
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    contentWidth: availableWidth
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    clip: true
-
-                    ColumnLayout {
-                        width: expandedScrollView.availableWidth
-                        spacing: Tokens.spacing.large
-
-                        // Media Container
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 280
-                            visible: hasMedia
-
-                        StyledRect {
-                            anchors.fill: parent
-                            radius: Tokens.rounding.small
-                            color: Colours.palette.m3surface
-                            opacity: 0.5
-                            visible: {
-                                if (!featureData) return false;
-                                if (featureData.mediaTransparent) return false;
-                                if (featureData.mediaUrl) {
-                                    let url = featureData.mediaUrl.toLowerCase();
-                                    if (url.endsWith(".png") || url.endsWith(".svg") || url.endsWith(".gif")) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            }
-                        }
-
-                        AnimatedImage {
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.small
-                            source: hasMedia ? entries.mediaSource(featureData) : ""
-                            visible: hasMedia && !root.isVideo(featureData.mediaUrl)
-                            fillMode: Image.PreserveAspectFit
-                            playing: visible
-                        }
-
-                        VideoOutput {
-                            id: vidOut
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.small
-                            visible: hasMedia && root.isVideo(featureData.mediaUrl)
-                            fillMode: VideoOutput.PreserveAspectFit
-                        }
-
-                        AudioOutput {
-                            id: aOut
-                            muted: true
-                        }
-
-                        MediaPlayer {
-                            videoOutput: vidOut
-                            audioOutput: aOut
-                            source: hasMedia ? entries.mediaSource(featureData) : ""
-                            loops: MediaPlayer.Infinite
-
-                            Component.onCompleted: {
-                                if (hasMedia && root.isVideo(featureData.mediaUrl)) {
-                                    play()
-                                }
-                            }
-                        }
-                    }
-
-                    // Description Full
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: featureData ? featureData.description : ""
-                        font: Tokens.font.body.large
-                        color: Colours.palette.m3onSurfaceVariant
-                        wrapMode: Text.WordWrap
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                    } // End of inner ColumnLayout
-                } // End of ScrollView
-            } // End of outer ColumnLayout
-        } // End of root Item
-    } // End of Component
-    } // End Container Item
-    Entries {
-        id: entries
-    }
-
-    Process {
-        id: readProcess
-        command: ["bash", "-c", "mkdir -p ~/.local/share/caelestia/state && touch ~/.local/share/caelestia/state/seen_features.txt && cat ~/.local/share/caelestia/state/seen_features.txt"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const seen = text.split("\n").map(s => s.trim()).filter(s => s.length > 0);
-
-                root.features = entries.list
-                root.unseenFeatures = entries.list.filter(f => !seen.includes(f.id))
-                root.loaded = true
             }
         }
-    }
-
-    Process {
-        id: writeStateProcess
-        command: []
-    }
-
-    Component.onCompleted: {
-        readProcess.running = true
     }
 }
