@@ -242,6 +242,44 @@ The screenshot tool uses `spectacle` (KDE's native screenshot utility) via the `
 - If `spectacle` isn't installed, screenshots silently fail
 - Full-screen screenshots save to `~/Pictures/Screenshots/` by default
 
+### 3.7 Screen Flashes and the Shell Stutters Every Second
+
+The screen flashes, colours look briefly wrong and the shell hangs for about a
+second, repeating on a rhythm of roughly one second.
+
+The cause is `kde-material-you-colors` getting stuck. It decides on every loop
+that the palette changed, applies an identical scheme again and spawns
+`plasma-apply-colorscheme` each time. Every apply rewrites `kdeglobals` and
+makes every window repaint, which is what the flash is. Restarting the service
+clears it, which is also why it disappears when you restart it by hand.
+
+The shell now watches for this and stops it at the source:
+
+- applies only count when the `plasma-apply-colorscheme` process was started by
+  `kde-material-you-colors`, so applying a scheme yourself is never mistaken for
+  the loop
+- eight applies inside ten seconds restarts the service
+- a second storm within ten minutes pauses it instead, through its own
+  `pause_mode`, and shows a toast
+
+To check by hand:
+
+```bash
+journalctl --user -u app-caelestiashell@autostart.service -n 50 | grep 'KMY guard'
+pgrep -af plasma-apply-colorscheme   # a new pid every second means the loop is back
+```
+
+If the service was paused, turn it back on once the loop has cleared. The
+switch is in Settings, under Appearance then Advanced Colors, or:
+
+```bash
+~/.config/quickshell/caelestia/scripts/sync-kmyc.sh --set pause_mode False
+systemctl --user restart kde-material-you-colors
+```
+
+Applying once when the wallpaper or theme changes is expected and does not
+trigger any of this.
+
 ---
 
 ## 4. Runtime Issues — Lock Screen
