@@ -162,6 +162,15 @@ Variants {
                     }
                 },
                 State {
+                    name: "center"
+
+                    AnchorChanges {
+                        target: clockLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
                     name: "middle-center"
 
                     AnchorChanges {
@@ -279,6 +288,15 @@ Variants {
                     }
                 },
                 State {
+                    name: "center"
+
+                    AnchorChanges {
+                        target: lyricsLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
                     name: "middle-center"
 
                     AnchorChanges {
@@ -319,6 +337,132 @@ Variants {
 
                     AnchorChanges {
                         target: lyricsLoader
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
+                    }
+                }
+            ]
+        }
+        Loader {
+            id: shapesLoader
+
+            readonly property int shapesBarZone: Visibilities.bars.get(win.modelData.name)?.visualThickness ?? (Tokens.sizes.bar.innerWidth + Math.max(Tokens.padding.small, Config.border.thickness))
+            readonly property int shapesBaseMargin: Tokens.padding.large * 2
+
+            asynchronous: true
+            active: Config.background.desktopShapes.enabled && !(GameMode.enabled && GlobalConfig.utilities.gameMode.disableDesktopLyrics)
+            anchors.margins: shapesBaseMargin
+            anchors.leftMargin: Config.bar.position === "left" ? shapesBaseMargin + shapesBarZone : shapesBaseMargin
+            anchors.rightMargin: Config.bar.position === "right" ? shapesBaseMargin + shapesBarZone : shapesBaseMargin
+            anchors.topMargin: Config.bar.position === "top" ? shapesBaseMargin + shapesBarZone : shapesBaseMargin
+            anchors.bottomMargin: Config.bar.position === "bottom" ? shapesBaseMargin + shapesBarZone : shapesBaseMargin
+            anchors.horizontalCenterOffset: {
+                if (Config.bar.position === "left") return shapesBarZone / 2;
+                if (Config.bar.position === "right") return -shapesBarZone / 2;
+                return 0;
+            }
+            anchors.verticalCenterOffset: {
+                if (Config.bar.position === "top") return shapesBarZone / 2;
+                if (Config.bar.position === "bottom") return -shapesBarZone / 2;
+                return 0;
+            }
+            sourceComponent: DesktopShapes {
+                screen: modelData
+                wallpaper: behindClock
+                absX: shapesLoader.x
+                absY: shapesLoader.y
+            }
+            transitions: Transition {
+                AnchorAnim {}
+            }
+            state: Config.background.desktopShapes.position
+            states: [
+                State {
+                    name: "top-left"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                    }
+                },
+                State {
+                    name: "top-center"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
+                    name: "top-right"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                    }
+                },
+                State {
+                    name: "middle-left"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                    }
+                },
+                State {
+                    name: "center"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
+                    name: "middle-center"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
+                    name: "middle-right"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.right
+                    }
+                },
+                State {
+                    name: "bottom-left"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.bottom: parent.bottom
+                        anchors.left: parent.left
+                    }
+                },
+                State {
+                    name: "bottom-center"
+
+                    AnchorChanges {
+                        target: shapesLoader
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                },
+                State {
+                    name: "bottom-right"
+
+                    AnchorChanges {
+                        target: shapesLoader
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                     }

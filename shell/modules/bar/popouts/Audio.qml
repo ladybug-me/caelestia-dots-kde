@@ -20,7 +20,7 @@ ColumnLayout {
     property real fontScale: 1.0
     property bool _isSidebarOpen: false
     property bool _outputsOpen: false
-    property int _streamCount: 0
+    property int _streamCount: Audio.appStreams.length
 
     readonly property bool hasOutputChoice: Audio.sinks.length > 1
     readonly property bool hasSources: Audio.sources.length > 0
@@ -55,11 +55,6 @@ ColumnLayout {
     width: Math.max(440 * scaleOffset, _isSidebarOpen ? (Tokens.sizes.sidebar.width * scaleOffset) - Tokens.padding.extraLargeIncreased : 0)
     implicitWidth: width
     spacing: Tokens.spacing.small * scaleOffset
-
-    Component.onCompleted: {
-        _streamCount = Audio.appStreams.length;
-        appsSection.expanded = _streamCount > 0;
-    }
 
     Connections {
         function onStreamsChanged(): void {
@@ -186,6 +181,7 @@ ColumnLayout {
 
                 Layout.fillWidth: true
                 Layout.preferredHeight: root._outputsOpen ? (outputColumn.implicitHeight + Tokens.spacing.extraSmall * root.scaleOffset) : 0
+                implicitHeight: Layout.preferredHeight
                 clip: true
 
                 Behavior on Layout.preferredHeight {
@@ -364,6 +360,7 @@ ColumnLayout {
 
         Layout.fillWidth: true
         title: qsTr("Now playing")
+        expanded: root.hasStreams
 
         StyledText {
             Layout.fillWidth: true
@@ -448,6 +445,7 @@ ColumnLayout {
 
             Layout.fillWidth: true
             Layout.preferredHeight: section.expanded ? (contentColumn.implicitHeight + Tokens.spacing.extraSmall * root.scaleOffset) : 0
+            implicitHeight: Layout.preferredHeight
             clip: true
 
             Behavior on Layout.preferredHeight {

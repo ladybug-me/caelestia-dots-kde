@@ -13,11 +13,10 @@ PageBase {
     title: qsTr("Desktop & Tiling")
 
     ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        
         property bool showTilingLogout: false
-
         property bool isTilingEnabled: Config.general.krohnkiteEnabled
+
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
@@ -123,7 +122,7 @@ PageBase {
         NavRow {
             icon: "extension"
             label: qsTr("Desktop Addons")
-            status: qsTr("Clock, Lyrics, Visualiser")
+            status: qsTr("Clock, Shapes, Lyrics, Visualiser")
             onClicked: root.nState.openSubPage(1)
         }
 
