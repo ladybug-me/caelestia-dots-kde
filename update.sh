@@ -171,8 +171,6 @@ else
     CAELESTIA_BIN="caelestia"
 fi
 
-# Resolve a reliable way to talk to the running shell instance.
-# Prefer the (now-patched) CLI; fall back to the path-based IPC wrapper.
 SHELL_IPC=""
 if [[ -x "$HOME/.local/bin/caelestia-shell-ipc" ]]; then
     SHELL_IPC="$HOME/.local/bin/caelestia-shell-ipc"
@@ -190,28 +188,38 @@ fi
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 SCHEME_FILE="$STATE_DIR/scheme.json"
 
-# Start the shell. The IPC wrapper is preferred over the CLI here because it
-# starts the shell as a transient user service: the CLI's `shell -d`
-# daemonizes, which points the shell's stdio at /dev/null, and every
-# application launched from the shell then inherits a stdout that goes
-# nowhere. Vesktop deadlocks when a call starts in exactly that state
-# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
-if [[ -n "$SHELL_IPC" ]]; then
+# Start the shell.
+
+QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+
+if systemctl --user restart app-caelestiashell@autostart.service 2>/dev/null; then
+    : # Restarted via the KDE-managed autostart unit — env identical to login startup
+elif [[ -n "$SHELL_IPC" ]]; then
     "$SHELL_IPC" start 2>/dev/null &
 elif command -v systemd-run >/dev/null 2>&1; then
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
-    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    # Pass the same environment variables that caelestia-autostart.sh sets so
+    # the shell starts in an identical state to a normal login.
     systemd-run --user --quiet --collect --unit=caelestia-shell \
         --description="Caelestia Shell" \
+        --setenv=QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia" \
+        --setenv=CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia" \
+        --setenv=QS_NO_RELOAD_POPUP=1 \
+        --setenv=QS_DROP_EXPENSIVE_FONTS=1 \
+        --setenv=QS_DISABLE_CRASH_HANDLER=1 \
+        --setenv=QSG_RENDER_LOOP=threaded \
+        --setenv=QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000 \
         -- "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" &
-elif command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
-    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
 else
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    # No systemd available — run directly; stdout stays on the terminal rather
+    # than going to /dev/null, which is the safest option without a service manager.
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"
     export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
-    stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+    export QS_NO_RELOAD_POPUP=1
+    export QS_DROP_EXPENSIVE_FONTS=1
+    export QS_DISABLE_CRASH_HANDLER=1
+    export QSG_RENDER_LOOP=threaded
+    export QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
+    stdbuf -oL -eL "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
 fi
 
 # The lock screen reads scheme.json before any user session exists, so it has
@@ -231,3 +239,4 @@ fi
 echo "Shell restarted successfully!"
 echo
 echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"
+echo "Check logs by running: $CAELESTIA_BIN shell -l"
