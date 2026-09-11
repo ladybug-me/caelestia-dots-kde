@@ -38,7 +38,7 @@ prune_removed_submodules() {
 
             # Remove the leftover worktree checkout (deinit only empties, never
             # deletes the directory).
-            rm -rf "$dir/${wt_path}"
+            rm -rf "${dir:?}/${wt_path:?}"
         fi
     done < <(git -C "$dir" config --name-only -z \
         --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
