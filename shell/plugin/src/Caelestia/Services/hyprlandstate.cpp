@@ -319,14 +319,21 @@ HyprlandState::SocketPtr HyprlandState::makeRequestJson(
 HyprlandState::SocketPtr HyprlandState::makeRequest(
     const QString& request, const std::function<void(bool, QByteArray)>& callback) {
     if (m_requestSocket.isEmpty()) {
-        // Hyprland-only data was asked for while the KDE bridge is in use. Say so
-        // once: the properties these requests fill stay empty, and a caller that
-        // assumed otherwise would read an empty list as "nothing is open".
+        // Hyprland-only data was asked for and there is no socket to answer it:
+        // either the KDE bridge is in use, or Hyprland was detected but its
+        // socket directory was missing. Say so once - the properties these
+        // requests fill stay empty, and a caller that assumed otherwise would
+        // read an empty list as "nothing is open".
         if (!m_warnedNoRequestSocket) {
             m_warnedNoRequestSocket = true;
-            qCWarning(lcHyprState) << "No Hyprland IPC socket (KDE bridge in use); ignoring Hyprland-only request"
-                                   << request
-                                   << "- workspaces, monitors and layers have no KDE source and stay empty.";
+            if (m_kdeFallback) {
+                qCWarning(lcHyprState) << "No Hyprland IPC socket (KDE bridge in use); ignoring Hyprland-only request"
+                                       << request
+                                       << "- workspaces, monitors and layers have no KDE source and stay empty.";
+            } else {
+                qCWarning(lcHyprState) << "Hyprland was detected but its socket directory is missing; ignoring"
+                                       << request << "- the Hyprland-backed properties stay empty.";
+            }
         }
         return SocketPtr();
     }
