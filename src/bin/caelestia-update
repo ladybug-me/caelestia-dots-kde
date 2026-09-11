@@ -212,18 +212,11 @@ if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     if declare -f prune_removed_submodules >/dev/null 2>&1; then
         prune_removed_submodules "$UPD_DIR/repo"
     else
-        # Fallback: inline prune (pre-lib versions of the bundle).
-        while IFS= read -r -d '' key; do
-            submod="${key#submodule.}"
-            submod="${submod%.url}"
-            if ! git -C "$UPD_DIR/repo" config --file .gitmodules --get "submodule.${submod}.url" >/dev/null 2>&1; then
-                wt_path=$(git -C "$UPD_DIR/repo" config --get "submodule.${submod}.path" 2>/dev/null || echo "$submod")
-                git -C "$UPD_DIR/repo" submodule deinit -f "$submod" >/dev/null 2>&1 || true
-                git -C "$UPD_DIR/repo" config --remove-section "submodule.${submod}" >/dev/null 2>&1 || true
-                rm -rf "$UPD_DIR/repo/.git/modules/${submod}"
-                rm -rf "$UPD_DIR/repo/${wt_path}"
-            fi
-        done < <(git -C "$UPD_DIR/repo" config --name-only -z --get-regexp '^submodule\..*\.url' 2>/dev/null || true)
+        # The helper ships in the same commit as this updater and the sparse
+        # checkout always pulls scripts/, so a lib that is missing here means
+        # the checkout is damaged. Say so instead of keeping a second copy of
+        # the prune that can drift away from the tested one.
+        warn "scripts/lib/submodules.sh is missing; skipping the submodule prune."
     fi
     git -C "$UPD_DIR/repo" submodule sync --recursive >/dev/null 2>&1 || true
     git -C "$UPD_DIR/repo" submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"

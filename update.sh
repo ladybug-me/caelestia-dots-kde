@@ -188,11 +188,16 @@ fi
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 SCHEME_FILE="$STATE_DIR/scheme.json"
 
-# Start the shell.
+# Start the shell. Prefer the shared wrapper so there is one definition of how
+# the shell is restarted - it carries the issue #402 rationale for never using
+# the CLI's `shell -d` (see shell/scripts/restart_shell.sh). It only knows how
+# to talk to the KDE-managed autostart unit, so the start chain below stays as
+# the fallback for a machine that does not have that unit.
 
 QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+RESTART_SCRIPT="$BUNDLE_DIR/shell/scripts/restart_shell.sh"
 
-if systemctl --user restart app-caelestiashell@autostart.service 2>/dev/null; then
+if [[ -x "$RESTART_SCRIPT" ]] && bash "$RESTART_SCRIPT" 2>/dev/null; then
     : # Restarted via the KDE-managed autostart unit — env identical to login startup
 elif [[ -n "$SHELL_IPC" ]]; then
     "$SHELL_IPC" start 2>/dev/null &
@@ -238,5 +243,6 @@ fi
 
 echo "Shell restarted successfully!"
 echo
-echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"
+echo "If the shell doesn't start, restart it with the same wrapper the shell uses:"
+echo "  bash \"\$HOME/.config/quickshell/caelestia/scripts/restart_shell.sh\""
 echo "Check logs by running: $CAELESTIA_BIN shell -l"
