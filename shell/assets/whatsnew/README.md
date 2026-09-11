@@ -1,47 +1,52 @@
-# What's New Assets
+# What's New assets
 
-This directory contains the assets used by the `WhatsNewWindow` module to display "What's New" updates to the user.
+Media for the What's New window. The entries themselves are declared in
+`shell/modules/whatsnew/Entries.qml`; this directory only holds the files they
+point at.
 
-## File Locations
+## Adding an entry
 
-* **Features JSON** (`shell/assets/whatsnew/features.json`): The core configuration file that defines all the features and updates shown in the What's New window.
-* **Media Assets** (`shell/assets/whatsnew/`): Any images, GIFs, or videos referenced by `features.json` should typically be placed in this directory (or relatively referenced from it).
-* **State File** (`~/.local/share/caelestia/state/seen_features.txt`):
-The Welcome Widget tracks which features the user has already acknowledged by saving their IDs to a local state file. 
-If a feature ID is present in this file, it will no longer be shown in the startup screen or the "What's New" page. 
+Append an object to the end of `list` in `Entries.qml`:
 
-
-
-## JSON Format
-
-> [!IMPORTANT]  
-> **Use a unique suffix for the ID!**  
-> When creating or updating a feature entry, append a unique suffix to its `id` to guarantee it is globally unique and ensures users see the new prompt. Since git commit hashes aren't known until *after* you commit, here are the best alternatives:
-> * **Date Suffix (Recommended)**: Append the date you added the feature (e.g., `feature_name_20231024`).
-> * **Version Suffix**: Append the target release version (e.g., `feature_name_v2_4`).
-> * **PR/Issue Number**: If applicable, use the pull request or issue tracker number (e.g., `feature_name_pr42`).
-
-The `features.json` file uses the following structure. It expects a single `features` array containing objects for each update item.
-
-* `id` (string): A unique identifier for the feature. **Important:** The widget tracks seen features by their `id`.
-* `title` (string): The headline displayed in the list and header.
-* `description` (string): The full detailed text shown when the feature is clicked.
-* `icon` (string, optional): A Material icon string to display alongside the item.
-* `media_url` (string, optional): A relative path to the media file to display.
-
-
-Example:
-
-```json
+```qml
 {
-  "features": [
-    {
-      "id": "welcome_widget_intro_a1b2c3d4",
-      "title": "Welcome to Caelestia Updates",
-      "description": "Whenever we introduce exciting new features, they will appear here...",
-      "icon": "celebration",
-      "media_url": "../badapple.mp4"
-    }
-  ]
+    "id": "some_short_handle",
+    "revision": 9,
+    "icon": "extension",
+    "title": qsTr("A headline"),
+    "description": qsTr("The full text, shown when the entry is opened."),
+    "mediaUrl": "some_screenshot.png"
 }
 ```
+
+- `id` - a stable handle. It is also what the one-time import uses to recognise
+  entries a user saw before revisions existed, so never reuse or rename one.
+- `revision` - higher than every entry above it. Revisions are what the shell
+  records acknowledgement against, so changing one either re-shows the entry to
+  everybody or hides it from them. Never renumber or reorder a shipped entry.
+- `icon` - a Material icon name. Optional.
+- `title`, `description` - wrapped in `qsTr()` so lupdate can extract them.
+- `mediaUrl` - a filename in this directory, or `root:/assets/...` to point at a
+  shared shell asset. `.mp4`, `.webm`, `.mkv`, `.avi` and `.mov` play muted on a
+  loop; anything else is shown as a still. Optional.
+- `mediaTransparent` - set it when the media should not get the backing panel.
+  Optional.
+
+`.github/scripts/test_repo_integrity.py` fails the build when a revision is
+duplicated or out of order, an id is duplicated, a title or description is not
+wrapped for extraction, a media path escapes this directory, or a media file
+does not exist.
+
+## State
+
+Acknowledgement is stored in `~/.local/state/caelestia/whatsnew.json`:
+
+```json
+{ "schemaVersion": 1, "acknowledged": [1, 2, 3] }
+```
+
+Opening an entry adds its revision to that list. Closing the window changes
+nothing. On the first run after upgrading from a build that used
+`~/.local/share/caelestia/state/seen_features.txt`, the ids in that file are
+mapped onto revisions and imported as acknowledged; the old file itself is left
+alone.
