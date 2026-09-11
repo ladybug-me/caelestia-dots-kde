@@ -635,6 +635,90 @@ class ShellSurfaceTests(unittest.TestCase):
         )
 
 
+class WhatsNewEntryTests(unittest.TestCase):
+    """The release notes are data, and nothing validates them at runtime.
+
+    A duplicate revision means one of the two entries is never shown to anybody,
+    a media file that is not there renders an empty entry, and a bare title or
+    description is invisible to lupdate so it stays English in every locale.
+    None of those fail loudly on their own, so they are checked here.
+    """
+
+    ENTRIES = ROOT / "shell" / "modules" / "whatsnew" / "Entries.qml"
+    ASSETS = ROOT / "shell" / "assets" / "whatsnew"
+    SHELL = ROOT / "shell"
+
+    def entries(self) -> list[dict]:
+        """Parse the entry list. Field order within an entry is fixed by the file."""
+        text = self.ENTRIES.read_text(encoding="utf-8")
+        start = text.index("readonly property var list: [")
+        end = text.index("\n    ]", start)
+        chunks = text[start:end].split('"id":')[1:]
+        self.assertTrue(chunks, "Entries.qml declares no entries")
+
+        parsed = []
+        for chunk in chunks:
+            identifier = re.match(r'\s*"([^"]*)"', chunk)
+            revision = re.search(r'"revision":\s*(\d+)', chunk)
+            media = re.search(r'"mediaUrl":\s*"([^"]*)"', chunk)
+            parsed.append(
+                {
+                    "id": identifier.group(1) if identifier else "",
+                    "revision": int(revision.group(1)) if revision else None,
+                    "title": bool(re.search(r'"title":\s*qsTr\(', chunk)),
+                    "description": bool(re.search(r'"description":\s*qsTr\(', chunk)),
+                    "media": media.group(1) if media else "",
+                }
+            )
+        return parsed
+
+    def test_revisions_are_unique_and_ascending(self) -> None:
+        revisions = [entry["revision"] for entry in self.entries()]
+
+        self.assertNotIn(None, revisions, "every entry needs a numeric revision")
+        self.assertEqual(len(revisions), len(set(revisions)), f"duplicate revisions: {revisions}")
+        self.assertEqual(
+            revisions,
+            sorted(revisions),
+            "entries are listed oldest first, so appending an entry is what raises its revision",
+        )
+
+    def test_ids_are_unique(self) -> None:
+        ids = [entry["id"] for entry in self.entries()]
+
+        self.assertNotIn("", ids, "every entry needs an id")
+        self.assertEqual(len(ids), len(set(ids)), f"duplicate ids: {ids}")
+
+    def test_text_is_extractable(self) -> None:
+        bare = [entry["id"] for entry in self.entries() if not (entry["title"] and entry["description"])]
+
+        self.assertEqual(
+            bare,
+            [],
+            "titles and descriptions must be wrapped in qsTr() so lupdate can extract them: " + ", ".join(bare),
+        )
+
+    def test_media_files_exist(self) -> None:
+        missing = []
+        for entry in self.entries():
+            url = entry["media"]
+            if not url:
+                continue
+            if ".." in url:
+                missing.append(f"{entry['id']}: {url} (must stay inside the assets directory)")
+                continue
+
+            path = self.SHELL / url[len("root:/") :] if url.startswith("root:/") else self.ASSETS / url
+            if not path.is_file():
+                missing.append(f"{entry['id']}: {url}")
+
+        self.assertEqual(
+            missing,
+            [],
+            "media referenced by the release notes must exist:\n" + "\n".join(missing),
+        )
+
+
 class MetadataConsistencyTests(unittest.TestCase):
     def test_shell_version_matches_about_page(self) -> None:
         cmake_text = (ROOT / "shell" / "CMakeLists.txt").read_text(encoding="utf-8")

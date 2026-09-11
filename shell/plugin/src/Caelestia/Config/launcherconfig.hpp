@@ -132,6 +132,12 @@ class LauncherConfig : public settings::ObjectNode {
                 { u"command"_s, QStringList{ u"caelestia"_s, u"shell"_s, u"nexus"_s, u"open"_s } },
             }),
             vmap({
+                { u"name"_s, u"What's New"_s },
+                { u"icon"_s, u"new_releases"_s },
+                { u"description"_s, u"Read the Caelestia release notes"_s },
+                { u"command"_s, QStringList{ u"caelestia"_s, u"shell"_s, u"whatsnew"_s, u"open"_s } },
+            }),
+            vmap({
                 { u"name"_s, u"Emoji"_s },
                 { u"icon"_s, u"emoji_emotions"_s },
                 { u"description"_s, u"Pick an emoji to copy"_s },
