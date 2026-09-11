@@ -3,7 +3,7 @@
 #
 # Checks performed:
 #   1. All .sh files parse with `bash -n` (syntax check)
-#   2. All executable .sh files pass shellcheck (if installed)
+#   2. All executable .sh files pass shellcheck at warning severity (if installed)
 #   3. All .sh files inside scripts/ and src/bin/ use `set -euo pipefail`
 #   4. No bare `sudo` usage in scripts/ (should use the privilege wrapper)
 #   5. No hardcoded insecure patterns (e.g. curl | bash)
@@ -73,7 +73,7 @@ echo -e "${BOLD}=== ShellCheck Lint ===${RESET}"
 if command -v shellcheck &>/dev/null; then
     for f in $(get_shell_files); do
         if is_executable_script "$f" || [[ "$f" == scripts/* ]]; then
-            if ! shellcheck -S error "$f" 2>/dev/null; then
+            if ! shellcheck -S warning "$f" 2>/dev/null; then
                 log_err "shellcheck violations in $f"
             fi
         fi
@@ -95,7 +95,11 @@ echo -e "${BOLD}=== Strict Mode Check ===${RESET}"
 # scripts/lib/* are sourced helpers, not entry points: setting -e there would
 # silently impose it on every caller, including ones that deliberately run
 # without it.
+# A step whose header documents that it must never fail the install opts out
+# with a `ci:allow-no-strict-mode` marker, the same way `ci:allow-curl-pipe`
+# opts out of the pattern check below.
 for f in $(git ls-files 'scripts/*.sh' 2>/dev/null | grep -v '^scripts/lib/' || true); do
+    grep -q 'ci:allow-no-strict-mode' "$f" 2>/dev/null && continue
     if ! grep -qE 'set\s+-euo\s+pipefail|set\s+-eu\s+-o\s+pipefail' "$f" 2>/dev/null; then
         log_err "$f is missing 'set -euo pipefail' (required for scripts in scripts/)"
     fi

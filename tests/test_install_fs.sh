@@ -4,7 +4,7 @@
 set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/helpers.sh"
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/install-fs.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/install-fs.sh"
 
 # Build a source tree and an already-installed destination holding different
 # content, so every assertion can tell "was replaced" from "was left alone".

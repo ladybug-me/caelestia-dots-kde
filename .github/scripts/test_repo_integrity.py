@@ -90,7 +90,7 @@ class ScriptSyntaxTests(unittest.TestCase):
 
 
 class BashHelperTestSuite(unittest.TestCase):
-    """Run tests/bash/run-tests.sh so the shell helpers get real behavior coverage.
+    """Run tests/run-tests.sh so the shell helpers get real behavior coverage.
 
     scripts/lib/ helpers cannot be exercised from Python, so this delegates to
     the bash runner and fails on any non-zero exit. Adding a test there is
@@ -99,7 +99,7 @@ class BashHelperTestSuite(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("bash"), "bash is required for the helper suite")
     def test_bash_helper_suite_passes(self) -> None:
-        runner = Path("tests", "bash", "run-tests.sh")
+        runner = Path("tests", "run-tests.sh")
         self.assertTrue((ROOT / runner).is_file(), f"expected {runner.as_posix()} to exist")
 
         result = subprocess.run(
@@ -550,7 +550,7 @@ class InstallerTests(unittest.TestCase):
             self.assertTrue((ROOT / rel_path).is_file(), f"Missing installer entrypoint: {rel_path.as_posix()}")
 
     def test_setup_references_existing_step_scripts(self) -> None:
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         matches = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         self.assertTrue(matches, "No installer steps found in Runner.cpp")
@@ -562,7 +562,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_no_duplicate_step_names(self) -> None:
         """Runner.cpp must not define two steps with the same display name."""
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         names = re.findall(r'\{"([^"]+)",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
         display_names = [n[0] for n in names]
 
@@ -583,7 +583,7 @@ class InstallerTests(unittest.TestCase):
         is informational - Runner.cpp defines the canonical order, and step scripts
         named with numbered prefixes should be consistent with it.
         """
-        runner_text = (ROOT / "installer/src/Runner.cpp").read_text(encoding="utf-8")
+        runner_text = (ROOT / "installer/tui/Runner.cpp").read_text(encoding="utf-8")
         scripts = re.findall(r'\{"[^"]+",\s*"(scripts/[^"]+)",\s*"[^"]+",\s*"[^"]+"\}', runner_text)
 
         prev_num = -1
@@ -777,7 +777,7 @@ class DocsReferenceTests(unittest.TestCase):
         # Check that Runner.cpp is referenced and exists
         if "Runner.cpp" in text:
             self.assertTrue(
-                (ROOT / "installer" / "src" / "Runner.cpp").is_file(),
+                (ROOT / "installer" / "tui" / "Runner.cpp").is_file(),
                 "installer_config.md references Runner.cpp which doesn't exist"
             )
 

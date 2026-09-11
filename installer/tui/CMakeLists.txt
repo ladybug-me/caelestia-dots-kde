@@ -15,8 +15,8 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 # Find all source files
-file(GLOB SOURCES "src/*.cpp")
-include_directories(src)
+file(GLOB SOURCES "*.cpp")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Define executable
 add_executable(caelestia-install ${SOURCES})

@@ -13,7 +13,7 @@ the first translation.
 |-------|-------|--------------|
 | Source strings | `shell/**/*.qml` | Anything user-facing is wrapped in `qsTr("...")` |
 | Catalogues | `shell/translations/caelestia_<code>.ts` | Qt Linguist XML, one per language |
-| Extraction | `scripts/update-translations.sh` | Runs `lupdate` over the shell sources |
+| Extraction | `tools/update-translations.sh` | Runs `lupdate` over the shell sources |
 | Compilation | `shell/CMakeLists.txt` | Runs `lrelease`, installs `caelestia_<code>.qm` next to the shell |
 | Loading | `shell/plugin/src/Caelestia/translations.{hpp,cpp}` | `Translations` singleton, installs a `QTranslator` and retranslates the engine |
 | Setting | `general.language` in `shell.json` | `"system"` (default) or a locale code such as `"tr"` |
@@ -34,7 +34,7 @@ Catalogues are looked up in this order:
 1. Create the catalogue (this also refreshes every existing one):
 
    ```bash
-   scripts/update-translations.sh es
+   tools/update-translations.sh es
    ```
 
    `es` is the locale code. Region specific codes work too (`pt_BR`), and the
@@ -139,7 +139,7 @@ the next upload just the same.
 After adding or changing `qsTr()` strings, run:
 
 ```bash
-scripts/update-translations.sh
+tools/update-translations.sh
 ```
 
 With no arguments it updates every existing catalogue. New strings land as

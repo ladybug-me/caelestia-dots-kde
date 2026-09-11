@@ -162,7 +162,7 @@ def do_report(full: bool) -> None:
         print(f"  ... {len(diverged) - 60} more (use --full)")
     print()
 
-    print("Bring a missing file with:  python scripts/sync-shell.py bring <path>")
+    print("Bring a missing file with:  python tools/sync-shell.py bring <path>")
 
 
 def do_bring(paths: list[str], force: bool) -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# installDP_debian.sh - Debian/Ubuntu package installation for Caelestia KDE Port
+# packages.sh - Debian/Ubuntu package installation for Caelestia KDE Port
 
 set -uo pipefail
 

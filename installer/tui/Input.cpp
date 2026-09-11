@@ -27,12 +27,12 @@ namespace Input {
         ssize_t n = read(STDIN_FILENO, buf, sizeof(buf));
         if (n <= 0) return "";
         string key(buf, n);
-        
+
         if (key.length() == 1 && key[0] == 3) { // Ctrl+C
             g_quit = true;
             return "signal_interrupt";
         }
-        
+
         if (Key_escapes.count(key)) return Key_escapes[key];
         return key;
     }
@@ -42,7 +42,7 @@ namespace Input {
             if (g_sigint_received || g_sigterm_received) {
                 return "signal_interrupt";
             }
-            
+
             fd_set fds;
             FD_ZERO(&fds);
             FD_SET(STDIN_FILENO, &fds);

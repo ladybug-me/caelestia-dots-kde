@@ -67,7 +67,7 @@ fi
 # from the shell inherits those descriptors - which is how the shell was
 # handing apps a stdout that goes nowhere. Vesktop deadlocks in exactly that
 # state when a call starts (issue #402); reproducible outside the shell with
-# `vesktop >/dev/null 2>&1`.
+# \`vesktop >/dev/null 2>&1\`.
 #
 # Dropping it also makes the old stdbuf wrapper unnecessary: journald stdio is
 # what the line-buffering hack was working around, and stdbuf leaked
@@ -130,7 +130,7 @@ elif command -v kbuildsycoca5 >/dev/null 2>&1; then
 fi
 ok "Quickshell Wayland interface declaration created."
 
-#  kde-material-you-colors systemd service 
+#  kde-material-you-colors systemd service
 # Creates and enables a systemd user service for kde-material-you-colors.
 echo "  Deploying systemd service for KDE Material You Colors..."
 

@@ -1,5 +1,5 @@
 # Crowdin project mapping. Credentials come from the environment; see
-# .github/workflows/crowdin.yml and .github/docs/translations.md.
+# .github/workflows/crowdin.yml and docs/translations.md.
 project_id_env: CROWDIN_PROJECT_ID
 api_token_env: CROWDIN_PERSONAL_TOKEN
 base_path: "."

@@ -130,9 +130,9 @@ jobs:
         continue-on-error: true
         with:
           globs: |
+            README.md
             docs/**/*.md
             .github/*.md
-            .github/CONTRIBUTING.md
 
   # ═══════════════════════════════════════════════════════════
   # Job 6: QML conventions - project linter regression gate
@@ -237,7 +237,7 @@ jobs:
         run: actionlint -shellcheck= -color -ignore 'missing input "app-id"' -ignore 'input "client-id" is not defined'
 
   # ═══════════════════════════════════════════════════════════
-  # Job 10: Wayland static lifetime - catch exit-time SIGSEGVs
+  # Job 11: Wayland static lifetime - catch exit-time SIGSEGVs
   # ═══════════════════════════════════════════════════════════
   # A class inheriting QWaylandClientExtensionTemplate<T> or QtWayland::* owns
   # a live wl_proxy. Holding one as a function-local (or other) static by
@@ -259,7 +259,7 @@ jobs:
         run: python3 .github/scripts/check_wayland_static_lifetime.py
 
   # ═══════════════════════════════════════════════════════════
-  # Job 11: QML import completeness - missing/extra imports
+  # Job 12: QML import completeness - missing/extra imports
   # ═══════════════════════════════════════════════════════════
   # No real Qt/QML toolchain is available here (qmllint6 can't resolve this
   # repo's qs.* directory-import convention at all), and no other job ever
@@ -282,7 +282,7 @@ jobs:
         run: python3 .github/scripts/check_qml_imports.py --shell-root shell
 
   # ═══════════════════════════════════════════════════════════
-  # Job 12: QML template interpolation - unescaped bash ${...}
+  # Job 13: QML template interpolation - unescaped bash ${...}
   # ═══════════════════════════════════════════════════════════
   # Bash embedded in QML backtick template literals must escape `${` as
   # `\${`; an unescaped `${1#v}` is parsed as JavaScript and fails with
@@ -303,8 +303,25 @@ jobs:
         run: python3 .github/scripts/check_qml_template_interp.py
 
   # ═══════════════════════════════════════════════════════════
-  # Final gate: require all non-skippable jobs to pass
+  # Job 14: Shell quality - syntax, shellcheck, strict mode, unsafe patterns
   # ═══════════════════════════════════════════════════════════
+  # check_shell_quality.sh is written for CI but was not wired into any
+  # workflow, so nothing was gating the shell scripts.
+  shell-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: Run shell quality checks
+        run: bash .github/scripts/check_shell_quality.sh
+
+  # ═══════════════════════════════════════════════════════
+  # Final gate: require all non-skippable jobs to pass
+  # ═══════════════════════════════════════════════════════
   validate-gate:
     needs:
       - python-quality
@@ -319,6 +336,7 @@ jobs:
       - wayland-static-lifetime
       - qml-imports
       - qml-template-interp
+      - shell-quality
     runs-on: ubuntu-latest
     if: always()
     steps:

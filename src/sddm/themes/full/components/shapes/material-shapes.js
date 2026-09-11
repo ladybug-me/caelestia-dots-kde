@@ -637,7 +637,7 @@ function bun() {
         new PointNRound(new Offset.Offset(0.796, 0.500)),
         new PointNRound(new Offset.Offset(0.853, 0.518), cornerRound100),
         new PointNRound(new Offset.Offset(0.992, 0.631), cornerRound100),
-        new PointNRound(new Offset.Offset(0.968, 1.000), cornerRound100), 
+        new PointNRound(new Offset.Offset(0.968, 1.000), cornerRound100),
         // mirrored points
         new PointNRound(new Offset.Offset(0.032, 1-0.000), cornerRound100),
         new PointNRound(new Offset.Offset(0.008, 1-0.369), cornerRound100),

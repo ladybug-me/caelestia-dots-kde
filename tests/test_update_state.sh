@@ -4,7 +4,7 @@
 set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/helpers.sh"
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/update-state.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/update-state.sh"
 
 require_git() {
     if command -v git >/dev/null 2>&1; then

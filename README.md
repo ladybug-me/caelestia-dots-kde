@@ -115,6 +115,33 @@ Head to Caelestia Settings -> Plugins -> Store to browse for available plugins a
 
 For detailed debug logs, enable Debug Mode in Nexus -> About -> Advanced, then run `caelestia shell -l`.
 
+## Repository layout
+
+```
+installer/     TUI installer and the per-distro package lists
+  tui/         C++ TUI source and its CMakeLists
+  data/        menu.json, theme.json, tui.version
+  distro/      per-distro package installation (arch, debian, fedora)
+scripts/       install/update pipeline: the numbered steps and their shared lib/
+src/           files copied onto the system, plus the vendored submodules
+shell/         the QML shell and its C++ QML plugin
+docs/          guides, plus design notes under docs/architecture/
+tests/         bash tests for the step-script helpers
+tools/         repo maintenance scripts, never shipped
+assets/        logo and screenshots used by this README
+.github/       workflows, issue and PR templates, CI checks
+```
+
+`install.sh`, `update.sh` and `uninstall.sh` deliberately stay at the repo root:
+they are the published entry points, so the `curl ... | sh` one-liner and the
+installer's own update and uninstall paths keep working.
+
+Run `make` for the common development commands; on its own it lists them.
+
+`shell/` is a fork of [caelestia-dots/shell](https://github.com/caelestia-dots/shell)
+and keeps upstream's directory layout, which is what lets `tools/sync-shell.py`
+diff the two trees. Treat it as vendored code.
+
 ## Thanks to
 
 <!-- contributors-start -->
@@ -177,7 +204,7 @@ For detailed debug logs, enable Debug Mode in Nexus -> About -> Advanced, then r
 
 ## License
 
-[GPLv3](../LICENSE)
+[GPLv3](LICENSE)
 
 ---
 
