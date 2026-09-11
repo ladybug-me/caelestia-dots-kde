@@ -9,6 +9,7 @@ int g_term_height = 24;
 std::string g_base_distro = "unknown";
 std::string g_bundle_dir = ".";
 std::string g_sudo_bin_dir;
+std::vector<std::string> g_startup_problems;
 
 Config g_config;
 bool g_logout = false;
@@ -53,9 +54,11 @@ void load_theme() {
             }
         } catch (...) {
             std::cerr << "Failed to parse theme.json" << std::endl;
+            g_startup_problems.push_back("theme.json could not be parsed - using the built-in colours");
         }
     } else {
         std::cerr << "Could not open theme.json at " << path << std::endl;
+        g_startup_problems.push_back("theme.json not found - using the built-in colours (re-run setup.sh)");
     }
 
     std::string menu_path = g_bundle_dir + "/installer/data/menu.json";
@@ -65,9 +68,11 @@ void load_theme() {
             g_menu = json::parse(f2, nullptr, true, true);
         } catch (...) {
             std::cerr << "Failed to parse menu.json" << std::endl;
+            g_startup_problems.push_back("menu.json could not be parsed - using the built-in menu");
         }
     } else {
         std::cerr << "Could not open menu.json at " << menu_path << std::endl;
+        g_startup_problems.push_back("menu.json not found - using the built-in menu (re-run setup.sh)");
     }
 }
 

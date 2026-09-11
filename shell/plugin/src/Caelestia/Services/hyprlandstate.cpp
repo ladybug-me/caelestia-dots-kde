@@ -18,7 +18,11 @@ HyprlandState::HyprlandState(QObject* parent)
 
     const auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
     if (his.isEmpty()) {
+        m_kdeFallback = true;
         qCWarning(lcHyprState) << "$HYPRLAND_INSTANCE_SIGNATURE is unset. Using KDE (PlasmaWindows) bridge.";
+        qCWarning(lcHyprState) << "The KDE bridge only backs windowList, windowByAddress, addresses and activeWindow."
+                                  " workspaces, workspaceById, workspaceIds, activeWorkspace, monitors and layers"
+                                  " have no KDE source and stay empty - check kdeFallback before reading them.";
         auto* pw = PlasmaWindows::instance();
         connect(pw, &PlasmaWindows::windowAdded, this, &HyprlandState::onKWinWindowListChanged);
         connect(pw, &PlasmaWindows::handleLost, this, &HyprlandState::onKWinWindowListChanged);
@@ -69,6 +73,8 @@ QVariantMap HyprlandState::activeWindow() const {
 
 QVariantList HyprlandState::monitors() const { return m_monitors; }
 QVariantMap HyprlandState::layers() const { return m_layers; }
+
+bool HyprlandState::kdeFallback() const { return m_kdeFallback; }
 
 void HyprlandState::updateAll() {
     updateWindowList();
@@ -125,6 +131,13 @@ void HyprlandState::onKWinActiveWindowChanged() {
 }
 
 void HyprlandState::updateWindowList() {
+    // Under the KDE bridge there is no IPC socket to ask: the window list lives
+    // in PlasmaWindows. Without this an explicit refresh would be a silent no-op
+    // and windowList would go stale as titles and geometry changed.
+    if (m_kdeFallback) {
+        onKWinWindowListChanged();
+        return;
+    }
 
     if (!m_clientsRefresh.isNull()) {
         m_clientsRefresh->close();
@@ -306,6 +319,22 @@ HyprlandState::SocketPtr HyprlandState::makeRequestJson(
 HyprlandState::SocketPtr HyprlandState::makeRequest(
     const QString& request, const std::function<void(bool, QByteArray)>& callback) {
     if (m_requestSocket.isEmpty()) {
+        // Hyprland-only data was asked for and there is no socket to answer it:
+        // either the KDE bridge is in use, or Hyprland was detected but its
+        // socket directory was missing. Say so once - the properties these
+        // requests fill stay empty, and a caller that assumed otherwise would
+        // read an empty list as "nothing is open".
+        if (!m_warnedNoRequestSocket) {
+            m_warnedNoRequestSocket = true;
+            if (m_kdeFallback) {
+                qCWarning(lcHyprState) << "No Hyprland IPC socket (KDE bridge in use); ignoring Hyprland-only request"
+                                       << request
+                                       << "- workspaces, monitors and layers have no KDE source and stay empty.";
+            } else {
+                qCWarning(lcHyprState) << "Hyprland was detected but its socket directory is missing; ignoring"
+                                       << request << "- the Hyprland-backed properties stay empty.";
+            }
+        }
         return SocketPtr();
     }
 

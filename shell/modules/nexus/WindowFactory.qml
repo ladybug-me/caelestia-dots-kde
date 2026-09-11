@@ -19,10 +19,11 @@ Singleton {
         props = props || {};
         if (root.openWindow) {
             const win = root.openWindow;
+            // Handles the sub-page as well: the page swap is animated, so
+            // opening it straight after the page change reaches the page that
+            // is on its way out instead of the one arriving.
             if (props.initialPageIdx !== undefined)
-                win.nexus.nState.currentPageIdx = props.initialPageIdx;
-            if (props.initialSubPageIdx !== undefined && props.initialSubPageIdx !== -1)
-                win.nexus.nState.openSubPage(props.initialSubPageIdx);
+                win.nexus.nState.goToSubPage(props.initialPageIdx, props.initialSubPageIdx ?? -1);
             win.visible = true;
             win.raise();
             return win;

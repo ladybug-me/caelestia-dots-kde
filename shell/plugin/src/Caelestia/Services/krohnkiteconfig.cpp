@@ -1,10 +1,20 @@
 #include "krohnkiteconfig.hpp"
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <QDebug>
-#include <QProcess>
+#include <QHash>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
 namespace caelestia::services {
+
+/// kwinrc group the Krohnkite KWin script keeps its settings in.
+static const QString KROHNKITE_GROUP = QStringLiteral("Script-krohnkite");
+
+/// Class list Krohnkite assumes when kwinrc has no ignoreClass key yet.
+static const QString DEFAULT_IGNORE_CLASS = QStringLiteral(
+    "krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,"
+    "org.kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,quickshell");
 
 KrohnkiteConfig::KrohnkiteConfig(QObject* parent)
     : QObject(parent) {
@@ -14,35 +24,21 @@ KrohnkiteConfig::KrohnkiteConfig(QObject* parent)
 KrohnkiteConfig::~KrohnkiteConfig() = default;
 
 void KrohnkiteConfig::setKWinConfig(const QString& key, const QString& value) {
-    QStringList args;
-    args << QStringLiteral("--file") << QStringLiteral("kwinrc") << QStringLiteral("--group")
-         << QStringLiteral("Script-krohnkite") << QStringLiteral("--key") << key << value;
-
-    QProcess::execute(QStringLiteral("kwriteconfig6"), args);
+    QMap<QString, QString> values;
+    values.insert(key, value);
+    setKWinConfig(values);
 }
 
-QString KrohnkiteConfig::getKWinConfig(const QString& key, const QString& defaultValue) {
-    QProcess process;
-    QStringList args;
-    args << QStringLiteral("--file") << QStringLiteral("kwinrc") << QStringLiteral("--group")
-         << QStringLiteral("Script-krohnkite") << QStringLiteral("--key") << key;
-
-    process.start(QStringLiteral("kreadconfig6"), args);
-    if (process.waitForFinished() && process.exitCode() == 0) {
-        QString out = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
-        if (!out.isEmpty()) {
-            return out;
-        }
+void KrohnkiteConfig::setKWinConfig(const QMap<QString, QString>& values) {
+    // kwinrc is read and written in-process. Forking kreadconfig6/kwriteconfig6
+    // blocks the QML thread for the lifetime of every child, and toggling one
+    // layout checkbox used to write all twelve order keys one process at a time.
+    auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"), KConfig::NoGlobals);
+    KConfigGroup group = config->group(KROHNKITE_GROUP);
+    for (auto it = values.cbegin(); it != values.cend(); ++it) {
+        group.writeEntry(it.key(), it.value());
     }
-    return defaultValue;
-}
-
-// -1 means disabled by default; >= 1 means enabled at that position.
-bool KrohnkiteConfig::isLayoutEnabled(const QString& key, int defaultOrder) {
-    QString val = getKWinConfig(key, QString::number(defaultOrder));
-    bool ok = false;
-    int v = val.toInt(&ok);
-    return ok && v >= 1;
+    config->sync();
 }
 
 // Table of all layout keys paired with their default order position.
@@ -73,14 +69,43 @@ static const std::initializer_list<LayoutDefault>& allLayoutDefaults() {
     return table;
 }
 
+/// Everything the tiling page shows, read out of kwinrc in a single pass.
+struct KrohnkiteSettings {
+    int screenGapBetween = 10;
+    int screenGapBottom = 4;
+    int screenGapLeft = 4;
+    int screenGapRight = 4;
+    int screenGapTop = 4;
+    QString ignoreClass = DEFAULT_IGNORE_CLASS;
+    QMap<QString, int> layoutOrders;
+};
+
+static KrohnkiteSettings readSettings() {
+    auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"), KConfig::NoGlobals);
+    // Pick up edits made outside Nexus - KWin writes kwinrc too.
+    config->reparseConfiguration();
+    KConfigGroup group = config->group(KROHNKITE_GROUP);
+
+    KrohnkiteSettings settings;
+    settings.screenGapBetween = group.readEntry(QStringLiteral("screenGapBetween"), settings.screenGapBetween);
+    settings.screenGapBottom = group.readEntry(QStringLiteral("screenGapBottom"), settings.screenGapBottom);
+    settings.screenGapLeft = group.readEntry(QStringLiteral("screenGapLeft"), settings.screenGapLeft);
+    settings.screenGapRight = group.readEntry(QStringLiteral("screenGapRight"), settings.screenGapRight);
+    settings.screenGapTop = group.readEntry(QStringLiteral("screenGapTop"), settings.screenGapTop);
+    settings.ignoreClass = group.readEntry(QStringLiteral("ignoreClass"), settings.ignoreClass);
+
+    for (const auto& entry : allLayoutDefaults()) {
+        const QString key = QString::fromLatin1(entry.key);
+        // -1 means disabled, a positive value is the layout's position.
+        const int order = group.readEntry(key, entry.defaultOrder);
+        settings.layoutOrders.insert(key, order >= 1 ? order : -1);
+    }
+    return settings;
+}
+
 void KrohnkiteConfig::setLayoutEnabled(const QString& key, bool enabled) {
     // Read current order values for all layouts, seeding from defaults where missing.
-    QMap<QString, int> orders;
-    for (const auto& entry : allLayoutDefaults()) {
-        bool ok = false;
-        int v = getKWinConfig(QLatin1String(entry.key), QString::number(entry.defaultOrder)).toInt(&ok);
-        orders[QLatin1String(entry.key)] = (ok && v >= 1) ? v : -1;
-    }
+    QMap<QString, int> orders = readSettings().layoutOrders;
 
     if (enabled) {
         if (orders[key] >= 1)
@@ -105,54 +130,43 @@ void KrohnkiteConfig::setLayoutEnabled(const QString& key, bool enabled) {
         }
     }
 
-    // Write all updated values back.
+    // One kwinrc write for all twelve orders, not one child process per key.
+    QMap<QString, QString> values;
     for (auto it = orders.cbegin(); it != orders.cend(); ++it) {
-        setKWinConfig(it.key(), QString::number(it.value()));
+        values.insert(it.key(), QString::number(it.value()));
     }
+    setKWinConfig(values);
 }
 
 void KrohnkiteConfig::refresh() {
-    m_screenGapBetween = getKWinConfig("screenGapBetween", "10").toInt();
-    m_screenGapBottom = getKWinConfig("screenGapBottom", "4").toInt();
-    m_screenGapLeft = getKWinConfig("screenGapLeft", "4").toInt();
-    m_screenGapRight = getKWinConfig("screenGapRight", "4").toInt();
-    m_screenGapTop = getKWinConfig("screenGapTop", "4").toInt();
+    const KrohnkiteSettings settings = readSettings();
+
+    m_screenGapBetween = settings.screenGapBetween;
+    m_screenGapBottom = settings.screenGapBottom;
+    m_screenGapLeft = settings.screenGapLeft;
+    m_screenGapRight = settings.screenGapRight;
+    m_screenGapTop = settings.screenGapTop;
     emit gapsChanged();
 
-    m_ignoreClass =
-        getKWinConfig("ignoreClass", "krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,org."
-                                     "kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,quickshell");
+    m_ignoreClass = settings.ignoreClass;
     emit ignoreClassChanged();
 
-    for (const auto& entry : allLayoutDefaults()) {
-        bool ok = false;
-        int v = getKWinConfig(QLatin1String(entry.key), QString::number(entry.defaultOrder)).toInt(&ok);
-        bool isEnabled = (ok && v >= 1);
-        const QLatin1String k(entry.key);
-        if (k == "binaryTreeLayoutOrder")
-            m_binaryTreeLayoutEnabled = isEnabled;
-        else if (k == "cascadeLayoutOrder")
-            m_cascadeLayoutEnabled = isEnabled;
-        else if (k == "columnsLayoutOrder")
-            m_columnsLayoutEnabled = isEnabled;
-        else if (k == "floatingLayoutOrder")
-            m_floatingLayoutEnabled = isEnabled;
-        else if (k == "monocleLayoutOrder")
-            m_monocleLayoutEnabled = isEnabled;
-        else if (k == "quarterLayoutOrder")
-            m_quarterLayoutEnabled = isEnabled;
-        else if (k == "spiralLayoutOrder")
-            m_spiralLayoutEnabled = isEnabled;
-        else if (k == "spreadLayoutOrder")
-            m_spreadLayoutEnabled = isEnabled;
-        else if (k == "stackedLayoutOrder")
-            m_stackedLayoutEnabled = isEnabled;
-        else if (k == "stairLayoutOrder")
-            m_stairLayoutEnabled = isEnabled;
-        else if (k == "threeColumnLayoutOrder")
-            m_threeColumnLayoutEnabled = isEnabled;
-        else if (k == "tileLayoutOrder")
-            m_tileLayoutEnabled = isEnabled;
+    const QHash<QString, bool*> layoutFlags{
+        { QStringLiteral("binaryTreeLayoutOrder"), &m_binaryTreeLayoutEnabled },
+        { QStringLiteral("cascadeLayoutOrder"), &m_cascadeLayoutEnabled },
+        { QStringLiteral("columnsLayoutOrder"), &m_columnsLayoutEnabled },
+        { QStringLiteral("floatingLayoutOrder"), &m_floatingLayoutEnabled },
+        { QStringLiteral("monocleLayoutOrder"), &m_monocleLayoutEnabled },
+        { QStringLiteral("quarterLayoutOrder"), &m_quarterLayoutEnabled },
+        { QStringLiteral("spiralLayoutOrder"), &m_spiralLayoutEnabled },
+        { QStringLiteral("spreadLayoutOrder"), &m_spreadLayoutEnabled },
+        { QStringLiteral("stackedLayoutOrder"), &m_stackedLayoutEnabled },
+        { QStringLiteral("stairLayoutOrder"), &m_stairLayoutEnabled },
+        { QStringLiteral("threeColumnLayoutOrder"), &m_threeColumnLayoutEnabled },
+        { QStringLiteral("tileLayoutOrder"), &m_tileLayoutEnabled },
+    };
+    for (auto it = layoutFlags.cbegin(); it != layoutFlags.cend(); ++it) {
+        *it.value() = settings.layoutOrders.value(it.key()) >= 1;
     }
     emit layoutsChanged();
 }

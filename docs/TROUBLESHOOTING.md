@@ -218,11 +218,25 @@ avoids Caelestia's use of the protocol entirely.
 | Colors not updating with wallpaper | Check service: `systemctl status --user kde-material-you-colors.service` |
 | Service failed to start | On Fedora, installed via `uv`. If `uv` isn't in PATH at login, the service fails. |
 | Old schemes accumulating | The installer removes old `MaterialYou*.colors`, but multiple restarts can recreate them. |
+| Colours come back as the built-in default (Mocha) | The CLI derives dynamic colours from the wallpaper it was last told about. When it has none it writes nothing, the shell keeps its own default palette and pushes that into KMY, so the whole desktop follows. The shell now re-derives from the wallpaper it is showing at every start. |
+| The service has to be restarted after every login | It was started with the session, before plasmashell existed, so it could read neither the wallpaper nor the current scheme. The unit is now ordered after `plasma-plasmashell.service` and restarts on a clean early exit too. |
 
 **Manual restart:**
 ```bash
 systemctl --user restart kde-material-you-colors.service
 journalctl --user -u kde-material-you-colors.service -n 50
+```
+
+An existing install keeps the old unit until the step that writes it runs again,
+so re-run `scripts/10-autostart.sh` (or the installer/update) once to pick up the
+ordering and the restart policy.
+
+The shell re-derives the scheme from the wallpaper at every start, so a palette
+stuck on the built-in default corrects itself on the next shell restart. To do it
+without restarting the shell:
+
+```bash
+~/.config/quickshell/caelestia/scripts/reseed-scheme.sh
 ```
 
 ### 3.5 Screen Recording Issues
@@ -241,6 +255,44 @@ The screenshot tool uses `spectacle` (KDE's native screenshot utility) via the `
 
 - If `spectacle` isn't installed, screenshots silently fail
 - Full-screen screenshots save to `~/Pictures/Screenshots/` by default
+
+### 3.7 Screen Flashes and the Shell Stutters Every Second
+
+The screen flashes, colours look briefly wrong and the shell hangs for about a
+second, repeating on a rhythm of roughly one second.
+
+The cause is `kde-material-you-colors` getting stuck. It decides on every loop
+that the palette changed, applies an identical scheme again and spawns
+`plasma-apply-colorscheme` each time. Every apply rewrites `kdeglobals` and
+makes every window repaint, which is what the flash is. Restarting the service
+clears it, which is also why it disappears when you restart it by hand.
+
+The shell now watches for this and stops it at the source:
+
+- applies only count when the `plasma-apply-colorscheme` process was started by
+  `kde-material-you-colors`, so applying a scheme yourself is never mistaken for
+  the loop
+- eight applies inside ten seconds restarts the service
+- a second storm within ten minutes pauses it instead, through its own
+  `pause_mode`, and shows a toast
+
+To check by hand:
+
+```bash
+journalctl --user -u app-caelestiashell@autostart.service -n 50 | grep 'KMY guard'
+pgrep -af plasma-apply-colorscheme   # a new pid every second means the loop is back
+```
+
+If the service was paused, turn it back on once the loop has cleared. The
+switch is in Settings, under Appearance then Advanced Colors, or:
+
+```bash
+~/.config/quickshell/caelestia/scripts/sync-kmyc.sh --set pause_mode False
+systemctl --user restart kde-material-you-colors
+```
+
+Applying once when the wallpaper or theme changes is expected and does not
+trigger any of this.
 
 ---
 
@@ -502,6 +554,42 @@ rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-update.lock"
 | `git pull` fails | Uncommitted changes exist. The updater auto-stashes, but conflicts may remain. |
 | Submodule update fails | Network issue or GitHub down. Retry later. |
 | CMake configure fails | New dependencies added since last install. Check error output. |
+
+### 9.6 Installer Stops After a System Upgrade
+
+`00a-system-update.sh` upgrades the system first, and later steps compile and load the Caelestia
+KWin plugin into the session that is **already running**. If the upgrade replaced `kwin`,
+`plasma-workspace`, `libplasma`, `qt6-base` or `qt6-declarative`, the live session still holds the
+old libraries in memory while the on-disk headers are new, so the installer stops and names the
+packages that moved:
+
+```
+[ERR]   The upgrade replaced packages the running session still has loaded in memory:
+[ERR]   had kwin 6.4.0-1
+[ERR]   now kwin 6.4.1-1
+```
+
+This is the partial-upgrade state Arch documents as "do not keep using the session", not a broken
+install. Log out and back in (or reboot) and run the installer again: the upgrade is already
+applied, so nothing is downloaded twice and the remaining steps run against a session that matches
+the files on disk.
+
+Choosing **ignore** at the prompt continues anyway. The plugin build may then fail with Wayland or
+ABI errors that look unrelated to the upgrade.
+
+### 9.7 Prebuilt Shell Download Is Rejected
+
+`08-build-shell.sh` extracts the release tarball straight over `$HOME`, so it first checks the
+download against the `.sha256` published beside it:
+
+| Message | Meaning |
+|---|---|
+| `Prebuilt shell artifacts match the published checksum.` | Normal: the prebuilt archive is installed. |
+| `No published checksum for ... - extracting without verification.` | The release predates checksums. The install continues. |
+| `Checksum mismatch for ...` | The download was truncated or tampered with. The step falls back to building the shell locally. |
+
+A mismatch is not fatal: the installer builds from source instead, which takes longer but cannot
+unpack a damaged tree into `~/.local/lib/qt6/qml`.
 
 ---
 

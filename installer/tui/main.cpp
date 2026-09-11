@@ -99,19 +99,15 @@ int main(int argc, char** argv) {
 
     load_theme();
 
-    // Verify critical files exist before attempting the full UI flow
+    // The step scripts are the one thing the TUI cannot run without. The theme
+    // and menu checks live in load_theme() above, which records what failed so
+    // the screens can draw it - stderr alone is hidden by the alternate screen.
     {
-        std::string theme_path = g_bundle_dir + "/installer/data/theme.json";
-        std::string menu_path  = g_bundle_dir + "/installer/data/menu.json";
         std::string scripts_dir = g_bundle_dir + "/scripts";
-        if (!std::ifstream(theme_path).good())
-            std::cerr << "[installer] WARNING: theme.json not found at " << theme_path << std::endl;
-        if (!std::ifstream(menu_path).good())
-            std::cerr << "[installer] WARNING: menu.json not found at " << menu_path << std::endl;
-        // scripts/ dir is critical — if missing, the installer cannot execute steps
-        std::ifstream test_script(scripts_dir + "/00a-system-update.sh");
-        if (!test_script.good())
+        if (!std::ifstream(scripts_dir + "/00a-system-update.sh").good()) {
             std::cerr << "[installer] WARNING: scripts directory missing at " << scripts_dir << std::endl;
+            g_startup_problems.push_back("step scripts not found - the installer cannot run any step");
+        }
     }
 
     signal(SIGWINCH, handle_sigwinch);

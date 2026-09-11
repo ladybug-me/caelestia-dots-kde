@@ -281,7 +281,7 @@ shell_release_tag() {
 # version binary) into $HOME/.local, and quickshell/caelestia/ (the shell QML
 # source with the install-time shell.qml patch) into $HOME/.config.
 try_download_prebuilt_shell() {
-    local arch qt_abi tag tmp_archive url
+    local arch qt_abi tag tmp_archive url checksum expected actual
     arch="$(uname -m)"
     [[ "$arch" == "x86_64" ]] || return 1
     [[ -f /etc/arch-release ]] || return 1
@@ -297,6 +297,31 @@ try_download_prebuilt_shell() {
         rm -f "$tmp_archive"
         return 1
     fi
+
+    # The archive is unpacked straight over $HOME, so verify it against the
+    # checksum published beside it first (issue #667). A truncated or corrupted
+    # download then falls back to the local build instead of half-extracting a
+    # broken tree into ~/.local/lib/qt6/qml.
+    #
+    # A missing checksum only warns: releases published before the checksum
+    # existed have none, and refusing those would take the prebuilt path away
+    # from users who never had a problem. A present-but-wrong checksum is a hard
+    # failure.
+    checksum="$(mktemp)"
+    if curl -fsSL --connect-timeout 10 "$url.sha256" -o "$checksum"; then
+        expected="$(cut -d' ' -f1 < "$checksum")"
+        actual="$(sha256sum "$tmp_archive" | cut -d' ' -f1)"
+        if [[ -z "$expected" || "$expected" != "$actual" ]]; then
+            warn "Checksum mismatch for $url"
+            warn "Expected ${expected:-<empty>}, got $actual - falling back to a local build."
+            rm -f "$tmp_archive" "$checksum"
+            return 1
+        fi
+        ok "Prebuilt shell artifacts match the published checksum."
+    else
+        warn "No published checksum for $url - extracting without verification."
+    fi
+    rm -f "$checksum"
 
     info "Extracting prebuilt shell artifacts..."
     mkdir -p "$HOME/.local" "$HOME/.config"

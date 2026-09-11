@@ -167,4 +167,14 @@ namespace Draw {
         if (x < 0) x = 0;
         text(x, y, txt, color_name);
     }
+
+    int problems(int x, int y, int w, int max) {
+        int line = y;
+        for (const auto& problem : g_startup_problems) {
+            if (line - y >= max) break;
+            text(x, line, fit(problem, (size_t)w), "warning");
+            ++line;
+        }
+        return line;
+    }
 }

@@ -16,5 +16,9 @@ Scope {
 
         if (GlobalConfig.utilities.vpn.enabled)
             VPN;
+
+        // Watches for kde-material-you-colors re-applying the Plasma colour
+        // scheme in a loop, which flashes the screen every second.
+        KMYGuard;
     }
 }

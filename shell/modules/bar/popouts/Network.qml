@@ -89,7 +89,7 @@ ColumnLayout {
     // Wireless section
     StyledText {
         visible: root.view === "wireless"
-        
+
         Layout.topMargin: visible ? Tokens.padding.medium * root.scaleOffset : 0
         Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
         text: qsTr("Wireless")
@@ -98,7 +98,7 @@ ColumnLayout {
 
     Toggle {
         visible: root.view === "wireless"
-        
+
         label: qsTr("Enabled")
         checked: Nmcli.wifiEnabled
         toggle.onToggled: Nmcli.enableWifi(checked)
@@ -106,7 +106,7 @@ ColumnLayout {
 
     StyledText {
         visible: root.view === "wireless"
-        
+
         Layout.topMargin: visible ? Tokens.spacing.small * root.scaleOffset : 0
         Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
         text: qsTr("%1 networks available").arg(Nmcli.networks.length) // qmllint disable missing-property
@@ -217,7 +217,7 @@ ColumnLayout {
 
     StyledRect {
         visible: root.view === "wireless"
-        
+
         Layout.topMargin: visible ? Tokens.spacing.small * root.scaleOffset : 0
         Layout.fillWidth: true
         implicitHeight: rescanBtn.implicitHeight + Tokens.padding.small * root.scaleOffset
@@ -271,17 +271,17 @@ ColumnLayout {
         }
     }
 
-    // VPN section
+    // VPN section. Deliberately not gated on root.view: a saved VPN profile is
+    // reachable whether the machine is on Wi-Fi or docked on Ethernet, and a
+    // wired connection is exactly when the VPN profiles matter.
     Section {
-        visible: root.view === "wireless"
         Layout.fillWidth: true
-        Layout.topMargin: visible ? Tokens.padding.small * root.scaleOffset : 0
+        Layout.topMargin: Tokens.padding.small * root.scaleOffset
         title: qsTr("VPN")
         expanded: false
 
         StyledText {
-            visible: root.view === "wireless"
-            Layout.topMargin: visible ? Tokens.spacing.extraSmall * root.scaleOffset : 0
+            Layout.topMargin: Tokens.spacing.extraSmall * root.scaleOffset
             Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
             text: qsTr("%1 profiles available").arg(Nmcli.vpnConnections.length)
             color: Colours.palette.m3onSurfaceVariant
@@ -301,7 +301,6 @@ ColumnLayout {
 
                 Layout.fillWidth: true
                 implicitHeight: vpnRow.implicitHeight
-                visible: root.view === "wireless"
 
                 StateLayer {
                     anchors.fill: parent
@@ -363,7 +362,7 @@ ColumnLayout {
         }
 
         StyledText {
-            visible: root.view === "wireless" && Nmcli.vpnConnections.length === 0
+            visible: Nmcli.vpnConnections.length === 0
             Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
             text: qsTr("No VPN profiles found")
             color: Colours.palette.m3onSurfaceVariant
@@ -374,7 +373,7 @@ ColumnLayout {
     // Ethernet section
     StyledText {
         visible: root.view === "ethernet"
-        
+
         Layout.topMargin: visible ? Tokens.padding.medium * root.scaleOffset : 0
         Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
         text: qsTr("Ethernet")
@@ -383,7 +382,7 @@ ColumnLayout {
 
     StyledText {
         visible: root.view === "ethernet"
-        
+
         Layout.topMargin: visible ? Tokens.spacing.small * root.scaleOffset : 0
         Layout.rightMargin: Tokens.padding.extraSmall * root.scaleOffset
         text: qsTr("%1 devices available").arg(Nmcli.ethernetDevices.length)
