@@ -222,7 +222,8 @@ QString KWinActiveWindowBridge::getOutputNameForGeometry(int x, int y, int w, in
         const QPoint windowCentre = windowRect.center();
         for (QScreen* screen : QGuiApplication::screens()) {
             const QPoint delta = physicalGeometry(screen).center() - windowCentre;
-            const qreal distance = static_cast<qreal>(delta.x()) * delta.x() + static_cast<qreal>(delta.y()) * delta.y();
+            const qreal distance =
+                static_cast<qreal>(delta.x()) * delta.x() + static_cast<qreal>(delta.y()) * delta.y();
             if (bestDistance < 0 || distance < bestDistance) {
                 bestDistance = distance;
                 bestScreen = screen;
