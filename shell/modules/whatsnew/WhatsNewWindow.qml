@@ -209,7 +209,7 @@ FloatingWindow {
                         required property var modelData
 
                         property var feature: modelData
-                        property bool hasMedia: feature && !!feature.media_url
+                        property bool hasMedia: feature && !!feature.mediaUrl
 
                         width: ListView.view.width
                         height: contentColumn.implicitHeight + Tokens.padding.large * 2
@@ -254,7 +254,7 @@ FloatingWindow {
 
                                     MaterialIcon {
                                         anchors.centerIn: parent
-                                        text: (feature && feature.icon) ? feature.icon : (feature && root.isVideo(feature.media_url) ? "videocam" : "new_releases")
+                                        text: (feature && feature.icon) ? feature.icon : (feature && root.isVideo(feature.mediaUrl) ? "videocam" : "new_releases")
                                         color: Colours.palette.m3onSecondaryContainer
                                         fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
                                         grade: 25
@@ -349,7 +349,7 @@ FloatingWindow {
             Item {
                 property var featureData
                 property int currentIndex: -1
-                property bool hasMedia: featureData && !!featureData.media_url
+                property bool hasMedia: featureData && !!featureData.mediaUrl
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -459,9 +459,9 @@ FloatingWindow {
                             opacity: 0.5
                             visible: {
                                 if (!featureData) return false;
-                                if (featureData.media_transparent) return false;
-                                if (featureData.media_url) {
-                                    let url = featureData.media_url.toLowerCase();
+                                if (featureData.mediaTransparent) return false;
+                                if (featureData.mediaUrl) {
+                                    let url = featureData.mediaUrl.toLowerCase();
                                     if (url.endsWith(".png") || url.endsWith(".svg") || url.endsWith(".gif")) {
                                         return false;
                                     }
@@ -473,8 +473,8 @@ FloatingWindow {
                         AnimatedImage {
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.small
-                            source: hasMedia ? Qt.resolvedUrl("../../assets/whatsnew/" + featureData.media_url) : ""
-                            visible: hasMedia && !root.isVideo(featureData.media_url)
+                            source: hasMedia ? entries.mediaSource(featureData) : ""
+                            visible: hasMedia && !root.isVideo(featureData.mediaUrl)
                             fillMode: Image.PreserveAspectFit
                             playing: visible
                         }
@@ -483,7 +483,7 @@ FloatingWindow {
                             id: vidOut
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.small
-                            visible: hasMedia && root.isVideo(featureData.media_url)
+                            visible: hasMedia && root.isVideo(featureData.mediaUrl)
                             fillMode: VideoOutput.PreserveAspectFit
                         }
 
@@ -495,11 +495,11 @@ FloatingWindow {
                         MediaPlayer {
                             videoOutput: vidOut
                             audioOutput: aOut
-                            source: hasMedia ? Qt.resolvedUrl("../../assets/whatsnew/" + featureData.media_url) : ""
+                            source: hasMedia ? entries.mediaSource(featureData) : ""
                             loops: MediaPlayer.Infinite
 
                             Component.onCompleted: {
-                                if (hasMedia && root.isVideo(featureData.media_url)) {
+                                if (hasMedia && root.isVideo(featureData.mediaUrl)) {
                                     play()
                                 }
                             }
@@ -521,27 +521,20 @@ FloatingWindow {
         } // End of root Item
     } // End of Component
     } // End Container Item
+    Entries {
+        id: entries
+    }
+
     Process {
         id: readProcess
-        command: ["bash", "-c", "mkdir -p ~/.local/share/caelestia/state && touch ~/.local/share/caelestia/state/seen_features.txt && FEATURES_JSON=\"$(cat ~/.config/quickshell/caelestia/assets/whatsnew/features.json 2>/dev/null || echo '{}')\" && SEEN=\"$(cat ~/.local/share/caelestia/state/seen_features.txt)\" && echo \"$FEATURES_JSON\" && echo \"---SEEN---\" && echo \"$SEEN\""]
+        command: ["bash", "-c", "mkdir -p ~/.local/share/caelestia/state && touch ~/.local/share/caelestia/state/seen_features.txt && cat ~/.local/share/caelestia/state/seen_features.txt"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try {
-                    let parts = text.split("---SEEN---")
-                    let jsonText = parts[0].trim()
-                    let seenText = parts[1] ? parts[1].trim() : ""
+                const seen = text.split("\n").map(s => s.trim()).filter(s => s.length > 0);
 
-                    let data = JSON.parse(jsonText)
-                    let loadedFeatures = data.features || []
-
-                    let seen = seenText.split("\n").map(s => s.trim()).filter(s => s.length > 0)
-
-                    root.features = loadedFeatures
-                    root.unseenFeatures = loadedFeatures.filter(f => !seen.includes(f.id))
-                    root.loaded = true
-                } catch (e) {
-                    console.error("WelcomeWidget parsing error: " + e)
-                }
+                root.features = entries.list
+                root.unseenFeatures = entries.list.filter(f => !seen.includes(f.id))
+                root.loaded = true
             }
         }
     }
