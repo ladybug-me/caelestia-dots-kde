@@ -503,6 +503,42 @@ rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-update.lock"
 | Submodule update fails | Network issue or GitHub down. Retry later. |
 | CMake configure fails | New dependencies added since last install. Check error output. |
 
+### 9.6 Installer Stops After a System Upgrade
+
+`00a-system-update.sh` upgrades the system first, and later steps compile and load the Caelestia
+KWin plugin into the session that is **already running**. If the upgrade replaced `kwin`,
+`plasma-workspace`, `libplasma`, `qt6-base` or `qt6-declarative`, the live session still holds the
+old libraries in memory while the on-disk headers are new, so the installer stops and names the
+packages that moved:
+
+```
+[ERR]   The upgrade replaced packages the running session still has loaded in memory:
+[ERR]   had kwin 6.4.0-1
+[ERR]   now kwin 6.4.1-1
+```
+
+This is the partial-upgrade state Arch documents as "do not keep using the session", not a broken
+install. Log out and back in (or reboot) and run the installer again: the upgrade is already
+applied, so nothing is downloaded twice and the remaining steps run against a session that matches
+the files on disk.
+
+Choosing **ignore** at the prompt continues anyway. The plugin build may then fail with Wayland or
+ABI errors that look unrelated to the upgrade.
+
+### 9.7 Prebuilt Shell Download Is Rejected
+
+`08-build-shell.sh` extracts the release tarball straight over `$HOME`, so it first checks the
+download against the `.sha256` published beside it:
+
+| Message | Meaning |
+|---|---|
+| `Prebuilt shell artifacts match the published checksum.` | Normal: the prebuilt archive is installed. |
+| `No published checksum for ... - extracting without verification.` | The release predates checksums. The install continues. |
+| `Checksum mismatch for ...` | The download was truncated or tampered with. The step falls back to building the shell locally. |
+
+A mismatch is not fatal: the installer builds from source instead, which takes longer but cannot
+unpack a damaged tree into `~/.local/lib/qt6/qml`.
+
 ---
 
 ## 10. Uninstall Issues
