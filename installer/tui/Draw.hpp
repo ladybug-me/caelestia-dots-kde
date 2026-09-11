@@ -31,6 +31,12 @@ namespace Draw {
     std::string fit(const std::string& text, size_t max_len);
     std::string strip_ansi(const std::string& text);
 
+    // Startup problems recorded in g_startup_problems (a data file that could
+    // not be read, step scripts that are missing). They are printed to stderr
+    // too, but the alternate screen hides stderr, so screens draw them. Draws at
+    // most max lines from (x, y), clipped to w, and returns the next free line.
+    int problems(int x, int y, int w, int max);
+
     void box(int x, int y, int w, int h, const std::string& title = "", const std::string& border_color = "container", const std::string& title_color = "");
     void text(int x, int y, const std::string& txt, const std::string& color_name = "");
     void text_center(int y, const std::string& txt, const std::string& color_name = "");

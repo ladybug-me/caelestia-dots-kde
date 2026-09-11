@@ -300,6 +300,12 @@ namespace UI {
             Draw::text_center(ty + 1, co_author, "muted");
             Draw::text_center(ty + 3, "Caelestia KDE installer", "primary");
             Draw::text_center(ty + 6, "Detected distribution: " + distro_label(g_base_distro), "secondary");
+
+            // Startup problems sit under the distribution line, but only when
+            // there is room for them above the continue hint.
+            if (ty + 7 < y + h - 3)
+                Draw::problems(x + 2, ty + 7, w - 4, 2);
+
             Draw::text_center(y + h - 2, "Press Enter to continue (Esc to quit)...", "muted");
 
             cout << Draw::sync_end() << flush;
@@ -349,6 +355,10 @@ namespace UI {
             int help_y = y + 5 + (int)actions.size();
             if (help_y < y + h - 2)
                 Draw::text(x + 4, help_y, Draw::fit(actions[selected].help, (size_t)(w - 8)), "secondary");
+
+            // Startup problems go above the footer, where nothing else is drawn.
+            if (y + h - 4 > help_y + 1)
+                Draw::problems(x + 2, y + h - 4, w - 4, 2);
 
             Draw::text(x + 2, y + h - 2, Draw::fit("Esc - Exit", (size_t)(w - 4)), "muted");
 
