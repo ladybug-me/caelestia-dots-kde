@@ -14,7 +14,7 @@ class KrohnkiteConfig : public QObject {
     Q_PROPERTY(int screenGapLeft READ screenGapLeft WRITE setScreenGapLeft NOTIFY gapsChanged)
     Q_PROPERTY(int screenGapRight READ screenGapRight WRITE setScreenGapRight NOTIFY gapsChanged)
     Q_PROPERTY(int screenGapTop READ screenGapTop WRITE setScreenGapTop NOTIFY gapsChanged)
-    
+
     Q_PROPERTY(QString ignoreClass READ ignoreClass WRITE setIgnoreClass NOTIFY ignoreClassChanged)
 
     Q_PROPERTY(bool binaryTreeLayoutEnabled READ binaryTreeLayoutEnabled WRITE setBinaryTreeLayoutEnabled NOTIFY layoutsChanged)
@@ -39,16 +39,16 @@ public:
 
     int screenGapBetween() const { return m_screenGapBetween; }
     void setScreenGapBetween(int gap);
-    
+
     int screenGapBottom() const { return m_screenGapBottom; }
     void setScreenGapBottom(int gap);
-    
+
     int screenGapLeft() const { return m_screenGapLeft; }
     void setScreenGapLeft(int gap);
-    
+
     int screenGapRight() const { return m_screenGapRight; }
     void setScreenGapRight(int gap);
-    
+
     int screenGapTop() const { return m_screenGapTop; }
     void setScreenGapTop(int gap);
 
@@ -57,37 +57,37 @@ public:
 
     bool binaryTreeLayoutEnabled() const { return m_binaryTreeLayoutEnabled; }
     void setBinaryTreeLayoutEnabled(bool enabled);
-    
+
     bool cascadeLayoutEnabled() const { return m_cascadeLayoutEnabled; }
     void setCascadeLayoutEnabled(bool enabled);
-    
+
     bool columnsLayoutEnabled() const { return m_columnsLayoutEnabled; }
     void setColumnsLayoutEnabled(bool enabled);
-    
+
     bool floatingLayoutEnabled() const { return m_floatingLayoutEnabled; }
     void setFloatingLayoutEnabled(bool enabled);
-    
+
     bool monocleLayoutEnabled() const { return m_monocleLayoutEnabled; }
     void setMonocleLayoutEnabled(bool enabled);
-    
+
     bool quarterLayoutEnabled() const { return m_quarterLayoutEnabled; }
     void setQuarterLayoutEnabled(bool enabled);
-    
+
     bool spiralLayoutEnabled() const { return m_spiralLayoutEnabled; }
     void setSpiralLayoutEnabled(bool enabled);
-    
+
     bool spreadLayoutEnabled() const { return m_spreadLayoutEnabled; }
     void setSpreadLayoutEnabled(bool enabled);
-    
+
     bool stackedLayoutEnabled() const { return m_stackedLayoutEnabled; }
     void setStackedLayoutEnabled(bool enabled);
-    
+
     bool stairLayoutEnabled() const { return m_stairLayoutEnabled; }
     void setStairLayoutEnabled(bool enabled);
-    
+
     bool threeColumnLayoutEnabled() const { return m_threeColumnLayoutEnabled; }
     void setThreeColumnLayoutEnabled(bool enabled);
-    
+
     bool tileLayoutEnabled() const { return m_tileLayoutEnabled; }
     void setTileLayoutEnabled(bool enabled);
 

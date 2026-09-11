@@ -322,7 +322,7 @@ void KWinActiveWindowBridge::focusWindow(const QString &address) {
     if (auto* handle = PlasmaWindows::instance()->handleFor(address)) {
         m_pendingFocusAddress = address;
         emit pendingFocusAddressChanged();
-        
+
         // To focus a window, we set the active state
         handle->set_state(QtWayland::org_kde_plasma_window_management::state_active, QtWayland::org_kde_plasma_window_management::state_active);
     }
