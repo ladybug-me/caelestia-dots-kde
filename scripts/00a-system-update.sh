@@ -5,31 +5,16 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 
-if [[ "${SKIP_SYSTEM_UPDATE:-false}" == "true" ]]; then
-    info "Skipping full system update (SKIP_SYSTEM_UPDATE=true)."
-    exit 0
-fi
-
-# A rolling upgrade that replaces these pulls the libraries out from under the
-# session that is already running: the live KWin/Plasma keeps the old ones in
-# memory until the session ends, while 08-build-shell.sh compiles the Caelestia
-# plugin against the new headers on disk and 06-services.sh loads the KWin
-# bridge into that same old process. That is the partial-upgrade state Arch
-# warns about, and it surfaces later as Wayland protocol/ABI errors that look
-# like a broken build rather than a stale session (issue #627).
+# ── Session staleness guard (issue #627) ───────────────────────────────────
+# A rolling upgrade that replaces kwin/plasma-workspace/libplasma/qt6-base/
+# qt6-declarative pulls the libraries out from under the session that is already
+# running: the live KWin/Plasma keeps the old ones in memory until the session
+# ends, while 08-build-shell.sh compiles the Caelestia plugin against the new
+# headers on disk and 06-services.sh loads the KWin bridge into that same old
+# process. That is the partial-upgrade state Arch warns about, and it shows up
+# later as Wayland protocol/ABI errors that look like a broken build rather than
+# a stale session.
 #
-# Only checked on Arch: it is the rolling distro where this happens routinely,
-# and `pacman -Q` is the version query that exists there. Fedora and Debian
-# installs do not get this guard.
-SESSION_PACKAGES=(kwin plasma-workspace libplasma qt6-base qt6-declarative)
-
-session_package_versions() {
-    local pkg
-    for pkg in "${SESSION_PACKAGES[@]}"; do
-        pacman -Q "$pkg" 2>/dev/null || printf '%s not-installed\n' "$pkg"
-    done
-}
-
 # Identity of the running KWin: its PID and start time in clock ticks. Both
 # change when the session is restarted, which is the only thing that makes a
 # stale-session verdict stop applying. No running KWin (a TTY install, another
@@ -43,11 +28,12 @@ kwin_session_identity() {
     printf '%s %s\n' "$pid" "$(awk '{print $22}' "/proc/$pid/stat" 2>/dev/null || echo '?')"
 }
 
-STALE_SESSION_STAMP="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia-kde/stale-session"
+STALE_SESSION_STAMP="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia/stale-session"
 
-# A flagged session stays flagged. "Retry" on the failure prompt re-runs this
-# step, and by then the upgrade it applied is no longer a difference to detect,
-# so the verdict is remembered against the session that produced it.
+# Checked before the SKIP_SYSTEM_UPDATE exit, because a session flagged by an
+# earlier run is stale whether or not this run updates anything. A flagged
+# session stays flagged: "retry" on the failure prompt re-runs this step, and by
+# then the upgrade it applied is no longer a difference to detect.
 if [[ -f "$STALE_SESSION_STAMP" ]]; then
     if [[ "$(cat "$STALE_SESSION_STAMP" 2>/dev/null)" == "$(kwin_session_identity 2>/dev/null)" ]]; then
         err "This Plasma session still predates the last KWin/Qt upgrade. Log out and"
@@ -56,6 +42,23 @@ if [[ -f "$STALE_SESSION_STAMP" ]]; then
     fi
     rm -f "$STALE_SESSION_STAMP"
 fi
+
+if [[ "${SKIP_SYSTEM_UPDATE:-false}" == "true" ]]; then
+    info "Skipping full system update (SKIP_SYSTEM_UPDATE=true)."
+    exit 0
+fi
+
+# The comparison below is Arch-only: it is the rolling distro where this happens
+# routinely, and `pacman -Q` is the version query that exists there. Fedora and
+# Debian installs get the stamp check above but not the upgrade comparison.
+SESSION_PACKAGES=(kwin plasma-workspace libplasma qt6-base qt6-declarative)
+
+session_package_versions() {
+    local pkg
+    for pkg in "${SESSION_PACKAGES[@]}"; do
+        pacman -Q "$pkg" 2>/dev/null || printf '%s not-installed\n' "$pkg"
+    done
+}
 
 if [[ "${BASE_DISTRO:-unknown}" == "arch" ]]; then
     versions_before="$(session_package_versions)"
