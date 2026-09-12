@@ -43,7 +43,7 @@ caelestia_toolchain_stamp() {
 }
 
 # Stamps written before the fingerprint dropped patch versions carried the full
-# `cmake version X.Y.Z` string. Normalising both sides keeps those build dirs
+# `cmake version X.Y.Z` string. Normalizing both sides keeps those build dirs
 # alive instead of forcing one gratuitous full rebuild on upgrade.
 caelestia_normalise_stamp() {
     sed -E -e 's/cmake version //' -e 's/([0-9]+\.[0-9]+)\.[0-9]+/\1/g'
@@ -250,7 +250,7 @@ fi
 
 # UPDATER ONLY BLOCK END
 
-info "Building Caelestia Shell..."
+info "Building the Caelestia shell..."
 
 if [ ! -d "$SHELL_DIR" ]; then
     err "Shell directory not found at $SHELL_DIR!"
@@ -285,7 +285,7 @@ shell_release_tag() {
 # version binary) into $HOME/.local, and quickshell/caelestia/ (the shell QML
 # source with the install-time shell.qml patch) into $HOME/.config.
 try_download_prebuilt_shell() {
-    local arch qt_abi tag tmp_archive url checksum expected actual
+    local arch qt_abi tag tmp_archive url checksum expected actual asset candidate
     arch="$(uname -m)"
     [[ "$arch" == "x86_64" ]] || return 1
     [[ -f /etc/arch-release ]] || return 1
@@ -293,12 +293,23 @@ try_download_prebuilt_shell() {
     tag="$(shell_release_tag)"
     [[ -n "$qt_abi" && -n "$tag" ]] || return 1
 
+    # The asset is named after the project: caelestia-kde-<arch>-qt<abi>.tar.gz.
+    # Releases cut before that rename still carry the old caelestia-shell- name,
+    # so try the current one first and fall back rather than dropping those
+    # users onto a local compile.
     tmp_archive="$(mktemp --suffix=.tar.gz)"
-    url="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/caelestia-shell-${arch}-qt${qt_abi}.tar.gz"
+    url=""
     info "Downloading prebuilt shell artifacts (${tag}, Qt ${qt_abi})..."
-    if ! curl -fL --connect-timeout 10 --progress-bar "$url" -o "$tmp_archive"; then
-        warn "Failed to download prebuilt shell artifacts from $url"
+    for asset in "caelestia-kde-${arch}-qt${qt_abi}.tar.gz" "caelestia-shell-${arch}-qt${qt_abi}.tar.gz"; do
+        candidate="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/${asset}"
+        if curl -fL --connect-timeout 10 --progress-bar "$candidate" -o "$tmp_archive"; then
+            url="$candidate"
+            break
+        fi
         rm -f "$tmp_archive"
+    done
+    if [[ -z "$url" ]]; then
+        warn "No prebuilt shell artifacts published for ${tag} (Qt ${qt_abi}) - falling back to a local build."
         return 1
     fi
 
@@ -385,7 +396,7 @@ fi
 if [[ "$SHELL_PREBUILT" -eq 1 ]]; then
     info "Skipping local shell build; prebuilt artifacts installed."
 else
-    # lrelease compiles shell/translations into the .qm catalogues the shell loads.
+    # lrelease compiles shell/translations into the .qm catalogs the shell loads.
     # Checked here rather than with the other dependencies so it also covers a fresh
     # setup run; without it CMake just warns and the shell ships English only.
     if ! linguist_tools_available; then
@@ -603,7 +614,7 @@ else
     warn "Failed to copy yet-another-monochrome-icon-set."
 fi
 
-# Record which revision the artefacts just installed came from, for the update
+# Record which revision the artifacts just installed came from, for the update
 # checker. The build has happened by this point, so the checkout is what the
 # running shell really is.
 record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia" || true

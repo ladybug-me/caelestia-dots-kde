@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 
     DinoGame.qml — lockscreen port of shell/modules/sidebar/DinoGame.qml
     Uses DinoGameBackend singleton from Caelestia.Services (same as sidebar).
@@ -18,7 +18,7 @@ Item {
     id: root
 
     // Color theme — wired from NotifDock palette props
-    property color activeColor: "#c8c5d1"
+    property color activeColor: "#a2adac"
     property color bgColor:     "transparent"
     property bool isCaelestiaMode: false
 

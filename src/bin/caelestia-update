@@ -269,7 +269,7 @@ fi
 echo "PROGRESS: 3/5: Configuration files deployed."
 
 # 5. Build Shell
-echo "PROGRESS: 4/5: Building Caelestia Shell UI..."
+echo "PROGRESS: 4/5: Building the Caelestia shell UI..."
 echo
 echo "---------------------------------------------"
 echo "  Step 3 - Build Caelestia Shell UI"

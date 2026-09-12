@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Caelestia Workspace Tracker
-Comment=Exports workspace transition offsets via Unix socket for Caelestia Shell
+Comment=Exports workspace transition offsets via Unix socket for Caelestia
 Icon=preferences-system-windows
 Type=Service
 X-KDE-ServiceTypes=KWin/Effect

@@ -9,7 +9,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
 BUNDLE_DIR="${BUNDLE_DIR:?BUNDLE_DIR not set}"
 SRC_DIR="$BUNDLE_DIR/src/sddm"
 
-if [[ "${INSTALL_SDDM:-false}" != "true" ]]; then
+if [[ "${INSTALL_SDDM:-true}" != "true" ]]; then
     skip "SDDM theme not selected."
     exit 0
 fi

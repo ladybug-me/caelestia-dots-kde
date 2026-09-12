@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import QtQuick
@@ -59,25 +59,25 @@ Item {
     readonly property color clCardBg: alterColour(clSurfaceContainer, 0.60, 1)
     readonly property color clCardBgHigh: alterColour(clSurfaceContainerHigh, 0.60, 1)
 
-    // Material You palette — defaults from Catppuccin Mocha dark.
+    // Material You palette - the caelestia scheme's dark values.
     // All components receive these via explicit property bindings from this root
     // so there is one single source of truth and per-component defaults cannot drift.
     // Values are overridden by schemeLoader below once scheme.json is read.
-    property color clSurface: "#131317"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceContainerHighest: "#353438"
-    property color clPrimary: "#c2c1ff"
-    property color clSecondary: "#c6c4e0"
-    property color clPrimaryFg: "#2a2a60"
-    property color clError: "#ffb4ab"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimaryContainer: "#744550"
-    property color clSecondaryContainer: "#4f343a"
-    property color clTertiary: "#fedeff"
-    property color clOnTertiary: "#694a6f"
-    property color clOutline: "#837174"
+    property color clSurface: "#0a0f0f"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceContainerHighest: "#1d2827"
+    property color clPrimary: "#9bd0cc"
+    property color clSecondary: "#b0ccc9"
+    property color clPrimaryFg: "#0d4845"
+    property color clError: "#fa746f"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimaryContainer: "#255b58"
+    property color clSecondaryContainer: "#27403e"
+    property color clTertiary: "#d5efff"
+    property color clOnTertiary: "#2e5c72"
+    property color clOutline: "#6d7876"
 
     property var clTerms: []
 

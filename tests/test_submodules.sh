@@ -98,7 +98,7 @@ test_prune_is_a_no_op_without_local_registrations() {
     prune_removed_submodules "$repo"
     status=$?
 
-    assert_status 0 "$status" "a checkout that was never submodule-initialised should still succeed"
+    assert_status 0 "$status" "a checkout that was never submodule-initialized should still succeed"
     assert_is_dir "$repo/keep" "a submodule that is not registered locally must not be touched"
 }
 

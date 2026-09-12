@@ -1,4 +1,4 @@
-# Caelestia Shortcut System — Architecture Overview
+# Shortcut system architecture
 
 This document provides a simplified overview of how the Caelestia shortcut system works, from the backend C++ components to the QML frontend.
 

@@ -23,9 +23,9 @@ linguist_tools_available() {
 
 # install_linguist_tools
 #
-# Install Qt's Linguist tools so CMake can compile the translation catalogues.
+# Install Qt's Linguist tools so CMake can compile the translation catalogs.
 # Without lrelease CMake only warns and the shell ships English regardless of
-# the catalogues in shell/translations.
+# the catalogs in shell/translations.
 #
 # Privileged package calls go through caelestia_sudo rather than plain sudo:
 # this step also runs from a GUI-triggered update with no controlling terminal,

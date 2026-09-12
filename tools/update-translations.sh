@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # update-translations.sh - Re-scan the shell's QML for qsTr() strings and update
-# every catalogue in shell/translations.
+# every catalog in shell/translations.
 #
 # Usage:
-#   tools/update-translations.sh              # update all existing catalogues
-#   tools/update-translations.sh tr es pt_BR  # also create these catalogues
+#   tools/update-translations.sh              # update all existing catalogs
+#   tools/update-translations.sh tr es pt_BR  # also create these catalogs
 
 set -euo pipefail
 
@@ -58,7 +58,7 @@ if [[ ${#LANGS[@]} -eq 0 ]]; then
 fi
 
 if [[ ${#LANGS[@]} -eq 0 ]]; then
-    echo "[FAIL]  No catalogues in $TS_DIR and no languages given." >&2
+    echo "[FAIL]  No catalogs in $TS_DIR and no languages given." >&2
     echo "        Try: tools/update-translations.sh en tr" >&2
     exit 1
 fi
@@ -75,7 +75,7 @@ for lang in "${LANGS[@]}"; do
         grep -E 'Found|Warning' || true
 done
 
-# The compiled catalogues are committed so that a build without Qt's Linguist
+# The compiled catalogs are committed so that a build without Qt's Linguist
 # tools still ships every language. They are only useful if they keep up with
 # the sources, so recompile them here rather than leaving it to be remembered.
 if LRELEASE="$(find_tool lrelease)"; then
@@ -85,7 +85,7 @@ if LRELEASE="$(find_tool lrelease)"; then
         "$LRELEASE" -silent "$TS_DIR/caelestia_$lang.ts" -qm "$TS_DIR/caelestia_$lang.qm"
     done
 else
-    echo "[WARN]  lrelease not found; the committed .qm catalogues are now behind their sources." >&2
+    echo "[WARN]  lrelease not found; the committed .qm catalogs are now behind their sources." >&2
 fi
 
-echo "[ OK ]  Catalogues updated. Edit them with Qt Linguist, then rerun this script to recompile."
+echo "[ OK ]  Catalogs updated. Edit them with Qt Linguist, then rerun this script to recompile."

@@ -146,7 +146,7 @@ bool setup_sudo_environment(const string& pw) {
     pid = fork();
     if (pid == 0) {
         execlp("systemd-inhibit", "systemd-inhibit", "--what=idle:sleep",
-               "--who=Caelestia Installer", "--why=Installation in progress",
+               "--who=Caelestia installer", "--why=Installation in progress",
                "bash", "-c", "while :; do sleep 600; done",
                static_cast<char*>(nullptr));
         _exit(127);
@@ -163,7 +163,7 @@ bool setup_sudo_environment(const string& pw) {
             dup2(cookie_fd, STDOUT_FILENO);
         execlp("qdbus6", "qdbus6", "org.freedesktop.ScreenSaver",
                "/ScreenSaver", "org.freedesktop.ScreenSaver.Inhibit",
-               "Caelestia Installer", "Installation in progress",
+               "Caelestia installer", "Installation in progress",
                static_cast<char*>(nullptr));
         _exit(127);
     }
@@ -243,7 +243,7 @@ namespace UI {
                 art.push_back(line.get<string>());
             }
         }
-        if (art.empty()) art.push_back("Caelestia Installer");
+        if (art.empty()) art.push_back("Caelestia installer");
 
         int art_width = 0;
         for (const auto& line : art) {
@@ -273,7 +273,7 @@ namespace UI {
             int h = g_term_height - 2;
 
             if (w < 30 || h < 12) {
-                Draw::text_center(g_term_height / 2 - 1, "Caelestia Installer", "primary");
+                Draw::text_center(g_term_height / 2 - 1, "Caelestia installer", "primary");
                 Draw::text_center(g_term_height / 2, "Press Enter to continue (Esc to quit)...", "muted");
                 cout << Draw::sync_end() << flush;
                 string key = Input::wait_key();
@@ -298,7 +298,7 @@ namespace UI {
             int ty = top + art_height + 1;
             Draw::text_center(ty, author, "muted");
             Draw::text_center(ty + 1, co_author, "muted");
-            Draw::text_center(ty + 3, "Caelestia KDE installer", "primary");
+            Draw::text_center(ty + 3, "Caelestia installer", "primary");
             Draw::text_center(ty + 6, "Detected distribution: " + distro_label(g_base_distro), "secondary");
 
             // Startup problems sit under the distribution line, but only when
@@ -376,95 +376,6 @@ namespace UI {
             }
         }
         return "exit";
-    }
-
-    std::string profile_select() {
-        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array() ||
-            g_menu["profiles"].empty()) {
-            return "custom";
-        }
-
-        vector<string> ids, titles, helps;
-        for (auto& p : g_menu["profiles"]) {
-            ids.push_back(p.contains("id") && p["id"].is_string() ? p["id"].get<string>() : "");
-            titles.push_back(p.contains("title") && p["title"].is_string() ? p["title"].get<string>() : ids.back());
-            helps.push_back(p.contains("help") && p["help"].is_string() ? p["help"].get<string>() : "");
-        }
-
-        int selected = 0;
-        while (!g_quit) {
-            if (g_resized) { Term::get_size(); g_resized = false; }
-            cout << Draw::sync_start() << Draw::clear();
-
-            int x = 1, y = 1;
-            int w = g_term_width - 2;
-            int h = g_term_height - 2;
-            if (w < 30 || h < 12) {
-                cout << Draw::sync_end() << flush;
-                return "custom";
-            }
-
-            Draw::box(x, y, w, h, "INSTALLATION PROFILE", "primary", "on_surface");
-            Draw::text(x + 2, y + 2, navigate_hint(), "muted");
-
-            for (size_t i = 0; i < titles.size(); ++i) {
-                string col = (int)i == selected ? "bold_primary" : "muted";
-                Draw::text(x + 4, y + 4 + (int)i,
-                           ((int)i == selected ? "> " : "  ") + titles[i], col);
-            }
-
-            int help_y = y + 5 + (int)titles.size();
-            if (help_y < y + h - 2)
-                Draw::text(x + 4, help_y, Draw::fit(helps[selected], (size_t)(w - 8)), "secondary");
-
-            Draw::text(x + 2, y + h - 2, Draw::fit("Esc - Cancel installation", (size_t)(w - 4)), "muted");
-
-            cout << Draw::sync_end() << flush;
-
-            string key = Input::wait_key();
-            if (key == "KEY_up") {
-                if (selected > 0) selected--;
-            } else if (key == "KEY_down") {
-                if (selected < (int)titles.size() - 1) selected++;
-            } else if (key == "enter" || key == " ") {
-                return ids[selected];
-            } else if (key == "escape") {
-                return "";
-            }
-        }
-        return "";
-    }
-
-    void init_menu_defaults(const json& items);
-
-    void apply_profile(const std::string& profile_id) {
-        g_answers.clear();
-        if (!g_menu.is_null() && g_menu.contains("menu") && g_menu["menu"].is_array())
-            init_menu_defaults(g_menu["menu"]);
-        if (g_menu.is_null() || !g_menu.contains("profiles") || !g_menu["profiles"].is_array()) return;
-        for (auto& p : g_menu["profiles"]) {
-            if (!p.contains("id") || !p["id"].is_string() || p["id"].get<string>() != profile_id) continue;
-            if (!p.contains("sets") || !p["sets"].is_object()) return;
-            for (auto it = p["sets"].begin(); it != p["sets"].end(); ++it) {
-                if (it.value().is_boolean())
-                    g_answers[it.key()] = it.value().get<bool>() ? "true" : "false";
-                else if (it.value().is_string())
-                    g_answers[it.key()] = it.value().get<string>();
-            }
-            return;
-        }
-    }
-
-    std::string profile_title(const std::string& profile_id) {
-        if (!g_menu.is_null() && g_menu.contains("profiles") && g_menu["profiles"].is_array()) {
-            for (auto& p : g_menu["profiles"]) {
-                if (p.contains("id") && p["id"].is_string() && p["id"].get<string>() == profile_id &&
-                    p.contains("title") && p["title"].is_string()) {
-                    return p["title"].get<string>();
-                }
-            }
-        }
-        return "Custom";
     }
 
     void init_menu_defaults(const json& items) {
@@ -924,7 +835,7 @@ namespace UI {
 }
 
 namespace UI {
-    bool render_menu(const json& menu_items, const std::string& title, const std::string& profile_title) {
+    bool render_menu(const json& menu_items, const std::string& title) {
         struct MenuItemMeta {
             string type;
             string title;
@@ -1006,10 +917,6 @@ namespace UI {
 
             Draw::text(left + 2, top + 2, Draw::fit(navigate_hint(), (size_t)(w - 4)), "muted");
 
-            if (!profile_title.empty()) {
-                Draw::text(left + 2, top + 3, Draw::fit("Profile: " + profile_title, (size_t)(w - 4)), "accent");
-            }
-
             for (int i = 0; i < num_items; ++i) {
                 if (start_y + i >= top + h - 1) break;
                 string display = Draw::fit(build_display(i), (size_t)max_len);
@@ -1047,7 +954,7 @@ namespace UI {
                     if (id == "action_review" || id == "action_proceed") return true;
                 } else if (type == "submenu") {
                     if (item.contains("items")) {
-                        bool proceed = render_menu(item["items"], selected_meta.title, profile_title);
+                        bool proceed = render_menu(item["items"], selected_meta.title);
                         if (proceed) return true; // review chosen from a submenu bubbles up
                     }
                 } else if (type == "boolean") {

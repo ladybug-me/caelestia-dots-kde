@@ -2,6 +2,8 @@
 
 This document outlines the architecture, component structure, design system, and developer guidelines for the native Caelestia lock screen implementation in KDE Plasma 6 / KWin.
 
+![The Caelestia lock screen](../../assets/lockscreen-screenshot.png)
+
 ---
 
 ## 1. Overview & Architecture
@@ -45,20 +47,19 @@ src/kde/shells/caelestia.desktop/
 
 ---
 
-## 3. Design System & Aesthetics
+## 3. Design constants
 
-The Caelestia lock screen brings the modern Quickshell lockscreen design into native KDE Plasma 6:
+The Caelestia lock screen brings the Quickshell lock screen design into native KDE Plasma 6:
 
 1. **Frosted-Glass Blur Textures:**
-   - Because KWin Wayland does not apply compositor background blur to out-of-process greeter windows, Caelestia utilizes KDE's greeter wallpaper blurring technique by sourcing the in-process `wallpaper` item directly through `FastBlur` (radius 64).
+   - Because KWin Wayland does not apply compositor background blur to out-of-process greeter windows, Caelestia uses KDE's greeter wallpaper blurring technique by sourcing the in-process `wallpaper` item directly through `FastBlur` (radius 64).
    - The blurred wallpaper is mapped onto the lockscreen container (`lockBg`) and layout regions using a live `ShaderEffectSource` clipped with `OpacityMask` matching the container's corner radius (`bgRadius`).
-   - Card widgets use translucent surface backgrounds (`Qt.rgba(..., 0.55)`), allowing the vibrant blurred wallpaper gradients and colors to illuminate the widgets.
+   - Card widgets use translucent surface backgrounds (`Qt.rgba(..., 0.55)`).
 
 2. **Concentric Corner Radii:**
    - Outer background container radius: `bgRadius = 42px` (scaled with screen height).
    - Inner container padding: `bgMargin = 16px`.
    - Card widget corner radius: `cardRadius = bgRadius - bgMargin = 26px`.
-   - Produces mathematically uniform gaps and curves along all edges and corners.
 
 3. **Avatar Priority:**
    - [`ProfileAvatar.qml`](../../src/kde/shells/caelestia.desktop/contents/lockscreen/components/ProfileAvatar.qml) prioritizes `~/.face` directly from the user's home directory.

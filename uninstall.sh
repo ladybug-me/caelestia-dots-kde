@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================
-#   Caelestia KDE Port - Uninstaller
+#   Caelestia - uninstaller
 #
 #   Reverses actions performed by setup.sh.
 #   Restores backups when available and removes generated files.
@@ -53,18 +53,18 @@ if [[ "$BASE_DISTRO" == "unknown" ]]; then
 fi
 
 cat << 'EOF'
-  _    _       _           _        _ _
- | |  | |     (_)         | |      | | |
- | |  | |_ __  _ _ __  ___| |_ __ _| | |
- | |  | | '_ \| | '_ \/ __| __/ _` | | |
- | |__| | | | | | | | \__ \ || (_| | | |
-  \____/|_| |_|_|_| |_|___/\__\__,_|_|_|
+   _____            _           _   _
+  / ____|          | |         | | (_)
+ | |     __ _  ___ | | ___  ___| |_ _  __ _
+ | |    / _` |/ _ \| |/ _ \/ __| __| |/ _` |
+ | |___| (_| | (_) | |  __/\__ \ |_| | (_| |
+  \_____\__,_|\___/|_|\___||___/\__|_|\__,_|
 EOF
 echo "+------------------------------------------------------------------+"
-echo "|                     CAELESTIA KDE UNINSTALLER                     |"
+echo "|                       CAELESTIA UNINSTALLER                       |"
 echo "+------------------------------------------------------------------+"
 echo
-echo " This will remove Caelestia KDE shell files and configs."
+echo " This will remove Caelestia shell files and configs."
 echo " Backups in $BUNDLE_DIR/backups/ can be restored during uninstall."
 echo
 
@@ -78,7 +78,7 @@ trap 'kill $_SUDO_LOOP 2>/dev/null; true' EXIT
 
 # -- Confirmation ---------------------------------------------------------------
 echo
-read -r -p "Are you sure you want to uninstall Caelestia KDE? [y/N]: " _confirm
+read -r -p "Are you sure you want to uninstall Caelestia? [y/N]: " _confirm
 [[ "${_confirm,,}" == "y" || "${_confirm,,}" == "yes" ]] || die "Uninstall cancelled."
 
 echo
@@ -287,7 +287,7 @@ if [[ -d "$HOME/.local/share/caelestia-shell" ]]; then
     ok "Removed ~/.local/share/caelestia-shell"
 fi
 
-# Caelestia KDE lockscreen shell package
+# Caelestia lockscreen shell package
 if [[ -d "$HOME/.local/share/plasma/shells/caelestia.desktop" ]]; then
     rm -rf "$HOME/.local/share/plasma/shells/caelestia.desktop"
     ok "Removed ~/.local/share/plasma/shells/caelestia.desktop"
@@ -408,7 +408,7 @@ if [[ -z "$SELECTED_KNSV" ]]; then
     fi
 fi
 
-# Disable Caelestia KWin plugins
+# Disable Caelestia's KWin plugins
 kwriteconfig6 --file kwinrc --group "Plugins" --key "quickshell-kde-bridgeEnabled" "false" 2>/dev/null || true
 kwriteconfig6 --file kwinrc --group "Plugins" --key "krohnkiteEnabled"             "false" 2>/dev/null || true
 kwriteconfig6 --file kwinrc --group "Plugins" --key "kwin_workspace_trackerEnabled" "false" 2>/dev/null || true
@@ -859,7 +859,7 @@ ok "KDE reloaded"
 
 section "Uninstall Complete"
 echo
-ok "Caelestia KDE has been uninstalled."
+ok "Caelestia has been uninstalled."
 echo
 echo "  Backups of your original configs are in:  $BUNDLE_DIR/backups/"
 echo

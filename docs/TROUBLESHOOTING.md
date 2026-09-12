@@ -1,8 +1,8 @@
 # TROUBLESHOOTING
 
-## Caelestia KDE Port — Troubleshooting Guide
+## Troubleshooting guide
 
-This document catalogs known failure modes, error conditions, and edge cases discovered through analysis of the installer, shell build system, scripts, documentation, and runtime architecture of the Caelestia KDE port.
+This document catalogs known failure modes, error conditions, and edge cases discovered through analysis of the installer, shell build system, scripts, documentation, and runtime architecture of this port.
 
 ---
 
@@ -14,12 +14,11 @@ This document catalogs known failure modes, error conditions, and edge cases dis
 4. [Runtime Issues — Lock Screen](#4-runtime-issues--lock-screen)
 5. [Configuration Issues](#5-configuration-issues)
 6. [Network & Proxy Issues](#6-network--proxy-issues)
-7. [Tmux & Terminal Issues](#7-tmux--terminal-issues)
-8. [KDE & Plasma Specific Issues](#8-kde--plasma-specific-issues)
-9. [Post-Install Issues](#9-post-install-issues)
-10. [Uninstall Issues](#10-uninstall-issues)
-11. [Update Issues](#11-update-issues)
-12. [Diagnostic Commands Reference](#12-diagnostic-commands-reference)
+7. [KDE & Plasma Specific Issues](#7-kde--plasma-specific-issues)
+8. [Post-Install Issues](#8-post-install-issues)
+9. [Uninstall Issues](#9-uninstall-issues)
+10. [Update Issues](#10-update-issues)
+11. [Diagnostic Commands Reference](#11-diagnostic-commands-reference)
 
 ---
 
@@ -218,7 +217,7 @@ avoids Caelestia's use of the protocol entirely.
 | Colors not updating with wallpaper | Check service: `systemctl status --user kde-material-you-colors.service` |
 | Service failed to start | On Fedora, installed via `uv`. If `uv` isn't in PATH at login, the service fails. |
 | Old schemes accumulating | The installer removes old `MaterialYou*.colors`, but multiple restarts can recreate them. |
-| Colours come back as the built-in default (Mocha) | The CLI derives dynamic colours from the wallpaper it was last told about. When it has none it writes nothing, the shell keeps its own default palette and pushes that into KMY, so the whole desktop follows. The shell now re-derives from the wallpaper it is showing at every start. |
+| Colors come back as the built-in default (Mocha) | The CLI derives dynamic colors from the wallpaper it was last told about. When it has none it writes nothing, the shell keeps its own default palette and pushes that into KMY, so the whole desktop follows. The shell now re-derives from the wallpaper it is showing at every start. |
 | The service has to be restarted after every login | It was started with the session, before plasmashell existed, so it could read neither the wallpaper nor the current scheme. The unit is now ordered after `plasma-plasmashell.service` and restarts on a clean early exit too. |
 
 **Manual restart:**
@@ -258,7 +257,7 @@ The screenshot tool uses `spectacle` (KDE's native screenshot utility) via the `
 
 ### 3.7 Screen Flashes and the Shell Stutters Every Second
 
-The screen flashes, colours look briefly wrong and the shell hangs for about a
+The screen flashes, colors look briefly wrong and the shell hangs for about a
 second, repeating on a rhythm of roughly one second.
 
 The cause is `kde-material-you-colors` getting stuck. It decides on every loop
@@ -426,62 +425,22 @@ export ALL_PROXY=http://proxy:port
 
 ---
 
-## 7. Tmux & Terminal Issues
+## 7. KDE & Plasma Specific Issues
 
-### 7.1 Tmux Session Doesn't Start Properly
-
-The installer re-execs itself inside a tmux session with split panes.
-
-| Symptom | Cause | Fix |
-|---|---|---|
-| Session appears then vanishes | Process exited immediately | The wrapper script (`/tmp/caelestia_tmux_wrapper.sh`) should prevent this. Check it exists. |
-| `Another Caelestia setup is already running` | Stale lock file | `rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-setup.lock"` |
-| `INSTALLER SESSION ENDED (exit code: 1)` with no log | Binary crashed before writing stderr, or `/tmp` was full | Check available disk space |
-
-### 7.2 Worker Pane Communication Fails
-
-The C++ installer communicates with the worker tmux pane via named pipes:
-- `/tmp/caelestia_cmd` — command FIFO
-- `/tmp/caelestia_status` — status FIFO
-
-**Failure modes:**
-- **FIFO deadlock:** If the worker pane's `while read` loop exits, the `O_WRONLY` open blocks. Handled via `O_NONBLOCK` fallback.
-- **Safety timeout:** Steps that hang >30 minutes are treated as failed.
-- **ENXIO:** If the FIFO reader disappears (pane crash), the step is failed immediately.
-
-### 7.3 Terminal Rendering Problems
-
-The TUI uses advanced terminal escape sequences:
-
-| Feature | Sequence | Terminal Support |
-|---|---|---|
-| Sync mode (tear-free) | `\x1b[?2026h` / `\x1b[?2026l` | Not all terminals support this |
-| Alt-screen buffer | `\x1b[?1049h` | Most terminals support this |
-| SIGWINCH handling | Window resize signal | Some tmux configs don't forward SIGWINCH |
-
-**Requirements:**
-- 24-bit true color support
-- Synchronized Updates (DEC private mode 2026)
-- UTF-8 encoding for box-drawing characters
-
----
-
-## 8. KDE & Plasma Specific Issues
-
-### 8.1 Legacy qs-kwin-bridge Service
+### 7.1 Legacy qs-kwin-bridge Service
 
 The old `qs-kwin-bridge` Python daemon is now **disabled** in favor of native C++ plugins. If you see it running:
 ```bash
 systemctl --user disable --now qs-kwin-bridge.service
 ```
 
-### 8.2 xdg-desktop-portal-kde
+### 7.2 xdg-desktop-portal-kde
 
 The recording patch restarts `plasma-xdg-desktop-portal-kde` before each recording. This may fail if:
 - The portal service is masked
 - The user's systemd session is in a bad state
 
-### 8.3 ydotoold (On-Screen Keyboard)
+### 7.3 ydotoold (On-Screen Keyboard)
 
 `ydotoold` needs access to `/dev/uinput`. The installer:
 1. Creates `/etc/udev/rules.d/80-uinput.rules`
@@ -493,11 +452,11 @@ The recording patch restarts `plasma-xdg-desktop-portal-kde` before each recordi
 - Verify: `groups $USER` should include `input`
 - Verify: `ls -la /run/user/$(id -u)/.ydotool_socket`
 
-### 8.4 Krohnkite Tiling Disabled on Uninstall
+### 7.4 Krohnkite Tiling Disabled on Uninstall
 
 The uninstaller disables `krohnkiteEnabled` in `kwinrc`. If you don't have the Krohnkite KWin script installed, this setting is simply ignored.
 
-### 8.5 KWin Script Injection Fails
+### 7.5 KWin Script Injection Fails
 
 The plugin injects a temporary KWin script for window tracking. If KWin scripting is disabled:
 ```bash
@@ -506,9 +465,9 @@ qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript
 
 ---
 
-## 9. Post-Install Issues
+## 8. Post-Install Issues
 
-### 9.1 Shell Not Visible After Install
+### 8.1 Shell Not Visible After Install
 
 The shell only runs at **next login**. After the summary screen, the installer asks: *"Would you like to log out now? (y/N)"*
 
@@ -517,7 +476,7 @@ If you chose not to log out:
 2. Log back in
 3. If the shell still doesn't appear, run: `caelestia shell -d`
 
-### 9.2 Installer Exited Prematurely (Marker Check)
+### 8.2 Installer Exited Prematurely (Marker Check)
 
 The outer `setup.sh` wrapper checks if `[installer] done (success)` appears in stderr:
 
@@ -526,13 +485,13 @@ The outer `setup.sh` wrapper checks if `[installer] done (success)` appears in s
 | Exit 0 but elapsed < 3 seconds without marker | **"INSTALLER EXITED PREMATURELY"** |
 | Exit 0 but elapsed > 3 seconds without marker | **"INSTALLER EXITED UNEXPECTEDLY"** |
 
-### 9.3 CONFIRM_ARG Behavior
+### 8.3 CONFIRM_ARG Behavior
 
 The configuration menu sets `CONFIRM_ARG` as `true`/`false`. The installer converts it per-script context:
 - Some scripts use `-n "$CONFIRM_ARG"` (non-empty = auto-confirm)
-- The C++ code has a known inconsistency — see `Runner.cpp` comments for details
+- The installer writes an `[installer] done (success)` marker line to its stderr log, and `setup.sh` greps that log for it to decide whether the install succeeded (see `scripts/setup.sh`).
 
-### 9.4 Stale Lock Files
+### 8.4 Stale Lock Files
 
 If the script is killed with **SIGKILL** (not SIGTERM), lock files may persist:
 
@@ -547,7 +506,7 @@ rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-setup.lock"
 rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-update.lock"
 ```
 
-### 9.5 Update.sh Fails
+### 8.5 Update.sh Fails
 
 | Symptom | Cause |
 |---|---|
@@ -555,7 +514,7 @@ rm -f "${XDG_RUNTIME_DIR:-/tmp}/caelestia-update.lock"
 | Submodule update fails | Network issue or GitHub down. Retry later. |
 | CMake configure fails | New dependencies added since last install. Check error output. |
 
-### 9.6 Installer Stops After a System Upgrade
+### 8.6 Installer Stops After a System Upgrade
 
 `00a-system-update.sh` upgrades the system first, and later steps compile and load the Caelestia
 KWin plugin into the session that is **already running**. If the upgrade replaced `kwin`,
@@ -577,7 +536,7 @@ the files on disk.
 Choosing **ignore** at the prompt continues anyway. The plugin build may then fail with Wayland or
 ABI errors that look unrelated to the upgrade.
 
-### 9.7 Prebuilt Shell Download Is Rejected
+### 8.7 Prebuilt Shell Download Is Rejected
 
 `08-build-shell.sh` extracts the release tarball straight over `$HOME`, so it first checks the
 download against the `.sha256` published beside it:
@@ -586,6 +545,7 @@ download against the `.sha256` published beside it:
 |---|---|
 | `Prebuilt shell artifacts match the published checksum.` | Normal: the prebuilt archive is installed. |
 | `No published checksum for ... - extracting without verification.` | The release predates checksums. The install continues. |
+| `No prebuilt shell artifacts published for <tag> (Qt <abi>) - falling back to a local build.` | The release carries no archive for this Qt feature version. The step builds locally instead. |
 | `Checksum mismatch for ...` | The download was truncated or tampered with. The step falls back to building the shell locally. |
 
 A mismatch is not fatal: the installer builds from source instead, which takes longer but cannot
@@ -593,13 +553,13 @@ unpack a damaged tree into `~/.local/lib/qt6/qml`.
 
 ---
 
-## 10. Uninstall Issues
+## 9. Uninstall Issues
 
-### 10.1 No Backups Available
+### 9.1 No Backups Available
 
 Backups are stored in `$BUNDLE_DIR/backups/YYYYMMDD_HHMMSS/`. If you moved or deleted the repository, backups are gone.
 
-### 10.2 konsave Restore Fails
+### 9.2 konsave Restore Fails
 
 If the `.knsv` archive is corrupted or konsave can't be installed:
 - Falls back to manual restore of individual config files
@@ -608,22 +568,22 @@ If the `.knsv` archive is corrupted or konsave can't be installed:
 **Expected warning when restoring a Caelestia backup:**
 > *"The selected backup contains Caelestia configurations. Restoring this backup will NOT revert to a clean KDE desktop!"*
 
-### 10.3 Shell RC Files Not Cleaned
+### 9.3 Shell RC Files Not Cleaned
 
 The uninstaller uses state files (`shellrc/bashrc.state`, etc.) to determine whether to restore or remove shell config files. If these are missing (older installer version), a fallback `sed` cleanup removes `QML2_IMPORT_PATH` and `CAELESTIA_LIB_DIR` lines.
 
-### 10.4 Package Removal Leaves Dependencies
+### 9.4 Package Removal Leaves Dependencies
 
 Package removal is optional. It uses `yay -Rns` / `dnf remove` which does NOT remove:
 - Dependencies pulled in automatically (unless `-s` handles it)
 - Packages installed outside the defined lists
 - `base-devel` or build tools that existed before install
 
-### 10.5 Input Group Membership Persists
+### 9.5 Input Group Membership Persists
 
 The uninstaller runs `sudo gpasswd -d $USER input`. This only works if the user was added to the group during installation, and takes effect on next login.
 
-### 10.6 Failed Patches Tracking
+### 9.6 Failed Patches Tracking
 
 Failed patches are logged to:
 ```text
@@ -639,9 +599,9 @@ These are **cosmetic** — the shell works without them, but certain features (s
 
 ---
 
-## 11. Update Issues
+## 10. Update Issues
 
-### 11.1 Fixing caelestia updater (Recommended)
+### 10.1 Fixing caelestia updater (Recommended)
 
 By deleting the build cache and the update checker cache:
 
@@ -651,11 +611,11 @@ rm -rf ~/.config/caelestia-update/repo ~/.cache/caelestia-update-repo
 
 **Note:** This will have the updater clone the repo again which takes time according to your internet speed. Hence, the logs might seem stuck or tell you to restart the process, but just wait for it to finish.
 
-### 11.2 Using update.sh
+### 10.2 Using update.sh
 
 You can simply run `bash update.sh` in the cloned repo folder (~/caelestia-dots-kde) to update to latest version.
 
-### 11.3 Install latest version from repo
+### 10.3 Install latest version from repo
 
 Run the following command to simply install the latest shell using installer.
 ```bash
@@ -666,7 +626,7 @@ curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-dots-kde/main/
 
 ---
 
-## 12. Diagnostic Commands Reference
+## 11. Diagnostic Commands Reference
 
 ### System State Checks
 
@@ -705,7 +665,7 @@ cat $XDG_CACHE_HOME/caelestia-kde/failed_patches.txt 2>/dev/null
 # View installer build log
 cat /tmp/caelestia_build.log 2>/dev/null | tail -60
 
-# View installer stderr log (tmux runs)
+# View installer stderr log
 cat /tmp/caelestia_installer_err.log 2>/dev/null
 ```
 
@@ -713,7 +673,7 @@ cat /tmp/caelestia_installer_err.log 2>/dev/null
 
 ```bash
 # Test submodule availability
-git ls-remote https://github.com/ladybug-me/caelestia-dots.git HEAD
+git ls-remote https://github.com/ladybug-me/caelestia-dots-kde.git HEAD
 
 # Test AUR access
 curl -sI https://aur.archlinux.org/rpc/?v=5\&type=info\&arg[]=quickshell-git | head -5

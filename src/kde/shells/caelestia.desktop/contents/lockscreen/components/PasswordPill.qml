@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import QtQuick
@@ -23,14 +23,14 @@ FocusScope {
     property bool lockoutActive: false
     property string lockoutText: ""
 
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimary: "#c2c1ff"
-    property color clPrimaryFg: "#2a2a60"
-    property color clSecondary: "#c6c4e0"
-    property color clError: "#ffb4ab"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimary: "#9bd0cc"
+    property color clPrimaryFg: "#0d4845"
+    property color clSecondary: "#b0ccc9"
+    property color clError: "#fa746f"
 
     property alias text: passwordBox.text
     property real shakeX: 0

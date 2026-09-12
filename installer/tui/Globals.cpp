@@ -54,11 +54,11 @@ void load_theme() {
             }
         } catch (...) {
             std::cerr << "Failed to parse theme.json" << std::endl;
-            g_startup_problems.push_back("theme.json could not be parsed - using the built-in colours");
+            g_startup_problems.push_back("theme.json could not be parsed - using the built-in colors");
         }
     } else {
         std::cerr << "Could not open theme.json at " << path << std::endl;
-        g_startup_problems.push_back("theme.json not found - using the built-in colours (re-run setup.sh)");
+        g_startup_problems.push_back("theme.json not found - using the built-in colors (re-run setup.sh)");
     }
 
     std::string menu_path = g_bundle_dir + "/installer/data/menu.json";

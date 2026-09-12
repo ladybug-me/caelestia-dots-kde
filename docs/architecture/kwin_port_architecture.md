@@ -1,6 +1,8 @@
-# Caelestia KWin Port - Architecture & Developer API
+# KWin port architecture
 
-This document provides a comprehensive overview of the C++ plugin backend, detailing the architectural evolution from the legacy implementation and providing full API documentation for developers building QML components.
+This document covers the C++ plugin backend and the API available to QML components.
+
+![The Caelestia shell](../../assets/shell-screenshot.png)
 
 ---
 

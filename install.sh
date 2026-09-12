@@ -1,6 +1,6 @@
 #!/bin/sh
 # ==============================================================
-#   Caelestia KDE Port - Bootstrap installer
+#   Caelestia - bootstrap installer
 #
 #   Clone (or update) the repo and hand off to scripts/setup.sh,
 #   which is the single entry point for everything else: mirror

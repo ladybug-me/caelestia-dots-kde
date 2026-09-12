@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================
-#   Caelestia KDE Port - Unified Installer
+#   Caelestia - installer
 #
 #   Original Hyprland dots: Caelestia
 #   KDE port and modifications: ladybug-me

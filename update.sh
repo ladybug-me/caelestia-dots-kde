@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export PATH="$HOME/.local/bin:$PATH"
 # ==============================================================
-#   Caelestia KDE Port - Unified Updater
+#   Caelestia - updater
 # ==============================================================
 
 set -uo pipefail
@@ -142,7 +142,7 @@ trap 'caelestia_stop_sudo_keepalive' EXIT
 # hyprctl binary is involved.
 bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
-info "Building Caelestia Shell UI..."
+info "Building the Caelestia shell UI..."
 bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 
 # Re-apply idempotent system tweaks (KDE settings, CLI patches, etc.)
@@ -228,7 +228,7 @@ else
 fi
 
 # The lock screen reads scheme.json before any user session exists, so it has
-# to be on disk for the greeter to render with the right colours. Wait for the
+# to be on disk for the greeter to render with the right colors. Wait for the
 # shell that was just started to write it.
 #
 # This wait used to sit between the kill and the start, polling for a file to
@@ -238,7 +238,7 @@ fi
 # present the common case still returns immediately; the wait only bites on a
 # fresh install or a wiped state directory, which is when it matters.
 if ! wait_for_nonempty_file "$SCHEME_FILE" 15; then
-    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colours."
+    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colors."
 fi
 
 echo "Shell restarted successfully!"
