@@ -33,7 +33,7 @@ constexpr qreal kIndexFudge = 0.1;
 
 [[nodiscard]] const QHash<QByteArray, QByteArray>& lrclibHeaders() {
     static const QHash<QByteArray, QByteArray> h = {
-        { "User-Agent"_ba, "caelestia-shell (https://github.com/ladybug-me/caelestia-dots-kde)"_ba },
+        { "User-Agent"_ba, "caelestia-shell (https://github.com/ladybug-me/caelestia-kde)"_ba },
     };
     return h;
 }

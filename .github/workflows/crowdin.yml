@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     # Skipped on forks: the secrets do not exist there, and the action would
     # fail on every push rather than simply not running.
-    if: github.repository == 'ladybug-me/caelestia-dots-kde'
+    if: github.repository == 'ladybug-me/caelestia-kde'
     permissions:
       contents: write
       pull-requests: write
@@ -111,7 +111,7 @@ jobs:
   # keeps the pair together.
   compile:
     runs-on: ubuntu-latest
-    if: github.repository == 'ladybug-me/caelestia-dots-kde'
+    if: github.repository == 'ladybug-me/caelestia-kde'
     permissions:
       contents: write
     steps:

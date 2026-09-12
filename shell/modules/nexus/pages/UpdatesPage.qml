@@ -167,7 +167,7 @@ PageBase {
             icon: "help"
             type: TextButton.Tonal
             scale: pressed ? 0.95 : 1.0
-            onClicked: Qt.openUrlExternally("https://github.com/ladybug-me/caelestia-dots-kde/blob/main/docs/TROUBLESHOOTING.md#10-update-issues")
+            onClicked: Qt.openUrlExternally("https://github.com/ladybug-me/caelestia-kde/blob/main/docs/TROUBLESHOOTING.md#10-update-issues")
 
             Behavior on scale {
                 Anim {

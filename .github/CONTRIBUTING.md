@@ -5,8 +5,8 @@ We're glad you're here! This guide covers everything you need to start contribut
 ## Quick start
 
 ```bash
-git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde
-cd ~/caelestia-dots-kde
+git clone https://github.com/ladybug-me/caelestia-kde ~/caelestia-kde
+cd ~/caelestia-kde
 bash scripts/setup.sh  # Full install - do this at least once
 ```
 
@@ -148,4 +148,4 @@ Head to [caelestia-kde-plugins](https://github.com/ladybug-me/caelestia-kde-plug
 
 ## Stuck?
 
-Open a [Discussion](https://github.com/ladybug-me/caelestia-dots-kde/discussions) or ask in an issue - we're happy to help.
+Open a [Discussion](https://github.com/ladybug-me/caelestia-kde/discussions) or ask in an issue - we're happy to help.

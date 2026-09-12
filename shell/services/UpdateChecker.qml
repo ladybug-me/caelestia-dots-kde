@@ -81,7 +81,7 @@ Singleton {
 ALLOWED_BRANCHES="main dev"
 LIVE_ALLOWED_BRANCHES=""
 for b in $ALLOWED_BRANCHES; do
-    if git ls-remote --exit-code --heads https://github.com/ladybug-me/caelestia-dots-kde.git "$b" >/dev/null 2>&1; then
+    if git ls-remote --exit-code --heads https://github.com/ladybug-me/caelestia-kde.git "$b" >/dev/null 2>&1; then
         LIVE_ALLOWED_BRANCHES="$LIVE_ALLOWED_BRANCHES,$b"
     fi
 done
@@ -103,7 +103,7 @@ mkdir -p "$HOME/.config/quickshell/caelestia"
 echo "$CURRENT_BRANCH" > "$HOME/.config/quickshell/caelestia/.update_branch"
 REPO="$HOME/.cache/caelestia-update-repo"
 if [ ! -d "$REPO" ]; then
-    git clone --bare --filter=blob:none https://github.com/ladybug-me/caelestia-dots-kde.git "$REPO" >/dev/null 2>&1
+    git clone --bare --filter=blob:none https://github.com/ladybug-me/caelestia-kde.git "$REPO" >/dev/null 2>&1
 else
     git -C "$REPO" fetch --force origin "$CURRENT_BRANCH:$CURRENT_BRANCH" >/dev/null 2>&1
 fi
@@ -220,7 +220,7 @@ def run_git(*args: str) -> str:
     return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL)
 
 def fetch_releases() -> list:
-    url = "https://api.github.com/repos/ladybug-me/caelestia-dots-kde/releases?per_page=100"
+    url = "https://api.github.com/repos/ladybug-me/caelestia-kde/releases?per_page=100"
     req = urllib.request.Request(url, headers={"User-Agent": "caelestia-update-checker"})
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:

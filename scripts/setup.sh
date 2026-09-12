@@ -196,7 +196,7 @@ try_download_prebuilt_installer() {
     # "--version" check (old builds launched the full TUI instead).
     [[ -n "$version" && -n "$tag" ]] || return 1
     tmp_bin="$(mktemp)"
-    url="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/caelestia-install-${arch}-v${version}"
+    url="https://github.com/ladybug-me/caelestia-kde/releases/download/${tag}/caelestia-install-${arch}-v${version}"
     if curl -fsSL --connect-timeout 10 --max-time 30 "$url" -o "$tmp_bin" 2>/dev/null; then
         chmod +x "$tmp_bin"
         printf '%s\n' "$tmp_bin"

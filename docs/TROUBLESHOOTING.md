@@ -613,16 +613,16 @@ rm -rf ~/.config/caelestia-update/repo ~/.cache/caelestia-update-repo
 
 ### 10.2 Using update.sh
 
-You can simply run `bash update.sh` in the cloned repo folder (~/caelestia-dots-kde) to update to latest version.
+You can simply run `bash update.sh` in the cloned repo folder (~/caelestia-kde) to update to latest version.
 
 ### 10.3 Install latest version from repo
 
 Run the following command to simply install the latest shell using installer.
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-dots-kde/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-kde/main/install.sh | sh
 ```
 
-- If it gives an error due to already present `~/caelestia-dots-kde` directory in your pc, then remove that directory first and then run the above command. **Make sure to copy the `backups/` folder somewhere and then put it back here after installation completes.**
+- If it gives an error due to already present `~/caelestia-kde` directory in your pc, then remove that directory first and then run the above command. **Make sure to copy the `backups/` folder somewhere and then put it back here after installation completes.**
 
 ---
 
@@ -673,7 +673,7 @@ cat /tmp/caelestia_installer_err.log 2>/dev/null
 
 ```bash
 # Test submodule availability
-git ls-remote https://github.com/ladybug-me/caelestia-dots-kde.git HEAD
+git ls-remote https://github.com/ladybug-me/caelestia-kde.git HEAD
 
 # Test AUR access
 curl -sI https://aur.archlinux.org/rpc/?v=5\&type=info\&arg[]=quickshell-git | head -5

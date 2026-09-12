@@ -12,12 +12,12 @@
 #
 #   Install with a single command:
 #
-#     curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-dots-kde/main/install.sh | sh
+#     curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-kde/main/install.sh | sh
 #
 #   Overridable via environment:
-#     CAELESTIA_REPO    repository URL (default: ladybug-me/caelestia-dots-kde)
+#     CAELESTIA_REPO    repository URL (default: ladybug-me/caelestia-kde)
 #     CAELESTIA_BRANCH  branch to install (default: main)
-#     CAELESTIA_DIR     target directory (default: ~/caelestia-dots-kde)
+#     CAELESTIA_DIR     target directory (default: ~/caelestia-kde)
 # ==============================================================
 
 set -eu
@@ -61,9 +61,9 @@ if [ ! -t 0 ]; then
     fi
 fi
 
-REPO="${CAELESTIA_REPO:-https://github.com/ladybug-me/caelestia-dots-kde.git}"
+REPO="${CAELESTIA_REPO:-https://github.com/ladybug-me/caelestia-kde.git}"
 BRANCH="${CAELESTIA_BRANCH:-main}"
-DEST="${CAELESTIA_DIR:-$HOME/caelestia-dots-kde}"
+DEST="${CAELESTIA_DIR:-$HOME/caelestia-kde}"
 
 if ! command -v git >/dev/null 2>&1; then
     # Marker spacing must match scripts/lib/log.sh, which install.sh cannot
