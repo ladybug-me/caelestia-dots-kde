@@ -12,6 +12,7 @@ import Caelestia // Required for CUtils
 import Caelestia.Config
 import Caelestia.Blobs // Required for BlobGroup and BlobInvertedRect
 import qs.components
+import qs.components.controls
 import qs.components.misc
 import qs.services
 import qs.utils
@@ -506,48 +507,20 @@ FloatingWindow {
                         }
                     }
 
-                    StyledRect {
+                    IconButton {
                         id: markAllBtn
 
                         anchors.fill: parent
-                        radius: Tokens.rounding.full
-                        color: Colours.palette.m3primary
+                        type: IconButton.Filled
+                        icon: "done_all"
+                        isRound: true
+                        activeFocusOnTab: true
+                        font: Tokens.font.icon.builders.large.weight(Font.Medium).build()
 
-                        opacity: markAllMouse.pressed ? 0.85 : (markAllMouse.containsMouse ? 0.95 : 1.0)
-                        scale: markAllMouse.pressed ? 0.95 : ((markAllMouse.containsMouse || markAllMouse.activeFocus) ? 1.05 : 1.0)
+                        onClicked: root.acknowledgeAll()
 
-                        Behavior on opacity {
-                            Anim {
-                                type: Anim.FastEffects
-                            }
-                        }
-
-                        Behavior on scale {
-                            Anim {
-                                type: Anim.FastSpatial
-                            }
-                        }
-
-                        MaterialIcon {
-                            anchors.centerIn: parent
-                            text: "done_all"
-                            color: Colours.palette.m3onPrimary
-                            fontStyle: Tokens.font.icon.builders.large.weight(Font.Medium).build()
-                        }
-
-                        MouseArea {
-                            id: markAllMouse
-
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            activeFocusOnTab: true
-
-                            onClicked: root.acknowledgeAll()
-
-                            Keys.onReturnPressed: root.acknowledgeAll()
-                            Keys.onSpacePressed: root.acknowledgeAll()
-                        }
+                        Keys.onReturnPressed: root.acknowledgeAll()
+                        Keys.onSpacePressed: root.acknowledgeAll()
                     }
                 }
             }

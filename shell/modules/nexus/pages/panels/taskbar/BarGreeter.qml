@@ -48,14 +48,7 @@ PageBase {
             text: qsTr("Reset Defaults")
             icon: "restart_alt"
             type: TextButton.Tonal
-            scale: pressed ? 0.95 : 1.0
             onClicked: root.resetToDefaults()
-
-            Behavior on scale {
-                Anim {
-                    type: Anim.DefaultEffects
-                }
-            }
         }
     ]
 

@@ -129,9 +129,16 @@ ColumnLayout {
 
         signal clicked
 
-        radius: Tokens.rounding.medium
+        radius: stateLayer.pressed ? Tokens.rounding.small : Tokens.rounding.medium
         implicitWidth: label.implicitWidth + Tokens.padding.medium * 2
         implicitHeight: label.implicitHeight + Tokens.padding.small
+        Layout.fillWidth: true
+
+        Behavior on radius {
+            Anim {
+                type: Anim.DefaultEffects
+            }
+        }
 
         StateLayer {
             id: stateLayer
@@ -144,6 +151,7 @@ ColumnLayout {
                     Visibilities.setOverview(false);
             }
         }
+
         StyledText {
             id: label
 
@@ -152,6 +160,5 @@ ColumnLayout {
             color: parent.onColor
             font: Tokens.font.body.medium
         }
-        Layout.fillWidth: true
     }
 }

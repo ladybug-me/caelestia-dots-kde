@@ -48,7 +48,7 @@ Item {
         Repeater {
             model: root.tabButtonList
 
-            delegate: Button {
+            delegate: StyledRect {
                 id: tabBtn
 
                 required property int index
@@ -57,25 +57,22 @@ Item {
                 property bool current: tabBtn.index === root.currentIndex
 
                 implicitHeight: 36
-                leftPadding: 16
-                rightPadding: 16
+                implicitWidth: contentRow.implicitWidth + 32
+                radius: height / 2
 
-                onClicked: {
-                    root.setCurrentIndex(tabBtn.index);
-                }
+                color: tabBtn.current ? Colours.palette.m3secondaryContainer : Qt.alpha(Colours.palette.m3secondaryContainer, 0)
 
-                background: Rectangle {
-                    // Fade alpha to 0 instead of the literal "transparent" string,
-                    // which would animate RGB through black.
-                    color: tabBtn.current ? Colours.palette.m3secondaryContainer : Qt.alpha(Colours.palette.m3secondaryContainer, 0)
-                    radius: height / 2
-
-                    Behavior on color {
-                        CAnim {}
+                StateLayer {
+                    color: tabBtn.current ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                    onClicked: {
+                        root.setCurrentIndex(tabBtn.index);
                     }
                 }
 
-                contentItem: RowLayout {
+                RowLayout {
+                    id: contentRow
+
+                    anchors.centerIn: parent
                     spacing: 8
 
                     MaterialIcon {
@@ -90,10 +87,6 @@ Item {
                         font: Tokens.font.body.small
                         Layout.alignment: Qt.AlignVCenter
                     }
-                }
-
-                HoverHandler {
-                    cursorShape: Qt.PointingHandCursor
                 }
             }
         }
