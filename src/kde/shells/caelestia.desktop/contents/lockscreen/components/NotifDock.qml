@@ -18,13 +18,13 @@ Rectangle {
     property bool isCaelestiaMode: false
     property bool hideNotifs: false
 
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceContainerHighest: "#353438"
-    property color clSecondaryContainer: "#4f343a"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clOutline: "#837174"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceContainerHighest: "#1d2827"
+    property color clSecondaryContainer: "#27403e"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clOutline: "#6d7876"
 
     signal clearAllRequested()
     signal dndRequested(bool enabled)

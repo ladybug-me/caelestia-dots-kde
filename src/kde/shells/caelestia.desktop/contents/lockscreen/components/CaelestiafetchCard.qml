@@ -15,13 +15,13 @@ Rectangle {
     property var clTerms: []
     property real centerScale: 1.0
 
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceContainerHighest: "#353438"
-    property color clSurface: "#131317"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimary: "#c2c1ff"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceContainerHighest: "#1d2827"
+    property color clSurface: "#0a0f0f"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimary: "#9bd0cc"
     property bool recolourLogo: true
 
     property real cardRadius: 26

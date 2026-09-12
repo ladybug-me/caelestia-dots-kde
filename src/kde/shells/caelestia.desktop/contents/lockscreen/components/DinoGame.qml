@@ -18,7 +18,7 @@ Item {
     id: root
 
     // Color theme — wired from NotifDock palette props
-    property color activeColor: "#c8c5d1"
+    property color activeColor: "#a2adac"
     property color bgColor:     "transparent"
     property bool isCaelestiaMode: false
 

@@ -12,10 +12,10 @@ Rectangle {
     id: root
 
     property real centerScale: 1.0
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimary: "#c2c1ff"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimary: "#9bd0cc"
     property real cardRadius: 26
 
     readonly property bool isHorizontalLayout: root.width >= 300 && root.height >= 80

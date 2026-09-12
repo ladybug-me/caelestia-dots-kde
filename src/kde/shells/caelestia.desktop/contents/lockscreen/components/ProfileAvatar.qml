@@ -16,8 +16,8 @@ Item {
     property string userName: ""
     property real centerScale: 1.0
     property int profileShape: MaterialShape.Pentagon
-    property color clSurfaceContainerHighest: "#353438"
-    property color clSurfaceVariantFg: "#c8c5d1"
+    property color clSurfaceContainerHighest: "#1d2827"
+    property color clSurfaceVariantFg: "#a2adac"
 
     readonly property string homeDir: (typeof StandardPaths !== "undefined" && StandardPaths.writableLocation)
         ? StandardPaths.writableLocation(StandardPaths.HomeLocation)

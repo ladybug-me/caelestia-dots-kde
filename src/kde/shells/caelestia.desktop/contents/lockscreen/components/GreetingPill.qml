@@ -10,14 +10,14 @@ import QtQuick.Layouts
 Rectangle {
     id: root
 
-    property var greetingInfo: ({ greeting: "Good day", icon: "sunny", iconColor: "#c2c1ff" })
+    property var greetingInfo: ({ greeting: "Good day", icon: "sunny", iconColor: "#9bd0cc" })
     property string userName: "User"
     property real centerScale: 1.0
     property real centerWidth: 600 * centerScale
 
     property color pillColor: Qt.rgba(255, 255, 255, 0.08)
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimary: "#c2c1ff"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimary: "#9bd0cc"
 
     color: pillColor
     radius: height / 2
