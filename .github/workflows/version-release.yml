@@ -163,7 +163,6 @@ jobs:
             --title "chore: sync main back to dev after $VERSION" \
             --body "This is an automated PR to sync the new release tags from \`main\` back into \`dev\`." || true
 
-  # ═══════════════════════════════════════════════════════════
   # Precompile the Caelestia shell (the C++ QML plugin modules and
   # M3Shapes) and bundle them with the shell QML source, so a fresh
   # install can download the compiled .so files instead of building
@@ -174,7 +173,6 @@ jobs:
   # back to a local build. The KWin effect is deliberately excluded:
   # it links KWin::kwin, whose ABI is Plasma-version-specific, so it
   # stays a local build (see 08-build-shell.sh).
-  # ═══════════════════════════════════════════════════════════
   build-shell:
     name: Precompile shell artifacts (x86_64)
     needs: version-release
@@ -252,12 +250,10 @@ jobs:
           # so name the repo explicitly instead of relying on local git state.
           gh release upload "$TAG" "$ARTIFACT" "$CHECKSUM" --repo "$GITHUB_REPOSITORY" --clobber
 
-  # ═══════════════════════════════════════════════════════════
   # Prebuilt installer TUI binaries (x86_64 + aarch64) so setup.sh
   # can download instead of compiling the TUI on the user's machine.
   # These are versioned executables, so they belong on the version
   # release.
-  # ═══════════════════════════════════════════════════════════
   build-installer:
     name: Build installer TUI (${{ matrix.arch }})
     needs: version-release
