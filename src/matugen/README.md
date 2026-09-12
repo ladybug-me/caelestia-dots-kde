@@ -30,6 +30,18 @@ Rendered against a real wallpaper on the CachyOS VM, end to end, with no errors:
 
 One correction the run forced: the five `*_paletteKeyColor` roles the shell declares are not in matugen's role list, and nothing in the QML reads them, so the template omits them and they keep their built-in values.
 
+## The palette will look different
+
+Accepted on 2026-09-12 rather than compensated for. Against the same wallpaper and the same scheme
+type, matugen's surfaces come out lighter than the current pipeline's and its accents brighter and
+more saturated: background `101417` against `0b0f11`, primary `92cef5` against `a6cbe6`. matugen
+follows the specification; the CLI post-processes its result.
+
+Reproducing that adjustment, and tuning these roles back inside the template with matugen's filters,
+were both considered and rejected: each leaves us maintaining a transform derived by
+reverse-engineering someone else's post-processing. The release notes carry the change when it
+ships.
+
 ## Still open
 
 - the named catalogue, which becomes our own data;
