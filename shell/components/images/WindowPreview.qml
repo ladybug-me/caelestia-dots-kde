@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell.Widgets
 import Caelestia
 import Caelestia.Config
+import Caelestia.Images
 import Caelestia.Services
 import qs.components
 import qs.components.images
@@ -31,6 +32,7 @@ Item {
     /// PipeWireSourceItem fills whatever it is given, so without this a 16:9
     /// window in a square card comes out stretched.
     property real sourceAspect: 16 / 9
+    property bool _thumbExists: root.thumbPath ? IUtils.fileExists(root.thumbPath) : false
 
     readonly property bool hasStream: stream.available
     readonly property string thumbPath: root.address ? `${Paths.runtimeDir}/caelestia/window-thumbs/${root.address.startsWith("0x") ? root.address.slice(2) : root.address}.png` : ""
@@ -62,10 +64,10 @@ Item {
         anchors.centerIn: parent
         width: root.fitted * root.sourceAspect
         height: root.fitted
-        path: root.thumbPath
+        path: (root.active && root._thumbExists) ? root.thumbPath : ""
         fillMode: Image.PreserveAspectFit
         asynchronous: true
-        visible: root.active && GlobalConfig.bar.livePreviews && status === Image.Ready && opacity > 0
+        visible: root.active && GlobalConfig.bar.livePreviews && root._thumbExists && status === Image.Ready && opacity > 0
         opacity: root.hasStream ? 0 : 1
 
         Behavior on opacity {
@@ -105,7 +107,9 @@ Item {
         repeat: false
         onTriggered: {
             if (root.hasStream && root.address && sourceItem.width > 0 && sourceItem.height > 0 && root.thumbPath) {
-                CUtils.saveItem(sourceItem, Qt.resolvedUrl("file://" + root.thumbPath));
+                CUtils.saveItem(sourceItem, Qt.resolvedUrl("file://" + root.thumbPath), () => {
+                    root._thumbExists = true;
+                });
             }
         }
     }
