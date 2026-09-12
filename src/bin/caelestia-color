@@ -3,10 +3,10 @@
 # `caelestia scheme`.
 #
 # It generates the palette with matugen, writes the state the shell and the
-# lock screen already read, and fans the colors out to the applications that
-# take theirs from a file. Nothing else changed with it: the state contract is
-# still upstream's, which is what made the hand-off to an external Caelestia CLI
-# replaceable in the first place.
+# lock screen already read, applies it to the desktop, and fans the colors out
+# to the applications that take theirs from a file. Nothing else changed with
+# it: the state contract is still upstream's, which is what made the hand-off to
+# an external Caelestia CLI replaceable in the first place.
 #
 #   $XDG_STATE_HOME/caelestia/scheme.json          the palette the shell reads
 #   $XDG_STATE_HOME/caelestia/wallpaper/path.txt   the wallpaper on screen
@@ -426,7 +426,7 @@ def cmd_pick_mode(data_dir: str, name: str, flavour: str, mode: str) -> int:
 # they are not carried.
 PALETTE_KEY_COLORS = {
     # The Material palette key color is tone 50 of the palette, which is what
-    # kde-material-you-colors is handed to theme the rest of the desktop.
+    # the shell's palette manager reads to name the colors it was handed.
     "primary_paletteKeyColor": "primary",
     "secondary_paletteKeyColor": "secondary",
     "tertiary_paletteKeyColor": "tertiary",
@@ -534,11 +534,11 @@ def cmd_smart_variant(image: str) -> int:
 
     matugen's own `scheme-smart` makes this choice too, but it keeps it to
     itself: the palette comes back without saying which scheme type produced it,
-    and the shell reads the variant out of scheme.json to drive
-    kde-material-you-colors. So the choice is made here instead, from the same
-    colourfulness measure upstream used, and handed to matugen as a concrete
-    type. ffmpeg does the decoding because this port already needs it for video
-    wallpapers and it is a C library away from being fast.
+    and the shell reads the variant out of scheme.json to name the palette. So
+    the choice is made here instead, from the same colourfulness measure
+    upstream used, and handed to matugen as a concrete type. ffmpeg does the
+    decoding because this port already needs it for video wallpapers and it is a
+    C library away from being fast.
     """
     import math
     import shutil
@@ -589,6 +589,59 @@ def cmd_smart_variant(image: str) -> int:
     return 0
 
 
+def cmd_konsole_scheme(scheme_file: str, out: str) -> int:
+    """Write a Konsole color scheme from the palette in effect.
+
+    Konsole wants one `R,G,B` triple per entry and knows nothing about Material
+    You roles, so the roles are mapped the way the terminals are mapped: the
+    surface is the background, onSurface the text, and the sixteen terminal
+    colors are the same base16 set the rest of the fan out uses. Konsole falls
+    back to its own defaults for any group a scheme leaves out, so every group
+    is written: intense entries point at the bright half of that set and faint
+    entries repeat the normal color.
+    """
+    colours = json.loads(pathlib.Path(scheme_file).read_text(encoding="utf-8"))["colours"]
+
+    def triple(role: str, fallback: str) -> str:
+        value = (colours.get(role) or fallback).lstrip("#")
+        if len(value) != 6:
+            value = fallback.lstrip("#")
+        return ",".join(str(int(value[index : index + 2], 16)) for index in (0, 2, 4))
+
+    lines = [
+        "[General]",
+        "Description=Matugen",
+        "Opacity=1",
+        "[Background]",
+        f"Color={triple('surface', '1e1e2e')}",
+        "[BackgroundFaint]",
+        f"Color={triple('surfaceDim', '181825')}",
+        "[BackgroundIntense]",
+        f"Color={triple('surfaceContainerHigh', '313244')}",
+        "[Foreground]",
+        f"Color={triple('onSurface', 'cdd6f4')}",
+        "[ForegroundFaint]",
+        f"Color={triple('onSurfaceVariant', 'a6adc8')}",
+        "[ForegroundIntense]",
+        f"Color={triple('onSurface', 'cdd6f4')}",
+    ]
+
+    for index in range(16):
+        normal = triple(f"term{index}", "cdd6f4")
+        bright = triple(f"term{index + 8}", "cdd6f4") if index < 8 else normal
+        lines += [
+            f"[Color{index}]",
+            f"Color={normal}",
+            f"[Color{index}Faint]",
+            f"Color={normal}",
+            f"[Color{index}Intense]",
+            f"Color={bright}",
+        ]
+
+    atomic_write(pathlib.Path(out), "\n".join(lines) + "\n")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     command, args = argv[0], argv[1:]
     if command == "config-dump":
@@ -617,6 +670,8 @@ def main(argv: list[str]) -> int:
         return cmd_render_templates(*args)
     if command == "smart-variant":
         return cmd_smart_variant(*args)
+    if command == "konsole-scheme":
+        return cmd_konsole_scheme(*args)
     raise SystemExit(f"unknown python helper: {command}")
 
 
@@ -725,9 +780,9 @@ config_value() {
 #
 # The fan-out, one line per template: key, template files, output, and whether
 # it is on when cli.json says nothing. `enableKde`, `enableKvantum`,
-# `enableStarship`, `enableVscode`, `enableRofi`, `enableFoot` and `enableKitty`
-# are ours - upstream has no key for them - and the rest are its names, so the
-# same cli.json drives both.
+# `enableKonsole`, `enableStarship`, `enableVscode`, `enableRofi`, `enableFoot`
+# and `enableKitty` are ours - upstream has no key for them - and the rest are
+# its names, so the same cli.json drives both.
 targets() {
     cat <<EOF
 enableKde|Matugen.colors|$DATA_HOME/color-schemes/Matugen.colors|true
@@ -961,12 +1016,108 @@ apply_terms() {
     done
 }
 
+# apply_kde
+#
+# Put the palette on the running desktop.
+#
+# KDE reads a color scheme file when one is applied to it, not when it changes,
+# so every color change has to be an apply. plasma-apply-colorscheme refuses a
+# scheme whose name is the one already in effect, which is why the palette
+# rotates between two names: as far as KDE is concerned the name is what
+# changed. Both files are the same palette, so whichever one is in effect is
+# the right one.
+#
+# An accent color set in System Settings would be a second source of truth -
+# Plasma rewrites the focus, link and selection colors from it, on top of the
+# palette it was just given - so it is dropped. The scheme carries the accent
+# instead, which is what generating a palette is for.
+apply_kde() {
+    local scheme="$DATA_HOME/color-schemes/Matugen.colors" current="" target
+
+    [[ -f "$scheme" ]] || return 0
+    if ! command -v plasma-apply-colorscheme >/dev/null 2>&1 ||
+        ! command -v kreadconfig6 >/dev/null 2>&1 ||
+        ! command -v kwriteconfig6 >/dev/null 2>&1; then
+        # All three come from kf6-kconfig and plasma-workspace. Without the
+        # reader there is no way to tell which name is in effect, and applying
+        # the wrong one is a change that silently does nothing.
+        warn "the KDE command line tools are missing; the palette was written but not applied"
+        return 0
+    fi
+
+    current="$(kreadconfig6 --file kdeglobals --group General --key ColorScheme --default '' 2>/dev/null || true)"
+    if [[ "$current" == "Matugen" ]]; then
+        target="Matugen Alt"
+    else
+        target="Matugen"
+    fi
+
+    kwriteconfig6 --file kdeglobals --group General --key AccentColor --delete 2>/dev/null || true
+    kwriteconfig6 --file kdeglobals --group General --key AccentColorFromWallpaper --delete 2>/dev/null || true
+
+    if [[ "$target" != "Matugen" ]]; then
+        cp -f "$scheme" "$DATA_HOME/color-schemes/$target.colors"
+    fi
+    plasma-apply-colorscheme "$target" >/dev/null 2>&1 || warn "could not apply the Plasma color scheme"
+}
+
+# apply_konsole
+#
+# Konsole reads a scheme file of its own, in `R,G,B` rather than hex, and a
+# profile has to name it. matugen has no template for that format, so the file
+# is rendered from the palette here, and the profiles that exist are pointed at
+# it. A profile the user has not created does not exist to point: Konsole keeps
+# its built-in one until they make one.
+apply_konsole() {
+    local dir="$DATA_HOME/konsole" profile
+
+    mkdir -p "$dir"
+    if ! py konsole-scheme "$SCHEME_FILE" "$dir/Matugen.colorscheme"; then
+        warn "could not write the Konsole color scheme"
+        return 0
+    fi
+
+    command -v kwriteconfig6 >/dev/null 2>&1 || return 0
+    for profile in "$dir"/*.profile; do
+        [[ -f "$profile" ]] || continue
+        kwriteconfig6 --file "$profile" --group Appearance --key ColorScheme "Matugen" 2>/dev/null || true
+    done
+}
+
+# apply_kvantum
+#
+# Select the Kvantum theme the fan out just wrote. The theme files are named
+# after their directory, so the name never changes: only which theme is in use
+# does, and that is set here rather than at install time because the files only
+# exist once a palette has been generated.
+apply_kvantum() {
+    local theme="$CONFIG_HOME/Kvantum/matugen"
+
+    [[ -f "$theme/matugen.kvconfig" ]] || return 0
+    command -v kwriteconfig6 >/dev/null 2>&1 || return 0
+    kwriteconfig6 --file "$CONFIG_HOME/Kvantum/kvantum.kvconfig" --group General --key theme "matugen" 2>/dev/null \
+        || warn "could not select the Kvantum theme"
+}
+
 # after_fan_out <mode>
 #
 # The steps that cannot be expressed as a template: telling the running
-# applications that the file they read has changed.
+# applications that the file they read has changed. The desktop is applied to
+# first, because that is the part the user is looking at.
 after_fan_out() {
     local mode="$1"
+
+    if enabled enableKde; then
+        apply_kde
+    fi
+
+    if enabled enableKonsole; then
+        apply_konsole
+    fi
+
+    if enabled enableKvantum; then
+        apply_kvantum
+    fi
 
     if enabled enableTerm; then
         apply_terms "$CACHE_HOME/caelestia/terminal-sequences"

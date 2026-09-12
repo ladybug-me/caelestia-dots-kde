@@ -32,9 +32,8 @@ Rendered against a real wallpaper on the CachyOS VM, end to end, with no errors:
 
 One correction the run forced: the five `*_paletteKeyColor` roles the shell declares do not exist in
 matugen's role list, so the template omits them. The reason first written down here - that nothing
-reads them - was wrong: `syncKMYC` in `Colours.qml` reads `m3primary_paletteKeyColor`, and so does
-the palette manager the shell loads. They are folded in after the render now, which the section
-below describes.
+reads them - was wrong: the palette manager the shell loads reads `m3primary_paletteKeyColor`. They
+are folded in after the render now, which the section below describes.
 
 ## The wallpaper picks the variant
 
@@ -44,7 +43,7 @@ render and is read back out of the rendered file, so it is the one that is reall
 
 The variant cannot be done that way. matugen's `scheme-smart` makes that choice too, but it does not
 say which scheme type it used, and the variant is written into scheme.json and read by the shell to
-drive kde-material-you-colors. So the command measures the wallpaper with the same colourfulness
+name the palette. So the command measures the wallpaper with the same colourfulness
 formula upstream used - Hasler and Süsstrunk's, over the image scaled into 128x128 with the nearest
 filter, which is the thumbnail upstream measured - and hands matugen a concrete type. Under 10 is
 neutral, under 20 is content, above is tonal spot. ffmpeg does the decoding, because this port
@@ -64,7 +63,8 @@ keeps the table that says which template writes where. A target is enabled by a 
 | Key | Writes |
 | --- | --- |
 | `theme.enableKde` | `~/.local/share/color-schemes/Matugen.colors` |
-| `theme.enableKvantum` | `~/.config/Kvantum/matugen/matugen.kvconfig` and `.svg` |
+| `theme.enableKvantum` | `~/.config/Kvantum/matugen/matugen.kvconfig` and `.svg`, and selecting that theme |
+| `theme.enableKonsole` | `~/.local/share/konsole/Matugen.colorscheme`, and pointing the profiles at it |
 | `theme.enableQt` | `~/.config/qt5ct/colors/matugen.conf`, the same for qt6ct |
 | `theme.enableGtk` | `~/.config/gtk-3.0/colors.css`, `~/.config/gtk-4.0/colors.css` |
 | `theme.enableTerm` | `~/.cache/caelestia/terminal-sequences`, then every shell pty |
@@ -87,6 +87,26 @@ and only those: writing escape sequences into a pty whose foreground process is 
 feeds them to that program as input. That guard used to live in `scripts/09-system-tweaks.sh`,
 which patched the upstream CLI's `theme.py` in place; it is now part of `caelestia-color` and the
 patch step is gone. Spicetify is told to re-read its theme, if it is installed.
+
+## Applying the palette
+
+A file on disk is not a theme. KDE reads a color scheme when one is applied to it, so the command
+applies it after every change, and it is now the only thing that does:
+
+- Plasma, through `plasma-apply-colorscheme`. That tool prints "already set" and does nothing when
+the name it is handed is the one in effect, so the palette is written under two names and applied
+under whichever is not current: `Matugen` and `Matugen Alt`, both carrying the palette that was just
+generated. The pair is what makes a change look like a change of name, and it is why System Settings
+lists two Material You entries.
+- Konsole, which reads a scheme of its own with `R,G,B` per entry. matugen has no template for that
+format, so the command renders it from the palette and points the profiles that exist at it.
+- Kvantum, by selecting the theme the fan out just wrote, `matugen`, in
+`~/.config/Kvantum/kvantum.kvconfig`. Selecting it is idempotent, and it is also how a fresh install
+picks the generated theme over the one the dotfiles ship.
+
+An accent color in `kdeglobals` is removed as part of this. Plasma rewrites the focus, link and
+selection colors from it, on top of the scheme it has just been given, which would quietly replace
+part of the palette with a color picked at some other time. The scheme carries the accent instead.
 
 The two hooks the installer registers still run, with the environment upstream gave them: after
 every color change `theme.postHook` with `SCHEME_NAME`, `SCHEME_FLAVOUR`, `SCHEME_MODE`,
@@ -128,9 +148,8 @@ here and have no matugen keyword, so the command folds them in after the render:
   palette key color is tone 50 of its palette, and matugen prints the palettes in `--json` but a
   template cannot ask for one shade by name - the shades are keyed by number and the template
   language takes no index. So `palettes.json.tmpl` dumps all of them, and the command picks tone
-  50 out of each. These matter more than they look: `shell/services/Colours.qml` pushes
-  `m3primary_paletteKeyColor` into kde-material-you-colors, which is what themes the rest of the
-  desktop, and the greeter's template reads it too;
+  50 out of each. These matter more than they look: `shell/services/Colours.qml` reads
+  `m3primary_paletteKeyColor` out of the loaded palette, and the greeter's template reads it too;
 - `success`, `onSuccess`, `successContainer` and `onSuccessContainer`, read by the toasts, the
   weather and the palette manager. Upstream hand-picked these rather than deriving them, and its
   values are used here so a generated scheme and a shipped one agree on what success looks like;
