@@ -15,18 +15,21 @@ if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
     info "Initializing submodules..."
     prune_removed_submodules "$BUNDLE_DIR"
     git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
-    git -C "$BUNDLE_DIR" submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || warn "Failed to initialize all submodules."
+    git -C "$BUNDLE_DIR" submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || true
 fi
 
-# An update that fails quietly leaves this step green and defers the failure to
-# whichever step reads the files first, which is 03-deploy-configs.sh several
-# steps later and says nothing about submodules. So the content is checked here,
-# and fetched another way if the update did not produce it.
+# That update is one way to get the content, and the one that fails most
+# quietly: a shallow fetch can miss the recorded commit, and a checkout that is
+# not a repository cannot run it at all. What matters is whether the content is
+# there afterwards, so that is what decides this step's status. A failure of
+# this particular command is not a warning when another route works, and the
+# step failing quietly here used to surface as 03-deploy-configs.sh complaining
+# about missing files several steps later.
 #
 # src/dots holds the configuration files 03 deploys: without it there is nothing
-# to install, so a failure to fetch it is fatal.
+# to install, so failing to fetch it is fatal.
 if ! submodule_has_content "$BUNDLE_DIR/src/dots"; then
-    warn "src/dots is empty; trying to fetch it directly."
+    info "src/dots is empty; fetching it another way."
     if ! ensure_submodule_content "$BUNDLE_DIR" "src/dots"; then
         err "src/dots is still empty, and the installer cannot deploy without it."
         cat >&2 <<EOF
@@ -45,15 +48,16 @@ if ! submodule_has_content "$BUNDLE_DIR/src/dots"; then
 EOF
         exit 1
     fi
-    ok "src/dots fetched."
 fi
+
+ok "src/dots ready."
 
 # The icon set only affects a monochrome icon theme, which 08-build-shell.sh
 # warns about on its own, so a missing one must not stop an install.
 if ! submodule_has_content "$BUNDLE_DIR/src/yet-another-monochrome-icon-set"; then
-    warn "src/yet-another-monochrome-icon-set is empty; trying to fetch it directly."
+    info "src/yet-another-monochrome-icon-set is empty; fetching it another way."
     if ensure_submodule_content "$BUNDLE_DIR" "src/yet-another-monochrome-icon-set"; then
-        ok "Icon set fetched."
+        ok "Icon set ready."
     else
         warn "Icon set could not be fetched; the monochrome icon theme will be missing."
     fi
