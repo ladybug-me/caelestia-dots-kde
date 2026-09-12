@@ -1,0 +1,32 @@
+# Matugen wiring for the Caelestia shell.
+#
+# This is a draft of the config `caelestia scheme set` would use. The command
+# owns the invocation; this file records what that invocation has to look like.
+#
+# Values still to settle, marked DRAFT below:
+#   - how the imported metadata keywords are referenced (`name`, `flavour`,
+#     `variant`). Matugen imports JSON with `--import-json` or
+#     `import_json_files`, and those contents are usable in templates; the exact
+#     reference syntax for a plain string value is unverified.
+#   - the output path. Matugen resolves relative paths from this file, so the
+#     command either writes an absolute path here or passes `--config` with a
+#     generated one.
+
+[config]
+# Desired contrast. 0 is the Material spec; the shell has no contrast setting of
+# its own, so this stays at the spec until it does.
+contrast = 0.0
+
+[templates.scheme]
+input_path = "./scheme.json.tmpl"
+
+# DRAFT: the state file the shell watches. `Colours.qml` reads it and
+# `SchemeLoader` watches the directory for the atomic replace.
+output_path = "caelestia/scheme.json"
+
+# The palette the shell is built around, and the only one the UI offers.
+type = "SchemeTonalSpot"
+
+# Runs per generation, after the file lands, so the shell picks it up without a
+# restart even if it is watching the directory rather than the file.
+post_hook = "true"
