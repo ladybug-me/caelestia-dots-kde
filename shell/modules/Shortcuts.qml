@@ -212,11 +212,30 @@ Scope {
             visibilities.launcher = true;
         }
     }
+
+    Connections {
+        function onModifierReleased(): void {
+            const visibilities = Visibilities.getForActive();
+            if (visibilities.launcher && root.lastAction === "windows") {
+                const switcherKey = (typeof KeybindsModel !== "undefined" && KeybindsModel.getKey("windowSwitcher")) || "Alt+Tab";
+                if (!CUtils.isShortcutModifierPressed(switcherKey)) {
+                    Windows.focusSelectedWindow();
+                    visibilities.launcher = false;
+                    root.lastAction = "";
+                }
+            }
+        }
+
+        target: CUtils
+    }
+
+
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "windowSwitcher"
         description: qsTr("Open window switcher")
+        enabled: Config.tabSwitch.enabled
         onPressed: {
             const visibilities = Visibilities.getForActive();
             // Check if launcher is already open and in windows mode
@@ -237,6 +256,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "windowSwitcherReverse"
         description: qsTr("Open window switcher (reverse)")
+        enabled: Config.tabSwitch.enabled
         onPressed: {
             const visibilities = Visibilities.getForActive();
             if (visibilities.launcher && root.lastAction === "windows") {

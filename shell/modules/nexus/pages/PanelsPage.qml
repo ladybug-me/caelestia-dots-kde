@@ -45,11 +45,17 @@ PageBase {
             onClicked: root.nState.openSubPage(5)
         }
         NavRow {
-            last: true
             icon: "view_carousel"
             label: qsTr("Overview")
             status: Config.overview.enabled ? qsTr("Enabled") : qsTr("Disabled")
             onClicked: root.nState.openSubPage(16)
+        }
+        NavRow {
+            last: true
+            icon: "view_array"
+            label: qsTr("Window Switcher")
+            status: !Config.tabSwitch.enabled ? qsTr("Disabled") : (Config.tabSwitch.currentDesktopOnly ? qsTr("Current desktop only") : qsTr("All desktops"))
+            onClicked: root.nState.openSubPage(18)
         }
     }
 }

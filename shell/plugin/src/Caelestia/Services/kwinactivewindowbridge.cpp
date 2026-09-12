@@ -399,7 +399,22 @@ void KWinActiveWindowBridge::setMaximized(const QString& address, bool maximized
     }
 }
 
+void KWinActiveWindowBridge::highlightWindow(const QString& address) {
+    auto msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                              QStringLiteral("/org/kde/KWin/HighlightWindow"),
+                                              QStringLiteral("org.kde.KWin.HighlightWindow"),
+                                              QStringLiteral("highlightWindows"));
+    QStringList list;
+    if (!address.isEmpty()) {
+        list << address;
+    }
+    msg << list;
+    QDBusConnection::sessionBus().send(msg);
+}
 
+void KWinActiveWindowBridge::clearHighlight() {
+    highlightWindow(QString());
+}
 
 void KWinActiveWindowBridge::refreshWindows() {
     scheduleWindowListUpdate();
