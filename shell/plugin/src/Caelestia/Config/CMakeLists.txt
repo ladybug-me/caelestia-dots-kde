@@ -29,6 +29,7 @@ qml_module(caelestia-config
         userpaths.hpp
         utilitiesconfig.hpp
         winfoconfig.hpp
+        tabswitchconfig.hpp
         tokens.hpp
     LIBRARIES
         Qt::Quick

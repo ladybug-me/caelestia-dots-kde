@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Caelestia.Config
 import Caelestia.Services
 
 QtObject {
@@ -9,6 +10,12 @@ QtObject {
 
     property var items: []
     property int selectedIndex: 0
+
+    onSelectedIndexChanged: {
+        if (GlobalConfig.tabSwitch?.previewOnDesktop && selectedIndex >= 0 && selectedIndex < items.length) {
+            KWinActiveWindowBridge.highlightWindow(items[selectedIndex].address);
+        }
+    }
 
     function triggerCycleNext(): void {
         if (items.length === 0) return;
@@ -28,6 +35,22 @@ QtObject {
 
     function reload(): void {
         updateItems();
+    }
+
+    function getDesktopName(client: var): string {
+        if (!client || !client.workspace) return "";
+        const wsId = client.workspace.id;
+        const wsUuid = client.workspace.uuid;
+        if (typeof KWinWorkspaceState !== "undefined" && KWinWorkspaceState.workspaces) {
+            for (let i = 0; i < KWinWorkspaceState.workspaces.length; ++i) {
+                const ws = KWinWorkspaceState.workspaces[i];
+                if ((wsUuid && ws.id === wsUuid) || (wsId !== undefined && wsId !== -1 && ws.index === wsId)) {
+                    return ws.name || ("Desktop " + ws.index);
+                }
+            }
+        }
+        if (typeof wsId === "number" && wsId > 0) return "Desktop " + wsId;
+        return wsUuid ? String(wsUuid) : "";
     }
 
     function updateItems(): void {
@@ -51,8 +74,13 @@ QtObject {
                 title: client.title || "",
                 class: client.class || "",
                 iconName: client.iconName || client.class || "",
-                workspace: client.workspace?.id || "",
-                monitor: "",
+                workspace: client.workspace?.id ?? "",
+                workspaceUuid: client.workspace?.uuid ?? "",
+                desktopName: getDesktopName(client),
+                minimized: !!client.minimized,
+                closeable: true,
+                pid: client.pid || 0,
+                monitor: client.output || "",
                 wayland: true,
                 size: [client.width || 0, client.height || 0],
                 at: [client.x || 0, client.y || 0]
@@ -75,7 +103,7 @@ QtObject {
             }
         }
         
-        // 3. Move active window to index 0
+        // 3. Move active window to index 0 (MRU ordering)
         if (activeAddress) {
             for (let i = 0; i < currentItems.length; i++) {
                 if (currentItems[i].address === activeAddress) {
@@ -84,6 +112,34 @@ QtObject {
                     break;
                 }
             }
+        }
+
+        // 4. Filter by current desktop if GlobalConfig.tabSwitch.currentDesktopOnly is active (KDE DesktopMode = 0)
+        if (GlobalConfig.tabSwitch?.currentDesktopOnly && typeof KWinWorkspaceState !== "undefined") {
+            const currentWsId = KWinWorkspaceState.activeId;
+            const currentWsUuid = (KWinWorkspaceState.workspaces && currentWsId > 0 && currentWsId <= KWinWorkspaceState.workspaces.length) 
+                ? KWinWorkspaceState.workspaces[currentWsId - 1].id 
+                : "";
+            currentItems = currentItems.filter(item => {
+                if (!item.workspace && !item.workspaceUuid) return true;
+                if (item.workspace === -1 || item.workspace === 0) return true;
+                if (item.workspace === currentWsId) return true;
+                if (currentWsUuid && item.workspaceUuid === currentWsUuid) return true;
+                return false;
+            });
+        }
+
+        // 5. Filter by current screen if GlobalConfig.tabSwitch.allScreens is false (KDE MultiScreenMode = 1)
+        if (GlobalConfig.tabSwitch && !GlobalConfig.tabSwitch.allScreens) {
+            const activeOut = KWinActiveWindowBridge.activeOutputName || KWinActiveWindowBridge.cursorOutputName();
+            if (activeOut) {
+                currentItems = currentItems.filter(item => !item.monitor || item.monitor === activeOut);
+            }
+        }
+
+        // 6. Filter minimized windows if GlobalConfig.tabSwitch.showMinimized is false (KDE MinMode = 1)
+        if (GlobalConfig.tabSwitch && !GlobalConfig.tabSwitch.showMinimized) {
+            currentItems = currentItems.filter(item => !item.minimized);
         }
         
         items = currentItems;
@@ -99,10 +155,11 @@ QtObject {
         if (!search)
             return items;
         const lower = search.toLowerCase();
-        return items.filter(w => w.title.toLowerCase().includes(lower) || w.class.toLowerCase().includes(lower));
+        return items.filter(w => (w.title && w.title.toLowerCase().includes(lower)) || (w.class && w.class.toLowerCase().includes(lower)) || (w.desktopName && w.desktopName.toLowerCase().includes(lower)));
     }
 
     function focusWindow(address: string): void {
+        KWinActiveWindowBridge.clearHighlight();
         KWinActiveWindowBridge.focusWindow(address);
     }
 
@@ -112,7 +169,17 @@ QtObject {
 
     Component.onCompleted: {
         updateItems();
-        KWinActiveWindowBridge.onWindowListChanged.connect(updateItems);
-        KWinActiveWindowBridge.onActiveWindowChanged.connect(updateItems);
+        KWinActiveWindowBridge.windowListChanged.connect(updateItems);
+        KWinActiveWindowBridge.activeWindowChanged.connect(updateItems);
+        if (GlobalConfig.tabSwitch) {
+            GlobalConfig.tabSwitch.currentDesktopOnlyChanged.connect(updateItems);
+            GlobalConfig.tabSwitch.allScreensChanged.connect(updateItems);
+            GlobalConfig.tabSwitch.showMinimizedChanged.connect(updateItems);
+            GlobalConfig.tabSwitch.previewOnDesktopChanged.connect(() => {
+                if (!GlobalConfig.tabSwitch.previewOnDesktop) {
+                    KWinActiveWindowBridge.clearHighlight();
+                }
+            });
+        }
     }
 }

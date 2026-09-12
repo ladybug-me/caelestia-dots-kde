@@ -74,7 +74,8 @@ QtObject {
                 { label: qsTr("Preview scale"), keywords: ["preview", "thumbnails", "scale"], pagePath: "panels/TaskbarPanel.qml", subPageIdx: 2 },
                 { label: qsTr("Performance"), keywords: ["performance widgets", "dashboard", "randomize shape colors", "cpu", "memory", "storage"], pagePath: "panels/DashboardPanel.qml", subPageIdx: 1 },
                 { label: qsTr("Fuzzy search"), keywords: ["launcher", "search", "fuzzy"], pagePath: "panels/LauncherPanel.qml", subPageIdx: 3 },
-                { label: qsTr("Activation"), keywords: ["hot corner", "bottom left corner", "bottom right corner", "gestures", "overview"], pagePath: "panels/OverviewPanel.qml", subPageIdx: 16 }
+                { label: qsTr("Activation"), keywords: ["hot corner", "bottom left corner", "bottom right corner", "gestures", "overview"], pagePath: "panels/OverviewPanel.qml", subPageIdx: 16 },
+                { label: qsTr("Window Switcher"), keywords: ["tab switcher", "alt+tab", "task switcher", "desktop", "preview", "filter", "windows"], pagePath: "panels/TabSwitcherPanel.qml", subPageIdx: 18 }
             ]
         },
         // Connectivity

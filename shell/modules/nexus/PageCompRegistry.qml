@@ -139,6 +139,9 @@ QtObject {
                 Component {
                     BarUpdates {}
                 }
+                Component {
+                    TabSwitcherPanel {}
+                }
             }
         },
         // Connectivity

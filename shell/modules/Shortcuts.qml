@@ -212,6 +212,21 @@ Scope {
             visibilities.launcher = true;
         }
     }
+    Connections {
+        target: CUtils
+        function onModifierReleased(): void {
+            const visibilities = Visibilities.getForActive();
+            if (visibilities.launcher && root.lastAction === "windows") {
+                const switcherKey = (typeof KeybindsModel !== "undefined" && KeybindsModel.getKey("windowSwitcher")) || "Alt+Tab";
+                if (!CUtils.isShortcutModifierPressed(switcherKey)) {
+                    Windows.focusSelectedWindow();
+                    visibilities.launcher = false;
+                    root.lastAction = "";
+                }
+            }
+        }
+    }
+
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type

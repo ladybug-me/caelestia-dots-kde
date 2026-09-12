@@ -157,7 +157,11 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
         renderType: Text.QtRendering
-        text: root.modelData?.title ?? ""
+        text: {
+            const title = root.modelData?.title || "";
+            if (root.modelData?.minimized) return `(${title})`;
+            return title;
+        }
         font: Tokens.font.body.medium
     }
 

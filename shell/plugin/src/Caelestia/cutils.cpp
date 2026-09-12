@@ -36,6 +36,21 @@ CUtils::CUtils(QObject* parent)
             emit numLockChanged();
         }
     });
+    connect(&d->keyInfo, &KModifierKeyInfo::keyPressed, this, [this](Qt::Key key, bool pressed) {
+        if (key == Qt::Key_Alt || key == Qt::Key_AltGr) {
+            emit altPressedChanged(pressed);
+        } else if (key == Qt::Key_Meta || key == Qt::Key_Super_L || key == Qt::Key_Super_R) {
+            emit metaPressedChanged(pressed);
+        } else if (key == Qt::Key_Control) {
+            emit ctrlPressedChanged(pressed);
+        } else if (key == Qt::Key_Shift) {
+            emit shiftPressedChanged(pressed);
+        }
+        emit keyPressed(static_cast<int>(key), pressed);
+        if (!pressed) {
+            emit modifierReleased();
+        }
+    });
 }
 
 void CUtils::saveItem(QQuickItem* target, const QUrl& path) {
@@ -209,6 +224,52 @@ bool CUtils::capsLock() const {
 
 bool CUtils::numLock() const {
     return d->keyInfo.isKeyLocked(Qt::Key_NumLock);
+}
+
+bool CUtils::isKeyPressed(int key) const {
+    return d->keyInfo.isKeyPressed(static_cast<Qt::Key>(key));
+}
+
+bool CUtils::isAltPressed() const {
+    return d->keyInfo.isKeyPressed(Qt::Key_Alt) || d->keyInfo.isKeyPressed(Qt::Key_AltGr);
+}
+
+bool CUtils::isMetaPressed() const {
+    return d->keyInfo.isKeyPressed(Qt::Key_Meta) || d->keyInfo.isKeyPressed(Qt::Key_Super_L) || d->keyInfo.isKeyPressed(Qt::Key_Super_R);
+}
+
+bool CUtils::isCtrlPressed() const {
+    return d->keyInfo.isKeyPressed(Qt::Key_Control);
+}
+
+bool CUtils::isShiftPressed() const {
+    return d->keyInfo.isKeyPressed(Qt::Key_Shift);
+}
+
+bool CUtils::isShortcutModifierPressed(const QString& shortcutKey) const {
+    if (shortcutKey.isEmpty()) {
+        return isAltPressed();
+    }
+    const QString upper = shortcutKey.toUpper();
+    const bool hasAlt = upper.contains(QLatin1String("ALT"));
+    const bool hasMeta = upper.contains(QLatin1String("META")) || upper.contains(QLatin1String("SUPER")) || upper.contains(QLatin1String("WIN"));
+    const bool hasCtrl = upper.contains(QLatin1String("CTRL")) || upper.contains(QLatin1String("CONTROL"));
+
+    // Check primary holding modifiers
+    if (hasAlt && isAltPressed()) return true;
+    if (hasMeta && isMetaPressed()) return true;
+    if (hasCtrl && isCtrlPressed()) return true;
+
+    // If none of the standard primary holding modifiers are in the shortcut, check shift if specified
+    if (!hasAlt && !hasMeta && !hasCtrl) {
+        if (upper.contains(QLatin1String("SHIFT"))) {
+            return isShiftPressed();
+        }
+        return isAltPressed();
+    }
+
+    // A primary modifier is defined in the shortcut, but is not currently pressed
+    return false;
 }
 
 namespace {

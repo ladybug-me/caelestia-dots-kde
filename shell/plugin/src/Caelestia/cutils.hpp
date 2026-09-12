@@ -16,6 +16,10 @@ class CUtils : public QObject {
     Q_PROPERTY(QString qtVersion READ qtVersion CONSTANT)
     Q_PROPERTY(bool capsLock READ capsLock NOTIFY capsLockChanged)
     Q_PROPERTY(bool numLock READ numLock NOTIFY numLockChanged)
+    Q_PROPERTY(bool altPressed READ isAltPressed NOTIFY altPressedChanged)
+    Q_PROPERTY(bool metaPressed READ isMetaPressed NOTIFY metaPressedChanged)
+    Q_PROPERTY(bool ctrlPressed READ isCtrlPressed NOTIFY ctrlPressedChanged)
+    Q_PROPERTY(bool shiftPressed READ isShiftPressed NOTIFY shiftPressedChanged)
 
 public:
     explicit CUtils(QObject* parent = nullptr);
@@ -38,6 +42,13 @@ public:
     Q_INVOKABLE static qreal clamp(qreal value, qreal min, qreal max);
     Q_INVOKABLE static void setCursorPos(int x, int y);
 
+    Q_INVOKABLE bool isKeyPressed(int key) const;
+    Q_INVOKABLE bool isAltPressed() const;
+    Q_INVOKABLE bool isMetaPressed() const;
+    Q_INVOKABLE bool isCtrlPressed() const;
+    Q_INVOKABLE bool isShiftPressed() const;
+    Q_INVOKABLE bool isShortcutModifierPressed(const QString& shortcutKey) const;
+
     // Walk the visual item tree (childItems) rather than QObject children, so
     // these traverse the QML hierarchy like QML's findChild semantics.
     Q_INVOKABLE static QQuickItem* findChild(QQuickItem* root, const QString& name);
@@ -52,6 +63,12 @@ public:
 signals:
     void capsLockChanged();
     void numLockChanged();
+    void altPressedChanged(bool pressed);
+    void metaPressedChanged(bool pressed);
+    void ctrlPressedChanged(bool pressed);
+    void shiftPressedChanged(bool pressed);
+    void keyPressed(int key, bool pressed);
+    void modifierReleased();
 
 private:
     class Private;
