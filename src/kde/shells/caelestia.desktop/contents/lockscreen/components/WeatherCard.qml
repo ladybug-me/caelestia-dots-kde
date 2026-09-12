@@ -25,7 +25,7 @@ Rectangle {
     clip: true
 
     // Natural height = content + vertical padding so the card shrinks-to-fit
-    // when Layout.fillHeight is not set (matches Quickshell Content.qml behaviour)
+    // when Layout.fillHeight is not set (matches Quickshell Content.qml behavior)
     implicitHeight: isHorizontalLayout
                     ? (horizontalContent.implicitHeight + Math.max(16, 24 * centerScale))
                     : (compactContent.implicitHeight + Math.max(12, 20 * centerScale))

@@ -12,7 +12,7 @@ on:
     inputs:
       seed_translations:
         description: >-
-          Also upload the committed catalogues. Needed once, on the very first
+          Also upload the committed catalogs. Needed once, on the very first
           run, and harmful afterwards -- see the workflow comments.
         type: boolean
         default: false
@@ -52,11 +52,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qt6-l10n-tools qt6-tools-dev
 
-      # English is the source language, so its catalogue is not committed --
+      # English is the source language, so its catalog is not committed --
       # it would be thousands of lines of empty translations. Crowdin needs one
       # to slice into the target languages, so it is rebuilt from the QML here
       # and left uncommitted.
-      - name: Regenerate the Source Catalogue
+      - name: Regenerate the Source Catalog
         run: |
           set -euo pipefail
           tools/update-translations.sh en
@@ -67,7 +67,7 @@ jobs:
         with:
           upload_sources: true
           # Off by default: translations are edited in Crowdin, and pushing the
-          # committed ones back on every run would let a stale local catalogue
+          # committed ones back on every run would let a stale local catalog
           # overwrite newer work there.
           #
           # It has to be on exactly once, though. Crowdin starts empty, so a
@@ -79,7 +79,7 @@ jobs:
           auto_approve_imported: ${{ inputs.seed_translations == true }}
           download_translations: true
           # Crowdin exports a file for every target language on the project,
-          # including the ones at 0%. Left on, the first run added 26 catalogues
+          # including the ones at 0%. Left on, the first run added 26 catalogs
           # of nothing but untranslated entries, each of which the build would
           # compile and the language picker would then offer as a language that
           # renders in English.
@@ -90,7 +90,7 @@ jobs:
           pull_request_body: |
             Translations downloaded from Crowdin.
 
-            The compiled `.qm` catalogues are refreshed by the workflow on this
+            The compiled `.qm` catalogs are refreshed by the workflow on this
             branch, so this can be merged as it stands.
           commit_message: "i18n: new translations from Crowdin"
           config: crowdin.yml
@@ -104,7 +104,7 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
-  # A Crowdin pull request carries .ts files only. The compiled catalogues are
+  # A Crowdin pull request carries .ts files only. The compiled catalogs are
   # committed so that a build without Qt's Linguist tools still ships every
   # language, and such a build installs them as they are -- so a .ts that
   # arrives without its .qm would quietly ship the previous translation. This
@@ -139,7 +139,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qt6-l10n-tools qt6-tools-dev
 
-      - name: Recompile Catalogues
+      - name: Recompile Catalogs
         if: steps.checkout.outcome == 'success'
         run: |
           set -euo pipefail
@@ -151,18 +151,18 @@ jobs:
             "$lrelease" -silent "$ts" -qm "${ts%.ts}.qm"
           done
 
-      - name: Commit Compiled Catalogues
+      - name: Commit Compiled Catalogs
         if: steps.checkout.outcome == 'success'
         run: |
           set -euo pipefail
           if git diff --quiet -- shell/translations; then
-            echo "Catalogues already match their sources."
+            echo "Catalogs already match their sources."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add shell/translations
-          git commit -m "i18n: recompile catalogues"
+          git commit -m "i18n: recompile catalogs"
           git push
     needs: synchronize

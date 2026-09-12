@@ -11,10 +11,10 @@
 
 # record_installed_revision <bundle-dir> <config-dir>
 #
-# Record the revision the installed shell artefacts came from, so the Updates
+# Record the revision the installed shell artifacts came from, so the Updates
 # page and caelestia-check-updates describe what the user is actually running:
 #
-#   .current_commit   commit the artefacts were built from
+#   .current_commit   commit the artifacts were built from
 #   .update_branch    branch that commit came from
 #   .current_version  VERSION from that commit's .github/version.env
 #
@@ -29,7 +29,7 @@
 # The version is read from the working tree first and from the commit second,
 # because the updater uses a sparse checkout that omits .github/version.env.
 #
-# It is recorded at all because the Updates page resolves unrecognised commits
+# It is recorded at all because the Updates page resolves unrecognized commits
 # through its bare cache repo, which only mirrors origin branches: a commit
 # that exists only in the local checkout would otherwise show as "unknown".
 record_installed_revision() {

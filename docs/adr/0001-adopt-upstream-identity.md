@@ -9,7 +9,7 @@ one name (Caelestia, lowercase in identifiers), one palette (the `caelestia`
 scheme), one logo, upstream's terse README voice, and no port-specific product
 name anywhere. The rules are in [brand.md](../brand.md).
 
-The alternative was a distinct port identity with its own name and colours, which
+The alternative was a distinct port identity with its own name and colors, which
 would have read as a separate project and turned every future upstream sync into
 a translation exercise. The cost we accepted is that the repo's own name no
 longer says "KDE"; the README states the port relationship once instead.

@@ -66,14 +66,14 @@ bash ./uninstall.sh
 
 Open Nexus (`Super`, then `>Settings`). The pages that matter most:
 
-- Appearance: wallpaper, colours, fonts, and the wallpaper slideshow
+- Appearance: wallpaper, colors, fonts, and the wallpaper slideshow
 - Panels: every bar element, dashboard, launcher, sidebar and overview
 - Desktop: window rules, the context menu, Krohnkite
 - Shortcuts: rebind any built-in shortcut, or add a command shortcut
 - Plugins: browse the store, or install a plugin you built yourself
 
 Set the wallpaper from Appearance. The stock KDE wallpaper manager does not drive
-the colour scheme, so using it leaves the shell on stale colours.
+the color scheme, so using it leaves the shell on stale colors.
 
 Settings are written to `~/.config/caelestia/shell.json`.
 
@@ -82,7 +82,7 @@ Settings are written to `~/.config/caelestia/shell.json`.
 | Problem | Fix |
 | --- | --- |
 | Widgets not appearing | Log out and back in, or run `caelestia shell -d` |
-| Colours not applying | Run `systemctl --user status kde-material-you-colors.service`, then re-run the installer |
+| Colors not applying | Run `systemctl --user status kde-material-you-colors.service`, then re-run the installer |
 | Install failed mid-way | Re-run `bash ./scripts/setup.sh` |
 | Full reset needed | See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
 

@@ -21,7 +21,7 @@ Caelestia, running on KDE Plasma.
 There is no `Caelestia KDE`, `Caelestia KDE Port`, `Caelestia KWin`,
 `Caelestia KWin Port`, and no letterspaced wordmark.
 
-## Colours
+## Colors
 
 The brand palette is the `caelestia` scheme the CLI ships, in both modes:
 
@@ -56,7 +56,7 @@ Two values have no scheme token, and are deliberate exceptions:
   The vendored `shell/assets/logo.svg` is upstream's own file - it is synced, not
   ours, and the running shell keeps using it.
 - Banner: one artwork, defined once in `installer/data/theme.json`. The
-  uninstaller and the fish greeting render the same lines; only the colouring
+  uninstaller and the fish greeting render the same lines; only the coloring
   differs per surface.
 
 ## Voice
@@ -66,9 +66,10 @@ Two values have no scheme token, and are deliberate exceptions:
 - No emoji, except the single `## Stonks` heading that mirrors upstream.
 - Plain hyphen `-`, never an em dash.
 - No bold for emphasis in prose.
+- US English spelling everywhere: `color`, `license`, `behavior`, `catalog`.
 - Release notes end with the list of changes. No sign-off flourish.
 
-## Licence and attribution
+## License and attribution
 
 - `GPL-3.0-or-later`, everywhere: the `LICENSE` file, the README badge, and every
   SPDX header.

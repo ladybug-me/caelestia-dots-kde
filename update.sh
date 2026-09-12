@@ -228,7 +228,7 @@ else
 fi
 
 # The lock screen reads scheme.json before any user session exists, so it has
-# to be on disk for the greeter to render with the right colours. Wait for the
+# to be on disk for the greeter to render with the right colors. Wait for the
 # shell that was just started to write it.
 #
 # This wait used to sit between the kill and the start, polling for a file to
@@ -238,7 +238,7 @@ fi
 # present the common case still returns immediately; the wait only bites on a
 # fresh install or a wiped state directory, which is when it matters.
 if ! wait_for_nonempty_file "$SCHEME_FILE" 15; then
-    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colours."
+    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colors."
 fi
 
 echo "Shell restarted successfully!"

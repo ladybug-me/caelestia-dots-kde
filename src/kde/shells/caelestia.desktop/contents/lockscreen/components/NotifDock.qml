@@ -193,7 +193,7 @@ Rectangle {
                     anchors.centerIn: parent
                     width: dinoLoader.width
                     height: 200
-                    // Wire palette so the dino matches card colours
+                    // Wire palette so the dino matches card colors
                     activeColor: root.clSurfaceVariantFg
                     isCaelestiaMode: root.isCaelestiaMode
                 }

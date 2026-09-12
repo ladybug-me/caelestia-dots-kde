@@ -101,7 +101,7 @@ sync-fetch: ## Refresh the upstream mirror used by the shell sync report
 sync-report: ## Report how shell/ diverges from upstream
 	$(PYTHON) $(TOOLS_DIR)/sync-shell.py report
 
-translations: ## Refresh the Qt translation catalogues
+translations: ## Refresh the Qt translation catalogs
 	$(BASH) $(TOOLS_DIR)/update-translations.sh
 
 clean: ## Remove build output

@@ -124,7 +124,7 @@ Rectangle {
                 }
             }
 
-            // Play/Pause — pill shape, primary colour when active
+            // Play/Pause — pill shape, primary color when active
             Rectangle {
                 implicitWidth: 60 * root.centerScale
                 implicitHeight: 38 * root.centerScale

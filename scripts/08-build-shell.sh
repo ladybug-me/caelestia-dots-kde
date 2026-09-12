@@ -43,7 +43,7 @@ caelestia_toolchain_stamp() {
 }
 
 # Stamps written before the fingerprint dropped patch versions carried the full
-# `cmake version X.Y.Z` string. Normalising both sides keeps those build dirs
+# `cmake version X.Y.Z` string. Normalizing both sides keeps those build dirs
 # alive instead of forcing one gratuitous full rebuild on upgrade.
 caelestia_normalise_stamp() {
     sed -E -e 's/cmake version //' -e 's/([0-9]+\.[0-9]+)\.[0-9]+/\1/g'
@@ -385,7 +385,7 @@ fi
 if [[ "$SHELL_PREBUILT" -eq 1 ]]; then
     info "Skipping local shell build; prebuilt artifacts installed."
 else
-    # lrelease compiles shell/translations into the .qm catalogues the shell loads.
+    # lrelease compiles shell/translations into the .qm catalogs the shell loads.
     # Checked here rather than with the other dependencies so it also covers a fresh
     # setup run; without it CMake just warns and the shell ships English only.
     if ! linguist_tools_available; then
@@ -603,7 +603,7 @@ else
     warn "Failed to copy yet-another-monochrome-icon-set."
 fi
 
-# Record which revision the artefacts just installed came from, for the update
+# Record which revision the artifacts just installed came from, for the update
 # checker. The build has happened by this point, so the checkout is what the
 # running shell really is.
 record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia" || true

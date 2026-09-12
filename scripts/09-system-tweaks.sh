@@ -177,7 +177,7 @@ tweak_default_scheme() {
             return
         fi
 
-        # Dynamic derives colours from the wallpaper the CLI was last told about
+        # Dynamic derives colors from the wallpaper the CLI was last told about
         # (caelestia wallpaper). 04-deploy-kde.sh writes path.txt directly without
         # seeding the CLI, so seed it here first, then switch to dynamic - otherwise
         # `scheme set -n dynamic` fails silently and the default stays mocha.
