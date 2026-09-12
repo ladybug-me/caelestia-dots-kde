@@ -33,7 +33,7 @@ Item {
     property real sourceAspect: 16 / 9
 
     readonly property bool hasStream: stream.available
-    readonly property string thumbPath: root.address ? `${Paths.runtimeDir}/caelestia/window-thumbs/${root.address.replace(/^0x/, "")}.png` : ""
+    readonly property string thumbPath: root.address ? `${Paths.runtimeDir}/caelestia/window-thumbs/${root.address.startsWith("0x") ? root.address.slice(2) : root.address}.png` : ""
     readonly property real fitted: root.sourceAspect > (root.width / Math.max(1, root.height)) ? root.width / root.sourceAspect : root.height
 
     WindowStream {
