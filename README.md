@@ -64,7 +64,7 @@ bash ./uninstall.sh
 
 ## Configuring
 
-Open Nexus (`Super`, then `>Settings`). The pages that matter most:
+Open Nexus (`Super`, then `>Settings`).
 
 - Appearance: wallpaper, colors, fonts, and the wallpaper slideshow
 - Panels: every bar element, dashboard, launcher, sidebar and overview
@@ -107,36 +107,6 @@ assets/        the logo and screenshots used by the docs
 .github/       workflows, issue and PR templates, CI checks
 ```
 
-`install.sh`, `update.sh` and `uninstall.sh` deliberately stay at the repo root:
-they are the published entry points, so the `curl ... | sh` one-liner and the
-installer's own update and uninstall paths keep working.
-
-Run `make` for the common development commands; on its own it lists them.
-
-`shell/` is a fork of [caelestia-dots/shell](https://github.com/caelestia-dots/shell)
-and keeps upstream's directory layout, which is what lets `tools/sync-shell.py`
-diff the two trees. Treat it as vendored code.
-
-## Thanks to
-
-<!-- contributors-start -->
-### PRs
-
-| Contributor | PRs |
-| --- | ---: |
-| [WinTone01](https://github.com/WinTone01) | 60 |
-| [aroaxinping](https://github.com/aroaxinping) | 6 |
-| [Vinax89](https://github.com/Vinax89) | 5 |
-| [jialfaro](https://github.com/jialfaro) | 2 |
-| [SalihYzts](https://github.com/SalihYzts) | 2 |
-| [LuYishan-4](https://github.com/LuYishan-4) | 1 |
-| [jedrikjames](https://github.com/jedrikjames) | 1 |
-| [Klivan49](https://github.com/Klivan49) | 1 |
-
-<!-- contributors-end -->
-
-## Stonks
-
 <a href="https://www.star-history.com/?repos=ladybug-me%2Fcaelestia-dots-kde&type=date&legend=top-left">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=ladybug-me/caelestia-dots-kde&type=date&theme=dark&legend=top-left&sealed_token=NFI4jXcoZAI26MlGX2jEasHMRd1PIS09clm_CVDS7SFGajH3wiHlN72P8WzuOQT2k2F71ZOCGl_xoy8eVpWlWtA0ACY3koK0NIS1-vLecN0vbvYgrZDN9kp8sQn7NT2xPNeilgrmzYWTzgdQYgskaDMGophAKmy6r6LUfQj8iFjy-Gunuqnte3EY14fX" />
@@ -148,9 +118,8 @@ diff the two trees. Treat it as vendored code.
 ## Credits
 
 - [caelestia-dots/shell](https://github.com/caelestia-dots/shell) and the [Caelestia dotfiles](https://github.com/caelestia-dots/caelestia) by [@soramanew](https://github.com/soramanew) - the design language, shell and dotfiles this port is built on
-- [ladybug-me](https://github.com/ladybug-me) - KDE port lead and maintainer
-- [0xSolanaceae](https://github.com/0xSolanaceae) - maintainer
-- [dim-ghub](https://github.com/dim-ghub/caelestia-shell) - v2.0.0 features
+- [ladybug-me](https://github.com/ladybug-me) - KDE port lead
+- [0xSolanaceae](https://github.com/0xSolanaceae) - Head maintainer
 - [Bali10050](https://github.com/Bali10050/Darkly) - Darkly Qt
 - [wrymt](https://github.com/wrymt/darkly-gtk) - Darkly GTK
 - [Haidir](https://bitbucket.org/dirn-typo/yet-another-monochrome-icon-set) - icon set
