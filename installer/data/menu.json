@@ -140,7 +140,7 @@
           "type": "boolean",
           "title": "SDDM greeter theme",
           "help": "Material You themed login screen with wallpaper and color sync.",
-          "default": false
+          "default": true
         },
         {
           "id": "SDDM_THEME_VARIANT",
