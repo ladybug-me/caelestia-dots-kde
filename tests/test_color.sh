@@ -152,8 +152,6 @@ run_color() {
     STATUS=$?
 }
 
-state_file() { printf '%s/caelestia/%s' "$XDG_STATE_HOME" "$1"; }
-
 # wallpaper_image <name>
 #
 # A file to point the command at. The path is canonicalized, because that is
