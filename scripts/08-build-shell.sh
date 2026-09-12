@@ -595,6 +595,12 @@ install -m 755 "$BUNDLE_DIR/src/bin/caelestia-update" ~/.local/bin/caelestia-upd
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia-check-updates" ~/.local/bin/caelestia-check-updates
 ok "Caelestia bin wrappers installed to ~/.local/bin"
 
+# `caelestia version` reports this, so an installed shell can say which release
+# it is without a checkout to read.
+if [[ -f "$BUNDLE_DIR/.github/version.env" ]]; then
+    install -Dm 644 "$BUNDLE_DIR/.github/version.env" "$HOME/.config/quickshell/caelestia/version.env"
+fi
+
 
 # Copying mono icon theme
 DEST_DIR="$HOME/.config/quickshell/caelestia/assets/icons/yet-another-monochrome-icon-set"
