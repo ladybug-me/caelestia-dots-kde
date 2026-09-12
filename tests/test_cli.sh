@@ -4,6 +4,7 @@
 # The dispatcher's job is to send each subcommand to the helper that implements
 # it, with the arguments it was given. Every helper is replaced by a recording
 # stub here, so the assertions are about the hand-off and nothing else runs.
+# What the color command then does with those arguments is tests/test_color.sh.
 
 set -uo pipefail
 
@@ -28,7 +29,7 @@ setup_stubs() {
     mkdir -p "$STUB_DIR"
 
     local name
-    for name in caelestia-shell-ipc caelestia-screenshot caelestia-record caelestia-update; do
+    for name in caelestia-shell-ipc caelestia-screenshot caelestia-record caelestia-update caelestia-color; do
         recording_stub "$STUB_DIR" "$name" "$CALLS"
     done
 
@@ -37,39 +38,35 @@ setup_stubs() {
 
 # run_cli <args...>
 #
-# Run the dispatcher against the stubs, capturing output and exit status.
-# CAELESTIA_CLI, when the calling test set it, is handed through. The call log
-# starts empty, so an assertion sees exactly what this run handed off.
+# Run the dispatcher against the stubs, capturing output and exit status. The
+# call log starts empty, so an assertion sees exactly what this run handed off.
 run_cli() {
     [[ -n "$STUB_DIR" ]] || setup_stubs
     : > "$CALLS"
     RUN_OUTPUT="$(CAELESTIA_BIN_DIR="$STUB_DIR" \
-        CAELESTIA_CLI="${CAELESTIA_CLI:-}" \
         XDG_CONFIG_HOME="$XDG_CONFIG_HOME" \
         bash "$CLI" "$@" 2>&1)"
     RUN_STATUS=$?
 }
 
-test_wallpaper_and_scheme_go_to_the_upstream_cli() {
+test_wallpaper_and_scheme_go_to_the_color_command() {
     setup_stubs
-    local cli_dir
-    cli_dir="$(dirname "$STUB_DIR")"
-    recording_stub "$cli_dir" upstream-caelestia "$CALLS"
 
-    CAELESTIA_CLI="$cli_dir/upstream-caelestia"
     run_cli wallpaper -f /tmp/wall.png
-    unset CAELESTIA_CLI
-    assert_status 0 "$RUN_STATUS" "wallpaper should succeed with an upstream CLI"
+    assert_status 0 "$RUN_STATUS" "wallpaper should succeed"
     assert_eq "wallpaper -f /tmp/wall.png" \
-        "$(calls_to "$CALLS" upstream-caelestia)" \
-        "wallpaper must be handed to the upstream CLI unchanged"
+        "$(calls_to "$CALLS" caelestia-color)" \
+        "wallpaper reaches the color command with its arguments"
 
-    CAELESTIA_CLI="$cli_dir/upstream-caelestia"
     run_cli scheme set -n dynamic
-    unset CAELESTIA_CLI
     assert_eq "scheme set -n dynamic" \
-        "$(calls_to "$CALLS" upstream-caelestia)" \
-        "scheme must be handed to the upstream CLI unchanged"
+        "$(calls_to "$CALLS" caelestia-color)" \
+        "scheme reaches the color command with its arguments"
+
+    run_cli scheme list -n
+    assert_eq "scheme list -n" \
+        "$(calls_to "$CALLS" caelestia-color)" \
+        "every scheme action is handed over, not just set"
 }
 
 test_shell_kill_restart_show_and_log() {
@@ -173,20 +170,6 @@ test_unknown_command_and_option_are_rejected() {
 
     run_cli screenshot --nonsense
     assert_status 2 "$RUN_STATUS" "an unknown screenshot option should exit 2"
-}
-
-test_a_missing_upstream_cli_is_reported() {
-    setup_stubs
-
-    CAELESTIA_CLI="/nonexistent/caelestia"
-    run_cli scheme set -n dynamic
-    unset CAELESTIA_CLI
-
-    assert_status 127 "$RUN_STATUS" "a missing CLI should exit 127"
-    assert_contains "$RUN_OUTPUT" "not part of the KDE port yet" \
-        "the reason is explained rather than swallowed"
-    assert_contains "$RUN_OUTPUT" "CAELESTIA_CLI" \
-        "a broken CAELESTIA_CLI is called out specifically"
 }
 
 test_install_without_a_checkout_explains_itself() {

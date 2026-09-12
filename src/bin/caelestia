@@ -5,13 +5,12 @@
 # screenshot or a recording, and manage the wallpaper and the scheme.
 #
 # The subcommands and their flags mirror the upstream Caelestia CLI, so the same
-# words work on this port. `wallpaper` and `scheme` are still handed to an
-# installed upstream CLI, because they need the color pipeline this port has not
-# taken over yet; with none installed they say so instead of failing quietly.
+# words work on this port. `wallpaper` and `scheme` are the color pipeline,
+# which this port owns: they are implemented in `caelestia-color` rather than
+# handed to an installed upstream CLI.
 #
 # Environment:
 #   CAELESTIA_BIN_DIR  where the helper commands live (default: beside this file)
-#   CAELESTIA_CLI      the upstream CLI that wallpaper and scheme are handed to
 #   CAELESTIA_DIR      the checkout `install` runs from (default: ~/caelestia-kde)
 
 set -euo pipefail
@@ -38,57 +37,6 @@ helper() {
     exec "$path" "$@"
 }
 
-# upstream_cli
-#
-# Print the upstream Caelestia CLI to hand wallpaper and scheme to. CAELESTIA_CLI
-# names one outright; otherwise it is the first `caelestia` on PATH that is not
-# this file. A CAELESTIA_CLI that is set but not executable is an error rather
-# than a silent fallback, so a broken setting cannot look like a missing CLI.
-upstream_cli() {
-    if [[ -n "${CAELESTIA_CLI:-}" ]]; then
-        if [[ ! -x "$CAELESTIA_CLI" ]]; then
-            printf '[ERR] CAELESTIA_CLI is not executable: %s\n' "$CAELESTIA_CLI" >&2
-            return 1
-        fi
-        printf '%s\n' "$CAELESTIA_CLI"
-        return 0
-    fi
-
-    local dir candidate real
-    local IFS=:
-    for dir in $PATH; do
-        [[ -n "$dir" ]] || dir="."
-        candidate="$dir/caelestia"
-        [[ -x "$candidate" ]] || continue
-        real="$(realpath -- "$candidate" 2>/dev/null || printf '%s' "$candidate")"
-        [[ "$real" == "$SELF" ]] && continue
-        printf '%s\n' "$candidate"
-        return 0
-    done
-    return 1
-}
-
-# delegate <subcommand> [args...]
-#
-# A subcommand this port does not own yet. It goes to the upstream CLI when one
-# is installed, and says what is missing when there is none.
-delegate() {
-    local what="$1"
-    shift
-    local cli
-    if ! cli="$(upstream_cli)"; then
-        cat >&2 <<EOF
-[ERR] 'caelestia $what' is not part of the KDE port yet.
-
-  It needs the color pipeline from the upstream Caelestia CLI. Install it with
-  your package manager (for example: paru -S caelestia-cli), or point
-  CAELESTIA_CLI at one that is already installed.
-EOF
-        exit 127
-    fi
-    exec "$cli" "$what" "$@"
-}
-
 usage() {
     cat <<'EOF'
 caelestia - control the Caelestia shell
@@ -99,7 +47,7 @@ Commands
   shell [OPTS] [MESSAGE...]    start the shell, or message the running one
   install                      run the installer for this checkout
   update [REF]                 update the shell and re-apply the configuration
-  wallpaper [OPTS]             manage the wallpaper
+  wallpaper [OPTS]             set the wallpaper and derive the palette from it
   scheme <list|get|set> [...]  manage the color scheme
   screenshot [OPTS]            take a screenshot
   record [OPTS]                record the screen
@@ -318,7 +266,7 @@ main() {
             helper caelestia-update "$@"
             ;;
         wallpaper|scheme)
-            delegate "$command" "$@"
+            helper caelestia-color "$command" "$@"
             ;;
         screenshot)
             cmd_screenshot "$@"

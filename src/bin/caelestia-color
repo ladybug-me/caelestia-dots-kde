@@ -1,0 +1,1333 @@
+#!/usr/bin/env bash
+# caelestia-color - the color pipeline behind `caelestia wallpaper` and
+# `caelestia scheme`.
+#
+# It generates the palette with matugen, writes the state the shell and the
+# lock screen already read, and fans the colors out to the applications that
+# take theirs from a file. Nothing else changed with it: the state contract is
+# still upstream's, which is what made the hand-off to an external Caelestia CLI
+# replaceable in the first place.
+#
+#   $XDG_STATE_HOME/caelestia/scheme.json          the palette the shell reads
+#   $XDG_STATE_HOME/caelestia/wallpaper/path.txt   the wallpaper on screen
+#   $XDG_STATE_HOME/caelestia/wallpaper/current    a symlink to it
+#   $XDG_STATE_HOME/caelestia/theme/               rendered user templates
+#
+# Configuration comes from $XDG_CONFIG_HOME/caelestia/cli.json, the file the
+# installer already writes, under the `theme.*` and `wallpaper.*` keys the
+# upstream CLI used, plus a few of our own for targets it never themed. A key
+# that is absent is on, except where a target would replace a whole file the
+# user owns.
+#
+# Generation and configuration want JSON, which is not a shell's language, so
+# the helpers below shell out to python3 for it. Reseeding, the KDE wallpapers
+# and the installer already require python3, so this adds no dependency.
+
+set -euo pipefail
+
+# The python helper is one heredoc dispatched by argv, below. Its body is
+# deliberately at column zero: an indented heredoc would be a syntax error.
+
+SELF="$(realpath -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")"
+BIN_DIR="$(dirname -- "$SELF")"
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+STATE_DIR="$STATE_HOME/caelestia"
+SCHEME_FILE="$STATE_DIR/scheme.json"
+WALLPAPER_FILE="$STATE_DIR/wallpaper/path.txt"
+WALLPAPER_LINK="$STATE_DIR/wallpaper/current"
+THEME_DIR="$STATE_DIR/theme"
+USER_TEMPLATES="$CONFIG_HOME/caelestia/templates"
+CLI_CONFIG="$CONFIG_HOME/caelestia/cli.json"
+
+WORK_DIR="$STATE_DIR/matugen"
+GENERATED_CONFIG="$WORK_DIR/config.toml"
+IMPORT_JSON="$WORK_DIR/import.json"
+PALETTES_JSON="$WORK_DIR/palettes.json"
+MATUGEN_LOG="$WORK_DIR/matugen.log"
+RENDER_FILE="$WORK_DIR/scheme.json.new"
+PREVIEW_FILE="$WORK_DIR/preview.json"
+
+declare -A CFG=()
+
+# The scheme in effect, as read back from the file that was just written. The
+# hooks get these in their environment, which is how the SDDM sync script
+# learns which palette to push into the greeter.
+META_NAME=""
+META_FLAVOUR=""
+META_MODE=""
+META_VARIANT=""
+META_COLOURS=""
+
+err() { printf '[ERR] %s\n' "$*" >&2; }
+warn() { printf '[WARN] %s\n' "$*" >&2; }
+die() { err "$*"; exit 1; }
+
+usage() {
+    cat <<'EOF'
+caelestia-color - generate the color scheme and write everything that reads it
+
+Usage
+  caelestia-color scheme <list|get|set> [OPTS]
+  caelestia-color wallpaper <-f PATH | -p [PATH] | -r [DIR]> [OPTS]
+
+Scheme
+  list [OPTS]           print the named schemes: the tree, or with -n/-f/-m/-v
+                        the names, flavours, modes or variants on their own.
+                        --flat prints one entry per name, flavour and mode,
+                        which is what the Colors page reads
+  get [-n|-f|-m|-v]     print the current name, flavour, mode and variant, or
+                        all four when no flag is given
+  set [OPTS]            switch scheme. Without an argument nothing happens:
+      -n, --name NAME     a named scheme, or "dynamic" for one derived from the
+                          wallpaper
+      -f, --flavour NAME  the flavour. dynamic has "default" and "hard"
+      -m, --mode MODE     light or dark
+      -v, --variant NAME  the Material You variant, for a dynamic scheme
+      -r, --random        a random named scheme
+      -P, --preview       print the scheme this would produce and change
+                          nothing
+          --notify        send a notification when it fails
+
+Wallpaper
+  -f, --file PATH       set the wallpaper and re-derive a dynamic scheme from it
+  -p, --print [PATH]    print the scheme for a wallpaper, changing nothing.
+                        Defaults to the wallpaper already set
+  -r, --random [DIR]    pick a random wallpaper from DIR and set it
+  -N, --no-smart        keep the mode and variant instead of letting the
+                        wallpaper choose them
+  -n, --no-filter       accepted; nothing here filters by size
+  -t, --threshold PCT   accepted; nothing here filters by size
+
+The named schemes are the ones this port ships. `caelestia-color scheme list -n`
+prints them.
+EOF
+}
+
+# py <command> [args...]
+#
+# Run the python helper. It exists because the work below is JSON work: reading
+# the shipped scheme files, writing the render data matugen renders from, and
+# rendering the user templates whose `{{ role.hex }}` syntax is not matugen's.
+py() {
+    python3 - "$@" <<'PY'
+import json
+import os
+import pathlib
+import re
+import sys
+import tempfile
+
+
+def atomic_write(path: pathlib.Path, text: str) -> None:
+    """Write through a temporary file, so a reader never sees half a file.
+
+    The shell watches scheme.json and reloads on the replacement, so the file
+    must never exist in a partial state.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tmp-")
+    try:
+        with os.fdopen(fd, "w") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def schemes_dir(data_dir: str) -> pathlib.Path:
+    return pathlib.Path(data_dir) / "schemes"
+
+
+def scheme_names(data_dir: str) -> list[str]:
+    root = schemes_dir(data_dir)
+    return sorted(p.name for p in root.iterdir() if p.is_dir()) if root.is_dir() else []
+
+
+def scheme_flavours(data_dir: str, name: str) -> list[str]:
+    root = schemes_dir(data_dir) / name
+    return sorted(p.name for p in root.iterdir() if p.is_dir()) if root.is_dir() else []
+
+
+def scheme_modes(data_dir: str, name: str, flavour: str) -> list[str]:
+    root = schemes_dir(data_dir) / name / flavour
+    return sorted(p.stem for p in root.glob("*.txt")) if root.is_dir() else []
+
+
+def read_colours(path: pathlib.Path) -> dict[str, str]:
+    """Read a shipped scheme file: one `role hex` pair per line.
+
+    The values are kept exactly as the file has them, casing included, because
+    these files are upstream's and a named scheme is meant to be the file. The
+    files are copied rather than generated, so a stray comment or a short line
+    is skipped rather than fatal.
+    """
+    colours: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        colours[parts[0]] = parts[1].lstrip("#").strip()
+    return colours
+
+
+def colour_file(data_dir: str, name: str, flavour: str, mode: str) -> pathlib.Path:
+    return schemes_dir(data_dir) / name / flavour / f"{mode}.txt"
+
+
+def role_map(data_dir: str) -> tuple[dict[str, str], dict[str, str]]:
+    """The role names we speak against the ones matugen speaks.
+
+    Read out of our own scheme template instead of written down twice: that
+    template is the one place where both names meet, and a role added to it is
+    a role the named schemes can carry too.
+    """
+    template = (pathlib.Path(data_dir) / "matugen" / "scheme.json.tmpl").read_text(encoding="utf-8")
+    roles: dict[str, str] = {}
+    terms: dict[str, str] = {}
+    for camel, snake in re.findall(
+        r'"([A-Za-z0-9_]+)":\s*"\{\{ colors\.([a-z0-9_]+)\.default\.hex_stripped \}\}"', template
+    ):
+        roles[camel] = snake
+    for term, base in re.findall(
+        r'"term(\d+)":\s*"\{\{ base16\.(base0[0-9a-f])\.default\.hex_stripped \}\}"', template
+    ):
+        terms[f"term{term}"] = base
+    return roles, terms
+
+
+def scheme_json(name: str, flavour: str, mode: str, variant: str, colours: dict[str, str]) -> str:
+    return json.dumps(
+        {"name": name, "flavour": flavour, "mode": mode, "variant": variant, "colours": colours}
+    )
+
+
+def pick_mode(data_dir: str, name: str, flavour: str, wanted: str) -> str:
+    """The mode of a flavour, falling back to whichever one it ships.
+
+    Not every named scheme has both modes; upstream lists the missing one from
+    the other rather than pretending it is there.
+    """
+    modes = scheme_modes(data_dir, name, flavour)
+    if wanted in modes:
+        return wanted
+    return modes[0] if modes else wanted
+
+
+class Colour:
+    """The `{{ role.<field> }}` fields of a user template, as upstream defines them."""
+
+    def __init__(self, code: str) -> None:
+        code = code.ljust(8, "f")
+        self._hex = tuple(code[i : i + 2] for i in range(0, 7, 2))
+        self._rgb = tuple(int(value, 16) for value in self._hex)
+        self._hsl = self._to_hsl()
+
+    def _to_hsl(self) -> tuple[int, int, int]:
+        r, g, b = (value / 255 for value in self._rgb[:3])
+        cmax, cmin = max(r, g, b), min(r, g, b)
+        delta = cmax - cmin
+        lightness = (cmax + cmin) / 2
+        saturation = 0.0 if delta == 0 else delta / (1 - abs(2 * lightness - 1))
+        if delta == 0:
+            hue = 0.0
+        elif cmax == r:
+            hue = 60 * (((g - b) / delta) % 6)
+        elif cmax == g:
+            hue = 60 * (((b - r) / delta) + 2)
+        else:
+            hue = 60 * (((r - g) / delta) + 4)
+        return round(hue), round(saturation * 100), round(lightness * 100)
+
+    @property
+    def hex(self) -> str:
+        return "".join(self._hex[:-1])
+
+    @property
+    def hexalpha(self) -> str:
+        return "".join(self._hex)
+
+    @property
+    def rgb(self) -> str:
+        return f"rgb({','.join(map(str, self._rgb[:-1]))})"
+
+    @property
+    def rgbalpha(self) -> str:
+        return f"rgba({','.join(map(str, self._rgb))})"
+
+    @property
+    def red(self) -> int:
+        return self._rgb[0]
+
+    @property
+    def green(self) -> int:
+        return self._rgb[1]
+
+    @property
+    def blue(self) -> int:
+        return self._rgb[2]
+
+    @property
+    def hsl(self) -> str:
+        return f"hsl({self._hsl[0]},{self._hsl[1]}%,{self._hsl[2]}%)"
+
+    @property
+    def hue(self) -> int:
+        return self._hsl[0]
+
+    @property
+    def saturation(self) -> int:
+        return self._hsl[1]
+
+    @property
+    def lightness(self) -> int:
+        return self._hsl[2]
+
+
+def cmd_config_dump(path: str) -> int:
+    """Print the configuration as `key<TAB>value` lines.
+
+    Only leaf values: a section is not a setting, and the shell looks keys up by
+    the name they have in the file.
+    """
+    try:
+        data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return 0
+    except json.JSONDecodeError:
+        print(f"[WARN] ignoring {path}: not valid JSON", file=sys.stderr)
+        return 0
+
+    def walk(prefix: str, node: object) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                walk(f"{prefix}.{key}" if prefix else str(key), value)
+        elif isinstance(node, bool):
+            print(f"{prefix}\ttrue" if node else f"{prefix}\tfalse")
+        elif isinstance(node, (str, int, float)):
+            # Tabs and newlines would end the line early; a hook with either is
+            # not something the file format supports anyway.
+            print(f"{prefix}\t{str(node).replace(chr(9), ' ').replace(chr(10), ' ')}")
+
+    walk("", data)
+    return 0
+
+
+def cmd_import_json(data_dir: str, out: str, name: str, flavour: str, mode: str, image: str) -> int:
+    """Write the render data matugen needs to fan a named scheme out.
+
+    A named scheme is hand-made rather than generated, so it is fed in as one.
+    Every entry carries the same color in all three slots, so that whichever
+    one matugen resolves matches the scheme.
+
+    `image` travels too, because a template that mentions the wallpaper - the VS
+    Code one does - fails to render without it, and a named scheme still has a
+    wallpaper on screen. An empty string is what it gets when there is none.
+    """
+    colours = read_colours(colour_file(data_dir, name, flavour, mode))
+    roles, terms = role_map(data_dir)
+
+    def entry(code: str) -> dict[str, dict[str, str]]:
+        return {slot: {"color": f"#{code}"} for slot in ("dark", "default", "light")}
+
+    data = {
+        "colors": {snake: entry(colours[camel]) for camel, snake in roles.items() if camel in colours},
+        "base16": {base: entry(colours[term]) for term, base in terms.items() if term in colours},
+        "image": image,
+        "mode": mode,
+        "is_dark_mode": mode == "dark",
+    }
+    atomic_write(pathlib.Path(out), json.dumps(data))
+    return 0
+
+
+def cmd_write_named(data_dir: str, out: str, name: str, flavour: str, mode: str, variant: str) -> int:
+    """Write scheme.json for a named scheme, straight from its file.
+
+    The shipped files carry roles matugen has no word for, `success` among them,
+    so the file path keeps every one of them instead of the subset a render
+    would produce.
+    """
+    colours = read_colours(colour_file(data_dir, name, flavour, mode))
+    atomic_write(pathlib.Path(out), scheme_json(name, flavour, mode, variant, colours))
+    return 0
+
+
+def cmd_read_scheme(data_dir: str, name: str, flavour: str, mode: str, variant: str) -> int:
+    mode = pick_mode(data_dir, name, flavour, mode)
+    colours = read_colours(colour_file(data_dir, name, flavour, mode))
+    print(scheme_json(name, flavour, mode, variant, colours))
+    return 0
+
+
+def cmd_list_nested(data_dir: str, mode: str) -> int:
+    tree: dict[str, dict[str, dict[str, str]]] = {}
+    for name in scheme_names(data_dir):
+        tree[name] = {}
+        for flavour in scheme_flavours(data_dir, name):
+            actual = pick_mode(data_dir, name, flavour, mode)
+            tree[name][flavour] = read_colours(colour_file(data_dir, name, flavour, actual))
+    print(json.dumps(tree))
+    return 0
+
+
+def cmd_list_flat(data_dir: str) -> int:
+    entries = []
+    for name in scheme_names(data_dir):
+        for flavour in scheme_flavours(data_dir, name):
+            for mode in scheme_modes(data_dir, name, flavour):
+                entries.append(
+                    {
+                        "name": name,
+                        "flavour": flavour,
+                        "mode": mode,
+                        "colours": read_colours(colour_file(data_dir, name, flavour, mode)),
+                    }
+                )
+    print(json.dumps(entries))
+    return 0
+
+
+def cmd_names(data_dir: str, what: str, name: str) -> int:
+    """List names, flavours or modes, narrowed by the argument before it."""
+    if what == "names":
+        out = scheme_names(data_dir)
+    elif what == "flavours":
+        picked = [name] if name else scheme_names(data_dir)
+        out = sorted({f for n in picked for f in scheme_flavours(data_dir, n)})
+    elif what == "modes":
+        picked = [name] if name else scheme_names(data_dir)
+        out = sorted({m for n in picked for f in scheme_flavours(data_dir, n) for m in scheme_modes(data_dir, n, f)})
+    else:
+        raise SystemExit(f"unknown list: {what}")
+    print("\n".join(out))
+    return 0
+
+
+def cmd_pick_mode(data_dir: str, name: str, flavour: str, mode: str) -> int:
+    print(pick_mode(data_dir, name, flavour, mode))
+    return 0
+
+
+# The roles a generated scheme needs on top of what matugen names.
+#
+# Each one is here because something in this port reads it, measured rather than
+# guessed: the shell's palette manager and its KDE sync read the palette key
+# colors, the toasts and the weather read the success family, and the SDDM theme
+# the installer registers reads `text`. The rest of upstream's extra roles - the
+# k colors, the Catppuccin names, the Dim variants - are read by nothing here, so
+# they are not carried.
+PALETTE_KEY_COLORS = {
+    # The Material palette key color is tone 50 of the palette, which is what
+    # kde-material-you-colors is handed to theme the rest of the desktop.
+    "primary_paletteKeyColor": "primary",
+    "secondary_paletteKeyColor": "secondary",
+    "tertiary_paletteKeyColor": "tertiary",
+    "neutral_paletteKeyColor": "neutral",
+    "neutral_variant_paletteKeyColor": "neutral_variant",
+}
+
+# Hand-picked by upstream rather than derived from the palette; these are its
+# values, kept so a generated scheme and a shipped one agree on what success
+# looks like.
+SUCCESS_COLORS = {
+    "dark": {
+        "success": "B5CCBA",
+        "onSuccess": "213528",
+        "successContainer": "374B3E",
+        "onSuccessContainer": "D1E9D6",
+    },
+    "light": {
+        "success": "4F6354",
+        "onSuccess": "FFFFFF",
+        "successContainer": "D1E8D5",
+        "onSuccessContainer": "0C1F13",
+    },
+}
+
+
+def cmd_merge_palette(scheme_path: str, palettes_path: str) -> int:
+    """Fold the roles matugen cannot name into a scheme it just rendered.
+
+    matugen renders the Material roles and the base16 terminals; the palette key
+    colors come out of the same run through a second template, because the shade
+    a palette key color is cannot be asked for by name in a template - the
+    shades are keyed by number and the template language takes no index.
+    """
+    scheme_file = pathlib.Path(scheme_path)
+    data = json.loads(scheme_file.read_text(encoding="utf-8"))
+    colours = data.setdefault("colours", {})
+    palettes = json.loads(pathlib.Path(palettes_path).read_text(encoding="utf-8"))
+
+    for role, palette in PALETTE_KEY_COLORS.items():
+        shade = palettes.get(palette, {}).get("50")
+        if shade:
+            colours[role] = shade.lstrip("#")
+
+    colours.update(SUCCESS_COLORS["light" if data.get("mode") == "light" else "dark"])
+
+    # `text` is one of the Catppuccin names upstream carried through; on surface
+    # is what a template asking for it means, and the SDDM theme asks.
+    if colours.get("onSurface") and not colours.get("text"):
+        colours["text"] = colours["onSurface"]
+
+    atomic_write(scheme_file, json.dumps(data))
+    return 0
+
+
+def cmd_meta(path: str) -> int:
+    data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+    for key in ("name", "flavour", "mode", "variant"):
+        print(str(data.get(key, "")).strip())
+    return 0
+
+
+def cmd_colours_json(path: str) -> int:
+    data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+    print(json.dumps(data.get("colours", {})))
+    return 0
+
+
+def cmd_render_templates(scheme_path: str, templates_dir: str, out_dir: str, mode: str) -> int:
+    """Render `~/.config/caelestia/templates/` into the state directory.
+
+    Upstream's own `{{ role.hex }}` syntax, kept as it is because the templates
+    in the wild are written against it - ours ships one for SDDM, and it reads
+    the result.
+    """
+    data = json.loads(pathlib.Path(scheme_path).read_text(encoding="utf-8"))
+    colours = {name: Colour(code) for name, code in data.get("colours", {}).items()}
+    source = pathlib.Path(templates_dir)
+    if not source.is_dir():
+        return 0
+
+    dot_field = re.compile(r"\{\{((?:(?!\{\{|\}\}).)*)\}\}")
+    mode_field = re.compile(r"\{\{\s*mode\s*\}\}")
+
+    def fill(match: re.Match) -> str:
+        parts = match.group(1).strip().split(".")
+        if len(parts) != 2:
+            return match.group()
+        colour, field = parts
+        if colour not in colours or not hasattr(colours[colour], field):
+            return match.group()
+        return str(getattr(colours[colour], field))
+
+    for path in sorted(source.iterdir()):
+        if not path.is_file():
+            continue
+        content = dot_field.sub(fill, path.read_text(encoding="utf-8"))
+        content = mode_field.sub(mode, content)
+        atomic_write(pathlib.Path(out_dir) / path.name, content)
+    return 0
+
+
+def cmd_smart_variant(image: str) -> int:
+    """Pick the variant from the image, the way upstream does.
+
+    matugen's own `scheme-smart` makes this choice too, but it keeps it to
+    itself: the palette comes back without saying which scheme type produced it,
+    and the shell reads the variant out of scheme.json to drive
+    kde-material-you-colors. So the choice is made here instead, from the same
+    colourfulness measure upstream used, and handed to matugen as a concrete
+    type. ffmpeg does the decoding because this port already needs it for video
+    wallpapers and it is a C library away from being fast.
+    """
+    import math
+    import shutil
+    import subprocess
+
+    if shutil.which("ffmpeg") is None:
+        return 1
+
+    # The same size and the same resampling upstream measured on: its thumbnail,
+    # fitted into 128x128 with the nearest filter.
+    result = subprocess.run(
+        [
+            "ffmpeg", "-v", "error", "-i", image,
+            "-vf", "scale=w=128:h=128:force_original_aspect_ratio=decrease:flags=neighbor",
+            "-f", "rawvideo", "-pix_fmt", "rgb24", "-",
+        ],
+        capture_output=True,
+    )
+    if result.returncode != 0 or not result.stdout:
+        return 1
+
+    data = result.stdout
+    rg_diffs: list[float] = []
+    yb_diffs: list[float] = []
+    for index in range(0, len(data) - 2, 3):
+        r, g, b = data[index], data[index + 1], data[index + 2]
+        rg_diffs.append(abs(r - g))
+        yb_diffs.append(abs(0.5 * (r + g) - b))
+
+    def mean(values: list[float]) -> float:
+        return sum(values) / len(values) if values else 0.0
+
+    def stddev(values: list[float], average: float) -> float:
+        return math.sqrt(sum((value - average) ** 2 for value in values) / len(values)) if values else 0.0
+
+    mean_rg = mean(rg_diffs)
+    mean_yb = mean(yb_diffs)
+    colourfulness = math.sqrt(stddev(rg_diffs, mean_rg) ** 2 + stddev(yb_diffs, mean_yb) ** 2) + 0.3 * math.sqrt(
+        mean_rg**2 + mean_yb**2
+    )
+
+    if colourfulness < 10:
+        print("neutral")
+    elif colourfulness < 20:
+        print("content")
+    else:
+        print("tonalspot")
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    command, args = argv[0], argv[1:]
+    if command == "config-dump":
+        return cmd_config_dump(*args)
+    if command == "import-json":
+        return cmd_import_json(*args)
+    if command == "write-named":
+        return cmd_write_named(*args)
+    if command == "read-scheme":
+        return cmd_read_scheme(*args)
+    if command == "list-nested":
+        return cmd_list_nested(*args)
+    if command == "list-flat":
+        return cmd_list_flat(*args)
+    if command == "names":
+        return cmd_names(*args)
+    if command == "pick-mode":
+        return cmd_pick_mode(*args)
+    if command == "merge-palette":
+        return cmd_merge_palette(*args)
+    if command == "meta":
+        return cmd_meta(*args)
+    if command == "colours-json":
+        return cmd_colours_json(*args)
+    if command == "render-templates":
+        return cmd_render_templates(*args)
+    if command == "smart-variant":
+        return cmd_smart_variant(*args)
+    raise SystemExit(f"unknown python helper: {command}")
+
+
+sys.exit(main(sys.argv[1:]))
+PY
+}
+
+# variant_type <name>
+#
+# Our variant names against matugen's, which are kebab-cased and prefixed. The
+# names are upstream's, so they are what the shell, the launcher and the config
+# file speak.
+variant_type() {
+    case "$1" in
+        tonalspot) printf 'scheme-tonal-spot' ;;
+        vibrant) printf 'scheme-vibrant' ;;
+        expressive) printf 'scheme-expressive' ;;
+        fidelity) printf 'scheme-fidelity' ;;
+        fruitsalad) printf 'scheme-fruit-salad' ;;
+        monochrome) printf 'scheme-monochrome' ;;
+        neutral) printf 'scheme-neutral' ;;
+        rainbow) printf 'scheme-rainbow' ;;
+        content) printf 'scheme-content' ;;
+        *) return 1 ;;
+    esac
+}
+
+variant_names() {
+    printf '%s\n' tonalspot vibrant expressive fidelity fruitsalad monochrome neutral rainbow content
+}
+
+# data_dir
+#
+# Print the directory holding `matugen/` and `schemes/`. CAELESTIA_DATA_DIR is
+# taken at its word - a wrong one is an error rather than a reason to go
+# looking elsewhere; the rest are the places this port puts the files, in the
+# order they become true.
+data_dir() {
+    if [[ -n "${CAELESTIA_DATA_DIR:-}" ]]; then
+        if [[ -f "$CAELESTIA_DATA_DIR/matugen/scheme.json.tmpl" && -d "$CAELESTIA_DATA_DIR/schemes" ]]; then
+            printf '%s\n' "$CAELESTIA_DATA_DIR"
+            return 0
+        fi
+        return 1
+    fi
+
+    local candidate
+    for candidate in "${CAELESTIA_LIB_DIR:-}" "$HOME/.local/lib/caelestia" /usr/share/caelestia "$(dirname -- "$BIN_DIR")"; do
+        [[ -n "$candidate" ]] || continue
+        if [[ -f "$candidate/matugen/scheme.json.tmpl" && -d "$candidate/schemes" ]]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+require_data_dir() {
+    local dir
+    if ! dir="$(data_dir)"; then
+        cat >&2 <<EOF
+[ERR] the scheme data is not installed.
+
+  Looked for matugen/scheme.json.tmpl and schemes/ beside the command, in
+  \${CAELESTIA_LIB_DIR:-~/.local/lib/caelestia} and in /usr/share/caelestia.
+  From a checkout, either run 'scripts/08-build-shell.sh' or set
+  CAELESTIA_DATA_DIR to the checkout's src directory.
+EOF
+        exit 1
+    fi
+    printf '%s\n' "$dir"
+}
+
+# load_config
+#
+# Read the user's cli.json into CFG. Absent file and unreadable file are not
+# errors: everything has a default, and a broken file must not stop the desktop
+# from getting colors.
+load_config() {
+    CFG=()
+    [[ -f "$CLI_CONFIG" ]] || return 0
+    local key value
+    while IFS=$'\t' read -r key value; do
+        [[ -n "$key" ]] || continue
+        CFG["$key"]="$value"
+    done < <(py config-dump "$CLI_CONFIG")
+}
+
+# enabled <key> [default]
+#
+# Whether a fan-out target is on. Upstream treated an absent key as on, which is
+# what makes an existing cli.json keep working; our own targets default the same
+# way except where they would take over a file the user owns.
+enabled() {
+    local key="theme.$1" default="${2:-true}" value
+    value="${CFG[$key]:-}"
+    [[ -n "$value" ]] || value="$default"
+    [[ "$value" == "true" ]]
+}
+
+config_value() {
+    printf '%s' "${CFG[$1]:-}"
+}
+
+# targets
+#
+# The fan-out, one line per template: key, template files, output, and whether
+# it is on when cli.json says nothing. `enableKde`, `enableKvantum`,
+# `enableStarship`, `enableVscode`, `enableRofi`, `enableFoot` and `enableKitty`
+# are ours - upstream has no key for them - and the rest are its names, so the
+# same cli.json drives both.
+targets() {
+    cat <<EOF
+enableKde|Matugen.colors|$DATA_HOME/color-schemes/Matugen.colors|true
+enableKvantum|kvantum-colors.kvconfig|$CONFIG_HOME/Kvantum/matugen/matugen.kvconfig|true
+enableKvantum|kvantum-colors.svg|$CONFIG_HOME/Kvantum/matugen/matugen.svg|true
+enableQt|qtct-colors.conf|$CONFIG_HOME/qt5ct/colors/matugen.conf|true
+enableQt|qtct-colors.conf|$CONFIG_HOME/qt6ct/colors/matugen.conf|true
+enableGtk|gtk-colors.css|$CONFIG_HOME/gtk-3.0/colors.css|true
+enableGtk|gtk-colors.css|$CONFIG_HOME/gtk-4.0/colors.css|true
+enableTerm|terminal-sequences|$CACHE_HOME/caelestia/terminal-sequences|true
+enableBtop|btop.theme|$CONFIG_HOME/btop/themes/matugen.theme|true
+enableCava|cava-colors.ini|$CONFIG_HOME/cava/themes/matugen|true
+enableDiscord|midnight-discord.css|$CONFIG_HOME/vesktop/themes/midnight-discord.css|true
+enableDiscord|system24.css|$CONFIG_HOME/vesktop/themes/system24.css|true
+enableSpicetify|spicetify.ini|$CONFIG_HOME/spicetify/Themes/Sleek/color.ini|true
+enableZed|zed-colors.json|$CONFIG_HOME/zed/themes/matugen.json|true
+enableFuzzel|fuzzel.ini|$CONFIG_HOME/fuzzel/colors.ini|true
+enableVscode|vscode-colors|$CACHE_HOME/matugen/vscode-colors|true
+enableVscode|vscode-colors.json|$CACHE_HOME/matugen/vscode-colors.json|true
+enableRofi|rofi-colors.rasi|$CONFIG_HOME/rofi/colors.rasi|true
+enableFoot|foot-colors.ini|$CONFIG_HOME/foot/foot-colors.ini|true
+enableKitty|kitty-colors.conf|$CONFIG_HOME/kitty/themes/Matugen.conf|true
+enableStarship|starship-colors.toml|$CONFIG_HOME/starship.toml|false
+EOF
+}
+
+# write_matugen_config <out> <scheme_output|""> <fan_out:true|false>
+#
+# The config is generated per run rather than shipped, because which templates
+# are on is the user's, and matugen takes a config per invocation. An empty
+# scheme output leaves the scheme template out, which is what the named schemes
+# want: they write scheme.json themselves, in full.
+write_matugen_config() {
+    local out="$1" scheme_out="$2" fan_out="$3" data index=0
+    data="$(require_data_dir)"
+    mkdir -p "$WORK_DIR"
+
+    {
+        printf '# Generated by caelestia-color. Rewritten on every color change.\n\n'
+        printf '[config]\ncontrast = 0.0\n\n'
+
+        if [[ -n "$scheme_out" ]]; then
+            printf '[templates.scheme]\n'
+            printf 'input_path = "%s"\n' "$data/matugen/scheme.json.tmpl"
+            printf 'output_path = "%s"\n\n' "$scheme_out"
+
+            # The palette key colors a generated scheme needs are shades of the
+            # palettes, and a template cannot ask for one by name, so the whole
+            # set is dumped for the command to fold in afterwards.
+            printf '[templates.palettes]\n'
+            printf 'input_path = "%s"\n' "$data/matugen/palettes.json.tmpl"
+            printf 'output_path = "%s"\n\n' "$PALETTES_JSON"
+        fi
+
+        [[ "$fan_out" == "true" ]] || return 0
+
+        local key templates output default template id
+        while IFS='|' read -r key templates output default; do
+            [[ -n "$key" ]] || continue
+            enabled "$key" "$default" || continue
+            for template in $templates; do
+                index=$((index + 1))
+                id="$(printf '%s-%s' "${template//[^A-Za-z0-9]/-}" "$index")"
+                printf '[templates.%s]\n' "$id"
+                printf 'input_path = "%s"\n' "$data/matugen/templates/$template"
+                printf 'output_path = "%s"\n\n' "$output"
+            done
+        done < <(targets)
+    } > "$out"
+}
+
+# meta_string <name> <flavour> <variant>
+#
+# matugen has no keyword for the four metadata fields, so they travel as import
+# data and the template reads them back out.
+meta_string() {
+    python3 -c 'import json, sys; print(json.dumps({"name": sys.argv[1], "flavour": sys.argv[2], "variant": sys.argv[3]}))' "$1" "$2" "$3"
+}
+
+# run_matugen <args...>
+#
+# matugen narrates itself on stderr, including which directories it is making,
+# which is noise for something the shell runs on every wallpaper change. Keep
+# that in a log beside the generated config and show it only when the run
+# fails, so a real error is not swallowed.
+run_matugen() {
+    command -v matugen >/dev/null 2>&1 || die "matugen is not installed; it generates the palette"
+    if ! matugen "$@" > /dev/null 2> "$MATUGEN_LOG"; then
+        err "matugen failed; its output follows"
+        cat "$MATUGEN_LOG" >&2
+        err "the config it was given is at $GENERATED_CONFIG"
+        return 1
+    fi
+}
+
+# smart_variant <wallpaper>
+#
+# Upstream let the wallpaper choose the mode and the variant. matugen picks the
+# mode itself and says so in the render, so that half stays with it; the variant
+# is worked out here, so that the name written into scheme.json is the one the
+# palette really is.
+smart_variant() {
+    py smart-variant "$1"
+}
+
+# render_image <wallpaper> <flavour> <mode> <variant> <smart> <fan_out> <out>
+#
+# The dynamic scheme: the palette comes from the wallpaper. `--source-color-index 0`
+# keeps matugen from asking which color to use - it would get no answer here.
+#
+# With smart on, the variant handed in is replaced by the one the wallpaper
+# picks, which is upstream's behaviour and the reason that half of it is worked
+# out here rather than left to matugen.
+render_image() {
+    local wallpaper="$1" flavour="$2" mode="$3" variant="$4" smart="$5" fan_out="$6" out="$7"
+    local type mode_arg
+
+    if [[ "$smart" == "true" ]]; then
+        mode_arg='smart'
+        if variant="$(smart_variant "$wallpaper")"; then
+            type="$(variant_type "$variant")"
+        else
+            # Without ffmpeg there is no colourfulness to measure. Let matugen
+            # choose, and accept that the name it is filed under is a guess.
+            warn "cannot measure the wallpaper's colourfulness; matugen picks the variant"
+            type='scheme-smart'
+        fi
+    else
+        type="$(variant_type "$variant")" || die "unknown variant: $variant"
+        mode_arg="$mode"
+    fi
+
+    write_matugen_config "$GENERATED_CONFIG" "$out" "$fan_out"
+    run_matugen image "$wallpaper" \
+        --config "$GENERATED_CONFIG" \
+        --source-color-index 0 \
+        --type "$type" \
+        --mode "$mode_arg" \
+        --import-json-string "$(meta_string dynamic "$flavour" "$variant")"
+
+    py merge-palette "$out" "$PALETTES_JSON" || die "could not fold the palette key colors in"
+}
+
+# render_named <name> <flavour> <mode> <variant> <fan_out> <out>
+render_named() {
+    local name="$1" flavour="$2" mode="$3" variant="$4" fan_out="$5" out="$6" data image=""
+    data="$(require_data_dir)"
+    image="$(stored_wallpaper 2>/dev/null || true)"
+
+    py import-json "$data" "$IMPORT_JSON" "$name" "$flavour" "$mode" "$image" \
+        || die "no colors for $name/$flavour/$mode"
+    write_matugen_config "$GENERATED_CONFIG" "" "$fan_out"
+    run_matugen json "$IMPORT_JSON" \
+        --config "$GENERATED_CONFIG" \
+        --import-json-string "$(meta_string "$name" "$flavour" "$variant")"
+
+    py write-named "$data" "$out" "$name" "$flavour" "$mode" "$variant"
+}
+
+# commit <rendered>
+#
+# Move the rendered scheme into place and read its metadata back. The move is a
+# rename in the same directory, so a reader either sees the old file or the new
+# one, never half of either.
+commit() {
+    mkdir -p "$STATE_DIR"
+    mv -f "$1" "$SCHEME_FILE"
+
+    local line
+    local -a fields=()
+    while IFS= read -r line; do
+        fields+=("$line")
+    done < <(py meta "$SCHEME_FILE")
+    if [[ ${#fields[@]} -ne 4 ]]; then
+        warn "could not read back the scheme metadata"
+        return 0
+    fi
+
+    META_NAME="${fields[0]}"
+    META_FLAVOUR="${fields[1]}"
+    META_MODE="${fields[2]}"
+    META_VARIANT="${fields[3]}"
+    META_COLOURS="$(py colours-json "$SCHEME_FILE")"
+}
+
+# current_meta
+#
+# Read the scheme in effect into META_*. A missing file leaves them empty,
+# which the callers treat as "dynamic, and derive it when there is a wallpaper".
+current_meta() {
+    META_NAME=""
+    META_FLAVOUR=""
+    META_MODE=""
+    META_VARIANT=""
+    META_COLOURS=""
+    [[ -f "$SCHEME_FILE" ]] || return 0
+
+    local line
+    local -a fields=()
+    while IFS= read -r line; do
+        fields+=("$line")
+    done < <(py meta "$SCHEME_FILE")
+    if [[ ${#fields[@]} -eq 4 ]]; then
+        META_NAME="${fields[0]}"
+        META_FLAVOUR="${fields[1]}"
+        META_MODE="${fields[2]}"
+        META_VARIANT="${fields[3]}"
+    fi
+}
+
+# apply_terms <file>
+#
+# Push the ANSI sequences into the terminals that are running a shell. Only
+# those: a pty whose foreground process is something else would take the escape
+# sequences as input, which is what used to leave garbage in whatever was
+# running there.
+apply_terms() {
+    local file="$1" sequence pty name comm
+    [[ -s "$file" ]] || return 0
+    sequence="$(<"$file")"
+
+    for pty in /dev/pts/[0-9]*; do
+        [[ -w "$pty" ]] || continue
+        name="${pty##*/}"
+        comm="$(ps -t "$name" -o comm= 2>/dev/null | head -n 1 | tr -d ' ')" || continue
+        case "$comm" in
+            sh|bash|zsh|fish|dash|ksh|mksh|nu|elvish|xonsh)
+                printf '%s' "$sequence" > "$pty" 2>/dev/null || true
+                ;;
+        esac
+    done
+}
+
+# after_fan_out <mode>
+#
+# The steps that cannot be expressed as a template: telling the running
+# applications that the file they read has changed.
+after_fan_out() {
+    local mode="$1"
+
+    if enabled enableTerm; then
+        apply_terms "$CACHE_HOME/caelestia/terminal-sequences"
+    fi
+
+    if enabled enableSpicetify && command -v spicetify >/dev/null 2>&1; then
+        spicetify apply >/dev/null 2>&1 || warn "spicetify apply failed"
+    fi
+
+    py render-templates "$SCHEME_FILE" "$USER_TEMPLATES" "$THEME_DIR" "$mode" || warn "could not render the user templates"
+}
+
+# run_hook <label> <command> [VAR=value ...]
+#
+# The hooks the installer registers, run the way upstream ran them: through a
+# shell, with the scheme in the environment. A failing hook is reported and does
+# not fail the color change - the palette is already on disk by then.
+run_hook() {
+    local label="$1" command="$2"
+    shift 2
+    [[ -n "$command" ]] || return 0
+
+    if env "$@" \
+        SCHEME_NAME="$META_NAME" \
+        SCHEME_FLAVOUR="$META_FLAVOUR" \
+        SCHEME_MODE="$META_MODE" \
+        SCHEME_VARIANT="$META_VARIANT" \
+        SCHEME_COLOURS="$META_COLOURS" \
+        sh -c "$command" >/dev/null 2>&1; then
+        return 0
+    fi
+    warn "the $label hook failed"
+}
+
+run_theme_hook() {
+    run_hook theme "$(config_value theme.postHook)"
+}
+
+run_wallpaper_hook() {
+    local wallpaper="$1"
+    run_hook wallpaper "$(config_value wallpaper.postHook)" \
+        "WALLPAPER_PATH=$wallpaper" "THUMBNAIL_PATH=$wallpaper"
+}
+
+# write_wallpaper_state <path>
+write_wallpaper_state() {
+    local wallpaper="$1"
+    mkdir -p "$(dirname -- "$WALLPAPER_FILE")"
+    printf '%s' "$wallpaper" > "$WALLPAPER_FILE"
+    ln -sfn "$wallpaper" "$WALLPAPER_LINK"
+}
+
+# stored_wallpaper
+stored_wallpaper() {
+    [[ -s "$WALLPAPER_FILE" ]] || return 1
+    local wallpaper
+    wallpaper="$(<"$WALLPAPER_FILE")"
+    [[ -n "$wallpaper" && -f "$wallpaper" ]] || return 1
+    printf '%s\n' "$wallpaper"
+}
+
+# derive_from_wallpaper <wallpaper> <flavour> <mode> <variant> <smart>
+#
+# Write a dynamic scheme for a wallpaper and put it in place, then let the
+# applications know.
+derive_from_wallpaper() {
+    local wallpaper="$1" flavour="$2" mode="$3" variant="$4" smart="$5"
+    render_image "$wallpaper" "$flavour" "$mode" "$variant" "$smart" true "$RENDER_FILE"
+    commit "$RENDER_FILE"
+    after_fan_out "$META_MODE"
+    run_theme_hook
+}
+
+cmd_scheme_list() {
+    local flat=0
+    local -a names=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --flat) flat=1; shift ;;
+            -n|--names) names+=(names); shift ;;
+            -f|--flavours) names+=(flavours); shift ;;
+            -m|--modes) names+=(modes); shift ;;
+            -v|--variants) names+=(variants); shift ;;
+            -h|--help) printf 'Usage: caelestia-color scheme list [--flat] [-n|-f|-m|-v]\n'; return 0 ;;
+            *) die "unknown option for scheme list: $1" ;;
+        esac
+    done
+
+    if [[ ${#names[@]} -gt 0 ]]; then
+        for what in "${names[@]}"; do
+            case "$what" in
+                variants) variant_names ;;
+                names) py names "$(require_data_dir)" names "" ;;
+                flavours) py names "$(require_data_dir)" flavours "" ;;
+                modes) py names "$(require_data_dir)" modes "" ;;
+            esac
+        done
+        return 0
+    fi
+
+    if ((flat)); then
+        py list-flat "$(require_data_dir)"
+        return 0
+    fi
+
+    current_meta
+    py list-nested "$(require_data_dir)" "${META_MODE:-dark}"
+}
+
+cmd_scheme_get() {
+    local show_name=0 show_flavour=0 show_mode=0 show_variant=0
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n|--name) show_name=1; shift ;;
+            -f|--flavour) show_flavour=1; shift ;;
+            -m|--mode) show_mode=1; shift ;;
+            -v|--variant) show_variant=1; shift ;;
+            -h|--help) printf 'Usage: caelestia-color scheme get [-n|-f|-m|-v]\n'; return 0 ;;
+            *) die "unknown option for scheme get: $1" ;;
+        esac
+    done
+
+    if [[ -f "$SCHEME_FILE" ]] && [[ $show_name -eq 0 && $show_flavour -eq 0 && $show_mode -eq 0 && $show_variant -eq 0 ]]; then
+        cat "$SCHEME_FILE"
+        printf '\n'
+        return 0
+    fi
+
+    current_meta
+    ((show_name)) && printf '%s\n' "${META_NAME:-dynamic}"
+    ((show_flavour)) && printf '%s\n' "${META_FLAVOUR:-default}"
+    ((show_mode)) && printf '%s\n' "${META_MODE:-dark}"
+    ((show_variant)) && printf '%s\n' "${META_VARIANT:-tonalspot}"
+    return 0
+}
+
+# cmd_scheme_set [OPTS]
+cmd_scheme_set() {
+    local name="" flavour="" mode="" variant="" random=0 preview=0 notify=0
+    local data
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n|--name) name="${2:-}"; [[ -n "$name" ]] || die "-n needs a name"; shift 2 ;;
+            -f|--flavour) flavour="${2:-}"; [[ -n "$flavour" ]] || die "-f needs a flavour"; shift 2 ;;
+            -m|--mode) mode="${2:-}"; [[ -n "$mode" ]] || die "-m needs a mode"; shift 2 ;;
+            -v|--variant) variant="${2:-}"; [[ -n "$variant" ]] || die "-v needs a variant"; shift 2 ;;
+            -r|--random) random=1; shift ;;
+            -P|--preview) preview=1; shift ;;
+            --notify) notify=1; shift ;;
+            -h|--help) usage; return 0 ;;
+            *) die "unknown option for scheme set: $1" ;;
+        esac
+    done
+
+    if [[ -n "$mode" && "$mode" != "light" && "$mode" != "dark" ]]; then
+        die "mode must be light or dark, not $mode"
+    fi
+    if [[ -n "$variant" ]] && ! variant_type "$variant" >/dev/null; then
+        die "unknown variant: $variant"
+    fi
+
+    current_meta
+    [[ -n "$name" ]] || name="${META_NAME:-dynamic}"
+    [[ -n "$flavour" ]] || flavour="${META_FLAVOUR:-default}"
+    [[ -n "$mode" ]] || mode="${META_MODE:-dark}"
+    [[ -n "$variant" ]] || variant="${META_VARIANT:-tonalspot}"
+
+    if ((random)); then
+        data="$(require_data_dir)"
+        local -a candidates=()
+        local candidate
+        while IFS= read -r candidate; do
+            [[ "$candidate" == "$name" ]] && continue
+            candidates+=("$candidate")
+        done < <(py names "$data" names "")
+        ((${#candidates[@]} > 0)) || die "no named schemes are installed"
+        name="${candidates[$((RANDOM % ${#candidates[@]}))]}"
+        flavour="$(py names "$data" flavours "$name" | head -n 1)"
+        [[ -n "$flavour" ]] || flavour="default"
+    fi
+
+    if [[ "$name" == "dynamic" ]]; then
+        local wallpaper
+        if ((preview)); then
+            if ! wallpaper="$(stored_wallpaper)"; then
+                fail_or_notify "$notify" "no wallpaper has been set yet"
+                return 1
+            fi
+            render_image "$wallpaper" "$flavour" "$mode" "$variant" false false "$PREVIEW_FILE"
+            cat "$PREVIEW_FILE"
+            printf '\n'
+            return 0
+        fi
+
+        if ! wallpaper="$(stored_wallpaper)"; then
+            fail_or_notify "$notify" "no wallpaper has been set yet; pick one first"
+            return 1
+        fi
+        derive_from_wallpaper "$wallpaper" "$flavour" "$mode" "$variant" false
+        return 0
+    fi
+
+    data="$(require_data_dir)"
+    if [[ ! -d "$data/schemes/$name/$flavour" ]]; then
+        fail_or_notify "$notify" "no such scheme: $name/$flavour"
+        return 1
+    fi
+
+    # A named scheme does not always ship both modes. Rather than refuse the
+    # switch, use the one it has - but say so, because the caller asked for the
+    # other one.
+    local picked
+    picked="$(py pick-mode "$data" "$name" "$flavour" "$mode")"
+    if [[ "$picked" != "$mode" ]]; then
+        warn "$name/$flavour has no $mode colors; using $picked"
+    fi
+    mode="$picked"
+    if [[ ! -f "$data/schemes/$name/$flavour/$mode.txt" ]]; then
+        fail_or_notify "$notify" "no such scheme: $name/$flavour/$mode"
+        return 1
+    fi
+
+    if ((preview)); then
+        py read-scheme "$data" "$name" "$flavour" "$mode" "$variant"
+        return 0
+    fi
+
+    render_named "$name" "$flavour" "$mode" "$variant" true "$RENDER_FILE"
+    commit "$RENDER_FILE"
+    after_fan_out "$META_MODE"
+    run_theme_hook
+}
+
+fail_or_notify() {
+    local notify="$1"
+    shift
+    err "$*"
+    if [[ "$notify" == "1" ]] && command -v notify-send >/dev/null 2>&1; then
+        notify-send -a caelestia "Caelestia colors" "$*" || true
+    fi
+}
+
+cmd_scheme() {
+    local action="${1:-}"
+    [[ -n "$action" ]] || { usage; return 0; }
+    shift
+    case "$action" in
+        list) cmd_scheme_list "$@" ;;
+        get) cmd_scheme_get "$@" ;;
+        set) cmd_scheme_set "$@" ;;
+        -h|--help) usage ;;
+        *) die "unknown scheme action: $action" ;;
+    esac
+}
+
+# cmd_wallpaper [OPTS]
+cmd_wallpaper() {
+    local file="" print=0 print_path="" random=0 random_dir="" no_smart=0 smart="true"
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -f|--file) file="${2:-}"; [[ -n "$file" ]] || die "-f needs a path"; shift 2 ;;
+            -p|--print)
+                print=1
+                shift
+                if [[ -n "${1:-}" && "${1:0:1}" != "-" ]]; then
+                    print_path="$1"
+                    shift
+                fi
+                ;;
+            -r|--random)
+                random=1
+                shift
+                if [[ -n "${1:-}" && "${1:0:1}" != "-" ]]; then
+                    random_dir="$1"
+                    shift
+                fi
+                ;;
+            -N|--no-smart) no_smart=1; shift ;;
+            -n|--no-filter) shift ;;
+            -t|--threshold) shift 2 ;;
+            -h|--help) usage; return 0 ;;
+            *) die "unknown option for wallpaper: $1" ;;
+        esac
+    done
+
+    ((no_smart)) && smart="false"
+    current_meta
+
+    if ((print)); then
+        local source="$print_path"
+        [[ -n "$source" ]] || source="$(stored_wallpaper)" || die "no wallpaper has been set yet"
+        [[ -f "$source" ]] || die "no such wallpaper: $source"
+        render_image "$source" "${META_FLAVOUR:-default}" "${META_MODE:-dark}" "${META_VARIANT:-tonalspot}" \
+            "$smart" false "$PREVIEW_FILE"
+        cat "$PREVIEW_FILE"
+        printf '\n'
+        return 0
+    fi
+
+    if ((random)); then
+        file="$(pick_random_wallpaper "$random_dir")" || die "no wallpapers found"
+    fi
+
+    [[ -n "$file" ]] || { usage; return 0; }
+    [[ -f "$file" ]] || die "no such wallpaper: $file"
+    file="$(realpath -- "$file")"
+
+    write_wallpaper_state "$file"
+
+    # A named scheme is the user's choice and stays put; only a dynamic one
+    # follows the wallpaper. Upstream behaves the same way, and it is what stops
+    # a wallpaper change from undoing a scheme the user picked.
+    if [[ -z "${META_NAME:-}" || "${META_NAME}" == "dynamic" ]]; then
+        derive_from_wallpaper "$file" "${META_FLAVOUR:-default}" "${META_MODE:-dark}" \
+            "${META_VARIANT:-tonalspot}" "$smart"
+    fi
+
+    run_wallpaper_hook "$file"
+}
+
+# pick_random_wallpaper [dir]
+pick_random_wallpaper() {
+    local dir="${1:-${CAELESTIA_WALLPAPERS_DIR:-${XDG_PICTURES_DIR:-$HOME/Pictures}/Wallpapers}}"
+    [[ -d "$dir" ]] || return 1
+
+    local -a files=()
+    local path current=""
+    [[ -f "$WALLPAPER_FILE" ]] && current="$(<"$WALLPAPER_FILE")"
+
+    while IFS= read -r path; do
+        [[ "$path" == "$current" ]] && continue
+        files+=("$path")
+    done < <(find "$dir" -type f \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' \) | sort)
+
+    ((${#files[@]} > 0)) || return 1
+    printf '%s\n' "${files[$((RANDOM % ${#files[@]}))]}"
+}
+
+main() {
+    local group="${1:-}"
+    [[ -n "$group" ]] || { usage; return 0; }
+    shift
+
+    load_config
+    mkdir -p "$WORK_DIR"
+
+    case "$group" in
+        scheme) cmd_scheme "$@" ;;
+        wallpaper) cmd_wallpaper "$@" ;;
+        -h|--help) usage ;;
+        *)
+            err "unknown group: $group"
+            usage >&2
+            return 2
+            ;;
+    esac
+}
+
+main "$@"
