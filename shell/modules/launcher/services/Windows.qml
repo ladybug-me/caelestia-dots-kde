@@ -5,7 +5,7 @@ import Quickshell
 import Caelestia.Config
 import Caelestia.Services
 
-QtObject {
+Singleton {
     id: root
 
     property var items: []
@@ -169,17 +169,40 @@ QtObject {
 
     Component.onCompleted: {
         updateItems();
-        KWinActiveWindowBridge.windowListChanged.connect(updateItems);
-        KWinActiveWindowBridge.activeWindowChanged.connect(updateItems);
-        if (GlobalConfig.tabSwitch) {
-            GlobalConfig.tabSwitch.currentDesktopOnlyChanged.connect(updateItems);
-            GlobalConfig.tabSwitch.allScreensChanged.connect(updateItems);
-            GlobalConfig.tabSwitch.showMinimizedChanged.connect(updateItems);
-            GlobalConfig.tabSwitch.previewOnDesktopChanged.connect(() => {
-                if (!GlobalConfig.tabSwitch.previewOnDesktop) {
-                    KWinActiveWindowBridge.clearHighlight();
-                }
-            });
+    }
+
+    Connections {
+        function onWindowListChanged(): void {
+            root.updateItems();
         }
+
+        function onActiveWindowChanged(): void {
+            root.updateItems();
+        }
+
+        target: KWinActiveWindowBridge
+    }
+
+    Connections {
+        function onCurrentDesktopOnlyChanged(): void {
+            root.updateItems();
+        }
+
+        function onAllScreensChanged(): void {
+            root.updateItems();
+        }
+
+        function onShowMinimizedChanged(): void {
+            root.updateItems();
+        }
+
+        function onPreviewOnDesktopChanged(): void {
+            if (!GlobalConfig.tabSwitch.previewOnDesktop) {
+                KWinActiveWindowBridge.clearHighlight();
+            }
+        }
+
+        target: GlobalConfig.tabSwitch
     }
 }
+
