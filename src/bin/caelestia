@@ -1,24 +1,343 @@
 #!/usr/bin/env bash
-# Export Caelestia's installed QML paths before delegating to caelestia-cli.
+# caelestia - the Caelestia command.
+#
+# One entry point for the session: start the shell, install, update, take a
+# screenshot or a recording, and manage the wallpaper and the scheme.
+#
+# The subcommands and their flags mirror the upstream Caelestia CLI, so the same
+# words work on this port. `wallpaper` and `scheme` are still handed to an
+# installed upstream CLI, because they need the color pipeline this port has not
+# taken over yet; with none installed they say so instead of failing quietly.
+#
+# Environment:
+#   CAELESTIA_BIN_DIR  where the helper commands live (default: beside this file)
+#   CAELESTIA_CLI      the upstream CLI that wallpaper and scheme are handed to
+#   CAELESTIA_DIR      the checkout `install` runs from (default: ~/caelestia-kde)
 
 set -euo pipefail
 
+# The shell and the upstream CLI both need these, so they are set up front.
 export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
 export CAELESTIA_LIB_DIR="${CAELESTIA_LIB_DIR:-$HOME/.local/lib/caelestia}"
 
-self="$(realpath "$0")"
-old_ifs="$IFS"
-IFS=:
-for directory in $PATH; do
-    IFS="$old_ifs"
-    [[ -z "$directory" ]] && directory="."
-    candidate="$directory/caelestia"
-    if [[ -x "$candidate" ]] && [[ "$(realpath "$candidate")" != "$self" ]]; then
-        exec "$candidate" "$@"
-    fi
-    IFS=:
-done
-IFS="$old_ifs"
+SELF="$(realpath -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")"
+BIN_DIR="${CAELESTIA_BIN_DIR:-$(dirname -- "$SELF")}"
 
-echo "[ERR] caelestia-cli was not found outside $self" >&2
-exit 127
+# helper <name> [args...]
+#
+# Hand off to the command that implements a subcommand. Those live beside this
+# file, so a checkout and an installed copy both find them.
+helper() {
+    local name="$1"
+    shift
+    local path="$BIN_DIR/$name"
+    if [[ ! -x "$path" ]]; then
+        printf '[ERR] %s is missing or not executable: %s\n' "$name" "$path" >&2
+        exit 127
+    fi
+    exec "$path" "$@"
+}
+
+# upstream_cli
+#
+# Print the upstream Caelestia CLI to hand wallpaper and scheme to. CAELESTIA_CLI
+# names one outright; otherwise it is the first `caelestia` on PATH that is not
+# this file. A CAELESTIA_CLI that is set but not executable is an error rather
+# than a silent fallback, so a broken setting cannot look like a missing CLI.
+upstream_cli() {
+    if [[ -n "${CAELESTIA_CLI:-}" ]]; then
+        if [[ ! -x "$CAELESTIA_CLI" ]]; then
+            printf '[ERR] CAELESTIA_CLI is not executable: %s\n' "$CAELESTIA_CLI" >&2
+            return 1
+        fi
+        printf '%s\n' "$CAELESTIA_CLI"
+        return 0
+    fi
+
+    local dir candidate real
+    local IFS=:
+    for dir in $PATH; do
+        [[ -n "$dir" ]] || dir="."
+        candidate="$dir/caelestia"
+        [[ -x "$candidate" ]] || continue
+        real="$(realpath -- "$candidate" 2>/dev/null || printf '%s' "$candidate")"
+        [[ "$real" == "$SELF" ]] && continue
+        printf '%s\n' "$candidate"
+        return 0
+    done
+    return 1
+}
+
+# delegate <subcommand> [args...]
+#
+# A subcommand this port does not own yet. It goes to the upstream CLI when one
+# is installed, and says what is missing when there is none.
+delegate() {
+    local what="$1"
+    shift
+    local cli
+    if ! cli="$(upstream_cli)"; then
+        cat >&2 <<EOF
+[ERR] 'caelestia $what' is not part of the KDE port yet.
+
+  It needs the color pipeline from the upstream Caelestia CLI. Install it with
+  your package manager (for example: paru -S caelestia-cli), or point
+  CAELESTIA_CLI at one that is already installed.
+EOF
+        exit 127
+    fi
+    exec "$cli" "$what" "$@"
+}
+
+usage() {
+    cat <<'EOF'
+caelestia - control the Caelestia shell
+
+Usage: caelestia <command> [args...]
+
+Commands
+  shell [OPTS] [MESSAGE...]    start the shell, or message the running one
+  install                      run the installer for this checkout
+  update [REF]                 update the shell and re-apply the configuration
+  wallpaper [OPTS]             manage the wallpaper
+  scheme <list|get|set> [...]  manage the color scheme
+  screenshot [OPTS]            take a screenshot
+  record [OPTS]                record the screen
+  version                      print the version
+  help                         print this message
+
+Shell options
+  -d, --daemon    start the shell detached
+  -r, --restart   restart the shell
+  -s, --show      list the shell IPC commands
+  -l, --log       print the shell log
+  -k, --kill      stop the shell
+
+Screenshot options
+  -r, --region    capture a region instead of the whole screen
+
+Run 'caelestia <command> -h' for the options of a command.
+EOF
+}
+
+shell_usage() {
+    cat <<'EOF'
+Usage: caelestia shell [OPTS] [MESSAGE...]
+
+With no MESSAGE the shell is started. With a MESSAGE, that IPC command is sent
+to the running shell, for example: caelestia shell nexus openPage 0 8
+
+Options
+  -d, --daemon    start the shell detached. The shell always runs under systemd
+                  on KDE, so this is accepted for parity and changes nothing
+  -r, --restart   restart the shell
+  -s, --show      list the shell IPC commands
+  -l, --log       print the shell log
+  -k, --kill      stop the shell
+EOF
+}
+
+cmd_shell() {
+    local restart=0 show=0 log=0 stop=0
+    local -a message=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -d|--daemon)
+                shift
+                ;;
+            -r|--restart)
+                restart=1
+                shift
+                ;;
+            -s|--show)
+                show=1
+                shift
+                ;;
+            -l|--log)
+                log=1
+                shift
+                ;;
+            -k|--kill)
+                stop=1
+                shift
+                ;;
+            -h|--help)
+                shell_usage
+                return 0
+                ;;
+            --)
+                shift
+                message+=("$@")
+                break
+                ;;
+            -*)
+                printf '[ERR] unknown option for shell: %s\n' "$1" >&2
+                return 2
+                ;;
+            *)
+                message+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if ((stop)); then
+        helper caelestia-shell-ipc quit
+    fi
+    if ((restart)); then
+        helper caelestia-shell-ipc restart
+    fi
+    if ((show)); then
+        helper caelestia-shell-ipc show
+    fi
+    if ((log)); then
+        helper caelestia-shell-ipc log
+    fi
+    if ((${#message[@]} > 0)); then
+        helper caelestia-shell-ipc call "${message[@]}"
+    fi
+
+    helper caelestia-shell-ipc start
+}
+
+screenshot_usage() {
+    cat <<'EOF'
+Usage: caelestia screenshot [OPTS]
+
+Options
+  -r, --region    capture a region instead of the whole screen
+
+Also accepted by the helper: --save PATH, --open.
+EOF
+}
+
+cmd_screenshot() {
+    local -a args=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -r|--region)
+                args+=(region)
+                shift
+                ;;
+            -f|--freeze)
+                printf '[WARN] screenshot: --freeze has no equivalent here; ignoring\n' >&2
+                shift
+                ;;
+            -h|--help)
+                screenshot_usage
+                return 0
+                ;;
+            -*)
+                printf '[ERR] unknown option for screenshot: %s\n' "$1" >&2
+                return 2
+                ;;
+            *)
+                args+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if ((${#args[@]} == 0)); then
+        args+=(full)
+    fi
+    helper caelestia-screenshot "${args[@]}"
+}
+
+cmd_install() {
+    case "${1:-}" in
+        -h|--help)
+            cat <<'EOF'
+Usage: caelestia install
+
+Runs the installer for a Caelestia checkout: it installs the distro packages,
+builds the shell and deploys the configuration. Set CAELESTIA_DIR to point at a
+checkout other than ~/caelestia-kde.
+EOF
+            return 0
+            ;;
+    esac
+    if [[ $# -gt 0 ]]; then
+        printf '[ERR] unknown option for install: %s\n' "$1" >&2
+        return 2
+    fi
+
+    local root="${CAELESTIA_DIR:-$HOME/caelestia-kde}"
+    if [[ ! -f "$root/install.sh" ]]; then
+        cat >&2 <<EOF
+[ERR] no checkout to install from: $root/install.sh not found
+
+  From a checkout:  cd <checkout> && ./install.sh
+  From a package:   your package manager already put the files in place;
+                    'caelestia update' re-applies the configuration.
+EOF
+        return 1
+    fi
+
+    exec sh "$root/install.sh"
+}
+
+cmd_version() {
+    local file="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/caelestia/version.env"
+    if [[ ! -f "$file" ]]; then
+        local candidate
+        for candidate in "$BIN_DIR/../../.github/version.env" "$BIN_DIR/../../../.github/version.env"; do
+            if [[ -f "$candidate" ]]; then
+                file="$candidate"
+                break
+            fi
+        done
+    fi
+
+    local version="unknown"
+    if [[ -f "$file" ]]; then
+        version="$(awk -F= '$1 == "VERSION" { print $2; exit }' "$file")"
+        [[ -n "$version" ]] || version="unknown"
+    fi
+    printf 'caelestia %s\n' "$version"
+}
+
+main() {
+    local command="${1:-}"
+    if [[ -z "$command" ]]; then
+        usage
+        return 0
+    fi
+    shift
+
+    case "$command" in
+        shell)
+            cmd_shell "$@"
+            ;;
+        install)
+            cmd_install "$@"
+            ;;
+        update)
+            helper caelestia-update "$@"
+            ;;
+        wallpaper|scheme)
+            delegate "$command" "$@"
+            ;;
+        screenshot)
+            cmd_screenshot "$@"
+            ;;
+        record)
+            helper caelestia-record "$@"
+            ;;
+        version|--version|-v)
+            cmd_version
+            ;;
+        help|--help|-h)
+            usage
+            ;;
+        *)
+            printf '[ERR] unknown command: %s\n\n' "$command" >&2
+            usage >&2
+            return 2
+            ;;
+    esac
+}
+
+main "$@"
