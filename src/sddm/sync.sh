@@ -104,23 +104,44 @@ if [[ -z "$CAELESTIA_BIN" ]]; then
     done
 fi
 
+# Whether the wallpaper a dynamic scheme was derived from is still there. The
+# deploy script writes the path itself, so a state that names a wallpaper the
+# user has since deleted is a normal state rather than a broken one.
+wallpaper_on_screen() {
+    local target
+    target="$(sudo -H -u "$REAL_USER" readlink -f "$CAEL_STATE/wallpaper/current" 2>/dev/null || true)"
+    [[ -n "$target" ]] && sudo -H -u "$REAL_USER" test -f "$target"
+}
+
 # 1. Generate FRESH colors from the current Caelestia scheme settings FIRST
+#
+# Best effort. The greeter keeps the colors it already has, and the next
+# wallpaper or scheme change fills it in through the posthook, so a scheme that
+# cannot be derived yet is not a failure. A command that failed for any other
+# reason is reported with its own output and does fail the run, because that one
+# does not fix itself.
+FAILED=0
 if [[ "${1:-}" = "--posthook" ]]; then
     : # Skip color generation when run as posthook (--posthook)
     echo "✓ Running as posthook, skipping color generation"
-elif [[ -n "$CAELESTIA_BIN" ]]; then
+elif [[ -z "$CAELESTIA_BIN" ]]; then
+    echo "Caelestia CLI not found, skipping color generation"
+else
     mapfile -t SCHEME < <(sudo -H -u "$REAL_USER" "$CAELESTIA_BIN" scheme get --name --mode --variant 2>/dev/null)
     NAME="${SCHEME[0]:-}"
     MODE="${SCHEME[1]:-}"
     VARIANT="${SCHEME[2]:-}"
-    if [[ -n "$NAME" ]] && [[ -n "$MODE" ]] && [[ -n "$VARIANT" ]]; then
-        sudo -H -u "$REAL_USER" "$CAELESTIA_BIN" scheme set --name "$NAME" --mode "$MODE" --variant "$VARIANT" 2>/dev/null
+    if [[ -z "$NAME" || -z "$MODE" || -z "$VARIANT" ]]; then
+        echo "Could not read Caelestia scheme, skipping color generation"
+    elif [[ "$NAME" == "dynamic" ]] && ! wallpaper_on_screen; then
+        echo "No wallpaper on screen yet, skipping color generation"
+    elif regenerate="$(sudo -H -u "$REAL_USER" "$CAELESTIA_BIN" scheme set --name "$NAME" --mode "$MODE" --variant "$VARIANT" 2>&1)"; then
         echo "✓ Generated colors for scheme: $NAME/$MODE/$VARIANT"
     else
-        echo "Could not read Caelestia scheme, skipping color generation"
+        echo "Could not regenerate the colors for $NAME/$MODE/$VARIANT:" >&2
+        printf '%s\n' "$regenerate" | sed 's/^/  /' >&2
+        FAILED=1
     fi
-else
-    echo "Caelestia CLI not found, skipping color generation"
 fi
 
 # 2. Sync avatar files into theme assets so sddm can safely access them without permission issues.
@@ -199,3 +220,5 @@ if copy_user_file "$WALLPAPER_SRC" "$WALLPAPER_DEST" "$MAX_BYTES"; then
 else
     echo "No readable wallpaper found, leaving existing background unchanged."
 fi
+
+exit "$FAILED"
