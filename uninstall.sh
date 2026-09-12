@@ -698,7 +698,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
     section "Step 9 - Remove Packages (Optional)"
 
     ARCH_PACKAGES=(
-        caelestia-cli quickshell
+        quickshell matugen python
         cmake ninja
         wl-clipboard cliphist inotify-tools app2unit wireplumber trash-cli
         jq aubio lm_sensors libcava libqalculate
@@ -713,7 +713,7 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
     )
 
     FEDORA_PACKAGES=(
-        quickshell-git caelestia-cli
+        quickshell-git matugen
         cmake ninja-build
         wl-clipboard cliphist inotify-tools app2unit wireplumber trash-cli
         jq aubio lm_sensors lm_sensors-devel libcava libcava-devel libqalculate libqalculate-devel
@@ -790,7 +790,9 @@ if [[ "$REMOVE_PACKAGES" == "true" ]]; then
         fi
     fi
 
-    # Remove caelestia-cli pip package (both global and user)
+    # The upstream CLI is no longer a dependency: this port generates its own
+    # colors. Still remove it, because an earlier install of this port put it
+    # there and nothing would ever clean it up again.
     if command -v caelestia >/dev/null 2>&1 || python3 -m caelestia --help &>/dev/null 2>&1; then
         sudo pip3 uninstall -y caelestia 2>/dev/null || true
         pip3 uninstall -y caelestia 2>/dev/null || true

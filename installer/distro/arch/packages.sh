@@ -54,7 +54,7 @@ CORE_PACKAGES=(
 )
 
 SHELL_PACKAGES=(
-    caelestia-cli quickshell
+    quickshell matugen python
     foot eza fastfetch starship btop bash
 )
 
@@ -130,8 +130,6 @@ SOURCE_BUILD_REPOS=(
     # package            repo
     "ttf-rubik-vf        https://github.com/googlefonts/rubik"
     "app2unit            https://github.com/Vladimir-csp/app2unit"
-    "python-materialyoucolor https://github.com/gregwym/MaterialYouColor.py"
-    "caelestia-cli       https://github.com/dim-ghub/caelestia-cli"
 )
 
 # Resolve a package name to its source repo URL (empty if not a source-build target)

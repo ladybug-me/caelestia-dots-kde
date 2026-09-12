@@ -103,7 +103,7 @@ The project enables ccache in both `installer/CMakeLists.txt` and `shell/CMakeLi
 | AUR Package | Failure Symptoms |
 |---|---|
 | `quickshell-git` | Shell won't start; autostart fails with exit 127 |
-| `caelestia-cli` | `caelestia wallpaper` and `caelestia scheme` report that they are not part of the KDE port yet. The rest of the `caelestia` command ships with the shell and does not need it. |
+| `matugen` | `caelestia wallpaper` and `caelestia scheme` fail with "matugen is not installed". It is in Arch's `extra`, so it is not an AUR package; it is listed here because nothing themes without it. |
 | `kde-material-you-colors` | Colors won't sync with wallpaper |
 | `darkly` | KDE theme won't apply |
 

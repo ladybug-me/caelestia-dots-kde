@@ -39,8 +39,8 @@ else
 fi
 
 # Caelestia Shell autostart
-# Launch the shell built by 08-build-shell.sh directly. This avoids depending
-# on the distro's caelestia-cli version or its config-directory resolution.
+# Launch the shell built by 08-build-shell.sh directly, rather than through a
+# wrapper that would have to guess where the build ended up.
 echo "  Creating Caelestia Shell autostart entry..."
 cat > "$HOME/.local/bin/caelestia-autostart.sh" << EOF
 #!/bin/bash

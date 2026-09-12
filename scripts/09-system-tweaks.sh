@@ -241,50 +241,6 @@ tweak_default_shell() {
 }
 
 #
-# TWEAK: Patch caelestia-cli to prevent terminal sequence bleeding
-#
-tweak_patch_caelestia_cli() {
-    info "Patching caelestia CLI to fix terminal sequence bleeding..."
-
-    local theme_file
-    theme_file=$(python3 -c "import importlib.util; spec = importlib.util.find_spec('caelestia.utils.theme'); print(spec.origin) if spec and spec.origin else print('')" 2>/dev/null)
-
-    if [[ -n "$theme_file" && -f "$theme_file" ]]; then
-        local python_code="
-import sys, pathlib, subprocess, re
-p = pathlib.Path('$theme_file')
-text = p.read_text()
-old = '''    for pt in pts_path.iterdir():
-        if pt.name.isdigit():
-            try:
-                # Use non-blocking write with timeout to prevent hangs'''
-new = '''    for pt in pts_path.iterdir():
-        if pt.name.isdigit():
-            try:
-                res = subprocess.run([\"ps\", \"-t\", pt.name, \"-o\", \"comm=\"], capture_output=True, text=True)
-                processes = [p.strip() for p in res.stdout.splitlines() if p.strip()]
-                if not any(re.match(r\"^(bash|zsh|fish|sh|dash|mksh|tcsh|csh|ksh)$\", p) for p in processes):
-                    continue
-            except Exception:
-                pass
-            try:
-                # Use non-blocking write with timeout to prevent hangs'''
-if old in text:
-    p.write_text(text.replace(old, new))
-"
-        if ! python3 -c "$python_code" 2>/dev/null; then
-            if ! caelestia_sudo_quiet python3 -c "$python_code" 2>/dev/null; then
-                warn "Failed to patch $theme_file (requires sudo)"
-                echo "Caelestia CLI Theme Sequence Patch" >> "${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/failed_patches.txt"
-            fi
-        fi
-        ok "caelestia CLI patched."
-    else
-        warn "caelestia CLI not found, skipping patch."
-    fi
-}
-
-#
 # TWEAK: Link KDE user avatar to ~/.face and ~/.face.icon for Caelestia and SDDM
 #
 tweak_user_avatar_symlinks() {
@@ -334,7 +290,6 @@ tweak_five_desktops
 tweak_remove_panels
 tweak_default_shell
 tweak_default_scheme
-tweak_patch_caelestia_cli
 tweak_user_avatar_symlinks
 tweak_reload_kde
 
