@@ -472,4 +472,46 @@ test_the_hooks_run_with_the_scheme_in_their_environment() {
     assert_contains "$logged" "wallpaper $image" "the wallpaper hook saw the wallpaper"
 }
 
+test_the_wallpaper_preview_changes_nothing() {
+    setup_sandbox
+    local first
+    first="$(wallpaper_image first.png)"
+    run_color wallpaper -f "$first"
+    local before
+    before="$(cat "$XDG_STATE_HOME/caelestia/scheme.json")"
+
+    local second
+    second="$(wallpaper_image second.png)"
+
+    # With a path it previews that one; without, the wallpaper already set.
+    run_color wallpaper -p "$second"
+    assert_status 0 "$STATUS" "the preview should succeed"
+    assert_contains "$OUTPUT" '"name": "dynamic"' "the preview prints a scheme"
+    assert_eq "$before" "$(cat "$XDG_STATE_HOME/caelestia/scheme.json")" \
+        "the scheme in effect is untouched"
+    assert_eq "$first" "$(cat "$XDG_STATE_HOME/caelestia/wallpaper/path.txt")" \
+        "the wallpaper is untouched too"
+
+    run_color wallpaper -p
+    assert_status 0 "$STATUS" "a preview without a path falls back to the wallpaper set"
+    assert_contains "$OUTPUT" '"name": "dynamic"' "and prints its scheme"
+
+    # The picker reads the preview to colour its cards, so it has to be the shape
+    # the shell parses: a scheme object with colours in it.
+    assert_contains "$OUTPUT" '"colours"' "the preview carries colours"
+}
+
+test_a_random_scheme_is_one_of_the_shipped_ones() {
+    setup_sandbox
+    run_color scheme set -n catppuccin -f mocha -m dark
+    run_color scheme set -r
+    assert_status 0 "$STATUS" "a random switch should succeed"
+
+    local chosen
+    chosen="$(python3 -c "import json; print(json.load(open('$XDG_STATE_HOME/caelestia/scheme.json'))['name'])")"
+    assert_contains "$(run_color scheme list -n; printf '%s' "$OUTPUT")" "$chosen" \
+        "the random scheme is one of the shipped names: $chosen"
+    assert_ne "catppuccin" "$chosen" "it is not the scheme that was already in effect"
+}
+
 run_tests
