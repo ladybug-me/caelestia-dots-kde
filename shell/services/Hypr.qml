@@ -254,10 +254,15 @@ Singleton {
         }
 
         // If dodging only focused windows, only apply that filter on the screen
-        // that currently has focus. On other screens, fall back to checking all
-        // visible windows — a maximized window on an inactive screen should still
-        // trigger the dodge there.
-        const isActiveScreen = screenName && activeWindow && activeWindow.output === screenName;
+        // that currently has focus and only if the focused window is actually on
+        // this screen's visible workspace. On other screens (or during workspace
+        // transitions before focus moves to the newly active desktop), fall back
+        // to checking all visible windows on that workspace — a maximized window
+        // on an inactive screen or during a workspace transition should still
+        // trigger the dodge.
+        const activeWinWsId = activeWindow?.workspace?.id ?? -1;
+        const activeOnThisWs = activeWinWsId === -1 || screenWsId === -1 || activeWinWsId === screenWsId;
+        const isActiveScreen = screenName && activeWindow && activeWindow.output === screenName && activeOnThisWs;
         const applyFocusedOnly = focusedOnly && isActiveScreen && activeAddr.length > 0;
 
         for (let i = 0; i < wins.length; i++) {
