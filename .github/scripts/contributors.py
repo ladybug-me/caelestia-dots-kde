@@ -157,6 +157,10 @@ def format_markdown(contributors: list[dict[str, int | str]]) -> str:
             lines.append("| — | — |")
         return "\n".join(lines)
 
+    if sum(c["issues"] for c in contributors) == 0:
+        # No issue data: a column of zeroes reads as a broken table.
+        return f'### PRs\n\n{prs_table()}\n'
+
     return (
         '<table><tr>\n'
         f'<td width="50%">\n\n### PRs\n\n{prs_table()}\n\n</td>\n'
