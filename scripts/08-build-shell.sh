@@ -12,9 +12,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/submodules.sh"
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
 
-# Setting force build to true for dev branch
-CAELESTIA_FORCE_BUILD_SHELL="${CAELESTIA_FORCE_BUILD_SHELL:-true}"
-
 # Prefer Ninja for faster builds; fall back to CMake's default generator when
 # it is not available (e.g. a standalone/update run before package install).
 # Reflected in the toolchain stamp so a build dir is invalidated if the
