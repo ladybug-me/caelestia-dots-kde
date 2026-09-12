@@ -2,13 +2,13 @@
 
 # Re-derives the Caelestia scheme from the wallpaper that is on screen.
 #
-# The CLI derives dynamic colours from the wallpaper it was last told about
+# caelestia derives dynamic colours from the wallpaper it was last told about
 # (`caelestia wallpaper -f`). path.txt is written directly by the deploy script
-# and by the wallpaper picker's still-frame path, so the CLI can be left without
-# a wallpaper; `caelestia scheme set -n dynamic` then writes nothing at all, the
-# palette stays on the CLI's built-in default, and the shell pushes that default
-# into kde-material-you-colors, which is why the whole desktop can come back on
-# the wrong colours until something re-derives.
+# and by the wallpaper picker's still-frame path, so caelestia can be left
+# without a wallpaper; `caelestia scheme set -n dynamic` then writes nothing at
+# all, the palette stays on the built-in default, and the shell pushes that
+# default into kde-material-you-colors, which is why the whole desktop can come
+# back on the wrong colours until something re-derives.
 #
 # Run at shell start so a session always ends up on the wallpaper it is showing.
 # A scheme the user picked is left alone.
