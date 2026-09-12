@@ -45,9 +45,9 @@ ships.
 ## Still open
 
 - the named catalogue, which becomes our own data;
-- the fan-out templates from matugen-themes, vendored with the MIT notice;
-- the command side: who writes the matugen config, where `--config` points, and the table that maps our variant names to matugen's, since `fruitsalad` is `scheme-fruit-salad` there;
-- a palette diff against the current pipeline. The VM has neither the CLI nor the shell installed, so the comparison has not been made.
+- the command side: who writes the matugen config, where `--config` points, and the table that maps our variant names to matugen's, since `fruitsalad` is `scheme-fruit-salad` there.
+
+The fan-out templates are vendored under `templates/`, with their provenance and the output path each one needs. The palette difference against the current pipeline is measured and accepted; both are recorded in the ticket.
 
 ## Two roles are not Material You
 
