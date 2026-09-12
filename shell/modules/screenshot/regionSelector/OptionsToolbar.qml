@@ -24,6 +24,8 @@ Toolbar {
     signal dismiss()
 
     IconButton {
+        id: windowSelectorBtn
+
         Layout.alignment: Qt.AlignVCenter
         icon: "desktop_windows"
         isToggle: true
@@ -37,7 +39,7 @@ Toolbar {
         }
 
         Tooltip {
-            target: parent
+            target: windowSelectorBtn
             text: qsTr("Window Selector")
         }
     }
@@ -51,11 +53,11 @@ Toolbar {
             {"icon": "text_fields", "name": qsTr("Text Recognition")}
         ]
         currentIndex: root.action === ScreenshotAction.SnipAction.Search ? 1 : (root.action === ScreenshotAction.SnipAction.CharRecognition ? 2 : 0)
-        onCurrentIndexChanged: {
+        onTabClicked: index => {
             let newAction;
-            if (currentIndex === 0) newAction = ScreenshotAction.SnipAction.Copy;
-            else if (currentIndex === 1) newAction = ScreenshotAction.SnipAction.Search;
-            else if (currentIndex === 2) newAction = ScreenshotAction.SnipAction.CharRecognition;
+            if (index === 0) newAction = ScreenshotAction.SnipAction.Copy;
+            else if (index === 1) newAction = ScreenshotAction.SnipAction.Search;
+            else if (index === 2) newAction = ScreenshotAction.SnipAction.CharRecognition;
             else return;
 
             if (root.action !== newAction) {

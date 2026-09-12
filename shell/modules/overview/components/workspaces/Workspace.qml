@@ -159,7 +159,11 @@ StyledRect {
         opacity: 1.0
         enabled: true
 
-        Behavior on opacity { CAnim { duration: 150 } }
+        Behavior on opacity {
+            Anim {
+                type: Anim.FastEffects
+            }
+        }
         StateLayer {
             id: closeBtn
 

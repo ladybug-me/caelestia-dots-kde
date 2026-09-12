@@ -337,27 +337,27 @@ Item {
                 x: 0; y: 0; width: screen.width; height: root.gapTop
                 color: Qt.alpha(Colours.palette.m3primary, 0.10)
 
-                Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on height { Anim { type: Anim.FastSpatial } }
             }
             Rectangle {
                 x: 0; y: screen.height - root.gapBottom; width: screen.width; height: root.gapBottom
                 color: Qt.alpha(Colours.palette.m3primary, 0.10)
 
-                Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on height { Anim { type: Anim.FastSpatial } }
+                Behavior on y { Anim { type: Anim.FastSpatial } }
             }
             Rectangle {
                 x: 0; y: 0; width: root.gapLeft; height: screen.height
                 color: Qt.alpha(Colours.palette.m3primary, 0.10)
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on width { Anim { type: Anim.FastSpatial } }
             }
             Rectangle {
                 x: screen.width - root.gapRight; y: 0; width: root.gapRight; height: screen.height
                 color: Qt.alpha(Colours.palette.m3primary, 0.10)
 
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on width { Anim { type: Anim.FastSpatial } }
+                Behavior on x { Anim { type: Anim.FastSpatial } }
             }
 
             // Mock windows
@@ -383,10 +383,10 @@ Item {
                         ? Qt.alpha(Colours.palette.m3primaryContainer, 0.85)
                         : Qt.alpha(Colours.palette.m3secondaryContainer, 0.80)
 
-                    Behavior on x      { NumberAnimation { duration: 280; easing.type: Easing.InOutCubic } }
-                    Behavior on y      { NumberAnimation { duration: 280; easing.type: Easing.InOutCubic } }
-                    Behavior on width  { NumberAnimation { duration: 280; easing.type: Easing.InOutCubic } }
-                    Behavior on height { NumberAnimation { duration: 280; easing.type: Easing.InOutCubic } }
+                    Behavior on x      { Anim { type: Anim.FastSpatial } }
+                    Behavior on y      { Anim { type: Anim.FastSpatial } }
+                    Behavior on width  { Anim { type: Anim.FastSpatial } }
+                    Behavior on height { Anim { type: Anim.FastSpatial } }
                     Behavior on color  { CAnim {} }
 
                     // Window border

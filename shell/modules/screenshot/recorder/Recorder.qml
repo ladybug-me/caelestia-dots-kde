@@ -68,7 +68,9 @@ Variants {
             }
             
             Behavior on opacity {
-                CAnim {}
+                Anim {
+                    type: Anim.DefaultEffects
+                }
             }
         }
 
@@ -78,7 +80,7 @@ Variants {
             anchors.centerIn: parent
             color: Colours.palette.m3surface
             radius: Tokens.rounding.large
-            
+
             opacity: root.active ? 1 : 0
             scale: root.active ? 1 : 0.9
 
@@ -86,10 +88,15 @@ Variants {
             implicitHeight: layout.implicitHeight + Tokens.padding.extraLarge * 2
 
             Behavior on opacity {
-                CAnim {}
+                Anim {
+                    type: Anim.DefaultEffects
+                }
             }
+
             Behavior on scale {
-                CAnim {}
+                Anim {
+                    type: Anim.FastSpatial
+                }
             }
 
             ColumnLayout {

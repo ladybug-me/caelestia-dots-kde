@@ -482,7 +482,11 @@ FloatingWindow {
                         }
                     }
 
-                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on opacity {
+                        Anim {
+                            type: Anim.SlowEffects
+                        }
+                    }
                 }
 
                 Item {
@@ -496,7 +500,11 @@ FloatingWindow {
                     opacity: homeRoot.state === "startup" ? 0 : 1
                     visible: root.unreadCount > 0
 
-                    Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
+                    Behavior on opacity {
+                        Anim {
+                            type: Anim.SlowEffects
+                        }
+                    }
 
                     StyledRect {
                         id: markAllBtn
@@ -508,8 +516,17 @@ FloatingWindow {
                         opacity: markAllMouse.pressed ? 0.85 : (markAllMouse.containsMouse ? 0.95 : 1.0)
                         scale: markAllMouse.pressed ? 0.95 : ((markAllMouse.containsMouse || markAllMouse.activeFocus) ? 1.05 : 1.0)
 
-                        Behavior on opacity { CAnim { duration: 150 } }
-                        Behavior on scale { CAnim { duration: 150 } }
+                        Behavior on opacity {
+                            Anim {
+                                type: Anim.FastEffects
+                            }
+                        }
+
+                        Behavior on scale {
+                            Anim {
+                                type: Anim.FastSpatial
+                            }
+                        }
 
                         MaterialIcon {
                             anchors.centerIn: parent

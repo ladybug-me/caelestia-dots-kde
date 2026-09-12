@@ -396,7 +396,9 @@ ColumnLayout {
                     }
 
                     Behavior on border.width {
-                        CAnim {}
+                        Anim {
+                            type: Anim.FastSpatial
+                        }
                     }
 
                     Behavior on color {

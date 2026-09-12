@@ -567,6 +567,8 @@ PanelWindow {
                 onDismiss: root.dismiss();
             }
             IconButton {
+                id: fullscreenBtn
+
                 anchors.verticalCenter: parent.verticalCenter
                 icon: "fullscreen"
                 onClicked: {
@@ -578,23 +580,27 @@ PanelWindow {
                 }
 
                 Tooltip {
-                    target: parent
+                    target: fullscreenBtn
                     text: qsTr("Full Screen Screenshot")
                 }
             }
             // Confirm snip button — appears after a region is drawn
             IconButton {
+                id: confirmBtn
+
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.regionConfirmPending
                 icon: "check"
                 onClicked: root.snip();
 
                 Tooltip {
-                    target: parent
+                    target: confirmBtn
                     text: qsTr("Snip selected region (Enter)")
                 }
             }
             IconButton {
+                id: closeBtn
+
                 anchors.verticalCenter: parent.verticalCenter
                 icon: "close"
                 onClicked: {
@@ -609,7 +615,7 @@ PanelWindow {
                 }
 
                 Tooltip {
-                    target: parent
+                    target: closeBtn
                     text: root.regionConfirmPending ? qsTr("Clear selection") : qsTr("Close")
                 }
             }

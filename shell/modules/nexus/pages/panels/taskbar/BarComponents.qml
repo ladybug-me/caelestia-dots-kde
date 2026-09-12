@@ -70,7 +70,7 @@ PageBase {
             visible: height > 0
             z: isDraggingThis ? 100 : 1
 
-            Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+            Behavior on height { Anim { type: Anim.FastSpatial } }
 
             DropArea {
                 anchors.fill: parent
@@ -123,7 +123,7 @@ PageBase {
                     PropertyChanges { target: activeDelegate; scale: 1.05 }
                 }
 
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                Behavior on scale { Anim { type: Anim.FastSpatial } }
 
                 MouseArea {
                     id: activeDragArea
@@ -206,7 +206,7 @@ PageBase {
                     color: Colours.palette.m3onSurface
                     opacity: activeDragArea.containsMouse && !isPlaceholder && !isDraggingThis ? 0.08 : 0
 
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    Behavior on opacity { Anim { type: Anim.FastEffects } }
                 }
 
                 RowLayout {
@@ -440,8 +440,8 @@ PageBase {
                     spacing: Tokens.spacing.small
                     model: leftModel
                     clip: true
-                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
-                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    move: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
+                    moveDisplaced: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
                     delegate: root.panelDelegate
                 }
             }
@@ -492,8 +492,8 @@ PageBase {
                     spacing: Tokens.spacing.small
                     model: middleModel
                     clip: true
-                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
-                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    move: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
+                    moveDisplaced: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
                     delegate: root.panelDelegate
                 }
             }
@@ -544,8 +544,8 @@ PageBase {
                     spacing: Tokens.spacing.small
                     model: rightModel
                     clip: true
-                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
-                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    move: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
+                    moveDisplaced: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
                     delegate: root.panelDelegate
                 }
             }
@@ -634,8 +634,8 @@ PageBase {
                     spacing: Tokens.spacing.small
                     model: libraryModel
                     clip: true
-                    move: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
-                    moveDisplaced: Transition { NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic } }
+                    move: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
+                    moveDisplaced: Transition { Anim { properties: "y"; type: Anim.FastSpatial } }
                     delegate: root.panelDelegate
                 }
             }

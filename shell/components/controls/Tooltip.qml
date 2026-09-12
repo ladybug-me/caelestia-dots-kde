@@ -63,6 +63,8 @@ Popup {
     // Popup properties - doesn't affect layout
     parent: {
         let p = target;
+        if (!p)
+            return null;
         // Walk up to find the root Item (usually has anchors.fill: parent)
         while (p && p.parent) {
             const parentItem = p.parent;
@@ -73,7 +75,7 @@ Popup {
             p = parentItem;
         }
         // Fallback
-        return target.parent?.parent?.parent ?? target.parent?.parent ?? target.parent ?? target;
+        return target.parent?.parent?.parent ?? target.parent?.parent ?? target.parent ?? target ?? null;
     }
 
     visible: tooltipVisible
@@ -100,7 +102,7 @@ Popup {
             property: "opacity"
             from: 0
             to: 1
-            type: Anim.FastSpatial
+            type: Anim.FastEffects
         }
     }
 
@@ -109,7 +111,7 @@ Popup {
             property: "opacity"
             from: 1
             to: 0
-            type: Anim.FastSpatial
+            type: Anim.FastEffects
         }
     }
 
