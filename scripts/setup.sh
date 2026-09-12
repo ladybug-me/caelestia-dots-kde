@@ -20,6 +20,13 @@ SCRIPTS_DIR="$BUNDLE_DIR/scripts"
 export BUNDLE_DIR
 export INSTALL_START_EPOCH="$(date +%s)"
 
+# 08-build-shell.sh installs the `caelestia` command into ~/.local/bin, and the
+# steps after it call it by name (09-system-tweaks.sh derives the default scheme
+# with it). A shell that has not read a profile yet - and fish, which does not
+# add the directory by itself - would not have it on PATH, so the step would
+# quietly do nothing. Put it there for every step.
+export PATH="$HOME/.local/bin:$PATH"
+
 # Prevent concurrent runs.
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/caelestia-setup.lock"
 flock -n 9 || { echo "Another Caelestia setup is already running."; exit 1; }

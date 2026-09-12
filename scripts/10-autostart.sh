@@ -44,6 +44,13 @@ fi
 echo "  Creating Caelestia Shell autostart entry..."
 cat > "$HOME/.local/bin/caelestia-autostart.sh" << EOF
 #!/bin/bash
+# The shell and the widgets it runs call `caelestia` by name, and 08-build-shell.sh
+# installs it into ~/.local/bin. A session started by the display manager does
+# not necessarily have that directory on PATH (this script is reached by
+# absolute path, so finding it proves nothing), which is what leaves the
+# wallpaper picker unable to change anything and the palette stuck on the
+# built-in default. Put it there first, for everything the shell spawns.
+export PATH="\$HOME/.local/bin:\$PATH"
 export QML2_IMPORT_PATH="\$HOME/.local/lib/qt6/qml:\$HOME/.config/quickshell/caelestia"
 export CAELESTIA_LIB_DIR="\$HOME/.local/lib/caelestia"
 export QS_NO_RELOAD_POPUP=1

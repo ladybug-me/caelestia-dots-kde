@@ -90,17 +90,31 @@ fi
 CAEL_STATE="$REAL_HOME/.local/state/caelestia"
 THEME_DIR="/usr/share/sddm/themes/caelestia"
 
+# The command this port installs lives in the user's own bin directory, which is
+# on neither root's PATH nor the minimal one sudo hands to -u. Resolve it here
+# and use the absolute path, or the sync silently reports that it cannot read
+# the scheme.
+CAELESTIA_BIN="$(command -v caelestia 2>/dev/null || true)"
+if [[ -z "$CAELESTIA_BIN" ]]; then
+    for candidate in "$REAL_HOME/.local/bin/caelestia" /usr/local/bin/caelestia /usr/bin/caelestia; do
+        if [[ -x "$candidate" ]]; then
+            CAELESTIA_BIN="$candidate"
+            break
+        fi
+    done
+fi
+
 # 1. Generate FRESH colors from the current Caelestia scheme settings FIRST
 if [[ "${1:-}" = "--posthook" ]]; then
     : # Skip color generation when run as posthook (--posthook)
     echo "✓ Running as posthook, skipping color generation"
-elif command -v caelestia &>/dev/null; then
-    mapfile -t SCHEME < <(sudo -H -u "$REAL_USER" caelestia scheme get --name --mode --variant 2>/dev/null)
+elif [[ -n "$CAELESTIA_BIN" ]]; then
+    mapfile -t SCHEME < <(sudo -H -u "$REAL_USER" "$CAELESTIA_BIN" scheme get --name --mode --variant 2>/dev/null)
     NAME="${SCHEME[0]:-}"
     MODE="${SCHEME[1]:-}"
     VARIANT="${SCHEME[2]:-}"
     if [[ -n "$NAME" ]] && [[ -n "$MODE" ]] && [[ -n "$VARIANT" ]]; then
-        sudo -H -u "$REAL_USER" caelestia scheme set --name "$NAME" --mode "$MODE" --variant "$VARIANT" 2>/dev/null
+        sudo -H -u "$REAL_USER" "$CAELESTIA_BIN" scheme set --name "$NAME" --mode "$MODE" --variant "$VARIANT" 2>/dev/null
         echo "✓ Generated colors for scheme: $NAME/$MODE/$VARIANT"
     else
         echo "Could not read Caelestia scheme, skipping color generation"
