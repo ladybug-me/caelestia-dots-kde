@@ -62,13 +62,6 @@
           "default": true
         },
         {
-          "id": "APPLY_MATERIAL_YOU",
-          "type": "boolean",
-          "title": "Material You dynamic colors",
-          "help": "Pick accent colors from your wallpaper with kde-material-you-colors.",
-          "default": true
-        },
-        {
           "id": "APPLY_FONTS",
           "type": "boolean",
           "title": "Custom fonts",

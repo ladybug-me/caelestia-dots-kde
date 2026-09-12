@@ -95,19 +95,19 @@ UTILITY_PACKAGES=(
 
 # Packages that need manual build or script fallback on Debian if apt package missing
 FALLBACK_PKGS=(
-    quickshell starship libcava app2unit gpu-screen-recorder cliphist wl-clip-persist satty adw-gtk3 uv konsave
+    quickshell starship libcava app2unit gpu-screen-recorder cliphist wl-clip-persist satty adw-gtk3 uv konsave matugen
 )
 
 # Build final package list based on selected group
 PACKAGES=()
 FALLBACK_TARGETS=()
 case "$PACKAGE_GROUP" in
-    core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit" "cliphist") ;;
+    core)   PACKAGES=("${CORE_PACKAGES[@]}");   FALLBACK_TARGETS=("libcava" "app2unit" "cliphist" "matugen") ;;
     shell)  PACKAGES=("${SHELL_PACKAGES[@]}");  FALLBACK_TARGETS=("quickshell" "starship") ;;
     themes) PACKAGES=("${THEME_PACKAGES[@]}");  FALLBACK_TARGETS=("adw-gtk3") ;;
     utils)  PACKAGES=("${UTILITY_PACKAGES[@]}"); FALLBACK_TARGETS=("gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "uv" "konsave") ;;
     all|*)  PACKAGES=("${CORE_PACKAGES[@]}" "${SHELL_PACKAGES[@]}" "${THEME_PACKAGES[@]}" "${UTILITY_PACKAGES[@]}")
-            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "adw-gtk3" "uv" "konsave") ;;
+            FALLBACK_TARGETS=("quickshell" "starship" "libcava" "app2unit" "gpu-screen-recorder" "cliphist" "wl-clip-persist" "satty" "adw-gtk3" "uv" "konsave" "matugen") ;;
 esac
 
 log "Installing packages (group: $PACKAGE_GROUP)..."
@@ -338,8 +338,24 @@ for pkg in "${FALLBACK_TARGETS[@]}"; do
             fi
             rm -rf "$tmpdir"
             ;;
+        matugen)
+            # matugen generates the palette and is not packaged for Debian, so it
+            # is built from source. The toolchain it needs is not part of the
+            # package list either.
+            export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+            if ! command -v cargo >/dev/null 2>&1; then
+                log "Installing a Rust toolchain to build matugen..."
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal || true # ci:allow-curl-pipe
+                export PATH="$HOME/.cargo/bin:$PATH"
+            fi
+            if command -v cargo >/dev/null 2>&1; then
+                cargo install matugen || { err "cargo install $pkg failed."; FAILED_PKGS+=("$pkg"); }
+            else
+                err "matugen generates the color palette but has no Debian package; install a Rust toolchain and run 'cargo install matugen'."
+                FAILED_PKGS+=("$pkg")
+            fi
+            ;;
         *)
-            err "No manual fallback defined for $pkg."
             FAILED_PKGS+=("$pkg")
             ;;
     esac

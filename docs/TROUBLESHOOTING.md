@@ -104,7 +104,6 @@ The project enables ccache in both `installer/CMakeLists.txt` and `shell/CMakeLi
 |---|---|
 | `quickshell-git` | Shell won't start; autostart fails with exit 127 |
 | `matugen` | `caelestia wallpaper` and `caelestia scheme` fail with "matugen is not installed". It is in Arch's `extra`, so it is not an AUR package; it is listed here because nothing themes without it. |
-| `kde-material-you-colors` | Colors won't sync with wallpaper |
 | `darkly` | KDE theme won't apply |
 
 ### 2.2 Fedora / COPR Failures
@@ -120,7 +119,7 @@ The project enables ccache in both `installer/CMakeLists.txt` and `shell/CMakeLi
 
 **RPM Fusion requirement:** `ffmpeg` with H264 support requires RPM Fusion. The script auto-enables it, but this may fail behind a proxy or on air-gapped systems.
 
-**kde-material-you-colors on Fedora:** Installed via `uv tool install`. Requires `dbus-devel`, `dbus-glib-devel`, and `python3-devel`.
+**matugen on Fedora:** there is no package for it, and it is what generates the palette. The installer reports it when it is missing; `cargo install matugen` fixes it.
 
 ### 2.3 CRLF / dos2unix Failure
 
@@ -210,32 +209,23 @@ causing that app to freeze or crash.
 This falls back to static app icons for thumbnails instead of live video and
 avoids Caelestia's use of the protocol entirely.
 
-### 3.4 Material You Colors Not Working
+### 3.4 Colors Not Applying
 
 | Symptom | Fix |
 |---|---|
-| Colors not updating with wallpaper | Check service: `systemctl status --user kde-material-you-colors.service` |
-| Service failed to start | On Fedora, installed via `uv`. If `uv` isn't in PATH at login, the service fails. |
-| Old schemes accumulating | The installer removes old `MaterialYou*.colors`, but multiple restarts can recreate them. |
-| Colors come back as the built-in default (Mocha) | The CLI derives dynamic colors from the wallpaper it was last told about. When it has none it writes nothing, the shell keeps its own default palette and pushes that into KMY, so the whole desktop follows. The shell now re-derives from the wallpaper it is showing at every start. |
-| The service has to be restarted after every login | It was started with the session, before plasmashell existed, so it could read neither the wallpaper nor the current scheme. The unit is now ordered after `plasma-plasmashell.service` and restarts on a clean early exit too. |
+| Colors do not change with the wallpaper | `caelestia wallpaper -f <image>` generates and applies the palette. If Plasma stays on the old one, check that `plasma-apply-colorscheme --list-schemes` names `Matugen`. |
+| Two Material You entries in System Settings | Expected: `Matugen` and `Matugen Alt`. `plasma-apply-colorscheme` does nothing when handed the scheme already in effect, so the palette is applied under whichever of the two is not current. |
+| A leftover accent color wins over the palette | Plasma rewrites the focus, link and selection colors from `kdeglobals`' accent, so the palette is applied with that key removed. If it is set again - System Settings, or a theme tool of your own - the colors it drives will follow it. |
+| Colors come back as the built-in default (Mocha) | The CLI derives dynamic colors from the wallpaper it was last told about. When it has none it writes nothing, and the shell keeps its own default palette. The shell re-derives from the wallpaper it is showing at every start. |
+| Konsole keeps its own colors | The command writes `~/.local/share/konsole/Matugen.colorscheme` and points the profiles that exist at it. Konsole's built-in default profile is not a file, so a fresh account has nothing to point: create a profile once and the next change themes it. |
+| The desktop flickers between two palettes | A `kde-material-you-colors` unit from an older install is still applying a scheme of its own. See 3.7. |
 
-**Manual restart:**
-```bash
-systemctl --user restart kde-material-you-colors.service
-journalctl --user -u kde-material-you-colors.service -n 50
-```
-
-An existing install keeps the old unit until the step that writes it runs again,
-so re-run `scripts/10-autostart.sh` (or the installer/update) once to pick up the
-ordering and the restart policy.
-
-The shell re-derives the scheme from the wallpaper at every start, so a palette
-stuck on the built-in default corrects itself on the next shell restart. To do it
-without restarting the shell:
+There is no service to restart. A palette is generated and applied by the command the shell calls, so
+the way to redo it by hand is:
 
 ```bash
-~/.config/quickshell/caelestia/scripts/reseed-scheme.sh
+caelestia scheme set -n dynamic      # re-derive from the wallpaper on screen
+caelestia wallpaper -f ~/Pictures/Wallpapers/one.png
 ```
 
 ### 3.5 Screen Recording Issues
@@ -260,35 +250,24 @@ The screenshot tool uses `spectacle` (KDE's native screenshot utility) via the `
 The screen flashes, colors look briefly wrong and the shell hangs for about a
 second, repeating on a rhythm of roughly one second.
 
-The cause is `kde-material-you-colors` getting stuck. It decides on every loop
-that the palette changed, applies an identical scheme again and spawns
-`plasma-apply-colorscheme` each time. Every apply rewrites `kdeglobals` and
-makes every window repaint, which is what the flash is. Restarting the service
-clears it, which is also why it disappears when you restart it by hand.
+That was `kde-material-you-colors` getting stuck. It decided on every loop that
+the palette had changed, applied an identical scheme again and spawned
+`plasma-apply-colorscheme` each time, and every apply rewrites `kdeglobals` and
+repaints every window. Nothing here runs it any more: it is not installed, the
+installer removes its unit, and the palette is applied once per change rather than
+once per poll.
 
-The shell now watches for this and stops it at the source:
-
-- applies only count when the `plasma-apply-colorscheme` process was started by
-  `kde-material-you-colors`, so applying a scheme yourself is never mistaken for
-  the loop
-- eight applies inside ten seconds restarts the service
-- a second storm within ten minutes pauses it instead, through its own
-  `pause_mode`, and shows a toast
-
-To check by hand:
+If it is still happening, a unit from an older install is behind it:
 
 ```bash
-journalctl --user -u app-caelestiashell@autostart.service -n 50 | grep 'KMY guard'
-pgrep -af plasma-apply-colorscheme   # a new pid every second means the loop is back
+systemctl --user status kde-material-you-colors   # active means it is still applying
+systemctl --user disable --now kde-material-you-colors
+pgrep -af plasma-apply-colorscheme                # a new pid every second means something still loops
 ```
 
-If the service was paused, turn it back on once the loop has cleared. The
-switch is in Settings, under Appearance then Advanced Colors, or:
-
-```bash
-~/.config/quickshell/caelestia/scripts/sync-kmyc.sh --set pause_mode False
-systemctl --user restart kde-material-you-colors
-```
+`bash scripts/10-autostart.sh` stops that unit and deletes it, if you would rather
+not do it by hand. It also removes the `MaterialYou*.colors` files KMY left in
+System Settings.
 
 Applying once when the wallpaper or theme changes is expected and does not
 trigger any of this.
@@ -644,7 +623,7 @@ curl -fsSL https://raw.githubusercontent.com/ladybug-me/caelestia-kde/main/insta
 qdbus6 org.kde.KWin /KWin reconfigure
 
 # Check user services
-systemctl --user list-units | grep -E 'caelestia|quickshell|kde-material-you'
+systemctl --user list-units | grep -E 'caelestia|quickshell'
 
 # Check KWin plugins
 kwriteconfig6 --file kwinrc --group Plugins --key list
@@ -713,7 +692,7 @@ systemctl --user restart plasma-plasmashell
 | Missing QML module | `export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"` |
 | No window thumbnails | `kbuildsycoca6 --noincremental && qdbus6 org.kde.KWin /KWin reconfigure` |
 | Git submodule error | `git submodule update --init --recursive src/dots` |
-| Colors not updating | `systemctl --user restart kde-material-you-colors.service` |
+| Colors not updating | Run `caelestia scheme set -n dynamic`, and check that `plasma-apply-colorscheme --list-schemes` names Matugen |
 | Installer compiles but flashes/exits | Check `/tmp/caelestia_installer_err.log` |
 | Recording not working | Verify `gpu-screen-recorder` is installed |
 | Screenshot not working | Verify `spectacle` is installed |

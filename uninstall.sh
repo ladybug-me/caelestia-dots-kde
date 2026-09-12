@@ -202,6 +202,9 @@ restore_or_remove() {
 
 section "Step 1 - Stop and Disable Services"
 
+# kde-material-you-colors is in the list for installs that predate the palette
+# being applied by caelestia-color: it used to be installed and started, and two
+# programs applying a scheme to one session means whichever runs last wins.
 for svc in qs-kwin-bridge cliphist ydotoold kde-material-you-colors; do
     if systemctl --user is-enabled --quiet "${svc}.service" 2>/dev/null ||
        systemctl --user is-active  --quiet "${svc}.service" 2>/dev/null; then
