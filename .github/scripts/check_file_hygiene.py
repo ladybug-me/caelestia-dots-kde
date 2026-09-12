@@ -37,7 +37,9 @@ SKIP_PATTERNS = [
 ]
 
 # Files/dirs skipped for whitespace/tab checks (vendored/generated)
-STYLE_SKIP_DIRS = {"QMLTermWidget", "build", "__pycache__", ".git"}
+# `templates` covers the theming templates vendored from matugen-themes under
+# src/matugen/templates/, which are upstream files with upstream formatting.
+STYLE_SKIP_DIRS = {"QMLTermWidget", "build", "__pycache__", ".git", "templates"}
 
 
 def error(msg: str) -> None:

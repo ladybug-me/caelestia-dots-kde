@@ -1,6 +1,8 @@
 # Matugen as the color pipeline
 
-Draft, first step on the ticket [Owning the color pipeline](../../docs/wayfinder/parity/tickets/owning-the-color-pipeline.md). Nothing calls these files yet: they are the shape we are testing before the command gives up its hand-off to the upstream CLI.
+What `caelestia wallpaper` and `caelestia scheme` run, and how the palette reaches the applications that take theirs from a file. The work behind it is on the ticket [Owning the color pipeline](../../docs/wayfinder/parity/tickets/owning-the-color-pipeline.md).
+
+`scheme.json.tmpl` is the palette the shell reads. `templates/` holds the theming fan-out, vendored from [matugen-themes](https://github.com/InioX/matugen-themes) with its provenance in `templates/README.md`. There is no config file here: `src/bin/caelestia-color` writes one per run, because which targets are on is the user's setting and matugen takes a config per invocation.
 
 ## Why matugen
 
@@ -28,7 +30,74 @@ Rendered against a real wallpaper on the CachyOS VM, end to end, with no errors:
 - `--import-json-string '{"name":"dynamic","flavour":"default","variant":"tonalspot"}'` makes `{{ name }}`, `{{ flavour }}` and `{{ variant }}` resolve. The command supplies the metadata, matugen supplies the colors;
 - the rendered file parses and carries 65 color keys: 49 roles plus 16 terminals.
 
-One correction the run forced: the five `*_paletteKeyColor` roles the shell declares are not in matugen's role list, and nothing in the QML reads them, so the template omits them and they keep their built-in values.
+One correction the run forced: the five `*_paletteKeyColor` roles the shell declares do not exist in
+matugen's role list, so the template omits them. The reason first written down here - that nothing
+reads them - was wrong: `syncKMYC` in `Colours.qml` reads `m3primary_paletteKeyColor`, and so does
+the palette manager the shell loads. They are folded in after the render now, which the section
+below describes.
+
+## The wallpaper picks the variant
+
+`wallpaper -f` and `wallpaper -p` ask the wallpaper which mode and variant to use unless `--no-smart`
+says otherwise. The mode is matugen's own `--mode smart`, which resolves to light or dark during the
+render and is read back out of the rendered file, so it is the one that is really in effect.
+
+The variant cannot be done that way. matugen's `scheme-smart` makes that choice too, but it does not
+say which scheme type it used, and the variant is written into scheme.json and read by the shell to
+drive kde-material-you-colors. So the command measures the wallpaper with the same colourfulness
+formula upstream used - Hasler and Süsstrunk's, over the image scaled into 128x128 with the nearest
+filter, which is the thumbnail upstream measured - and hands matugen a concrete type. Under 10 is
+neutral, under 20 is content, above is tonal spot. ffmpeg does the decoding, because this port
+already needs it for video wallpapers.
+
+Checked against upstream's own implementation on the same six wallpapers: every one picked the same
+variant, and the palette matches a direct render of the type the scheme is filed under. Without
+ffmpeg there is nothing to measure, so matugen chooses and the name is a guess; the command says so
+when that happens.
+
+## What the command wires up
+
+The generated config carries one `[templates.*]` block per enabled target, and `caelestia-color`
+keeps the table that says which template writes where. A target is enabled by a key in
+`~/.config/caelestia/cli.json`, the file the installer already writes:
+
+| Key | Writes |
+| --- | --- |
+| `theme.enableKde` | `~/.local/share/color-schemes/Matugen.colors` |
+| `theme.enableKvantum` | `~/.config/Kvantum/matugen/matugen.kvconfig` and `.svg` |
+| `theme.enableQt` | `~/.config/qt5ct/colors/matugen.conf`, the same for qt6ct |
+| `theme.enableGtk` | `~/.config/gtk-3.0/colors.css`, `~/.config/gtk-4.0/colors.css` |
+| `theme.enableTerm` | `~/.cache/caelestia/terminal-sequences`, then every shell pty |
+| `theme.enableBtop` | `~/.config/btop/themes/matugen.theme` |
+| `theme.enableCava` | `~/.config/cava/themes/matugen` |
+| `theme.enableDiscord` | the two Vesktop themes |
+| `theme.enableSpicetify` | `~/.config/spicetify/Themes/Sleek/color.ini` |
+| `theme.enableZed` | `~/.config/zed/themes/matugen.json` |
+| `theme.enableFuzzel`, `enableRofi`, `enableFoot`, `enableKitty` | their own color files |
+| `theme.enableVscode` | `~/.cache/matugen/vscode-colors` and its `.json` |
+| `theme.enableStarship` | `~/.config/starship.toml`, off unless asked for |
+
+The keys upstream defined keep upstream's meaning, including that an absent key means on; the rest
+are ours and default the same way, except `enableStarship` and Papirus. A target that writes
+nothing today because the application is not installed is still written, which is what upstream
+did and costs a file in a directory that already exists.
+
+Two things cannot be a template. The terminal sequences go to the ptys that are running a shell,
+and only those: writing escape sequences into a pty whose foreground process is something else
+feeds them to that program as input. That guard used to live in `scripts/09-system-tweaks.sh`,
+which patched the upstream CLI's `theme.py` in place; it is now part of `caelestia-color` and the
+patch step is gone. Spicetify is told to re-read its theme, if it is installed.
+
+The two hooks the installer registers still run, with the environment upstream gave them: after
+every color change `theme.postHook` with `SCHEME_NAME`, `SCHEME_FLAVOUR`, `SCHEME_MODE`,
+`SCHEME_VARIANT` and `SCHEME_COLOURS`, and after every `wallpaper -f` `wallpaper.postHook` with
+`WALLPAPER_PATH` and `THUMBNAIL_PATH` as well. This port does not downscale a wallpaper, so
+`THUMBNAIL_PATH` is the wallpaper itself where upstream handed over a 128px thumbnail.
+
+`~/.config/caelestia/templates/` is rendered the same way too, into
+`$XDG_STATE_HOME/caelestia/theme/`. Those files are written against upstream's `{{ role.hex }}`
+syntax rather than matugen's, so they are rendered by the command instead of by a template: the
+SDDM theme the installer registers is one of them, and the greeter reads the result.
 
 ## The palette will look different
 
@@ -44,19 +113,45 @@ ships.
 
 ## Still open
 
-- the named catalogue, which becomes our own data;
-- the command side: who writes the matugen config, where `--config` points, and the table that maps our variant names to matugen's, since `fruitsalad` is `scheme-fruit-salad` there.
+- Papirus folder icons are not themed. The template needs a `colors_to_compare` list and a `compare_to`, and tinting folders needs sudo, so it stays out until there is a story for that.
+- `enableStarship` is off by default: the template renders a whole `starship.toml`, which would replace a file the user owns. Turn it on in `cli.json` to have it written.
+- The flavour `hard` for a dynamic scheme is accepted and ignored. It darkened the surfaces in the upstream pipeline, and matugen has no equivalent.
+- Chromium-family policy files, nvtop, htop, Warp and Pandora were themed by the upstream CLI and have no template here. Hyprland is not part of a KDE port.
+- The palette difference against the pipeline this replaces is measured and accepted, and is recorded in the ticket.
 
-The fan-out templates are vendored under `templates/`, with their provenance and the output path each one needs. The palette difference against the current pipeline is measured and accepted; both are recorded in the ticket.
+## The roles matugen cannot name
 
-## Two roles are not Material You
+A generated scheme is not only what a render produces. Four families of role are read by something
+here and have no matugen keyword, so the command folds them in after the render:
 
-`m3success`, `m3onSuccess`, `m3successContainer` and `m3onSuccessContainer` are ours, not the specification's, and matugen has no keyword for them. They are absent from the template on purpose, so the shell keeps its defaults for now. They need a decision: a harmonized green derived from the scheme, or fixed values from `[config.custom_colors]`.
+- the five palette key colors, `primary_paletteKeyColor` and its four companions. The Material
+  palette key color is tone 50 of its palette, and matugen prints the palettes in `--json` but a
+  template cannot ask for one shade by name - the shades are keyed by number and the template
+  language takes no index. So `palettes.json.tmpl` dumps all of them, and the command picks tone
+  50 out of each. These matter more than they look: `shell/services/Colours.qml` pushes
+  `m3primary_paletteKeyColor` into kde-material-you-colors, which is what themes the rest of the
+  desktop, and the greeter's template reads it too;
+- `success`, `onSuccess`, `successContainer` and `onSuccessContainer`, read by the toasts, the
+  weather and the palette manager. Upstream hand-picked these rather than deriving them, and its
+  values are used here so a generated scheme and a shipped one agree on what success looks like;
+- `text`, which the greeter's template asks for. It is on surface, under a Catppuccin name.
+
+The rest of upstream's extra roles are deliberately not carried, because nothing in this repository
+reads them: the `k` colors, the Catppuccin names other than `text`, and the `Dim` variants. A role
+that only exists to match upstream's file would be a row of numbers maintained for nobody.
+
+A named scheme needs none of this: its file carries 110 roles already, `success` and `text` among
+them, and it is written out as it is.
 
 ## Trying it
 
-On an Arch box, with a wallpaper to hand:
+`caelestia-color` leaves the config it generated in place, which is the thing to read when a target does not change:
 
-    matugen image /path/to/wallpaper.jpg --config src/matugen/config.toml --dry-run
+    $XDG_STATE_HOME/caelestia/matugen/config.toml
 
-`--dry-run` shows the rendered output without writing it. Compare the result against a `scheme.json` produced by the current CLI, role by role, before trusting it. That comparison is still outstanding: the VM has neither the CLI nor the shell installed.
+Feeding it to matugen by hand renders the same palette without touching anything:
+
+    matugen image /path/to/wallpaper.jpg --config ~/.local/state/caelestia/matugen/config.toml \
+        --source-color-index 0 --mode dark --type scheme-tonal-spot --dry-run
+
+`--dry-run` prints the rendered files instead of writing them. Leave `--source-color-index` off and matugen asks which color to use, which needs a terminal.
