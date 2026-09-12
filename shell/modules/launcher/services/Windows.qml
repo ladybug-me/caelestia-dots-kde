@@ -31,6 +31,12 @@ Singleton {
         updateItems();
     }
 
+    function refreshHighlight(): void {
+        if (GlobalConfig.tabSwitch?.previewOnDesktop && selectedIndex >= 0 && selectedIndex < items.length) {
+            KWinActiveWindowBridge.highlightWindow(items[selectedIndex].address);
+        }
+    }
+
     function getDesktopName(client: var): string {
         if (!client || !client.workspace) return "";
         const wsId = client.workspace.id;
@@ -162,9 +168,7 @@ Singleton {
     }
 
     onSelectedIndexChanged: {
-        if (GlobalConfig.tabSwitch?.previewOnDesktop && selectedIndex >= 0 && selectedIndex < items.length) {
-            KWinActiveWindowBridge.highlightWindow(items[selectedIndex].address);
-        }
+        refreshHighlight();
     }
 
     Component.onCompleted: {
@@ -199,6 +203,8 @@ Singleton {
         function onPreviewOnDesktopChanged(): void {
             if (!GlobalConfig.tabSwitch.previewOnDesktop) {
                 KWinActiveWindowBridge.clearHighlight();
+            } else {
+                root.refreshHighlight();
             }
         }
 

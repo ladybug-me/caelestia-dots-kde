@@ -245,8 +245,8 @@ Scope {
                 root.lastAction = "windows";
                 Windows.updateItems();
                 Windows.selectedIndex = (Windows.items.length > 1) ? 1 : 0;
+                Windows.refreshHighlight();
                 Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}windows `;
-                visibilities.skipLauncherAnim = true;
                 visibilities.launcher = true;
             }
         }
@@ -265,8 +265,8 @@ Scope {
                 root.lastAction = "windows";
                 Windows.updateItems();
                 Windows.selectedIndex = (Windows.items.length > 1) ? Windows.items.length - 1 : 0;
+                Windows.refreshHighlight();
                 Visibilities.launcherInitialSearch = `${GlobalConfig.launcher.actionPrefix}windows `;
-                visibilities.skipLauncherAnim = true;
                 visibilities.launcher = true;
             }
         }
