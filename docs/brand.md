@@ -66,6 +66,7 @@ Two values have no scheme token, and are deliberate exceptions:
 - No emoji, except the single `## Stonks` heading that mirrors upstream.
 - Plain hyphen `-`, never an em dash.
 - No bold for emphasis in prose.
+- No decorative rule or banner comments in source files. Plain comments only.
 - US English spelling everywhere: `color`, `license`, `behavior`, `catalog`.
 - Release notes end with the list of changes. No sign-off flourish.
 
