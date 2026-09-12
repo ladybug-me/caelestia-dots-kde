@@ -31,7 +31,6 @@ cava/
 /CONTEXT.md
 /CLAUDE.md
 /docs/agents/
-/docs/adr/
 # Generated for Crowdin immediately before upload and never committed: English
 # is the source language, and the catalogue is thousands of empty entries.
 /shell/translations/caelestia_en.ts
