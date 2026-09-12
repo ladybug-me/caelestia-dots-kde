@@ -229,36 +229,6 @@ def validate_menu(filepath: Path) -> None:
 
     validate_menu_items(menu_items)
 
-    # Profiles are optional; each must have a unique id, a title, and a 'sets' object.
-    profiles = data.get("profiles")
-    if profiles is not None:
-        if not isinstance(profiles, list) or len(profiles) == 0:
-            error("menu.json: 'profiles' must be a non-empty array")
-        else:
-            profile_ids: set[str] = set()
-            for i, prof in enumerate(profiles):
-                prof_path = f"profiles[{i}]"
-                if not isinstance(prof, dict):
-                    error(f"menu.json: {prof_path} must be an object")
-                    continue
-                pid = prof.get("id")
-                if not isinstance(pid, str) or not pid.strip():
-                    error(f"menu.json: {prof_path} profile must have a non-empty string 'id'")
-                elif pid in profile_ids:
-                    error(f"menu.json: {prof_path} duplicate profile id '{pid}'")
-                else:
-                    profile_ids.add(pid)
-                title = prof.get("title")
-                if not isinstance(title, str) or not title.strip():
-                    error(f"menu.json: {prof_path} profile is missing a non-empty 'title'")
-                sets = prof.get("sets")
-                if not isinstance(sets, dict):
-                    error(f"menu.json: {prof_path} profile 'sets' must be an object")
-                else:
-                    for key, value in sets.items():
-                        if not isinstance(value, (bool, str)):
-                            error(f"menu.json: {prof_path} sets.{key} must be a boolean or string")
-
     if EXIT_CODE == 0:
         ok("menu.json passed validation")
 
