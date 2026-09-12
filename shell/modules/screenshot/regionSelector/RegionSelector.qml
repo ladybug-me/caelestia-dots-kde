@@ -29,7 +29,7 @@ Scope {
 
         category: "Screenshot"
     }
-    
+
     Variants {
         model: Quickshell.screens
         delegate: Loader {
@@ -88,27 +88,27 @@ Scope {
 
     CustomShortcut {
         name: "regionScreenshot"
-        description: "Takes a screenshot of the selected region"
+        description: qsTr("Takes a screenshot of the selected region")
         onPressed: root.screenshot()
     }
     CustomShortcut {
         name: "regionSearch"
-        description: "Searches the selected region"
+        description: qsTr("Searches the selected region")
         onPressed: root.search()
     }
     CustomShortcut {
         name: "regionOcr"
-        description: "Recognizes text in the selected region"
+        description: qsTr("Recognizes text in the selected region")
         onPressed: root.ocr()
     }
     CustomShortcut {
         name: "regionRecord"
-        description: "Records the selected region"
+        description: qsTr("Records the selected region")
         onPressed: root.record()
     }
     CustomShortcut {
         name: "regionRecordWithSound"
-        description: "Records the selected region with sound"
+        description: qsTr("Records the selected region with sound")
         onPressed: root.recordWithSound()
     }
 }

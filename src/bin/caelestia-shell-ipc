@@ -49,8 +49,8 @@ SHELL_CONFIG="${CAELESTIA_SHELL_CONFIG:-$HOME/.config/quickshell/caelestia/shell
 # (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
 #
 # A transient user service gets the same "returns immediately, survives the
-# terminal" behaviour from systemd, with stdio on the journal. Without systemd
-# there is nothing better than the old behaviour.
+# terminal" behavior from systemd, with stdio on the journal. Without systemd
+# there is nothing better than the old behavior.
 _start_shell() {
     if command -v systemd-run >/dev/null 2>&1; then
         # A unit left behind by a crashed shell would make --unit fail.

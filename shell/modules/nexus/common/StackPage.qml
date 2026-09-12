@@ -27,6 +27,14 @@ StackView {
 
     Component.onCompleted: {
         openSubPage(0, true);
+        // A request from before this page existed, from a search result or a
+        // reused detached window. Queued on the stack so closing walks back
+        // through it like any other sub-page.
+        if (nState.pendingSubPageIdx >= 0) {
+            const pending = nState.pendingSubPageIdx;
+            nState.pendingSubPageIdx = -1;
+            nState.subPageIdxStack.push(pending);
+        }
         for (const page of nState.subPageIdxStack)
             openSubPage(page, true);
     }

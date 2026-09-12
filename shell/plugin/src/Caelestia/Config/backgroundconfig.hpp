@@ -1,9 +1,9 @@
 #pragma once
 
+#include <qstring.h>
+
 #include "../Settings/objectnode.hpp"
 #include "common.hpp"
-
-#include <qstring.h>
 
 namespace caelestia::config {
 
@@ -13,7 +13,6 @@ class DesktopClockBackground : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, enabled, false)
     CONFIG_PROPERTY(qreal, opacity, 0.7)
     CONFIG_PROPERTY(bool, blur, true)
-
 };
 
 class DesktopClockShadow : public settings::ObjectNode {
@@ -22,7 +21,6 @@ class DesktopClockShadow : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(qreal, opacity, 0.7)
     CONFIG_PROPERTY(qreal, blur, 0.4)
-
 };
 
 class DesktopClock : public settings::ObjectNode {
@@ -34,7 +32,6 @@ class DesktopClock : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, invertColors, false)
     CONFIG_SUBOBJECT(DesktopClockBackground, background)
     CONFIG_SUBOBJECT(DesktopClockShadow, shadow)
-
 };
 
 class BackgroundVisualiser : public settings::ObjectNode {
@@ -46,7 +43,6 @@ class BackgroundVisualiser : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, blur, false)
     CONFIG_PROPERTY(qreal, rounding, 1)
     CONFIG_PROPERTY(qreal, spacing, 1)
-
 };
 
 class DesktopLyricsBackground : public settings::ObjectNode {
@@ -55,7 +51,6 @@ class DesktopLyricsBackground : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, enabled, false)
     CONFIG_PROPERTY(qreal, opacity, 0.7)
     CONFIG_PROPERTY(bool, blur, true)
-
 };
 
 class DesktopLyricsShadow : public settings::ObjectNode {
@@ -64,7 +59,6 @@ class DesktopLyricsShadow : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(qreal, opacity, 0.7)
     CONFIG_PROPERTY(qreal, blur, 0.4)
-
 };
 
 class DesktopLyrics : public settings::ObjectNode {
@@ -78,7 +72,15 @@ class DesktopLyrics : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, invertColors, false)
     CONFIG_SUBOBJECT(DesktopLyricsBackground, background)
     CONFIG_SUBOBJECT(DesktopLyricsShadow, shadow)
+};
 
+class DesktopShapes : public settings::ObjectNode {
+    CONFIG_NODE(DesktopShapes, settings::ObjectNode)
+
+    CONFIG_PROPERTY(bool, enabled, true)
+    CONFIG_PROPERTY(bool, autoHide, true)
+    CONFIG_PROPERTY(qreal, scale, 1.0)
+    CONFIG_PROPERTY(QString, position, QStringLiteral("bottom-center"))
 };
 
 class BackgroundConfig : public settings::ObjectNode {
@@ -103,8 +105,8 @@ class BackgroundConfig : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, materialYouIconsVibrant, true)
     CONFIG_SUBOBJECT(DesktopClock, desktopClock)
     CONFIG_SUBOBJECT(DesktopLyrics, desktopLyrics)
+    CONFIG_SUBOBJECT(DesktopShapes, desktopShapes)
     CONFIG_SUBOBJECT(BackgroundVisualiser, visualiser)
-
 };
 
 } // namespace caelestia::config

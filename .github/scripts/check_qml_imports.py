@@ -63,7 +63,7 @@ DOT_ACCESS_RE = re.compile(r"\b([A-Z]\w*)\.\w+")
 # that are transitively available through *any* Qt/Quickshell module import
 # (every Qt/Quickshell QML module depends on QtQml internally, so QML type
 # resolution exposes these without a file ever writing "import QtQml" itself
-# - this is standard, well-established Qt behaviour, not a project quirk).
+# - this is standard, well-established Qt behavior, not a project quirk).
 ALWAYS_OK = {
     "Component", "QtObject", "Qt", "Math", "JSON", "Date", "Number", "String",
     "Array", "Object", "Boolean", "RegExp", "Symbol", "Map", "Set", "Promise",

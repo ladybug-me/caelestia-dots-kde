@@ -255,7 +255,10 @@ class BarConfig : public settings::ObjectNode {
             vmap({ { u"id"_s, u"dock"_s }, { u"enabled"_s, true }, { u"zone"_s, u"middle"_s } }),
             vmap({ { u"id"_s, u"tray"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"updateIndicator"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
-            vmap({ { u"id"_s, u"github"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
+            // Off by default: it needs a personal access token, and turning it on
+            // for everyone means every fresh install is told about a token it never
+            // asked for. Enable it in Settings > Panels > Taskbar > Elements.
+            vmap({ { u"id"_s, u"github"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"clock"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"statusIcons"_s }, { u"enabled"_s, true }, { u"zone"_s, u"right"_s } }),
             vmap({ { u"id"_s, u"kbLayoutIndicator"_s }, { u"enabled"_s, false }, { u"zone"_s, u"right"_s } }),

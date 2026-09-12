@@ -19,9 +19,9 @@ of features; this repo is the KDE port.
 
 ## The sync report
 
-`python scripts/sync-shell.py fetch` refreshes both anchors.
+`python tools/sync-shell.py fetch` refreshes both anchors.
 
-`python scripts/sync-shell.py report` compares `shell/` against
+`python tools/sync-shell.py report` compares `shell/` against
 `upstream/main` and sorts every file into four buckets:
 
 | bucket | meaning | action |
@@ -37,12 +37,12 @@ of features; this repo is the KDE port.
 
 Before each release, on a clean branch:
 
-1. `python scripts/sync-shell.py fetch`
-2. `python scripts/sync-shell.py report --full`
+1. `python tools/sync-shell.py fetch`
+2. `python tools/sync-shell.py report --full`
 3. For every missing file: decide bring down or skip.
 4. For every diverged file: decide which side wins. Ask: is our version a KDE
    adaptation, or is it stale against upstream?
-5. Bring chosen files with `python scripts/sync-shell.py bring <path>...`.
+5. Bring chosen files with `python tools/sync-shell.py bring <path>...`.
 6. Adapt, build, and test. Commit with the upstream commit reference.
 7. Never sync repo metadata: `.github`, `nix`, `flake.*`, `README.md`, and
    assets unless a feature needs them.

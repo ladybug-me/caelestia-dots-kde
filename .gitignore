@@ -26,11 +26,12 @@ run.sh
 kde-material-you-colors/
 kwin-effects-better-blur-dx/
 plasma-workspace/
+cava/
 
 /CONTEXT.md
 /CLAUDE.md
 /docs/agents/
 # Generated for Crowdin immediately before upload and never committed: English
-# is the source language, and the catalogue is thousands of empty entries.
+# is the source language, and the catalog is thousands of empty entries.
 /shell/translations/caelestia_en.ts
 /shell/translations/caelestia_en.qm

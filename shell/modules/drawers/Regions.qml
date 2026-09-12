@@ -13,10 +13,10 @@ Region {
     required property var win
     readonly property real borderThickness: Config.border.thickness
     readonly property real clampedThickness: Config.border.clampedThickness
-    readonly property real barLeftWidth: Config.bar.position === "left" ? bar.clampedThickness : clampedThickness
-    readonly property real barRightWidth: Config.bar.position === "right" ? bar.clampedThickness : clampedThickness
-    readonly property real barTopHeight: Config.bar.position === "top" ? bar.clampedThickness : clampedThickness
-    readonly property real barBottomHeight: Config.bar.position === "bottom" ? bar.clampedThickness : clampedThickness
+    readonly property real barLeftWidth: bar.position === "left" ? bar.clampedThickness : clampedThickness
+    readonly property real barRightWidth: bar.position === "right" ? bar.clampedThickness : clampedThickness
+    readonly property real barTopHeight: bar.position === "top" ? bar.clampedThickness : clampedThickness
+    readonly property real barBottomHeight: bar.position === "bottom" ? bar.clampedThickness : clampedThickness
     // A closed panel's input region must be at least as deep as its hover trigger,
     // otherwise the pointer never reaches the area Interactions tests against.
 
@@ -44,21 +44,21 @@ Region {
         id: sessionRegion
 
         panel: root.panels.sessionWrapper
-        x: root.Config.bar.position === "right" ? 0 : root.win.width - sessionRegion.width
+        x: root.bar.position === "right" ? 0 : root.win.width - sessionRegion.width
         width: panel.width * (1 - root.panels.session.offsetScale) + root.borderThickness + sidebarRegion.width
     }
     R {
         id: sidebarRegion
 
         panel: root.panels.sidebar
-        x: root.Config.bar.position === "right" ? 0 : root.win.width - sidebarRegion.width
+        x: root.bar.position === "right" ? 0 : root.win.width - sidebarRegion.width
         width: panel.width * (1 - root.panels.sidebar.offsetScale) + root.borderThickness
     }
     R {
         id: osdRegion
 
         panel: root.panels.osdWrapper
-        x: root.Config.bar.position === "right" ? 0 : root.win.width - osdRegion.width
+        x: root.bar.position === "right" ? 0 : root.win.width - osdRegion.width
         width: panel.width * (1 - root.panels.osd.offsetScale) + root.edgeExtent(root.Config.osd.hoverThickness) + sessionRegion.width
     }
     R {
@@ -66,7 +66,7 @@ Region {
     }
     R {
         panel: root.panels.utilities
-        y: root.Config.bar.position === "bottom" ? 0 : root.win.height - height
+        y: root.bar.position === "bottom" ? 0 : root.win.height - height
         height: panel.height * (1 - root.panels.utilities.offsetScale) + root.edgeExtent(root.Config.utilities.hoverThickness)
     }
     R {

@@ -55,6 +55,8 @@ public:
     Q_INVOKABLE void sendToOutput(const QString &address, const QString &outputName);
     Q_INVOKABLE void setFullscreen(const QString& address, bool fullscreen);
     Q_INVOKABLE void setMaximized(const QString& address, bool maximized);
+    Q_INVOKABLE void highlightWindow(const QString& address);
+    Q_INVOKABLE void clearHighlight();
 
 
 

@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 // Environment variables originally set via //@ pragma directives moved to
 // the launcher scripts (08-build-shell.sh, 10-autostart.sh) for broader
 // quickshell version compatibility.
-//@ pragma Env QS_CRASHREPORT_URL=https://github.com/ladybug-me/caelestia-dots-kde/issues/new?template=crash.yml
+//@ pragma Env QS_CRASHREPORT_URL=https://github.com/ladybug-me/caelestia-kde/issues/new?template=crash.yml
 // //@ pragma DefaultEnv QS_NO_RELOAD_POPUP=1
 // //@ pragma DefaultEnv QS_DROP_EXPENSIVE_FONTS=1
 // //@ pragma DefaultEnv QSG_RENDER_LOOP=threaded
@@ -18,7 +18,7 @@ import "modules/lock"
 import "modules/polkit"
 import "modules/screenshot/regionSelector"
 import "modules/overview"
-import "modules/welcome" as Welcome
+import "modules/whatsnew" as WhatsNew
 import qs.services.api
 import QtQuick
 import QtQml
@@ -124,7 +124,7 @@ ShellRoot {
     }
 
     Services.StartupTasks {}
-    Welcome.WelcomeWidget {}
+    WhatsNew.WhatsNewWindow {}
 
     Process {
         id: bbdxCheckProcess

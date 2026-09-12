@@ -75,6 +75,7 @@ class UtilitiesConfig : public settings::ObjectNode {
     CONFIG_SUBOBJECT(UtilitiesGameMode, gameMode)
     CONFIG_PROPERTY(bool, showKeepAwake, true)
     CONFIG_PROPERTY(bool, showScreenRecorder, true)
+    CONFIG_PROPERTY(bool, showGifRecorder, true)
     CONFIG_PROPERTY(bool, showQuickToggles, true)
     CONFIG_PROPERTY(QVariantList, quickToggles,
         DEFAULT_ARG({

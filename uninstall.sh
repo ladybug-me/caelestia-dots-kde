@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================
-#   Caelestia KDE Port - Uninstaller
+#   Caelestia - uninstaller
 #
 #   Reverses actions performed by setup.sh.
 #   Restores backups when available and removes generated files.
@@ -53,18 +53,18 @@ if [[ "$BASE_DISTRO" == "unknown" ]]; then
 fi
 
 cat << 'EOF'
-  _    _       _           _        _ _ 
- | |  | |     (_)         | |      | | |
- | |  | |_ __  _ _ __  ___| |_ __ _| | |
- | |  | | '_ \| | '_ \/ __| __/ _` | | |
- | |__| | | | | | | | \__ \ || (_| | | |
-  \____/|_| |_|_|_| |_|___/\__\__,_|_|_|
+   _____            _           _   _
+  / ____|          | |         | | (_)
+ | |     __ _  ___ | | ___  ___| |_ _  __ _
+ | |    / _` |/ _ \| |/ _ \/ __| __| |/ _` |
+ | |___| (_| | (_) | |  __/\__ \ |_| | (_| |
+  \_____\__,_|\___/|_|\___||___/\__|_|\__,_|
 EOF
 echo "+------------------------------------------------------------------+"
-echo "|                     CAELESTIA KDE UNINSTALLER                     |"
+echo "|                       CAELESTIA UNINSTALLER                       |"
 echo "+------------------------------------------------------------------+"
 echo
-echo " This will remove Caelestia KDE shell files and configs."
+echo " This will remove Caelestia shell files and configs."
 echo " Backups in $BUNDLE_DIR/backups/ can be restored during uninstall."
 echo
 
@@ -78,7 +78,7 @@ trap 'kill $_SUDO_LOOP 2>/dev/null; true' EXIT
 
 # -- Confirmation ---------------------------------------------------------------
 echo
-read -r -p "Are you sure you want to uninstall Caelestia KDE? [y/N]: " _confirm
+read -r -p "Are you sure you want to uninstall Caelestia? [y/N]: " _confirm
 [[ "${_confirm,,}" == "y" || "${_confirm,,}" == "yes" ]] || die "Uninstall cancelled."
 
 echo
@@ -287,7 +287,7 @@ if [[ -d "$HOME/.local/share/caelestia-shell" ]]; then
     ok "Removed ~/.local/share/caelestia-shell"
 fi
 
-# Caelestia KDE lockscreen shell package
+# Caelestia lockscreen shell package
 if [[ -d "$HOME/.local/share/plasma/shells/caelestia.desktop" ]]; then
     rm -rf "$HOME/.local/share/plasma/shells/caelestia.desktop"
     ok "Removed ~/.local/share/plasma/shells/caelestia.desktop"
@@ -408,7 +408,7 @@ if [[ -z "$SELECTED_KNSV" ]]; then
     fi
 fi
 
-# Disable Caelestia KWin plugins
+# Disable Caelestia's KWin plugins
 kwriteconfig6 --file kwinrc --group "Plugins" --key "quickshell-kde-bridgeEnabled" "false" 2>/dev/null || true
 kwriteconfig6 --file kwinrc --group "Plugins" --key "krohnkiteEnabled"             "false" 2>/dev/null || true
 kwriteconfig6 --file kwinrc --group "Plugins" --key "kwin_workspace_trackerEnabled" "false" 2>/dev/null || true
@@ -616,6 +616,56 @@ if [[ -f /etc/sudoers.d/ydotoold-nopasswd ]]; then
     ok "Removed sudoers rule: ydotoold-nopasswd"
 fi
 
+# sudoers file for SDDM sync
+if [[ -f /etc/sudoers.d/caelestia-sddm-sync ]]; then
+    sudo rm -f /etc/sudoers.d/caelestia-sddm-sync
+    ok "Removed sudoers rule: caelestia-sddm-sync"
+fi
+
+# SDDM theme and config
+if [[ -d /usr/share/sddm/themes/caelestia ]]; then
+    sudo rm -rf /usr/share/sddm/themes/caelestia
+    ok "Removed SDDM theme: /usr/share/sddm/themes/caelestia"
+fi
+if [[ -f /etc/sddm.conf.d/caelestia.conf ]]; then
+    sudo rm -f /etc/sddm.conf.d/caelestia.conf
+    ok "Removed SDDM config drop-in: caelestia.conf"
+fi
+
+# SDDM posthooks from cli.json
+CLI_JSON="$HOME/.config/caelestia/cli.json"
+if [[ -f "$CLI_JSON" ]] && command -v python3 &>/dev/null; then
+    python3 - "$CLI_JSON" <<'PYEOF'
+import json, sys, os, re
+cli_path = sys.argv[1]
+if not os.path.exists(cli_path):
+    sys.exit(0)
+with open(cli_path) as f:
+    config = json.load(f)
+changed = False
+for section in ("wallpaper", "theme"):
+    hook = config.get(section, {}).get("postHook", "")
+    if not hook:
+        continue
+    cleaned = re.sub(r'\s*&&\s*sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook', '', hook)
+    cleaned = re.sub(r'sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook\s*&&\s*', '', cleaned)
+    cleaned = re.sub(r'sudo\s+/usr/share/sddm/themes/caelestia/scripts/sync\.sh\s+--posthook', '', cleaned).strip()
+    if cleaned != hook:
+        changed = True
+        if cleaned:
+            config[section]["postHook"] = cleaned
+        else:
+            del config[section]["postHook"]
+if changed:
+    with open(cli_path, "w") as f:
+        json.dump(config, f, indent=4)
+PYEOF
+    ok "Removed SDDM posthooks from cli.json"
+fi
+
+# SDDM template config
+rm -f "$HOME/.config/caelestia/templates/sddm-theme.conf"
+
 # Compatibility symlinks and manually installed binaries
 for link in /usr/local/bin/sass /usr/local/bin/qdbus6 /usr/local/bin/caelestia /usr/local/bin/wl-clip-persist /usr/local/bin/gpu-screen-recorder; do
     if [[ -L "$link" || -f "$link" ]]; then
@@ -809,7 +859,7 @@ ok "KDE reloaded"
 
 section "Uninstall Complete"
 echo
-ok "Caelestia KDE has been uninstalled."
+ok "Caelestia has been uninstalled."
 echo
 echo "  Backups of your original configs are in:  $BUNDLE_DIR/backups/"
 echo

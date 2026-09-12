@@ -159,11 +159,16 @@ Singleton {
     function hasFullscreen(): bool {
         if (typeof KWinActiveWindowBridge !== "undefined") {
             const wins = KWinActiveWindowBridge.windowList || [];
+            const activeWsId = (typeof KWinWorkspaceState !== "undefined")
+                ? KWinWorkspaceState.activeId : -1;
             // KWin serialises fullscreen as a boolean, not Hyprland's integer
             // level (0/1/2), so `> 1` is always false. Use === true instead.
             for (let i = 0; i < wins.length; i++) {
-                if (wins[i].fullscreen === true)
+                if (wins[i].fullscreen === true && !wins[i].minimized) {
+                    if (activeWsId !== -1 && wins[i].workspace?.id !== activeWsId && wins[i].workspace?.id !== -1)
+                        continue;
                     return true;
+                }
             }
             return false;
         }
@@ -192,12 +197,12 @@ Singleton {
             const activeWsId = (typeof KWinWorkspaceState !== "undefined")
                 ? KWinWorkspaceState.activeId : -1;
             for (let i = 0; i < wins.length; i++) {
-                if (!wins[i].fullscreen)
+                if (!wins[i].fullscreen || wins[i].minimized)
                     continue;
                 if (wins[i].output !== screenName)
                     continue;
                 // Only count windows on the active workspace (ignore other desktops).
-                if (activeWsId !== -1 && wins[i].workspace?.id !== activeWsId)
+                if (activeWsId !== -1 && wins[i].workspace?.id !== activeWsId && wins[i].workspace?.id !== -1)
                     continue;
                 return true;
             }
@@ -249,10 +254,15 @@ Singleton {
         }
 
         // If dodging only focused windows, only apply that filter on the screen
-        // that currently has focus. On other screens, fall back to checking all
-        // visible windows — a maximized window on an inactive screen should still
-        // trigger the dodge there.
-        const isActiveScreen = screenName && activeWindow && activeWindow.output === screenName;
+        // that currently has focus and only if the focused window is actually on
+        // this screen's visible workspace. On other screens (or during workspace
+        // transitions before focus moves to the newly active desktop), fall back
+        // to checking all visible windows on that workspace — a maximized window
+        // on an inactive screen or during a workspace transition should still
+        // trigger the dodge.
+        const activeWinWsId = activeWindow?.workspace?.id ?? -1;
+        const activeOnThisWs = activeWinWsId === -1 || screenWsId === -1 || activeWinWsId === screenWsId;
+        const isActiveScreen = screenName && activeWindow && activeWindow.output === screenName && activeOnThisWs;
         const applyFocusedOnly = focusedOnly && isActiveScreen && activeAddr.length > 0;
 
         for (let i = 0; i < wins.length; i++) {
@@ -476,7 +486,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "refreshDevices"
-        description: "Reload devices"
+        description: qsTr("Reload devices")
         onPressed: extras.refreshDevices()
         onReleased: extras.refreshDevices()
     }

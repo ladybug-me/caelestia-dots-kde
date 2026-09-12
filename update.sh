@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 export PATH="$HOME/.local/bin:$PATH"
 # ==============================================================
-#   Caelestia KDE Port - Unified Updater
+#   Caelestia - updater
 # ==============================================================
 
 set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/install-fs.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/submodules.sh"
 
 section() {
     local title="$1"
@@ -94,10 +96,11 @@ if [ -d "$BUNDLE_DIR/.git" ]; then
     git -C "$BUNDLE_DIR" pull origin "$BRANCH" || die "Failed to pull from origin/$BRANCH"
 
     if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
-        info "Syncing src/dots submodule..."
-        git -C "$BUNDLE_DIR" submodule sync -- src/dots >/dev/null 2>&1 || true
-        git -C "$BUNDLE_DIR" submodule update --init --recursive src/dots || \
-            die "Failed to initialize src/dots submodule"
+        info "Syncing submodules..."
+        prune_removed_submodules "$BUNDLE_DIR"
+        git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
+        git -C "$BUNDLE_DIR" submodule update --init --recursive || \
+            die "Failed to initialize submodules"
     fi
 
     if [ "$STASHED" -eq 1 ]; then
@@ -139,7 +142,7 @@ trap 'caelestia_stop_sudo_keepalive' EXIT
 # hyprctl binary is involved.
 bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
-info "Building Caelestia Shell UI..."
+info "Building the Caelestia shell UI..."
 bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 
 # Re-apply idempotent system tweaks (KDE settings, CLI patches, etc.)
@@ -168,8 +171,6 @@ else
     CAELESTIA_BIN="caelestia"
 fi
 
-# Resolve a reliable way to talk to the running shell instance.
-# Prefer the (now-patched) CLI; fall back to the path-based IPC wrapper.
 SHELL_IPC=""
 if [[ -x "$HOME/.local/bin/caelestia-shell-ipc" ]]; then
     SHELL_IPC="$HOME/.local/bin/caelestia-shell-ipc"
@@ -186,36 +187,62 @@ fi
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 SCHEME_FILE="$STATE_DIR/scheme.json"
-i=0
-while [[ $i -lt 15 && ! -s "$SCHEME_FILE" ]]; do
-    sleep 1
-    i=$((i + 1))
-done
 
-# Start the shell. The IPC wrapper is preferred over the CLI here because it
-# starts the shell as a transient user service: the CLI's `shell -d`
-# daemonizes, which points the shell's stdio at /dev/null, and every
-# application launched from the shell then inherits a stdout that goes
-# nowhere. Vesktop deadlocks when a call starts in exactly that state
-# (issue #402, reproducible with `vesktop >/dev/null 2>&1`).
-if [[ -n "$SHELL_IPC" ]]; then
+# Start the shell. Prefer the shared wrapper so there is one definition of how
+# the shell is restarted - it carries the issue #402 rationale for never using
+# the CLI's `shell -d` (see shell/scripts/restart_shell.sh). It only knows how
+# to talk to the KDE-managed autostart unit, so the start chain below stays as
+# the fallback for a machine that does not have that unit.
+
+QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
+RESTART_SCRIPT="$BUNDLE_DIR/shell/scripts/restart_shell.sh"
+
+if [[ -x "$RESTART_SCRIPT" ]] && bash "$RESTART_SCRIPT" 2>/dev/null; then
+    : # Restarted via the KDE-managed autostart unit — env identical to login startup
+elif [[ -n "$SHELL_IPC" ]]; then
     "$SHELL_IPC" start 2>/dev/null &
 elif command -v systemd-run >/dev/null 2>&1; then
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
-    export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
+    # Pass the same environment variables that caelestia-autostart.sh sets so
+    # the shell starts in an identical state to a normal login.
     systemd-run --user --quiet --collect --unit=caelestia-shell \
         --description="Caelestia Shell" \
+        --setenv=QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia" \
+        --setenv=CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia" \
+        --setenv=QS_NO_RELOAD_POPUP=1 \
+        --setenv=QS_DROP_EXPENSIVE_FONTS=1 \
+        --setenv=QS_DISABLE_CRASH_HANDLER=1 \
+        --setenv=QSG_RENDER_LOOP=threaded \
+        --setenv=QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000 \
         -- "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" &
-elif command -v "$CAELESTIA_BIN" >/dev/null 2>&1; then
-    "$CAELESTIA_BIN" shell -d >/dev/null 2>&1 &
 else
-    QUICKSHELL_PATH="$(command -v quickshell 2>/dev/null || command -v qs 2>/dev/null || echo quickshell)"
-    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml"
+    # No systemd available — run directly; stdout stays on the terminal rather
+    # than going to /dev/null, which is the safest option without a service manager.
+    export QML2_IMPORT_PATH="$HOME/.local/lib/qt6/qml:$HOME/.config/quickshell/caelestia"
     export CAELESTIA_LIB_DIR="$HOME/.local/lib/caelestia"
-    stdbuf -oL -eL "$QUICKSHELL_PATH" -d -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+    export QS_NO_RELOAD_POPUP=1
+    export QS_DROP_EXPENSIVE_FONTS=1
+    export QS_DISABLE_CRASH_HANDLER=1
+    export QSG_RENDER_LOOP=threaded
+    export QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
+    stdbuf -oL -eL "$QUICKSHELL_PATH" -n -p "$HOME/.config/quickshell/caelestia/shell.qml" >/dev/null 2>&1 &
+fi
+
+# The lock screen reads scheme.json before any user session exists, so it has
+# to be on disk for the greeter to render with the right colors. Wait for the
+# shell that was just started to write it.
+#
+# This wait used to sit between the kill and the start, polling for a file to
+# be produced by a process that had already been killed: it either returned
+# instantly on the previous run's file, or spent the full 15s waiting for
+# something that could not happen (#666). With the file normally already
+# present the common case still returns immediately; the wait only bites on a
+# fresh install or a wiped state directory, which is when it matters.
+if ! wait_for_nonempty_file "$SCHEME_FILE" 15; then
+    warn "The restarted shell has not written $SCHEME_FILE yet; the lock screen may fall back to its default colors."
 fi
 
 echo "Shell restarted successfully!"
 echo
-echo "If the shell doesn't start, please restart it manually by running: $CAELESTIA_BIN shell -d"
+echo "If the shell doesn't start, restart it with the same wrapper the shell uses:"
+echo "  bash \"\$HOME/.config/quickshell/caelestia/scripts/restart_shell.sh\""
+echo "Check logs by running: $CAELESTIA_BIN shell -l"

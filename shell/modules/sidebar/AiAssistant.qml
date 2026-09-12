@@ -1842,7 +1842,7 @@ Item {
                 xhr.setRequestHeader("anthropic-version", "2023-06-01");
             if (root.provider === "openrouter") {
                 // OpenRouter attributes requests to an app via these; harmless elsewhere.
-                xhr.setRequestHeader("HTTP-Referer", "https://github.com/ladybug-me/caelestia-dots-kde");
+                xhr.setRequestHeader("HTTP-Referer", "https://github.com/ladybug-me/caelestia-kde");
                 xhr.setRequestHeader("X-Title", "Caelestia Shell");
             }
         } else {

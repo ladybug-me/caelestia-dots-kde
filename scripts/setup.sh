@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================
-#   Caelestia KDE Port - Unified Installer
+#   Caelestia - installer
 #
 #   Original Hyprland dots: Caelestia
 #   KDE port and modifications: ladybug-me
@@ -164,7 +164,7 @@ BIN="$BUNDLE_DIR/caelestia-install"
 # when it reports the same version - a stale release binary would otherwise
 # render old screens and ignore new menu actions (e.g. action_review).
 tui_version() {
-    tr -d '[:space:]' < "$BUNDLE_DIR/installer/tui.version" 2>/dev/null || true
+    tr -d '[:space:]' < "$BUNDLE_DIR/installer/data/tui.version" 2>/dev/null || true
 }
 
 # The release tag this checkout corresponds to. The prebuilt installer is
@@ -196,7 +196,7 @@ try_download_prebuilt_installer() {
     # "--version" check (old builds launched the full TUI instead).
     [[ -n "$version" && -n "$tag" ]] || return 1
     tmp_bin="$(mktemp)"
-    url="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/caelestia-install-${arch}-v${version}"
+    url="https://github.com/ladybug-me/caelestia-kde/releases/download/${tag}/caelestia-install-${arch}-v${version}"
     if curl -fsSL --connect-timeout 10 --max-time 30 "$url" -o "$tmp_bin" 2>/dev/null; then
         chmod +x "$tmp_bin"
         printf '%s\n' "$tmp_bin"
@@ -280,7 +280,7 @@ else
         mkdir -p "$BUILD_DIR"
         (
             cd "$BUILD_DIR" || exit 1
-            cmake -DCMAKE_BUILD_TYPE=Release .. >"$BUILD_LOG" 2>&1 || exit 1
+            cmake -DCMAKE_BUILD_TYPE=Release "$BUNDLE_DIR/installer/tui" >"$BUILD_LOG" 2>&1 || exit 1
             make -j"$(nproc 2>/dev/null || echo 1)" >>"$BUILD_LOG" 2>&1 || exit 1
         ) || {
             stop_spinner

@@ -1,18 +1,21 @@
-# Contributing to Caelestia KDE
+# Contributing to Caelestia
 
 We're glad you're here! This guide covers everything you need to start contributing.
 
 ## Quick start
 
 ```bash
-git clone https://github.com/ladybug-me/caelestia-dots-kde ~/caelestia-dots-kde
-cd ~/caelestia-dots-kde
+git clone https://github.com/ladybug-me/caelestia-kde ~/caelestia-kde
+cd ~/caelestia-kde
 bash scripts/setup.sh  # Full install - do this at least once
 ```
 
 Make your changes in the cloned repo, test them (see below), then open a PR. That's it.
 
 ## What makes a good PR?
+
+> [!WARNING]
+> Only PRs to **dev** branch are accepted!
 
 - **One thing at a time.** If you have three features, send three PRs - it's much faster to review.
 - **Keep your personal config out.** Don't include your wallpaper path, custom keybinds, or local settings.
@@ -26,8 +29,8 @@ Make your changes in the cloned repo, test them (see below), then open a PR. Tha
 | Shell UI (launcher, bar, notifications, etc.) | `shell/` | QML + Quickshell |
 | Lock screen greeter (Plasma 6 shell) | `src/kde/shells/caelestia.desktop/` | QML + KDE ScreenLocker |
 | KWin plugin (window management, shortcuts) | `shell/plugin/` | C++ |
-| TUI installer | `installer/src/` | C++ |
-| Installer theme & menus | `installer/theme.json`, `installer/menu.json` | JSON |
+| TUI installer | `installer/tui/` | C++ |
+| Installer theme & menus | `installer/data/theme.json`, `installer/data/menu.json` | JSON |
 | Install step scripts | `scripts/` | Bash |
 | User-facing update scripts | `src/bin/` | Bash |
 
@@ -80,21 +83,26 @@ kwriteconfig6 --file plasmashellrc --group "Shell" --key "ShellPackage" "caelest
 ### For installer changes
 
 ```bash
-cd installer
-cmake -B build && cmake --build build   # Compile
-./build/caelestia-install               # Run (use with care!)
+cmake -B installer/build -S installer/tui && cmake --build installer/build   # Compile
+./installer/build/caelestia-install "$PWD"    # Run from the repo root (use with care!)
 ```
+
+The installer reads `installer/data/theme.json` and `installer/data/menu.json`
+relative to its bundle directory, which is the executable's own directory unless
+you pass one as the first argument. That is why the run above passes `$PWD`;
+`setup.sh` copies the binary to the repo root instead, where no argument is
+needed.
 
 ### For translation changes
 
 ```bash
-scripts/update-translations.sh          # refresh every catalogue
-scripts/update-translations.sh es       # start a new one (Spanish here)
+tools/update-translations.sh          # refresh every catalog
+tools/update-translations.sh es       # start a new one (Spanish here)
 ```
 
 Translate `shell/translations/caelestia_<code>.ts`, rebuild the shell, then pick
 the language in Nexus -> Language & region. See
-[Translations](docs/translations.md) for the full guide.
+[Translations](../docs/translations.md) for the full guide.
 
 ### For creating plugins
 
@@ -133,11 +141,11 @@ Head to [caelestia-kde-plugins](https://github.com/ladybug-me/caelestia-kde-plug
 
 ## Architecture docs
 
-- [KWin port architecture](docs/kwin_port_architecture.md) - C++ plugin design and QML APIs
-- [Installer configuration](docs/installer_config.md) - theme.json and menu.json reference
-- [Lock screen architecture](docs/lockscreen_architecture.md) - native Plasma 6 greeter design and component structure
-- [Translations](docs/translations.md) - i18n pipeline and how to add a language
+- [Brand rules](../docs/brand.md) - the name, palette, logo and voice every user-facing change must follow
+- [KWin port architecture](../docs/architecture/kwin_port_architecture.md) - C++ plugin design and QML APIs
+- [Lock screen architecture](../docs/architecture/lockscreen_architecture.md) - native Plasma 6 greeter design and component structure
+- [Translations](../docs/translations.md) - i18n pipeline and how to add a language
 
 ## Stuck?
 
-Open a [Discussion](https://github.com/ladybug-me/caelestia-dots-kde/discussions) or ask in an issue - we're happy to help.
+Open a [Discussion](https://github.com/ladybug-me/caelestia-kde/discussions) or ask in an issue - we're happy to help.

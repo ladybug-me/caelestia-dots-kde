@@ -57,7 +57,7 @@ ColumnLayout {
 
         model: FolderListModel {
             folder: "file://" + Paths.recsdir
-            nameFilters: ["recording_*.mp4"]
+            nameFilters: ["recording_*.mp4", "recording_*.gif"]
             sortField: FolderListModel.Time
             sortReversed: false
         }

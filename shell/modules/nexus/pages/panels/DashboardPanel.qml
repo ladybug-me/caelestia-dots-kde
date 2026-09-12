@@ -13,9 +13,6 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    title: qsTr("Dashboard")
-    isSubPage: true
-
     readonly property list<MenuItem> dashboardShapeItems: [
         MenuItem {
             property int value: MaterialShape.Circle
@@ -78,6 +75,9 @@ PageBase {
             text: qsTr("Cookie 12-Sided")
         }
     ]
+
+    title: qsTr("Dashboard")
+    isSubPage: true
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -178,22 +178,6 @@ PageBase {
             subtext: qsTr("Replace the media GIF with audio-reactive material shapes")
             checked: Config.dashboard.useMediaShapes
             onToggled: GlobalConfig.dashboard.useMediaShapes = checked
-        }
-
-        ToggleRow {
-            Layout.fillWidth: true
-            text: qsTr("Randomize shape colors")
-            subtext: qsTr("Randomly shift shape colors while morphing")
-            checked: Config.dashboard.randomizeMediaShapeColors
-            onToggled: GlobalConfig.dashboard.randomizeMediaShapeColors = checked
-        }
-
-        ToggleRow {
-            Layout.fillWidth: true
-            text: qsTr("Sync with music")
-            subtext: qsTr("Randomly pick shapes to the beat instead of bass level")
-            checked: Config.dashboard.syncMediaShapesToBeat
-            onToggled: GlobalConfig.dashboard.syncMediaShapesToBeat = checked
         }
 
         ToggleRow {

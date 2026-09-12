@@ -4,9 +4,16 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/log.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/install-fs.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/toolchain.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/update-state.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/submodules.sh"
 
 BUNDLE_DIR="${BUNDLE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SHELL_DIR="$BUNDLE_DIR/shell"
+
+# Setting force build to true for dev branch
+CAELESTIA_FORCE_BUILD_SHELL="${CAELESTIA_FORCE_BUILD_SHELL:-true}"
 
 # Prefer Ninja for faster builds; fall back to CMake's default generator when
 # it is not available (e.g. a standalone/update run before package install).
@@ -26,15 +33,17 @@ fi
 # Only the feature version is fingerprinted: patch releases (6.11.2 -> 6.11.3)
 # keep their ABI and their headers hash the same in ccache, so wiping the build
 # directory for one costs a full rebuild and buys nothing.
+# Cava had a version change and hence requires a clean rebuild.
 caelestia_toolchain_stamp() {
-    local cmake_ver qt_ver
+    local cmake_ver qt_ver cava_state
     cmake_ver="$(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1)"
     qt_ver="$(pkg-config --modversion Qt6Core 2>/dev/null | grep -oE '^[0-9]+\.[0-9]+' || true)"
-    printf 'bundle:%s cmake:%s qt6core:%s gen:%s\n' "$BUNDLE_DIR" "$cmake_ver" "$qt_ver" "$CMAKE_GENERATOR"
+    cava_state="$(pkg-config --modversion libcava 2>/dev/null || pkg-config --modversion cava 2>/dev/null || { [[ -f /usr/include/cava/cavacore.h ]] && echo "sdk"; } || echo "none")"
+    printf 'bundle:%s cmake:%s qt6core:%s gen:%s cava:%s\n' "$BUNDLE_DIR" "$cmake_ver" "$qt_ver" "$CMAKE_GENERATOR" "$cava_state"
 }
 
 # Stamps written before the fingerprint dropped patch versions carried the full
-# `cmake version X.Y.Z` string. Normalising both sides keeps those build dirs
+# `cmake version X.Y.Z` string. Normalizing both sides keeps those build dirs
 # alive instead of forcing one gratuitous full rebuild on upgrade.
 caelestia_normalise_stamp() {
     sed -E -e 's/cmake version //' -e 's/([0-9]+\.[0-9]+)\.[0-9]+/\1/g'
@@ -118,13 +127,13 @@ install_lockscreen_greeter() {
     fi
 
     info "Installing Caelestia lock screen greeter."
-    if ! mkdir -p "$(dirname "$dest")" || ! rm -rf "$dest" || ! cp -r "$src" "$dest"; then
-        warn "Failed to copy Caelestia lock screen greeter to $dest"
-        return 1
-    fi
-
-    if [[ ! -d "$dest" || ! -f "$dest/metadata.json" ]]; then
-        warn "Caelestia lock screen greeter installation verification failed at $dest"
+    # Swap the tree in atomically. The installed greeter is the only working
+    # copy the user has, so an interrupted copy has to leave it alone rather
+    # than delete it first and fail to replace it - that strands the session
+    # with no greeter at all (issue #662). `metadata.json` is the file Plasma
+    # needs to load the package, so it doubles as the completeness check.
+    if ! atomic_replace_tree "$src" "$dest" metadata.json; then
+        warn "Failed to install Caelestia lock screen greeter to $dest"
         return 1
     fi
 
@@ -168,11 +177,12 @@ if [[ "${CAELESTIA_SETUP_RUNNING:-0}" == "0" ]]; then
 
     if [[ -f "$BUNDLE_DIR/.gitmodules" ]]; then
         info "Initializing all submodules..."
-        git submodule sync --recursive >/dev/null 2>&1 || true
+        prune_removed_submodules "$BUNDLE_DIR"
+        git -C "$BUNDLE_DIR" submodule sync --recursive >/dev/null 2>&1 || true
         # submodule update already checks out the exact commit the superproject
         # pins. Do not force a hardcoded tag over it afterwards - that silently
         # discarded any submodule bump.
-        git submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || die "Failed to initialize all submodules"
+        git -C "$BUNDLE_DIR" submodule update --init --recursive --depth 1 --jobs "$(nproc 2>/dev/null || echo 1)" >/dev/null 2>&1 || die "Failed to initialize all submodules"
     fi
 
     info "Installing Caelestia Services..."
@@ -240,7 +250,7 @@ fi
 
 # UPDATER ONLY BLOCK END
 
-info "Building Caelestia Shell..."
+info "Building the Caelestia shell..."
 
 if [ ! -d "$SHELL_DIR" ]; then
     err "Shell directory not found at $SHELL_DIR!"
@@ -275,7 +285,7 @@ shell_release_tag() {
 # version binary) into $HOME/.local, and quickshell/caelestia/ (the shell QML
 # source with the install-time shell.qml patch) into $HOME/.config.
 try_download_prebuilt_shell() {
-    local arch qt_abi tag tmp_archive url
+    local arch qt_abi tag tmp_archive url checksum expected actual asset candidate
     arch="$(uname -m)"
     [[ "$arch" == "x86_64" ]] || return 1
     [[ -f /etc/arch-release ]] || return 1
@@ -283,14 +293,50 @@ try_download_prebuilt_shell() {
     tag="$(shell_release_tag)"
     [[ -n "$qt_abi" && -n "$tag" ]] || return 1
 
+    # The asset is named after the project: caelestia-kde-<arch>-qt<abi>.tar.gz.
+    # Releases cut before that rename still carry the old caelestia-shell- name,
+    # so try the current one first and fall back rather than dropping those
+    # users onto a local compile.
     tmp_archive="$(mktemp --suffix=.tar.gz)"
-    url="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/caelestia-shell-${arch}-qt${qt_abi}.tar.gz"
+    url=""
     info "Downloading prebuilt shell artifacts (${tag}, Qt ${qt_abi})..."
-    if ! curl -fL --connect-timeout 10 --progress-bar "$url" -o "$tmp_archive"; then
-        warn "Failed to download prebuilt shell artifacts from $url"
+    for asset in "caelestia-kde-${arch}-qt${qt_abi}.tar.gz" "caelestia-shell-${arch}-qt${qt_abi}.tar.gz"; do
+        candidate="https://github.com/ladybug-me/caelestia-kde/releases/download/${tag}/${asset}"
+        if curl -fL --connect-timeout 10 --progress-bar "$candidate" -o "$tmp_archive"; then
+            url="$candidate"
+            break
+        fi
         rm -f "$tmp_archive"
+    done
+    if [[ -z "$url" ]]; then
+        warn "No prebuilt shell artifacts published for ${tag} (Qt ${qt_abi}) - falling back to a local build."
         return 1
     fi
+
+    # The archive is unpacked straight over $HOME, so verify it against the
+    # checksum published beside it first (issue #667). A truncated or corrupted
+    # download then falls back to the local build instead of half-extracting a
+    # broken tree into ~/.local/lib/qt6/qml.
+    #
+    # A missing checksum only warns: releases published before the checksum
+    # existed have none, and refusing those would take the prebuilt path away
+    # from users who never had a problem. A present-but-wrong checksum is a hard
+    # failure.
+    checksum="$(mktemp)"
+    if curl -fsSL --connect-timeout 10 "$url.sha256" -o "$checksum"; then
+        expected="$(cut -d' ' -f1 < "$checksum")"
+        actual="$(sha256sum "$tmp_archive" | cut -d' ' -f1)"
+        if [[ -z "$expected" || "$expected" != "$actual" ]]; then
+            warn "Checksum mismatch for $url"
+            warn "Expected ${expected:-<empty>}, got $actual - falling back to a local build."
+            rm -f "$tmp_archive" "$checksum"
+            return 1
+        fi
+        ok "Prebuilt shell artifacts match the published checksum."
+    else
+        warn "No published checksum for $url - extracting without verification."
+    fi
+    rm -f "$checksum"
 
     info "Extracting prebuilt shell artifacts..."
     mkdir -p "$HOME/.local" "$HOME/.config"
@@ -308,6 +354,33 @@ try_download_prebuilt_shell() {
     return 0
 }
 
+# Snapshot the live shell tree before either install path overwrites it, so
+# local edits made per CONTRIBUTING.md survive an update instead of vanishing.
+#
+# This runs before the prebuilt download is attempted, not inside the
+# local-build branch: the prebuilt path extracts the release archive straight
+# over ~/.config, and it is the default on Arch/x86_64 - so a backup taken only
+# on the build path never happened for most users (issue #663).
+backup_shell_config() {
+    local src="$HOME/.config/quickshell/caelestia"
+    local root="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
+
+    if [[ ! -d "$src" ]]; then
+        return 0
+    fi
+
+    local dest
+    if ! dest="$(snapshot_dir "$src" "$root" "quickshell-caelestia" 3)"; then
+        err "Could not back up shell configuration into: $root"
+        return 1
+    fi
+
+    info "Backed up shell configuration to $dest"
+    return 0
+}
+
+backup_shell_config || exit 1
+
 # Prefer the prebuilt shell from the release when available so a fresh install
 # downloads the compiled .so files instead of building Qt6/C++ locally. The
 # workspace-tracker KWin effect is still built locally either way (its ABI is
@@ -323,18 +396,12 @@ fi
 if [[ "$SHELL_PREBUILT" -eq 1 ]]; then
     info "Skipping local shell build; prebuilt artifacts installed."
 else
-    # lrelease compiles shell/translations into the .qm catalogues the shell loads.
+    # lrelease compiles shell/translations into the .qm catalogs the shell loads.
     # Checked here rather than with the other dependencies so it also covers a fresh
     # setup run; without it CMake just warns and the shell ships English only.
-    if ! command -v lrelease >/dev/null 2>&1 && [[ ! -x /usr/lib/qt6/bin/lrelease ]]; then
+    if ! linguist_tools_available; then
         info "Installing Qt Linguist tools for UI translations..."
-        if command -v pacman >/dev/null; then
-            sudo pacman -S --needed --noconfirm qt6-tools || warn "qt6-tools install failed; the shell will stay in English."
-        elif command -v dnf >/dev/null; then
-            sudo dnf install -y qt6-qttools-devel || warn "qt6-qttools-devel install failed; the shell will stay in English."
-        elif command -v apt-get >/dev/null; then
-            sudo apt-get install -y qt6-l10n-tools qt6-tools-dev || warn "Linguist tools install failed; the shell will stay in English."
-        fi
+        install_linguist_tools || warn "Linguist tools install failed; the shell will stay in English."
     fi
 
     info "Configuring CMake..."
@@ -359,28 +426,8 @@ else
         exit 1
     fi
 
-    # Snapshot the live shell tree before install overwrites it, so local
-    # edits made per CONTRIBUTING.md survive an update instead of vanishing.
-    QS_CONF="$HOME/.config/quickshell/caelestia"
-    if [[ -d "$QS_CONF" ]]; then
-        _qs_backup_dir="${XDG_CACHE_HOME:-$HOME/.cache}/caelestia-kde/backups"
-        mkdir -p "$_qs_backup_dir" || {
-            err "Could not create shell backup directory: $_qs_backup_dir"
-            exit 1
-        }
-        _qs_backup="$_qs_backup_dir/quickshell-caelestia-$(date +%Y%m%d_%H%M%S)"
-        if ! cp -r "$QS_CONF" "$_qs_backup"; then
-            err "Could not back up shell configuration to: $_qs_backup"
-            exit 1
-        fi
-        _qs_backups=( "$_qs_backup_dir"/quickshell-caelestia-* )
-        if [[ -e "${_qs_backups[0]}" ]]; then
-            for ((i = 0; i < ${#_qs_backups[@]} - 3; i++)); do
-                rm -rf -- "${_qs_backups[$i]}"
-            done
-        fi
-    fi
-
+    # The live shell tree was snapshotted by backup_shell_config() before either
+    # install path ran.
     info "Installing to user local dir..."
     if ! cmake --install build 2>&1 | tee -a "$BUILD_LOG"; then
         err "Installation failed. Full log: $BUILD_LOG"
@@ -567,22 +614,10 @@ else
     warn "Failed to copy yet-another-monochrome-icon-set."
 fi
 
-# Save current commit and branch for the update checker
-mkdir -p ~/.config/quickshell/caelestia
-if [ -d "$BUNDLE_DIR/.git" ]; then
-    git -C "$BUNDLE_DIR" rev-parse HEAD > ~/.config/quickshell/caelestia/.current_commit 2>/dev/null || true
-    git -C "$BUNDLE_DIR" rev-parse --abbrev-ref HEAD > ~/.config/quickshell/caelestia/.update_branch 2>/dev/null || true
-
-    # Persist the installed version too. The update checker resolves
-    # unrecognised commits through its bare cache repo, which only mirrors
-    # origin branches - a commit that exists only in this local checkout
-    # would otherwise resolve to "unknown" in the Updates page.
-    if [ -f "$BUNDLE_DIR/.github/version.env" ]; then
-        cp "$BUNDLE_DIR/.github/version.env" ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    else
-        git -C "$BUNDLE_DIR" show HEAD:.github/version.env > ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-    fi
-fi
+# Record which revision the artifacts just installed came from, for the update
+# checker. The build has happened by this point, so the checkout is what the
+# running shell really is.
+record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia" || true
 
 # Lockscreen Installation is at the end because if system gets locked during update, lockscreen may fail to start.
 if [[ "${CAELESTIA_SKIP_DEPLOY:-0}" == "0" && "${APPLY_LOCKSCREEN:-true}" != "false" ]]; then

@@ -10,9 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ═══════════════════════════════════════════════════════════
   # Job 1: PR template validation - catch empty/placeholder PRs
-  # ═══════════════════════════════════════════════════════════
   pr-template:
     runs-on: ubuntu-latest
     steps:
@@ -27,9 +25,7 @@ jobs:
       - name: Validate PR template
         run: python3 .github/scripts/check_pr_template.py
 
-  # ═══════════════════════════════════════════════════════════
   # Job 2: Branch naming - gentle suggestion, not a hard rule
-  # ═══════════════════════════════════════════════════════════
   branch-name:
     runs-on: ubuntu-latest
     steps:
@@ -41,9 +37,7 @@ jobs:
             echo "::warning::Branch '$BRANCH_NAME' as source - consider using a feature branch instead."
           fi
 
-  # ═══════════════════════════════════════════════════════════
   # Job 3: Changed files check - catch common mistakes by scope
-  # ═══════════════════════════════════════════════════════════
   changed-files:
     runs-on: ubuntu-latest
     steps:
@@ -78,7 +72,7 @@ jobs:
           fi
 
           # Detect installer C++ changes - these affect the TUI installer
-          if grep -q '^installer/src/.*\.(cpp|hpp|h)$' /tmp/changed_files.txt; then
+          if grep -q '^installer/tui/.*\.(cpp|hpp|h)$' /tmp/changed_files.txt; then
             echo "Installer C++ changes - compilation will be verified by validate workflow." >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -92,9 +86,7 @@ jobs:
             echo "Version bump - ensure version-release workflow will fire correctly." >> $GITHUB_STEP_SUMMARY
           fi
 
-  # ═══════════════════════════════════════════════════════════
   # Job 4: Commit message - gentle reminders, never blocks
-  # ═══════════════════════════════════════════════════════════
   commit-messages:
     runs-on: ubuntu-latest
     steps:
@@ -128,9 +120,7 @@ jobs:
 
           echo "Commit message review complete."
 
-  # ═══════════════════════════════════════════════════════════
   # Job 5: QML source compatibility
-  # ═══════════════════════════════════════════════════════════
   # This is intentionally independent of the native dependency build. It
   # catches unsupported QML root types even when package installation fails.
   qml-compatibility:
@@ -150,9 +140,7 @@ jobs:
       - name: Check QML import completeness
         run: python3 .github/scripts/check_qml_imports.py --shell-root shell
 
-  # ═══════════════════════════════════════════════════════════
   # Final PR gate
-  # ═══════════════════════════════════════════════════════════
   pr-gate:
     needs:
       - pr-template

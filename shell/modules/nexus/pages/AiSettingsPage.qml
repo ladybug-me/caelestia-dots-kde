@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -51,6 +52,8 @@ PageBase {
                     color: Colours.palette.m3onSurface
                 }
                 StyledInputField {
+                    id: keyInput
+
                     Layout.fillWidth: true
                     horizontalAlignment: TextInput.AlignLeft
                     text: keyField.value
@@ -67,19 +70,68 @@ PageBase {
             font: Tokens.font.label.small
             wrapMode: Text.Wrap
         }
+
+        // Re-read the stored value once a write attempt finishes. Typing breaks
+        // the text binding above, so without this a failed save would keep
+        // showing a key that never reached the keyring.
+        Connections {
+            target: root
+
+            onKeyringRevisionChanged: {
+                keyInput.text = keyField.value;
+            }
+        }
     }
 
     // Keys are held in the session keyring, not shell.json — see AiAssistant.
     property var keyringKeys: ({})
 
+    // Bumped after every write attempt so an open field re-reads what the
+    // keyring actually holds instead of keeping whatever was typed into it.
+    property int keyringRevision: 0
+
+    // The key write currently in flight, plus any that arrived while it was
+    // running. secret-tool calls are serialised because the Process below holds
+    // a single command: starting a second write mid-flight would leave the
+    // first one's exit code being applied to the second one's value, marking a
+    // key as saved that was never stored.
+    property string pendingProvider: ""
+
+    property string pendingKey: ""
+
+    property var queuedKeyWrites: []
+
+    property string lastKeyStoreError: ""
+
     function apiKeyFor(p) {
         return root.keyringKeys[p] || "";
     }
 
-    function storeApiKey(p, key) {
+    function setApiKey(p, key) {
         const m = root.keyringKeys;
         m[p] = key;
         root.keyringKeys = Object.assign({}, m);
+    }
+
+    function storeApiKey(p, key) {
+        // editingFinished also fires when the field merely loses focus, so a
+        // commit carrying the value already in the keyring is not a write.
+        if (key === root.apiKeyFor(p))
+            return;
+
+        if (keyStoreProc.running) {
+            root.queuedKeyWrites = root.queuedKeyWrites.concat([{ provider: p, key: key }]);
+            return;
+        }
+
+        root.startKeyStore(p, key);
+    }
+
+    function startKeyStore(p, key) {
+        root.pendingProvider = p;
+        root.pendingKey = key;
+        root.lastKeyStoreError = "";
+
         const attr = "caelestia-ai-" + p;
         const script = key === ""
             ? "secret-tool clear service caelestia key " + JSON.stringify(attr)
@@ -87,6 +139,71 @@ PageBase {
               " service caelestia key " + JSON.stringify(attr);
         keyStoreProc.command = key === "" ? ["sh", "-c", script] : ["sh", "-c", script, "--", key];
         keyStoreProc.running = true;
+    }
+
+    // Apply the result of the write that just finished. keyringKeys is not
+    // touched until secret-tool has actually succeeded, so a missing binary, a
+    // locked keyring or a rejected store can no longer leave the field showing a
+    // key that was never persisted (#652).
+    function finishKeyStore(code, detail) {
+        const p = root.pendingProvider;
+        const key = root.pendingKey;
+        const clearing = key === "";
+        root.pendingProvider = "";
+        root.pendingKey = "";
+
+        if (code === 0) {
+            root.setApiKey(p, key);
+
+            // Removing a key is its own visible outcome; only announce saves.
+            if (!clearing)
+                Toaster.toast(qsTr("API key saved"), p, "key");
+        } else {
+            const reason = detail !== "" ? detail : qsTr("secret-tool exited with code %1").arg(code);
+            Toaster.toast(clearing ? qsTr("Couldn't remove API key") : qsTr("Couldn't save API key"),
+                reason, "key_off", Toast.Error);
+        }
+
+        root.keyringRevision += 1;
+
+        if (root.queuedKeyWrites.length > 0) {
+            const next = root.queuedKeyWrites[0];
+            root.queuedKeyWrites = root.queuedKeyWrites.slice(1);
+            root.startKeyStore(next.provider, next.key);
+        }
+    }
+
+    // ── Ollama ────────────────────────────────────────────────
+    // The toggle below only flips a config bool. Without a status check the
+    // assistant just fails to connect when the daemon is missing, and nothing
+    // in the UI says why (issue #654).
+    property string ollamaVersion: ""
+
+    property string ollamaService: ""
+
+    property bool ollamaInstalling: false
+
+    property string ollamaInstallStatus: ""
+
+    readonly property bool ollamaInstalled: ollamaVersion !== "" && ollamaVersion !== "NOT_INSTALLED"
+
+    readonly property bool ollamaActionVisible: GlobalConfig.ai.enableOllama && ollamaVersion !== "" && !ollamaInstalled
+
+    readonly property string ollamaStatusText: {
+        if (ollamaVersion === "")
+            return qsTr("Checking…");
+        if (!ollamaInstalled)
+            return qsTr("Not installed");
+        const m = (ollamaVersion || "").match(/[0-9]+\.[0-9]+\.[0-9]+/);
+        return m ? m[0] : ollamaVersion;
+    }
+
+    readonly property string ollamaHintText: {
+        if (ollamaInstallStatus !== "")
+            return ollamaInstallStatus;
+        if (ollamaInstalled && (ollamaService === "inactive" || ollamaService === "failed"))
+            return qsTr("Daemon not running - start it with: sudo systemctl start ollama");
+        return "";
     }
 
     property string claudeVersion: ""
@@ -126,9 +243,18 @@ PageBase {
         return homeDir() + "/.local/bin/claude";
     }
 
+    function ollamaScriptPath() {
+        return Quickshell.shellPath("scripts/ollama_setup.sh");
+    }
+
     function refreshStatus() {
         statusProc.running = false;
         statusProc.running = true;
+    }
+
+    function refreshOllamaStatus() {
+        ollamaStatusProc.running = false;
+        ollamaStatusProc.running = true;
     }
 
     // Real login names / emails resolved from each account's .claude.json.
@@ -266,6 +392,15 @@ PageBase {
         // property is one Item; Process objects are kept as layout resources).
         Process {
             id: keyStoreProc
+
+            stderr: StdioCollector {
+                onStreamFinished: root.lastKeyStoreError = (text || "").trim()
+            }
+
+            // Qt.callLater so the stderr collector's handler gets a chance to run
+            // first. Reading lastKeyStoreError straight from here can race the
+            // stream and lose the reason secret-tool gave.
+            onExited: code => Qt.callLater(() => root.finishKeyStore(code, root.lastKeyStoreError))
         }
 
         Component {
@@ -281,11 +416,8 @@ PageBase {
                 stdout: StdioCollector {
                     onStreamFinished: {
                         const k = (text || "").trim();
-                        if (k !== "") {
-                            const m = root.keyringKeys;
-                            m[kl.provider] = k;
-                            root.keyringKeys = Object.assign({}, m);
-                        }
+                        if (k !== "")
+                            root.setApiKey(kl.provider, k);
                         kl.destroy();
                     }
                 }
@@ -319,6 +451,47 @@ PageBase {
                 // Re-read both versions so the button settles on "Check for
                 // updates" instead of still offering the update just applied.
                 UpdateChecker.checkClaudeCodeUpdate();
+            }
+        }
+
+        // Ollama is a system service with a CLI, so the status and the install
+        // both belong to the script: --status needs no privileges, and the
+        // install goes through pkexec, which is what asks for the password.
+        Process {
+            id: ollamaStatusProc
+
+            running: true
+            command: ["bash", root.ollamaScriptPath(), "--status"]
+            stdout: SplitParser {
+                onRead: line => {
+                    const t = (line || "").trim();
+                    if (t.startsWith("VERSION="))
+                        root.ollamaVersion = t.slice(8) || "unknown";
+                    else if (t.startsWith("SERVICE="))
+                        root.ollamaService = t.slice(8);
+                }
+            }
+        }
+
+        Process {
+            id: ollamaInstallProc
+
+            command: ["pkexec", "bash", root.ollamaScriptPath(), "--models", GlobalConfig.ai.defaultOllamaModel || "llama3"]
+            stdout: SplitParser {
+                onRead: line => root.ollamaInstallStatus = line
+            }
+            stderr: SplitParser {
+                onRead: line => root.ollamaInstallStatus = line
+            }
+            onExited: code => {
+                root.ollamaInstalling = false;
+                if (code === 0)
+                    root.ollamaInstallStatus = qsTr("Installed.");
+                else if (code === 126)
+                    root.ollamaInstallStatus = qsTr("Cancelled."); // pkexec: prompt dismissed
+                else
+                    root.ollamaInstallStatus = qsTr("Failed") + " (" + code + ")";
+                root.refreshOllamaStatus();
             }
         }
 
@@ -370,10 +543,33 @@ PageBase {
 
         ToggleRow {
             first: true
-            last: true
+            last: !GlobalConfig.ai.enableOllama
             text: qsTr("Ollama")
             checked: GlobalConfig.ai.enableOllama
             onToggled: GlobalConfig.ai.enableOllama = checked
+        }
+
+        InfoRow {
+            visible: GlobalConfig.ai.enableOllama
+            last: !root.ollamaActionVisible
+            label: qsTr("Status")
+            value: root.ollamaStatusText
+            subtext: root.ollamaHintText
+        }
+
+        NavRow {
+            visible: root.ollamaActionVisible
+            last: true
+            icon: "download"
+            label: qsTr("Download Ollama")
+            status: root.ollamaInstalling ? (root.ollamaInstallStatus || qsTr("Installing…")) : root.ollamaInstallStatus
+            onClicked: {
+                if (root.ollamaInstalling)
+                    return;
+                root.ollamaInstalling = true;
+                root.ollamaInstallStatus = qsTr("Installing…");
+                ollamaInstallProc.running = true;
+            }
         }
 
         SectionHeader {

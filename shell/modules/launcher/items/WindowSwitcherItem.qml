@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
@@ -18,8 +20,6 @@ Item {
     required property var modelData
     required property var list
 
-    property bool _skipOpenAnim: true
-
     function clicked(): void {
         KWinActiveWindowBridge.focusWindow(root.modelData.address);
         root.list.visibilities.launcher = false;
@@ -34,23 +34,14 @@ Item {
     width: list.itemWidth
     implicitWidth: previewBox.maxW + Tokens.padding.largeIncreased * 2
     implicitHeight: previewBox.maxH + label.height + Tokens.spacing.small / 2 + Tokens.padding.large + Tokens.padding.medium
-    scale: 0.5
-    opacity: 0
+    scale: ListView.isCurrentItem ? 1 : 0.8
+    opacity: 1
     z: ListView.isCurrentItem ? 1 : 0
 
     Component.onCompleted: {
-        scale = Qt.binding(() => ListView.isCurrentItem ? 1 : 0.8);
-        opacity = 1;
-
         if (root.modelData) {
             WinIcons.request(root.modelData.class, root.modelData.title, root.modelData.pid ?? 0, root.modelData.address ? String(root.modelData.address) : "");
         }
-
-        Qt.callLater(() => {
-            if (root.list && root.list.visibilities) {
-                root.list.visibilities.skipLauncherAnim = false;
-            }
-        });
     }
 
     HoverHandler {
@@ -69,7 +60,6 @@ Item {
 
         anchors.fill: previewBox
         radius: previewBox.radius
-        //color: Colours.layer(Colours.palette.m3surfaceContainerHighest, root.ListView.isCurrentItem ? 1 : 0)
         color: "transparent"
         opacity: root.ListView.isCurrentItem ? 1 : 0
 
@@ -157,33 +147,16 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
         renderType: Text.QtRendering
-        text: root.modelData?.title ?? ""
+        text: {
+            const title = root.modelData?.title || "";
+            if (root.modelData?.minimized) return `(${title})`;
+            return title;
+        }
         font: Tokens.font.body.medium
     }
 
-    Connections {
-        function onSelectedIndexChanged() {
-            root._skipOpenAnim = false;
-        }
-
-        target: Windows
-    }
-
-    Timer {
-        interval: 400
-        running: true
-        onTriggered: root._skipOpenAnim = false
-    }
-
     Behavior on scale {
-        enabled: !root._skipOpenAnim
-
         Anim { type: Anim.FastSpatial }
     }
-
-    Behavior on opacity {
-        enabled: !root._skipOpenAnim
-
-        Anim { type: Anim.FastEffects }
-    }
 }
+

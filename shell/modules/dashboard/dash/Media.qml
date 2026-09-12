@@ -197,6 +197,7 @@ Item {
         MediaShapes {
             anchors.fill: parent
             visible: Config.dashboard.useMediaShapes
+            active: Config.dashboard.useMediaShapes
         }
     }
 }

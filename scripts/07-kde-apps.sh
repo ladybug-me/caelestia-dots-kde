@@ -53,7 +53,7 @@ install_if_missing() {
     fi
 }
 
-#  Kvantum 
+#  Kvantum
 if [[ "${INSTALL_KVANTUM:-true}" == "true" ]]; then
     if [[ "$BASE_DISTRO" == "debian" ]]; then
         install_if_missing qt6-style-kvantum || install_if_missing kvantum
@@ -66,7 +66,7 @@ else
     skip "Skipping Kvantum installation by user choice."
 fi
 
-#  uv (required for kde-material-you-colors on fedora) 
+#  uv (required for kde-material-you-colors on fedora)
 if ! command -v uv >/dev/null 2>&1; then
     info "Installing uv..."
  #   if [[ "$BASE_DISTRO" == "arch" ]]; then
@@ -78,7 +78,7 @@ if ! command -v uv >/dev/null 2>&1; then
     export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 fi
 
-#  kde-material-you-colors 
+#  kde-material-you-colors
 if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
     if [[ "$BASE_DISTRO" == "arch" ]]; then
         install_if_missing kde-material-you-colors
@@ -105,11 +105,11 @@ if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
     fi
 else
     info "Skipping kde-material-you-colors installation; uninstalling if present..."
-    
+
     # Stop the service if running
     systemctl --user stop kde-material-you-colors.service 2>/dev/null || true
     systemctl --user disable kde-material-you-colors.service 2>/dev/null || true
-    
+
     # Uninstall the package
     if [[ "$BASE_DISTRO" == "arch" ]]; then
         sudo pacman -Rs --noconfirm kde-material-you-colors 2>/dev/null || true
@@ -121,7 +121,7 @@ else
 fi
 
 #  darkly (plasma theme)
-# (installed by the installDP.sh scripts as a prebuilt package, COPR, or AUR)
+# (installed by installer/distro/<distro>/packages.sh as a prebuilt package, COPR, or AUR)
 
 # Update plasma configuration for default look/feel if needed
     kwriteconfig6 --file plasmarc --group "Theme" --key "name" "darkly" 2>/dev/null || true

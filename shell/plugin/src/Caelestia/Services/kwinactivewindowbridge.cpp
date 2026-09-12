@@ -184,21 +184,54 @@ void KWinActiveWindowBridge::sendToOutput(const QString &address, const QString 
     });
 }
 
+/// A screen's rect in the compositor's physical pixels.
+///
+/// org_kde_plasma_window.geometry reports window rects in physical pixels,
+/// while QScreen::geometry() is logical (already-scaled) pixels: a screen at
+/// 200% covers twice the physical extent its geometry() says it does. Both
+/// rects have to be intersected in the same space, or the "largest overlap"
+/// screen is whichever rect happens to be numerically bigger.
+static QRect physicalGeometry(const QScreen* screen) {
+    const QRect logical = screen->geometry();
+    const qreal dpr = screen->devicePixelRatio();
+    return QRect(QPoint(qRound(logical.x() * dpr), qRound(logical.y() * dpr)),
+                 QSize(qRound(logical.width() * dpr), qRound(logical.height() * dpr)));
+}
+
 QString KWinActiveWindowBridge::getOutputNameForGeometry(int x, int y, int w, int h) const {
-    QRect windowRect(x, y, w, h);
-    int maxIntersectArea = 0;
-    QString bestScreenName = "";
+    const QRect windowRect(x, y, w, h);
+
+    QScreen* bestScreen = nullptr;
+    qreal maxIntersectArea = 0;
 
     for (QScreen* screen : QGuiApplication::screens()) {
-        QRect intersect = screen->geometry().intersected(windowRect);
-        int area = intersect.width() * intersect.height();
+        const QRect intersect = physicalGeometry(screen).intersected(windowRect);
+        const qreal area = static_cast<qreal>(intersect.width()) * static_cast<qreal>(intersect.height());
         if (area > maxIntersectArea) {
             maxIntersectArea = area;
-            bestScreenName = screen->name();
+            bestScreen = screen;
         }
     }
 
-    return bestScreenName;
+    if (!bestScreen) {
+        // Nothing overlapped at all - a stale rect, or a screen that just went
+        // away. Fall back to the nearest screen by centre so a window is never
+        // reported without an output: every per-monitor filter in the shell
+        // keys off this name and treats "" as "no screen".
+        qreal bestDistance = -1;
+        const QPoint windowCentre = windowRect.center();
+        for (QScreen* screen : QGuiApplication::screens()) {
+            const QPoint delta = physicalGeometry(screen).center() - windowCentre;
+            const qreal distance =
+                static_cast<qreal>(delta.x()) * delta.x() + static_cast<qreal>(delta.y()) * delta.y();
+            if (bestDistance < 0 || distance < bestDistance) {
+                bestDistance = distance;
+                bestScreen = screen;
+            }
+        }
+    }
+
+    return bestScreen ? bestScreen->name() : QString();
 }
 
 QVariantMap KWinActiveWindowBridge::windowToVariant(PlasmaWindowHandle* w) const {
@@ -289,7 +322,7 @@ void KWinActiveWindowBridge::focusWindow(const QString &address) {
     if (auto* handle = PlasmaWindows::instance()->handleFor(address)) {
         m_pendingFocusAddress = address;
         emit pendingFocusAddressChanged();
-        
+
         // To focus a window, we set the active state
         handle->set_state(QtWayland::org_kde_plasma_window_management::state_active, QtWayland::org_kde_plasma_window_management::state_active);
     }
@@ -366,7 +399,22 @@ void KWinActiveWindowBridge::setMaximized(const QString& address, bool maximized
     }
 }
 
+void KWinActiveWindowBridge::highlightWindow(const QString& address) {
+    auto msg = QDBusMessage::createMethodCall(QStringLiteral("org.kde.KWin"),
+                                              QStringLiteral("/org/kde/KWin/HighlightWindow"),
+                                              QStringLiteral("org.kde.KWin.HighlightWindow"),
+                                              QStringLiteral("highlightWindows"));
+    QStringList list;
+    if (!address.isEmpty()) {
+        list << address;
+    }
+    msg << list;
+    QDBusConnection::sessionBus().send(msg);
+}
 
+void KWinActiveWindowBridge::clearHighlight() {
+    highlightWindow(QString());
+}
 
 void KWinActiveWindowBridge::refreshWindows() {
     scheduleWindowListUpdate();

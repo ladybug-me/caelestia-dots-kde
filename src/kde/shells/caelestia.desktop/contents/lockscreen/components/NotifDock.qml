@@ -1,7 +1,7 @@
 
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import QtQuick
@@ -18,17 +18,17 @@ Rectangle {
     property bool isCaelestiaMode: false
     property bool hideNotifs: false
 
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceContainerHighest: "#353438"
-    property color clSecondaryContainer: "#4f343a"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clOutline: "#837174"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceContainerHighest: "#1d2827"
+    property color clSecondaryContainer: "#27403e"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clOutline: "#6d7876"
 
     signal clearAllRequested()
     signal dndRequested(bool enabled)
-    
+
     property bool isSystemDndEnabled: false
 
     property var groupedNotifs: []
@@ -116,7 +116,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: 16 * centerScale
-        
+
         opacity: (dinoLoader.isGameRunning || root.isSystemDndEnabled) ? 0 : 1
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -143,7 +143,7 @@ Rectangle {
                 implicitHeight: 32 * root.centerScale
                 radius: height / 2
                 color: "transparent"
-                
+
                 Text {
                     anchors.centerIn: parent
                     text: "clear_all"
@@ -151,7 +151,7 @@ Rectangle {
                     font.pixelSize: LockScreenConfig.sizeLarge * root.centerScale
                     color: root.clSurfaceFg
                 }
-                
+
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
@@ -173,15 +173,15 @@ Rectangle {
             anchors.bottom: parent.bottom
             anchors.margins: 16 * centerScale
             anchors.topMargin: 12 * centerScale
-            
+
             // Active when hideNotifs is set, or empty, or while game is running, or system DND is enabled
             active: root.hideNotifs || root.liveNotifs.length === 0 || isGameRunning || root.isSystemDndEnabled
             readonly property bool isGameRunning: item !== null && item.isPlaying === true
-            
+
             onIsGameRunningChanged: {
                 root.dndRequested(isGameRunning)
             }
-            
+
             opacity: active ? 1 : 0
             visible: active
             Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -193,7 +193,7 @@ Rectangle {
                     anchors.centerIn: parent
                     width: dinoLoader.width
                     height: 200
-                    // Wire palette so the dino matches card colours
+                    // Wire palette so the dino matches card colors
                     activeColor: root.clSurfaceVariantFg
                     isCaelestiaMode: root.isCaelestiaMode
                 }
@@ -210,13 +210,13 @@ Rectangle {
             anchors.margins: 16 * centerScale
             anchors.topMargin: 12 * centerScale
             clip: true
-            
+
             opacity: (!root.hideNotifs && !dinoLoader.isGameRunning && !root.isSystemDndEnabled) ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 250 } }
             spacing: 10 * root.centerScale
             boundsBehavior: Flickable.StopAtBounds
-            
+
             add: Transition {
                 ParallelAnimation {
                     NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 250 }
@@ -226,7 +226,7 @@ Rectangle {
             addDisplaced: Transition {
                 NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutQuad }
             }
-            
+
             remove: Transition {
                 ParallelAnimation {
                     NumberAnimation { property: "opacity"; to: 0; duration: 250 }
@@ -236,7 +236,7 @@ Rectangle {
             removeDisplaced: Transition {
                 NumberAnimation { properties: "x,y"; duration: 250; easing.type: Easing.OutQuad }
             }
-            
+
             model: root.groupedNotifs
 
             delegate: Rectangle {

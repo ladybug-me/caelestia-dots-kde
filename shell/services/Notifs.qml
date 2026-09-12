@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Services.Notifications
 import Caelestia
 import Caelestia.Config
+import Caelestia.Services
 import qs.components.misc
 import qs.services
 import qs.utils
@@ -23,7 +24,30 @@ Singleton {
     property alias dnd: props.dnd
     property string lastSavedState: ""
 
+    property string activeTargetOutput: ""
     property bool loaded
+
+    function getCursorOutputName(): string {
+        const monitor = (typeof KWinActiveWindowBridge !== "undefined" ? Hypr.monitors[KWinActiveWindowBridge.cursorOutputName()] : null) || Hypr.focusedMonitor;
+        return monitor?.name || (typeof KWinActiveWindowBridge !== "undefined" ? KWinActiveWindowBridge.cursorOutputName() : "") || "";
+    }
+
+    function getTargetOutput(): string {
+        const cursorScreen = root.getCursorOutputName();
+        if (GlobalConfig.notifs.monitor === "focused") {
+            if (GlobalConfig.notifs.fullscreen === "off" && Hypr.hasFullscreenOn(cursorScreen)) {
+                const scrList = Screens.screens || [];
+                for (let i = 0; i < scrList.length; i++) {
+                    const candidate = scrList[i].name;
+                    if (candidate !== cursorScreen && !Hypr.hasFullscreenOn(candidate))
+                        return candidate;
+                }
+                return "";
+            }
+            return cursorScreen;
+        }
+        return cursorScreen;
+    }
 
     function hasFullscreen(): bool {
         return Hypr.hasFullscreen();
@@ -36,8 +60,40 @@ Singleton {
     function shouldShowPopup(): bool {
         if (props.dnd || [...Visibilities.screens.values()].some(v => v.sidebar))
             return false;
-        if (GlobalConfig.notifs.fullscreen === "off" && hasFullscreen())
+        if (GlobalConfig.notifs.fullscreen === "off") {
+            if (GlobalConfig.notifs.monitor === "focused") {
+                const targetName = root.activeTargetOutput || root.getTargetOutput();
+                if (targetName === "" || Hypr.hasFullscreenOn(targetName))
+                    return false;
+            } else {
+                const scrList = Screens.screens || [];
+                if (scrList.length > 0 && scrList.every(s => Hypr.hasFullscreenOn(s.name)))
+                    return false;
+                if (scrList.length === 0 && hasFullscreen())
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    function shouldPlaySound(notif: Notification): bool {
+        if (props.dnd)
             return false;
+        if (notif.appName === "caelestia-cli" || GlobalConfig.audio.sounds.disabledNotifApps.includes(notif.appName))
+            return false;
+        if (GlobalConfig.notifs.fullscreen === "off") {
+            if (GlobalConfig.notifs.monitor === "focused") {
+                const targetName = root.activeTargetOutput || root.getTargetOutput();
+                if (targetName === "" || Hypr.hasFullscreenOn(targetName))
+                    return false;
+            } else {
+                const scrList = Screens.screens || [];
+                if (scrList.length > 0 && scrList.every(s => Hypr.hasFullscreenOn(s.name)))
+                    return false;
+                if (scrList.length === 0 && hasFullscreen())
+                    return false;
+            }
+        }
         return true;
     }
 
@@ -133,6 +189,8 @@ Singleton {
         onNotification: notif => {
             notif.tracked = true;
 
+            root.activeTargetOutput = root.getTargetOutput();
+
             const showPopup = root.shouldShowPopup();
             const comp = notifComp.createObject(root, {
                 popup: showPopup,
@@ -155,7 +213,7 @@ Singleton {
             }
             root.list = next;
 
-            if (!props.dnd && notif.appName !== "caelestia-cli" && !GlobalConfig.audio.sounds.disabledNotifApps.includes(notif.appName))
+            if (root.shouldPlaySound(notif))
                 Audio.playNotification();
         }
     }
@@ -189,7 +247,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "clearNotifs"
-        description: "Clear all notifications"
+        description: qsTr("Clear all notifications")
         onPressed: root.clear()
     }
 
@@ -227,6 +285,8 @@ Singleton {
             }
             onPopupChanged: {
                 root.popupCount = popup ? root.popupCount + 1 : Math.max(0, root.popupCount - 1);
+                if (root.popupCount === 0)
+                    root.activeTargetOutput = "";
             }
         }
     }

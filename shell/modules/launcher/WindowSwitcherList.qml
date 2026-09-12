@@ -1,12 +1,12 @@
 pragma ComponentBehavior: Bound
 
-import "items"
-import "services"
 import QtQuick
 import Quickshell
 import Caelestia.Config
 import qs.components.controls
 import qs.services
+import "items"
+import "services"
 
 ListView {
     id: root
@@ -46,6 +46,27 @@ ListView {
         return visible;
     }
 
+    function incrementCurrentIndex(): void {
+        Windows.triggerCycleNext();
+    }
+
+    function decrementCurrentIndex(): void {
+        Windows.triggerCyclePrev();
+    }
+
+    implicitWidth: Math.min(numItems, count) * itemWidth
+
+    orientation: ListView.Horizontal
+    snapMode: ListView.SnapToItem
+    preferredHighlightBegin: root.width / 2 - itemWidth / 2
+    preferredHighlightEnd: root.width / 2 + itemWidth / 2
+    highlightRangeMode: ListView.StrictlyEnforceRange
+    highlightMoveDuration: Tokens.anim.durations.expressiveFastSpatial
+
+    Component.onCompleted: {
+        root.currentIndex = Qt.binding(() => Windows.selectedIndex);
+    }
+
     model: ScriptModel {
         id: scriptModel
 
@@ -64,25 +85,6 @@ ListView {
         }
     }
 
-    Component.onCompleted: {
-        root.currentIndex = Qt.binding(() => Windows.selectedIndex);
-        Windows.reload();
-    }
-    Component.onDestruction: {}
-
-    function incrementCurrentIndex() { Windows.triggerCycleNext(); }
-
-    function decrementCurrentIndex() { Windows.triggerCyclePrev(); }
-
-    implicitWidth: Math.min(numItems, count) * itemWidth
-
-    orientation: ListView.Horizontal
-    snapMode: ListView.SnapToItem
-    preferredHighlightBegin: root.width / 2 - itemWidth / 2
-    preferredHighlightEnd: root.width / 2 + itemWidth / 2
-    highlightRangeMode: ListView.StrictlyEnforceRange
-    highlightMoveDuration: Tokens.anim.durations.expressiveFastSpatial
-
     delegate: WindowSwitcherItem {
         list: root
     }
@@ -98,5 +100,5 @@ ListView {
             wheel.accepted = true;
         }
     }
-
 }
+

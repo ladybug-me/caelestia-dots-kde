@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# update-translations.sh - Re-scan the shell's QML for qsTr() strings and update
+# every catalog in shell/translations.
+#
+# Usage:
+#   tools/update-translations.sh              # update all existing catalogs
+#   tools/update-translations.sh tr es pt_BR  # also create these catalogs
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SHELL_DIR="$REPO_DIR/shell"
+TS_DIR="$SHELL_DIR/translations"
+
+# Sources scanned for qsTr(). Keep in sync with the dirs installed by
+# shell/CMakeLists.txt (build/ and plugin/ are deliberately left out).
+SOURCES=(
+    "$SHELL_DIR/shell.qml"
+    "$SHELL_DIR/lockscreen.qml"
+    "$SHELL_DIR/components"
+    "$SHELL_DIR/modules"
+    "$SHELL_DIR/services"
+    "$SHELL_DIR/utils"
+)
+
+find_tool() {
+    local name="$1"
+    local candidate
+    # Distros disagree on where the Qt 6 tools live and whether they are on PATH:
+    # Arch keeps them in /usr/lib/qt6/bin, Fedora in /usr/lib64/qt6/bin, Debian
+    # ships suffixed names.
+    for candidate in "$name" "${name}-qt6" "${name}6" \
+        "/usr/lib/qt6/bin/$name" "/usr/lib64/qt6/bin/$name" \
+        "/usr/lib/qt/bin/$name" "/usr/lib/x86_64-linux-gnu/qt6/bin/$name"; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if ! LUPDATE="$(find_tool lupdate)"; then
+    echo "[FAIL]  lupdate not found. Install Qt's Linguist tools (Arch: qt6-tools)." >&2
+    exit 1
+fi
+
+mkdir -p "$TS_DIR"
+
+LANGS=("$@")
+if [[ ${#LANGS[@]} -eq 0 ]]; then
+    shopt -s nullglob
+    for ts in "$TS_DIR"/caelestia_*.ts; do
+        ts="${ts##*/caelestia_}"
+        LANGS+=("${ts%.ts}")
+    done
+    shopt -u nullglob
+fi
+
+if [[ ${#LANGS[@]} -eq 0 ]]; then
+    echo "[FAIL]  No catalogs in $TS_DIR and no languages given." >&2
+    echo "        Try: tools/update-translations.sh en tr" >&2
+    exit 1
+fi
+
+for lang in "${LANGS[@]}"; do
+    echo "[INFO]  Updating caelestia_$lang.ts..."
+    "$LUPDATE" "${SOURCES[@]}" \
+        -recursive \
+        -locations relative \
+        -no-obsolete \
+        -source-language en_US \
+        -target-language "$lang" \
+        -ts "$TS_DIR/caelestia_$lang.ts" |
+        grep -E 'Found|Warning' || true
+done
+
+# The compiled catalogs are committed so that a build without Qt's Linguist
+# tools still ships every language. They are only useful if they keep up with
+# the sources, so recompile them here rather than leaving it to be remembered.
+if LRELEASE="$(find_tool lrelease)"; then
+    for lang in "${LANGS[@]}"; do
+        [[ -f "$TS_DIR/caelestia_$lang.ts" ]] || continue
+        echo "[INFO]  Compiling caelestia_$lang.qm..."
+        "$LRELEASE" -silent "$TS_DIR/caelestia_$lang.ts" -qm "$TS_DIR/caelestia_$lang.qm"
+    done
+else
+    echo "[WARN]  lrelease not found; the committed .qm catalogs are now behind their sources." >&2
+fi
+
+echo "[ OK ]  Catalogs updated. Edit them with Qt Linguist, then rerun this script to recompile."

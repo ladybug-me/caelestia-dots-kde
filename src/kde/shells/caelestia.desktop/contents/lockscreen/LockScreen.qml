@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 
     Caelestia lock screen entry point.
     This is the root Item that kscreenlocker expects.

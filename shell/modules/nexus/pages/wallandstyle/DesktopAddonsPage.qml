@@ -97,6 +97,28 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
+                text: qsTr("Desktop media shapes")
+                checked: Config.background.desktopShapes.enabled
+                onToggled: {
+                    GlobalConfig.background.desktopShapes.enabled = checked;
+                    if (!checked)
+                        GlobalConfig.background.desktopShapes.autoHide = false;
+                }
+            }
+
+            ToggleRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+                Layout.fillWidth: true
+                visible: Config.background.desktopShapes.enabled
+                text: qsTr("Auto-hide media shapes")
+                subtext: qsTr("Hide media shapes when a window is open")
+                checked: Config.background.desktopShapes.autoHide
+                onToggled: GlobalConfig.background.desktopShapes.autoHide = checked
+            }
+
+            ToggleRow {
+                Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
+                Layout.fillWidth: true
                 text: qsTr("Desktop lyrics")
                 checked: Config.background.desktopLyrics.enabled
                 onToggled: {
@@ -109,16 +131,17 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
+                visible: Config.background.desktopLyrics.enabled
                 text: qsTr("Auto-hide lyrics")
                 subtext: qsTr("Hide lyrics when a window is open")
                 checked: Config.background.desktopLyrics.autoHide
                 onToggled: GlobalConfig.background.desktopLyrics.autoHide = checked
-                enabled: Config.background.desktopLyrics.enabled || Config.background.desktopLyrics.autoHide
             }
 
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
+                last: !Config.background.visualiser.enabled
                 text: qsTr("Background visualiser")
                 subtext: qsTr("Show music visualiser on wallpaper (May consume more power)")
                 checked: Config.background.visualiser.enabled
@@ -132,22 +155,23 @@ PageBase {
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
+                visible: Config.background.visualiser.enabled
                 text: qsTr("Auto-hide visualiser")
                 subtext: qsTr("Hide visualiser when a window is fullscreen")
                 checked: Config.background.visualiser.autoHide
                 onToggled: GlobalConfig.background.visualiser.autoHide = checked
-                enabled: Config.background.visualiser.enabled || Config.background.visualiser.autoHide
             }
 
             ToggleRow {
                 Layout.topMargin: Tokens.spacing.extraSmall / 2 - parent.spacing
                 Layout.fillWidth: true
                 last: true
+                visible: Config.background.visualiser.enabled
                 text: qsTr("Hide on all monitors")
                 subtext: qsTr("Also hide on all other monitors if disabled by a window")
                 checked: Config.background.visualiser.hideOnAllMonitors
+                enabled: Config.background.visualiser.autoHide
                 onToggled: GlobalConfig.background.visualiser.hideOnAllMonitors = checked
-                enabled: Config.background.visualiser.enabled && Config.background.visualiser.autoHide
             }
         }
 
@@ -174,11 +198,13 @@ PageBase {
                 Layout.fillWidth: true
                 label: qsTr("Position")
                 active: {
+                    const pos = Config.background.desktopClock.position;
+                    const normPos = pos === "middle-center" ? "center" : pos;
                     for (let i = 0; i < root.positionItems.length; i++) {
-                        if (root.positionItems[i].value === Config.background.desktopClock.position)
+                        if (root.positionItems[i].value === normPos)
                             return root.positionItems[i];
                     }
-                    return root.positionItems[5];
+                    return root.positionItems[6];
                 }
                 menuItems: root.positionItems
                 onSelected: item => GlobalConfig.background.desktopClock.position = item.value
@@ -190,6 +216,43 @@ PageBase {
                 text: qsTr("Invert colors")
                 checked: Config.background.desktopClock.invertColors
                 onToggled: GlobalConfig.background.desktopClock.invertColors = checked
+            }
+        }
+
+        SectionHeader {
+            text: qsTr("Desktop media shapes")
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+            StepperRow {
+                first: true
+                Layout.fillWidth: true
+                label: qsTr("Scale")
+                value: Config.background.desktopShapes.scale
+                from: 0.5
+                to: 3
+                stepSize: 0.1
+                onMoved: v => GlobalConfig.background.desktopShapes.scale = v
+            }
+
+            SelectRow {
+                last: true
+                Layout.fillWidth: true
+                label: qsTr("Position")
+                active: {
+                    const pos = Config.background.desktopShapes.position;
+                    const normPos = pos === "middle-center" ? "center" : pos;
+                    for (let i = 0; i < root.positionItems.length; i++) {
+                        if (root.positionItems[i].value === normPos)
+                            return root.positionItems[i];
+                    }
+                    return root.positionItems[5];
+                }
+                menuItems: root.positionItems
+                onSelected: item => GlobalConfig.background.desktopShapes.position = item.value
             }
         }
 
@@ -216,8 +279,10 @@ PageBase {
                 Layout.fillWidth: true
                 label: qsTr("Position")
                 active: {
+                    const pos = Config.background.desktopLyrics.position;
+                    const normPos = pos === "middle-center" ? "center" : pos;
                     for (let i = 0; i < root.positionItems.length; i++) {
-                        if (root.positionItems[i].value === Config.background.desktopLyrics.position)
+                        if (root.positionItems[i].value === normPos)
                             return root.positionItems[i];
                     }
                     return root.positionItems[5];

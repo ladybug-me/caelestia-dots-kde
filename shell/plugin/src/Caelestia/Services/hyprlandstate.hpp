@@ -30,6 +30,11 @@ class HyprlandState : public QObject {
     Q_PROPERTY(QVariantList monitors READ monitors NOTIFY monitorsChanged)
     Q_PROPERTY(QVariantMap layers READ layers NOTIFY layersChanged)
 
+    /// True when the KDE (PlasmaWindows) bridge is serving the window data.
+    /// workspaces, activeWorkspace, monitors and layers stay empty in that mode:
+    /// there is no KDE source for them, so branch on this before reading them.
+    Q_PROPERTY(bool kdeFallback READ kdeFallback CONSTANT)
+
 public:
     explicit HyprlandState(QObject* parent = nullptr);
 
@@ -45,6 +50,7 @@ public:
     [[nodiscard]] QVariantMap activeWindow() const;
     [[nodiscard]] QVariantList monitors() const;
     [[nodiscard]] QVariantMap layers() const;
+    [[nodiscard]] bool kdeFallback() const;
 
     Q_INVOKABLE void updateAll();
     Q_INVOKABLE void updateWindowList();
@@ -68,6 +74,10 @@ private:
     QString m_eventSocket;
     QLocalSocket* m_socket;
     bool m_socketValid;
+
+    // KDE (PlasmaWindows) bridge is serving the window data instead of Hyprland.
+    bool m_kdeFallback = false;
+    bool m_warnedNoRequestSocket = false;
 
     QVariantList m_windowList;
     QVariantMap m_windowByAddress;

@@ -12,6 +12,7 @@ inline QJsonObject defaultKeybinds() {
         { "launcher", "Meta+Space; Meta" }, { "launcherInterrupt", "" }, { "sidebar", "Meta+B" }, { "aiAssistant", "" },
         { "utilities", "" }, { "emoji", "Meta+Shift+V" }, { "clipboard", "Meta+V" }, { "windowSwitcher", "Alt+Tab" },
         { "windowSwitcherReverse", "Alt+Shift+Tab" }, { "wallpaper", "Meta+Ctrl+T" }, { "keybinds", "Meta+/" },
+        { "whatsnew", "" },
         { "foot", "Meta+Return" }, { "firefox", "Meta+W" }, { "code", "Meta+C" }, { "github-desktop", "Meta+G" },
         { "nemo", "Meta+Alt+E" }, { "kcolorpicker", "Meta+Shift+C" }, { "krohnkiteFocusUp", "Meta+Up" },
         { "krohnkiteFocusDown", "Meta+Down" }, { "krohnkiteFocusLeft", "Meta+Left" },

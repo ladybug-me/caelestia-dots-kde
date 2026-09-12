@@ -96,7 +96,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "areaPickerScreenshot"
-        description: "Open screenshot tool"
+        description: qsTr("Open screenshot tool")
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -109,7 +109,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreeze"
-        description: "Open screenshot tool (freeze mode)"
+        description: qsTr("Open screenshot tool (freeze mode)")
         onPressed: {
             root.freeze = true;
             root.closing = false;
@@ -122,7 +122,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotClip"
-        description: "Open screenshot tool (clipboard)"
+        description: qsTr("Open screenshot tool (clipboard)")
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -135,7 +135,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreezeClip"
-        description: "Open screenshot tool (freeze mode, clipboard)"
+        description: qsTr("Open screenshot tool (freeze mode, clipboard)")
         onPressed: {
             root.freeze = true;
             root.closing = false;

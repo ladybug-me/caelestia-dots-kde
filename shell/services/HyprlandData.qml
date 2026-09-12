@@ -25,6 +25,12 @@ Singleton {
     readonly property var monitors: HyprlandState.monitors
     readonly property var layers: HyprlandState.layers
 
+    // True when the KDE bridge is serving the window data: workspaces,
+    // activeWorkspace, monitors and layers stay empty there, because there is
+    // no KDE source for them. Forwarded so QML does not have to import
+    // Caelestia.Services just to ask.
+    readonly property bool kdeFallback: HyprlandState.kdeFallback
+
     // Convenient stuff
 
     function toplevelsForWorkspace(workspace) {

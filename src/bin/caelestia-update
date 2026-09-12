@@ -25,13 +25,13 @@ if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "dev" ]; then
     echo "Warning: Branch '$BRANCH' is not allowed. Falling back to 'main'."
     BRANCH="main"
 fi
-if ! git ls-remote --exit-code --heads https://github.com/ladybug-me/caelestia-dots-kde.git "$BRANCH" >/dev/null 2>&1; then
+if ! git ls-remote --exit-code --heads https://github.com/ladybug-me/caelestia-kde.git "$BRANCH" >/dev/null 2>&1; then
     echo "Warning: Branch '$BRANCH' does not exist on remote. Falling back to 'main'."
     BRANCH="main"
 fi
 
 if [ -n "$TARGET_REF" ]; then
-    if git ls-remote --exit-code --tags https://github.com/ladybug-me/caelestia-dots-kde.git "$TARGET_REF" >/dev/null 2>&1; then
+    if git ls-remote --exit-code --tags https://github.com/ladybug-me/caelestia-kde.git "$TARGET_REF" >/dev/null 2>&1; then
         TARGET_KIND="tag"
     elif [ "$BRANCH" = "dev" ] && [[ "$TARGET_REF" =~ ^[0-9a-f]{7,40}$ ]]; then
         # Dev branch supports installing/reverting to a specific commit from the
@@ -162,16 +162,16 @@ mkdir -p "$BACKUP_DIR"
 
 if [[ ! -d "$UPD_DIR/repo/.git" ]]; then
     mkdir -p "$UPD_DIR/repo"
-    cd "$UPD_DIR/repo"
+    cd "$UPD_DIR/repo" || die "Failed to enter $UPD_DIR/repo"
     git init -q
-    git remote add origin https://github.com/ladybug-me/caelestia-dots-kde.git
+    git remote add origin https://github.com/ladybug-me/caelestia-kde.git
 else
-    cd "$UPD_DIR/repo"
+    cd "$UPD_DIR/repo" || die "Failed to enter $UPD_DIR/repo"
     if git rev-parse HEAD >/dev/null 2>&1; then
         git reset --hard -q HEAD || die "Failed to reset repository state"
     fi
     git clean -fdx -q
-    git remote set-url origin https://github.com/ladybug-me/caelestia-dots-kde.git
+    git remote set-url origin https://github.com/ladybug-me/caelestia-kde.git
 fi
 
 # Always enforce sparse-checkout rules
@@ -205,8 +205,21 @@ fi
 # Initialize submodules
 if [[ -f "$UPD_DIR/repo/.gitmodules" ]]; then
     info "Initializing all submodule..."
-    git submodule sync --recursive >/dev/null 2>&1 || true
-    git submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
+    # shellcheck source=/dev/null
+    if [[ -f "$UPD_DIR/repo/scripts/lib/submodules.sh" ]]; then
+        source "$UPD_DIR/repo/scripts/lib/submodules.sh"
+    fi
+    if declare -f prune_removed_submodules >/dev/null 2>&1; then
+        prune_removed_submodules "$UPD_DIR/repo"
+    else
+        # The helper ships in the same commit as this updater and the sparse
+        # checkout always pulls scripts/, so a lib that is missing here means
+        # the checkout is damaged. Say so instead of keeping a second copy of
+        # the prune that can drift away from the tested one.
+        warn "scripts/lib/submodules.sh is missing; skipping the submodule prune."
+    fi
+    git -C "$UPD_DIR/repo" submodule sync --recursive >/dev/null 2>&1 || true
+    git -C "$UPD_DIR/repo" submodule update --init --recursive --force >/dev/null 2>&1 || die "Failed to initialize all submodules"
 fi
 
 [[ -f "$UPD_DIR/repo/src/dots/starship.toml" ]] || die "Missing src/dots content after update"
@@ -233,6 +246,15 @@ info "Executing build scripts (GUI prompts will appear if required)..."
 
 export BUNDLE_DIR="$UPD_DIR/repo"
 
+# Helpers come from the revision that was just checked out, the same way the
+# step scripts below are run from it. A reverted target predating the helper
+# simply leaves the call unavailable, which is harmless: the recorded revision
+# then stays as it was rather than becoming wrong.
+if [[ -f "$BUNDLE_DIR/scripts/lib/update-state.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "$BUNDLE_DIR/scripts/lib/update-state.sh"
+fi
+
 # 4. Deploy Configs
 echo "PROGRESS: 3/5: Deploying configuration files..."
 echo
@@ -247,7 +269,7 @@ fi
 echo "PROGRESS: 3/5: Configuration files deployed."
 
 # 5. Build Shell
-echo "PROGRESS: 4/5: Building Caelestia Shell UI..."
+echo "PROGRESS: 4/5: Building the Caelestia shell UI..."
 echo
 echo "---------------------------------------------"
 echo "  Step 3 - Build Caelestia Shell UI"
@@ -273,16 +295,17 @@ else
     fi
 fi
 
-# 6. Save current commit hash
-if [ -d "$UPD_DIR/repo/.git" ]; then
-    COMMIT_HASH=$(git rev-parse HEAD)
-    mkdir -p ~/.config/quickshell/caelestia
-    echo "$COMMIT_HASH" > ~/.config/quickshell/caelestia/.current_commit
-
-    # Persist installed version from the checked-out commit, even when sparse checkout omits files.
-    git show HEAD:.github/version.env > ~/.config/quickshell/caelestia/.current_version 2>/dev/null || true
-
-    info "Saved commit hash: $COMMIT_HASH"
+# 6. Record which revision is actually installed.
+#
+# record_installed_revision() refuses while CAELESTIA_SKIP_BUILD=1: the
+# checkout below moved to the target ref, but the shell in front of the user
+# was deliberately not rebuilt, so claiming the new revision would make every
+# version readout describe a state nobody can see (#651). When that happens the
+# previous value is left in place - it still names the shell that is running.
+if record_installed_revision "$BUNDLE_DIR" "$HOME/.config/quickshell/caelestia"; then
+    info "Saved commit hash: $(cat "$HOME/.config/quickshell/caelestia/.current_commit" 2>/dev/null || true)"
+elif [[ "${CAELESTIA_SKIP_BUILD:-0}" == "1" ]]; then
+    info "Shell build skipped; the recorded revision still describes the running shell."
 fi
 
 echo "PROGRESS: done: Update completed successfully"

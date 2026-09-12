@@ -152,7 +152,10 @@ PageBase {
                     date: c.date || ""
                 });
             }
-            return result;
+            // Merges carry no user-facing change of their own and made up half the
+            // list. Drop them, except when the running shell is sitting on one:
+            // the timeline has to keep marking the commit it is installed at.
+            return result.filter(e => !e.isMerge || e.state === "current");
         }
     }
 
@@ -164,7 +167,7 @@ PageBase {
             icon: "help"
             type: TextButton.Tonal
             scale: pressed ? 0.95 : 1.0
-            onClicked: Qt.openUrlExternally("https://github.com/ladybug-me/caelestia-dots-kde/blob/main/.github/docs/TROUBLESHOOTING.md#11-update-issues")
+            onClicked: Qt.openUrlExternally("https://github.com/ladybug-me/caelestia-kde/blob/main/docs/TROUBLESHOOTING.md#10-update-issues")
 
             Behavior on scale {
                 Anim {

@@ -10,7 +10,7 @@ find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
 set(CAVA_SOURCES "")
 set(CAVA_LIBRARIES "")
 if(Cava_FOUND)
-    list(APPEND CAVA_SOURCES cavaprovider.cpp)
+    list(APPEND CAVA_SOURCES cavaprovider.cpp cavaprovider.hpp)
     list(APPEND CAVA_LIBRARIES PkgConfig::Cava)
 endif()
 

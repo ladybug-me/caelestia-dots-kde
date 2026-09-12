@@ -254,6 +254,16 @@ Singleton {
         Quickshell.execDetached(["bash", scriptPath, color, varNum, lightMode]);
     }
 
+    // The CLI derives dynamic colours from the wallpaper it was last told
+    // about, and a scheme it cannot derive leaves the palette on the built-in
+    // default, which is then pushed into kde-material-you-colors and keeps the
+    // whole desktop on it. Re-derive from the wallpaper on screen once per
+    // start. Delivery is the scheme.json write the loader already watches, so
+    // nothing here waits for the result.
+    function reseedScheme(): void {
+        Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/reseed-scheme.sh")]);
+    }
+
     function reloadHyprRules(): void {
         // Layer rules are Hyprland-only; KWin handles blur via effects.
         if (typeof KWinActiveWindowBridge !== "undefined")
@@ -284,6 +294,7 @@ Singleton {
         Qt.callLater(updatePaletteManager)
         scheduleSchemeReload()
         startupSchemePollTimer.start()
+        reseedTimer.start()
     }
 
     Connections {
@@ -315,6 +326,16 @@ Singleton {
         function onCurrentSchemeChanged(): void {
             schemeFile.reload();
         }
+    }
+
+    // Slightly after start, so the wallpaper this session restored is on disk
+    // and can be handed to the CLI.
+    Timer {
+        id: reseedTimer
+
+        interval: 2500
+        repeat: false
+        onTriggered: root.reseedScheme()
     }
 
     Timer {

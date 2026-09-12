@@ -89,10 +89,10 @@ jobs:
 
           if [ -n "$LAST_TAG" ] && [ "$LAST_TAG" != "$VERSION" ]; then
             git fetch origin dev:refs/remotes/origin/dev --force || true
-            
+
             # Find the merge commit on dev where LAST_TAG was synced back (fixes Squash & Merge pollution)
             SYNC_COMMIT=$(git rev-list "$LAST_TAG..origin/dev" --ancestry-path --merges | tail -n 1 || true)
-            
+
             if [ -n "$SYNC_COMMIT" ]; then
               git log "$SYNC_COMMIT..origin/dev" --no-merges --invert-grep --grep='\[skip ci\]' --pretty='- %s (%h)' > commit_notes.txt
             else
@@ -133,39 +133,20 @@ jobs:
             else
               echo "- Maintenance release for $VERSION."
             fi
-
-            echo
-            echo "*May your desktop always reflect the stars.*"
           } > release_notes.md
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release edit "$VERSION" \
-              --title "Caelestia KDE $VERSION" \
+              --title "Caelestia $VERSION" \
               --notes-file release_notes.md \
               --prerelease=false \
               --latest
           else
             gh release create "$VERSION" \
-              --title "Caelestia KDE $VERSION" \
+              --title "Caelestia $VERSION" \
               --notes-file release_notes.md \
               --prerelease=false \
               --latest
-          fi
-
-      - name: Update README Contributor Stats
-        run: |
-          set -euo pipefail
-
-          python3 .github/scripts/contributors.py --update-readme
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/README.md
-          if git diff --cached --quiet; then
-            echo "No contributor changes to commit."
-          else
-            git commit -m "[skip ci] Update contributor stats for $VERSION"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
       - name: Open Sync PR to dev
@@ -180,9 +161,8 @@ jobs:
             --base dev \
             --head main \
             --title "chore: sync main back to dev after $VERSION" \
-            --body "This is an automated PR to sync the newly updated contributor stats and release tags from \`main\` back into \`dev\`." || true
+            --body "This is an automated PR to sync the new release tags from \`main\` back into \`dev\`." || true
 
-  # ═══════════════════════════════════════════════════════════
   # Precompile the Caelestia shell (the C++ QML plugin modules and
   # M3Shapes) and bundle them with the shell QML source, so a fresh
   # install can download the compiled .so files instead of building
@@ -193,7 +173,6 @@ jobs:
   # back to a local build. The KWin effect is deliberately excluded:
   # it links KWin::kwin, whose ABI is Plasma-version-specific, so it
   # stays a local build (see 08-build-shell.sh).
-  # ═══════════════════════════════════════════════════════════
   build-shell:
     name: Precompile shell artifacts (x86_64)
     needs: version-release
@@ -214,21 +193,13 @@ jobs:
             libqalculate pipewire libpipewire aubio lm_sensors extra-cmake-modules \
             fftw ncurses alsa-lib iniparser libglvnd sdl2 portaudio sndio libpulse
 
-      # Arch's `cava` package only ships the CLI binary, not the shared
-      # library/headers the shell links against (see shell/plugin/CMakeLists.txt).
-      # Build `libcava` from AUR instead so pkg-config/find_library actually
-      # picks it up and the audio visualizer is compiled into the release asset.
-      - name: Build and Install libcava (AUR)
+      # Download prebuilt CAVA SDK (libcava + headers) from the CAVA continuous release
+      # so the audio visualizer plugin links against it without building AUR libcava from source.
+      - name: Install Prebuilt CAVA SDK (Arch)
         run: |
           set -euo pipefail
-          useradd -m builder
-          su builder -c '
-            set -euo pipefail
-            git clone --depth 1 https://aur.archlinux.org/libcava.git /tmp/libcava
-            cd /tmp/libcava
-            makepkg --noconfirm
-          '
-          pacman -U --noconfirm /tmp/libcava/libcava-*.pkg.tar.zst
+          source scripts/lib/toolchain.sh
+          install_cava_sdk arch
 
       - name: Load Release Tag
         run: |
@@ -259,8 +230,15 @@ jobs:
           cp -a stage/usr/lib/qt6/qml/Caelestia stage/usr/lib/qt6/qml/M3Shapes dist/root/lib/qt6/qml/
           cp -a stage/usr/lib/caelestia/version dist/root/lib/caelestia/
           cp -a stage/usr/etc/xdg/quickshell/caelestia dist/root/quickshell/
-          tar -C dist/root -czf "dist/caelestia-shell-x86_64-qt${QT_ABI}.tar.gz" lib quickshell
-          echo "ARTIFACT=dist/caelestia-shell-x86_64-qt${QT_ABI}.tar.gz" >> "$GITHUB_ENV"
+          ARTIFACT="dist/caelestia-kde-x86_64-qt${QT_ABI}.tar.gz"
+          tar -C dist/root -czf "$ARTIFACT" lib quickshell
+          echo "ARTIFACT=$ARTIFACT" >> "$GITHUB_ENV"
+          # Published next to the archive so 08-build-shell.sh can verify the
+          # download before unpacking it over $HOME (issue #667). Strip the
+          # directory so the file names the bare archive, as sha256sum -c wants.
+          CHECKSUM="${ARTIFACT}.sha256"
+          sha256sum "$ARTIFACT" | sed "s|$(dirname "$ARTIFACT")/||" > "$CHECKSUM"
+          echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
 
       - name: Attach Shell Artifacts to Release
         env:
@@ -270,14 +248,12 @@ jobs:
           # --repo: this job runs in a container where gh's git-based repo
           # auto-detection fails ("failed to run git: not a git repository"),
           # so name the repo explicitly instead of relying on local git state.
-          gh release upload "$TAG" "$ARTIFACT" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload "$TAG" "$ARTIFACT" "$CHECKSUM" --repo "$GITHUB_REPOSITORY" --clobber
 
-  # ═══════════════════════════════════════════════════════════
   # Prebuilt installer TUI binaries (x86_64 + aarch64) so setup.sh
   # can download instead of compiling the TUI on the user's machine.
   # These are versioned executables, so they belong on the version
   # release.
-  # ═══════════════════════════════════════════════════════════
   build-installer:
     name: Build installer TUI (${{ matrix.arch }})
     needs: version-release
@@ -311,7 +287,7 @@ jobs:
       - name: Build Installer TUI
         run: |
           set -euo pipefail
-          cmake -B installer/build -DCMAKE_BUILD_TYPE=Release installer
+          cmake -B installer/build -DCMAKE_BUILD_TYPE=Release installer/tui
           cmake --build installer/build -- -j"$(nproc)"
 
       - name: Attach Prebuilt Installer to Release
@@ -319,6 +295,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TUI_VERSION="$(tr -d '[:space:]' < installer/tui.version)"
+          TUI_VERSION="$(tr -d '[:space:]' < installer/data/tui.version)"
           cp installer/build/caelestia-install "caelestia-install-${{ matrix.arch }}-v${TUI_VERSION}"
           gh release upload "$TAG" "caelestia-install-${{ matrix.arch }}-v${TUI_VERSION}" --repo "$GITHUB_REPOSITORY" --clobber

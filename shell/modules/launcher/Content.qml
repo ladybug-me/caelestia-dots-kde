@@ -245,17 +245,56 @@ Item {
                 }
             }
 
-            Keys.onEscapePressed: root.visibilities.launcher = false
+            Keys.onEscapePressed: {
+                KWinActiveWindowBridge.clearHighlight();
+                root.visibilities.launcher = false;
+            }
 
             Keys.onReleased: event => {
-                if (event.key === Qt.Key_Alt && text.startsWith(`${GlobalConfig.launcher.actionPrefix}windows `)) {
-                    Windows.focusSelectedWindow();
-                    root.visibilities.launcher = false;
-                    event.accepted = true;
+                if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}windows `)) {
+                    const switcherKey = (typeof KeybindsModel !== "undefined" && KeybindsModel.getKey("windowSwitcher")) || "Alt+Tab";
+                    if (!CUtils.isShortcutModifierPressed(switcherKey)) {
+                        Windows.focusSelectedWindow();
+                        root.visibilities.launcher = false;
+                        event.accepted = true;
+                    }
                 }
             }
 
             Keys.onPressed: event => {
+                if (text.startsWith(`${GlobalConfig.launcher.actionPrefix}windows `)) {
+                    if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+                        if (event.modifiers & Qt.ShiftModifier || event.key === Qt.Key_Backtab) {
+                            Windows.triggerCyclePrev();
+                        } else {
+                            Windows.triggerCycleNext();
+                        }
+                        event.accepted = true;
+                        return;
+                    }
+                    if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                        Windows.triggerCyclePrev();
+                        event.accepted = true;
+                        return;
+                    }
+                    if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
+                        Windows.triggerCycleNext();
+                        event.accepted = true;
+                        return;
+                    }
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                        Windows.focusSelectedWindow();
+                        root.visibilities.launcher = false;
+                        event.accepted = true;
+                        return;
+                    }
+                    if (event.key === Qt.Key_Escape) {
+                        root.visibilities.launcher = false;
+                        event.accepted = true;
+                        return;
+                    }
+                }
+
                 if (list.showAppsBrowser && event.key === Qt.Key_Tab) {
                     list.currentList?.toggleFocus();
                     event.accepted = true;
@@ -303,6 +342,8 @@ Item {
                         // commits the window switcher is delivered to this field,
                         // the switcher would stay open and stop cycling.
                         search.forceActiveFocus();
+                    } else {
+                        KWinActiveWindowBridge.clearHighlight();
                     }
                 }
 
@@ -312,6 +353,20 @@ Item {
                 }
 
                 target: root.visibilities
+            }
+
+            Connections {
+                function onModifierReleased(): void {
+                    if (root.visibilities.launcher && search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}windows `)) {
+                        const switcherKey = (typeof KeybindsModel !== "undefined" && KeybindsModel.getKey("windowSwitcher")) || "Alt+Tab";
+                        if (!CUtils.isShortcutModifierPressed(switcherKey)) {
+                            Windows.focusSelectedWindow();
+                            root.visibilities.launcher = false;
+                        }
+                    }
+                }
+
+                target: CUtils
             }
         }
 

@@ -27,6 +27,7 @@
 #include "userpaths.hpp"
 #include "utilitiesconfig.hpp"
 #include "winfoconfig.hpp"
+#include "tabswitchconfig.hpp"
 
 namespace caelestia::config {
 
@@ -55,6 +56,7 @@ class ConfigRoot : public settings::RootNode {
     CONFIG_SUBOBJECT(UserPaths, paths)
     CONFIG_SUBOBJECT(AudioConfig, audio)
     CONFIG_SUBOBJECT(AiConfig, ai)
+    CONFIG_SUBOBJECT(TabSwitchConfig, tabSwitch)
 
 public:
     explicit ConfigRoot(const QString& path, ConfigRoot* fallback = nullptr, QObject* parent = nullptr);

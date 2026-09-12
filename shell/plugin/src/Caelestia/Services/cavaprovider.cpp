@@ -108,7 +108,17 @@ void CavaProcessor::initCava() {
         return;
     }
 
-    m_plan = cava_init(m_bars, ac::SAMPLE_RATE, 1, 1, 0.85, 50, 10000);
+    constexpr int channels = 1;
+    constexpr int autosens = 1;
+    constexpr double noiseReduction = 0.85;
+    constexpr int lowCutoff = 50;
+    constexpr int highCutoff = 10000;
+
+#ifdef CAVA_SCALING_LINEAR
+    m_plan = cava_init(m_bars, ac::SAMPLE_RATE, channels, autosens, noiseReduction, lowCutoff, highCutoff, CAVA_SCALING_LINEAR);
+#else
+    m_plan = cava_init(m_bars, ac::SAMPLE_RATE, channels, autosens, noiseReduction, lowCutoff, highCutoff);
+#endif
     m_out = new double[static_cast<size_t>(m_bars)];
 }
 

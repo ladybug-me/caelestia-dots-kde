@@ -6,6 +6,9 @@
 # present it is skipped, and if the download cannot run (no git, no network)
 # it warns and continues. The KDE deploy step (04) uses the pack's default
 # image when it exists and otherwise keeps the bundled fallback.
+#
+# ci:allow-no-strict-mode - every failure below is checked explicitly and exits
+# 0, so `set -e` would abort the step instead of continuing the install.
 
 set -uo pipefail
 

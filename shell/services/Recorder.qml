@@ -24,6 +24,12 @@ Singleton {
         checkProc.running = true;
     }
 
+    function startGif(): void {
+        needsStart = true;
+        startArgs = ["--gif"];
+        checkProc.running = true;
+    }
+
     function stop(): void {
         needsStop = true;
         checkProc.running = true;
@@ -66,7 +72,7 @@ Singleton {
                 props.elapsed = 0;
                 props.paused = false;
             }
-            
+
             root._wasRunning = isRunning;
             props.running = isRunning;
 

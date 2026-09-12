@@ -75,7 +75,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "unlock"
-        description: "Unlock the current session"
+        description: qsTr("Unlock the current session")
         onPressed: root.requestUnlock()
     }
 

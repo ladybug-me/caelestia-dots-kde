@@ -118,7 +118,7 @@ Item {
     }
 
     Behavior on state {
-        enabled: !root.visibilities.skipLauncherAnim
+        enabled: root.visibilities.launcher && !root.visibilities.skipLauncherAnim && root.opacity === 1 && !Visibilities.launcherInitialSearch
 
         SequentialAnimation {
             Anim {
@@ -388,7 +388,6 @@ Item {
     Loader {
         id: windowSwitcherList
 
-        asynchronous: true
         active: root.state === "windowSwitcher"
 
         anchors.top: parent.top

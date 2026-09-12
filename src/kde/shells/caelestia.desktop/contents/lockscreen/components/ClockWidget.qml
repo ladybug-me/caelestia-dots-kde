@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import QtQuick
@@ -13,11 +13,11 @@ ColumnLayout {
     property bool use12h: true
     property real centerScale: 1.0
 
-    property color clPrimary: "#c2c1ff"
-    property color clSecondary: "#c6c4e0"
-    property color clSurfaceContainerHigh: "#2a292e"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
+    property color clPrimary: "#9bd0cc"
+    property color clSecondary: "#b0ccc9"
+    property color clSurfaceContainerHigh: "#192120"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
 
     property var currentTime: new Date()
 

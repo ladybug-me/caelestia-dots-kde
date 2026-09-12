@@ -140,7 +140,7 @@ StyledWindow {
     anchors.left: true
     anchors.right: true
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.layer: hasOpenOverlay || (actualFullscreen && fsTransitionProg < 1) || (fsTransitionProg > 0 && Config.general.showOverFullscreen) || (((monitor?.lastIpcObject?.specialWorkspace?.name?.length ?? 0) > 0) && (monitor?.activeWorkspace?.toplevels?.values?.some(t => (t?.lastIpcObject?.fullscreen ?? 0) > 1) ?? false)) ? WlrLayer.Overlay : WlrLayer.Top
+    WlrLayershell.layer: hasOpenOverlay || (actualFullscreen && fsTransitionProg < 1) || (fsTransitionProg > 0 && Config.general.showOverFullscreen) || (panels.notifications.visible && panels.notifications.height > 0 && GlobalConfig.notifs.fullscreen === "on") || (((monitor?.lastIpcObject?.specialWorkspace?.name?.length ?? 0) > 0) && (monitor?.activeWorkspace?.toplevels?.values?.some(t => (t?.lastIpcObject?.fullscreen ?? 0) > 1) ?? false)) ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.keyboardFocus: wantsKeyboard ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     onWantsKeyboardChanged: {
@@ -347,10 +347,10 @@ StyledWindow {
                 anchors.margins: -50
                 group: overviewBlurMask
                 radius: root.borderRounding
-                borderLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
-                borderRight: Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
-                borderTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
-                borderBottom: Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) + root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
+                borderLeft: Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+                borderRight: Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+                borderTop: Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
+                borderBottom: Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) + root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
                 Config.screen: root.screen.name
             }
         }
@@ -400,10 +400,10 @@ StyledWindow {
             group: GlobalConfig.appearance.islands ? null : blobGroup
             visible: !GlobalConfig.appearance.islands
             radius: root.borderRounding
-            borderLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
-            borderRight: Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
-            borderTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
-            borderBottom: Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) + root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
+            borderLeft: Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderRight: Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - anchors.margins - root.sdfBorderOffset
+            borderTop: Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) - root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
+            borderBottom: Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) + root.overviewVerticalOffset - anchors.margins - root.sdfBorderOffset
             Config.screen: root.screen.name
         }
         BlobRect {
@@ -439,7 +439,7 @@ StyledWindow {
         PanelBg {
             id: sidebarBg
 
-            property bool connectedToPopout: (Config.bar.position === "top" || Config.bar.position === "bottom") && panels.popouts.sidebarOpen && panels.popouts.implicitWidth <= Tokens.sizes.sidebar.width + 1 && !panels.popouts.isDockPopout
+            property bool connectedToPopout: (bar.position === "top" || bar.position === "bottom") && panels.popouts.sidebarOpen && panels.popouts.implicitWidth <= Tokens.sizes.sidebar.width + 1 && !panels.popouts.isDockPopout
 
             panel: panels.sidebar
             deformAmount: 0.03
@@ -450,10 +450,10 @@ StyledWindow {
                 if (connectedToPopout) arr.push(popoutBg);
                 return arr;
             }
-            topLeftRadius: GlobalConfig.appearance.islands ? radius : ((Config.bar.position === "top" && connectedToPopout) ? 0 : (Config.bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
-            topRightRadius: GlobalConfig.appearance.islands ? radius : ((Config.bar.position === "top" && connectedToPopout) ? 0 : (Config.bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
-            bottomLeftRadius: GlobalConfig.appearance.islands ? radius : ((Config.bar.position === "bottom" && connectedToPopout) ? 0 : (Config.bar.position === "right" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
-            bottomRightRadius: GlobalConfig.appearance.islands ? radius : ((Config.bar.position === "bottom" && connectedToPopout) ? 0 : (Config.bar.position === "right" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
+            topLeftRadius: GlobalConfig.appearance.islands ? radius : ((bar.position === "top" && connectedToPopout) ? 0 : (bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
+            topRightRadius: GlobalConfig.appearance.islands ? radius : ((bar.position === "top" && connectedToPopout) ? 0 : (bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
+            bottomLeftRadius: GlobalConfig.appearance.islands ? radius : ((bar.position === "bottom" && connectedToPopout) ? 0 : (bar.position === "right" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
+            bottomRightRadius: GlobalConfig.appearance.islands ? radius : ((bar.position === "bottom" && connectedToPopout) ? 0 : (bar.position === "right" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius))
         }
         PanelBg {
             id: osdBg
@@ -474,10 +474,10 @@ StyledWindow {
             panel: panels.utilities
             deformAmount: panels.sidebar.visible ? 0.1 : 0.15
             exclude: panels.sidebar.offsetScale > 0.08 ? [] : [sidebarBg]
-            topLeftRadius: GlobalConfig.appearance.islands ? radius : (Config.bar.position === "right" ? radius : (Config.bar.position === "bottom" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
-            topRightRadius: GlobalConfig.appearance.islands ? radius : (Config.bar.position === "right" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : (Config.bar.position === "bottom" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
-            bottomLeftRadius: GlobalConfig.appearance.islands ? radius : (Config.bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius)
-            bottomRightRadius: GlobalConfig.appearance.islands ? radius : (Config.bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius)
+            topLeftRadius: GlobalConfig.appearance.islands ? radius : (bar.position === "right" ? radius : (bar.position === "bottom" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
+            topRightRadius: GlobalConfig.appearance.islands ? radius : (bar.position === "right" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : (bar.position === "bottom" ? radius : Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius))
+            bottomLeftRadius: GlobalConfig.appearance.islands ? radius : (bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius)
+            bottomRightRadius: GlobalConfig.appearance.islands ? radius : (bar.position === "bottom" ? Math.max(0, Math.min(1, panels.sidebar.offsetScale / 0.3)) * radius : radius)
         }
         PanelBg {
             id: contextMenuBg
@@ -560,7 +560,7 @@ StyledWindow {
         states: [
             State {
                 name: "left"
-                when: Config.bar.position === "left"
+                when: bar.position === "left"
 
                 AnchorChanges {
                     target: bar
@@ -581,7 +581,7 @@ StyledWindow {
             },
             State {
                 name: "right"
-                when: Config.bar.position === "right"
+                when: bar.position === "right"
 
                 AnchorChanges {
                     target: bar
@@ -602,7 +602,7 @@ StyledWindow {
             },
             State {
                 name: "top"
-                when: Config.bar.position === "top"
+                when: bar.position === "top"
 
                 AnchorChanges {
                     target: bar
@@ -623,7 +623,7 @@ StyledWindow {
             },
             State {
                 name: "bottom"
-                when: Config.bar.position === "bottom"
+                when: bar.position === "bottom"
 
                 AnchorChanges {
                     target: bar
@@ -689,8 +689,8 @@ StyledWindow {
         BarWrapper {
             id: bar
 
-            property string vAnchor: (Config.bar.position === "left" || Config.bar.position === "right") ? "both" : (Config.bar.position === "top" ? "top" : "bottom")
-            property string hAnchor: (Config.bar.position === "top" || Config.bar.position === "bottom") ? "both" : (Config.bar.position === "left" ? "left" : "right")
+            property string vAnchor: (bar.position === "left" || bar.position === "right") ? "both" : (bar.position === "top" ? "top" : "bottom")
+            property string hAnchor: (bar.position === "top" || bar.position === "bottom") ? "both" : (bar.position === "left" ? "left" : "right")
 
             screen: root.screen
             visibilities: visibilities
@@ -740,53 +740,53 @@ StyledWindow {
         // Border Blur Masks
         Region {
             x: 0; y: 0
-            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) : 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness); y: 0
-            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) : 0
+            x: root.width - Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness); y: 0
+            width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) : 0
             height: root.height
             intersection: Intersection.Combine
         }
         Region {
             x: 0; y: 0
             width: root.width
-            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: 0; y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
+            x: 0; y: root.height - Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness)
             width: root.width
-            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) : 0
+            height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur) ? Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) : 0
             intersection: Intersection.Combine
         }
         // Corner squares for inverted corners
         Region {
-            x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
-            y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
+            x: Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
+            y: Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
             width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
-            y: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
+            x: root.width - Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            y: Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness)
             width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
-            y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
+            x: Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness)
+            y: root.height - Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             intersection: Intersection.Combine
         }
         Region {
-            x: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
-            y: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
+            x: root.width - Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            y: root.height - Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             width: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             height: (!GlobalConfig.appearance.islands && GlobalConfig.appearance.blur && GlobalConfig.appearance.blurMask) ? root.borderRounding : 0
             intersection: Intersection.Combine
@@ -796,10 +796,10 @@ StyledWindow {
             vAnchor: "none"
             hAnchor: "none"
             blurQuality: borderBlurSettings.blurQuality
-            inLeft: Math.max(Config.bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) + root.borderRounding
-            inRight: root.width - Math.max(Config.bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
-            inTop: Math.max(Config.bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) + root.borderRounding
-            inBottom: root.height - Math.max(Config.bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
+            inLeft: Math.max(bar.position === "left" ? bar.implicitWidth : 0, root.borderThickness) + root.borderRounding
+            inRight: root.width - Math.max(bar.position === "right" ? bar.implicitWidth : 0, root.borderThickness) - root.borderRounding
+            inTop: Math.max(bar.position === "top" ? bar.implicitHeight : 0, root.borderThickness) + root.borderRounding
+            inBottom: root.height - Math.max(bar.position === "bottom" ? bar.implicitHeight : 0, root.borderThickness) - root.borderRounding
             rTop: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             rBottom: !GlobalConfig.appearance.islands ? root.borderRounding : 0
             rLeft: !GlobalConfig.appearance.islands ? root.borderRounding : 0

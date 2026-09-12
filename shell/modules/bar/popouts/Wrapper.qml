@@ -16,6 +16,7 @@ Item {
     required property ShellScreen screen
     required property real offsetScale
     required property DrawerVisibilities visibilities
+    Config.screen: root.screen.name
     readonly property alias content: content
     readonly property alias winfo: winfo
     readonly property real nonAnimWidth: content.shouldBeActive ? content.implicitWidth : winfo.shouldBeActive ? winfo.implicitWidth : content.implicitWidth

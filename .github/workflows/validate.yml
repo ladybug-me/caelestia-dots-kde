@@ -12,9 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ═══════════════════════════════════════════════════════════
   # Job 1: Python quality - lint, compile, best practices
-  # ═══════════════════════════════════════════════════════════
   python-quality:
     runs-on: ubuntu-latest
     steps:
@@ -53,9 +51,7 @@ jobs:
             --statistics
           echo "::endgroup::"
 
-  # ═══════════════════════════════════════════════════════════
   # Job 2: Repository integrity - cross-cutting consistency checks
-  # ═══════════════════════════════════════════════════════════
   repo-integrity:
     runs-on: ubuntu-latest
     steps:
@@ -73,9 +69,12 @@ jobs:
       - name: Run repository integrity tests
         run: python3 .github/scripts/test_repo_integrity.py
 
-  # ═══════════════════════════════════════════════════════════
+      - name: Audit settings search coverage
+        # Gates on settings sub-pages that no search entry can open, and reports
+        # the section headers and setting rows that are still not indexed.
+        run: python3 .github/scripts/audit_search_coverage.py
+
   # Job 3: JSON configuration validation
-  # ═══════════════════════════════════════════════════════════
   json-validation:
     runs-on: ubuntu-latest
     steps:
@@ -90,9 +89,7 @@ jobs:
       - name: Validate theme.json and menu.json
         run: python3 .github/scripts/validate_json_configs.py
 
-  # ═══════════════════════════════════════════════════════════
   # Job 4: File hygiene - large files, whitespace, merge conflicts
-  # ═══════════════════════════════════════════════════════════
   file-hygiene:
     runs-on: ubuntu-latest
     steps:
@@ -111,9 +108,7 @@ jobs:
         run: python3 .github/scripts/check_file_hygiene.py ${{ github.event_name == 'push' && '--all' || '' }}
         continue-on-error: ${{ github.event_name == 'push' }}
 
-  # ═══════════════════════════════════════════════════════════
   # Job 5: Markdown lint
-  # ═══════════════════════════════════════════════════════════
   markdown-lint:
     runs-on: ubuntu-latest
     steps:
@@ -125,13 +120,11 @@ jobs:
         continue-on-error: true
         with:
           globs: |
+            README.md
             docs/**/*.md
             .github/*.md
-            .github/CONTRIBUTING.md
 
-  # ═══════════════════════════════════════════════════════════
   # Job 6: QML conventions - project linter regression gate
-  # ═══════════════════════════════════════════════════════════
   # shell/scripts/qml-lint-conventions.py has thousands of pre-existing
   # violations, so this job diffs against a stored baseline and fails only when
   # NEW violations appear. Regenerate with --update when intentional.
@@ -149,9 +142,7 @@ jobs:
       - name: Run QML convention regression check
         run: python3 .github/scripts/check_qml_conventions.py
 
-  # ═══════════════════════════════════════════════════════════
   # Job 7: QML structural syntax - brace balance + top-level component
-  # ═══════════════════════════════════════════════════════════
   # A QML syntax error (an inline `component` declared at the top level, or an
   # unbalanced brace) makes the whole shell fail to load, and the error
   # cascades through the module tree so the reported file is not the real
@@ -171,9 +162,7 @@ jobs:
       - name: Check QML structural syntax
         run: python3 .github/scripts/check_qml_syntax.py --source-root shell
 
-  # ═══════════════════════════════════════════════════════════
   # Job 8: Embedded bash - syntax-check bash/sh inside QML Process commands
-  # ═══════════════════════════════════════════════════════════
   # Quickshell runs `command: ["bash", "-c", `<script>`]` strings that qmllint
   # and shellcheck never see; a typo there only surfaces at runtime.
   embedded-bash:
@@ -190,9 +179,7 @@ jobs:
       - name: Check bash/sh scripts embedded in QML
         run: python3 .github/scripts/check_embedded_bash.py
 
-  # ═══════════════════════════════════════════════════════════
   # Job 9: Config cross-reference - QML config keys vs C++ declarations
-  # ═══════════════════════════════════════════════════════════
   # Catches Config./GlobalConfig. references that don't exist in the plugin's
   # CONFIG_PROPERTY declarations (renamed keys, typos) - the shell logs
   # "Cannot assign to non-existent property" and the widget silently breaks.
@@ -210,9 +197,7 @@ jobs:
       - name: Cross-check QML config references against C++ declarations
         run: python3 .github/scripts/check_config_references.py
 
-  # ═══════════════════════════════════════════════════════════
   # Job 10: actionlint - validate workflow files themselves
-  # ═══════════════════════════════════════════════════════════
   # Catches malformed ${{ }} expressions, bad `on:` keys, wrong permission
   # scopes, etc. that a plain YAML parse cannot.
   actionlint:
@@ -231,9 +216,7 @@ jobs:
       - name: Lint workflow files
         run: actionlint -shellcheck= -color -ignore 'missing input "app-id"' -ignore 'input "client-id" is not defined'
 
-  # ═══════════════════════════════════════════════════════════
-  # Job 10: Wayland static lifetime - catch exit-time SIGSEGVs
-  # ═══════════════════════════════════════════════════════════
+  # Job 11: Wayland static lifetime - catch exit-time SIGSEGVs
   # A class inheriting QWaylandClientExtensionTemplate<T> or QtWayland::* owns
   # a live wl_proxy. Holding one as a function-local (or other) static by
   # value tears it down from an exit handler after Qt's closed the display,
@@ -253,9 +236,7 @@ jobs:
       - name: Check for value-typed statics of Wayland proxy-wrapping types
         run: python3 .github/scripts/check_wayland_static_lifetime.py
 
-  # ═══════════════════════════════════════════════════════════
-  # Job 11: QML import completeness - missing/extra imports
-  # ═══════════════════════════════════════════════════════════
+  # Job 12: QML import completeness - missing/extra imports
   # No real Qt/QML toolchain is available here (qmllint6 can't resolve this
   # repo's qs.* directory-import convention at all), and no other job ever
   # loads the QML engine - see check_qml_imports.py's module docstring for
@@ -276,9 +257,7 @@ jobs:
       - name: Check QML import completeness
         run: python3 .github/scripts/check_qml_imports.py --shell-root shell
 
-  # ═══════════════════════════════════════════════════════════
-  # Job 12: QML template interpolation - unescaped bash ${...}
-  # ═══════════════════════════════════════════════════════════
+  # Job 13: QML template interpolation - unescaped bash ${...}
   # Bash embedded in QML backtick template literals must escape `${` as
   # `\${`; an unescaped `${1#v}` is parsed as JavaScript and fails with
   # "Expected token ','", which then cascades into "Type X unavailable" for
@@ -297,9 +276,22 @@ jobs:
       - name: Check for unescaped bash interpolation in QML template literals
         run: python3 .github/scripts/check_qml_template_interp.py
 
-  # ═══════════════════════════════════════════════════════════
+  # Job 14: Shell quality - syntax, shellcheck, strict mode, unsafe patterns
+  # check_shell_quality.sh is written for CI but was not wired into any
+  # workflow, so nothing was gating the shell scripts.
+  shell-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: Run shell quality checks
+        run: bash .github/scripts/check_shell_quality.sh
+
   # Final gate: require all non-skippable jobs to pass
-  # ═══════════════════════════════════════════════════════════
   validate-gate:
     needs:
       - python-quality
@@ -314,6 +306,7 @@ jobs:
       - wayland-static-lifetime
       - qml-imports
       - qml-template-interp
+      - shell-quality
     runs-on: ubuntu-latest
     if: always()
     steps:

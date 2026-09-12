@@ -1,23 +1,30 @@
 # Crowdin project mapping. Credentials come from the environment; see
-# .github/workflows/crowdin.yml and .github/docs/translations.md.
+# .github/workflows/crowdin.yml and docs/translations.md.
 project_id_env: CROWDIN_PROJECT_ID
 api_token_env: CROWDIN_PERSONAL_TOKEN
 base_path: "."
 preserve_hierarchy: true
 
 files:
-  # English is the source language and its catalogue is not committed: the
+  # English is the source language and its catalog is not committed: the
   # workflow regenerates it from the QML sources right before uploading, so the
   # repository carries translations and never a file of empty strings.
   #
   # %two_letters_code%, so Turkish is caelestia_tr.ts -- the name it already has
   # here and the one Qt looks for. %locale_with_underscore% was tried first and
   # writes caelestia_tr_TR.ts instead, which does not overwrite the existing
-  # catalogue so much as sit next to it as an empty duplicate.
+  # catalog so much as sit next to it as an empty duplicate.
   #
   # Two variants of one language (pt-BR and pt-PT, zh-CN and zh-TW) would both
   # want the bare code. That collides only once both are actually translated,
-  # since untranslated files are not exported at all; give them explicit names
-  # through languages_mapping when it happens.
+  # since untranslated files are not exported at all; both Chinese catalogs
+  # are translated, so the file below names them explicitly.
   - source: /shell/translations/caelestia_en.ts
     translation: /shell/translations/caelestia_%two_letters_code%.ts
+    # Per-file rather than top-level: the CLI drops unknown root keys, so a copy
+    # at the root is silently ignored instead of rejected. The values are the
+    # locale names Qt looks for.
+    languages_mapping:
+      two_letters_code:
+        zh-CN: zh_CN
+        zh-TW: zh_TW

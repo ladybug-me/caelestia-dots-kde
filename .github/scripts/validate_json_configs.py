@@ -2,9 +2,9 @@
 """Validate JSON configuration files for schema and internal consistency.
 
 Validates:
-  1. installer/theme.json - required top-level keys, color references are valid,
+  1. installer/data/theme.json - required top-level keys, color references are valid,
      ANSI codes match expected pattern.
-  2. installer/menu.json - valid menu tree, unique IDs, all action IDs are recognized,
+  2. installer/data/menu.json - valid menu tree, unique IDs, all action IDs are recognized,
      select options are non-empty, text defaults are strings.
 """
 
@@ -229,43 +229,13 @@ def validate_menu(filepath: Path) -> None:
 
     validate_menu_items(menu_items)
 
-    # Profiles are optional; each must have a unique id, a title, and a 'sets' object.
-    profiles = data.get("profiles")
-    if profiles is not None:
-        if not isinstance(profiles, list) or len(profiles) == 0:
-            error("menu.json: 'profiles' must be a non-empty array")
-        else:
-            profile_ids: set[str] = set()
-            for i, prof in enumerate(profiles):
-                prof_path = f"profiles[{i}]"
-                if not isinstance(prof, dict):
-                    error(f"menu.json: {prof_path} must be an object")
-                    continue
-                pid = prof.get("id")
-                if not isinstance(pid, str) or not pid.strip():
-                    error(f"menu.json: {prof_path} profile must have a non-empty string 'id'")
-                elif pid in profile_ids:
-                    error(f"menu.json: {prof_path} duplicate profile id '{pid}'")
-                else:
-                    profile_ids.add(pid)
-                title = prof.get("title")
-                if not isinstance(title, str) or not title.strip():
-                    error(f"menu.json: {prof_path} profile is missing a non-empty 'title'")
-                sets = prof.get("sets")
-                if not isinstance(sets, dict):
-                    error(f"menu.json: {prof_path} profile 'sets' must be an object")
-                else:
-                    for key, value in sets.items():
-                        if not isinstance(value, (bool, str)):
-                            error(f"menu.json: {prof_path} sets.{key} must be a boolean or string")
-
     if EXIT_CODE == 0:
         ok("menu.json passed validation")
 
 
 def main() -> int:
-    theme_path = ROOT / "installer" / "theme.json"
-    menu_path = ROOT / "installer" / "menu.json"
+    theme_path = ROOT / "installer" / "data" / "theme.json"
+    menu_path = ROOT / "installer" / "data" / "menu.json"
 
     if theme_path.is_file():
         validate_theme(theme_path)

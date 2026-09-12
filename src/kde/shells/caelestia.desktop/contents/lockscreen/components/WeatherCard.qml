@@ -1,6 +1,6 @@
 /*
     SPDX-FileCopyrightText: 2024 ladybug-me
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import QtQuick
@@ -12,10 +12,10 @@ Rectangle {
     id: root
 
     property real centerScale: 1.0
-    property color clSurfaceContainer: "#201f23"
-    property color clSurfaceFg: "#e5e1e7"
-    property color clSurfaceVariantFg: "#c8c5d1"
-    property color clPrimary: "#c2c1ff"
+    property color clSurfaceContainer: "#131b1a"
+    property color clSurfaceFg: "#dce8e6"
+    property color clSurfaceVariantFg: "#a2adac"
+    property color clPrimary: "#9bd0cc"
     property real cardRadius: 26
 
     readonly property bool isHorizontalLayout: root.width >= 300 && root.height >= 80
@@ -25,7 +25,7 @@ Rectangle {
     clip: true
 
     // Natural height = content + vertical padding so the card shrinks-to-fit
-    // when Layout.fillHeight is not set (matches Quickshell Content.qml behaviour)
+    // when Layout.fillHeight is not set (matches Quickshell Content.qml behavior)
     implicitHeight: isHorizontalLayout
                     ? (horizontalContent.implicitHeight + Math.max(16, 24 * centerScale))
                     : (compactContent.implicitHeight + Math.max(12, 20 * centerScale))

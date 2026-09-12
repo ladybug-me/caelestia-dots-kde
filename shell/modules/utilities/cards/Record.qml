@@ -117,6 +117,16 @@ StyledRect {
                         }
                     },
                     MenuItem {
+                        visible: Config.utilities.showGifRecorder
+                        icon: "animated_images"
+                        text: qsTr("Record GIF")
+                        activeText: qsTr("Start")
+                        onClicked: {
+                            root.visibilities.utilities = false;
+                            Recorder.startGif();
+                        }
+                    },
+                    MenuItem {
                         icon: "screenshot_region"
                         text: qsTr("Use Spectacle")
                         activeText: qsTr("Spectacle")

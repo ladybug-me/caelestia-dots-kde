@@ -1,7 +1,4 @@
 #include "keybindsmodel.hpp"
-#include "../Config/rootnodes.hpp"
-#include "../Config/generalconfig.hpp"
-#include "../Config/keybindsdefaults.hpp"
 
 #include <KGlobalAccel>
 #include <KGlobalShortcutInfo>
@@ -13,6 +10,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
+
+#include "../Config/generalconfig.hpp"
+#include "../Config/keybindsdefaults.hpp"
+#include "../Config/rootnodes.hpp"
 
 Q_LOGGING_CATEGORY(lcKeybinds, "caelestia.services.keybindsmodel", QtInfoMsg)
 
@@ -155,6 +156,17 @@ void KeybindsModel::resetKey(const QString& name) {
     } else {
         setKey(name, "");
     }
+}
+
+QString KeybindsModel::getKey(const QString& name) const {
+    if (auto* sc = GlobalShortcut::findByName(name)) {
+        return sc->key();
+    }
+    if (m_keybinds.contains(name)) {
+        return m_keybinds.value(name);
+    }
+    QJsonObject defaults = caelestia::config::defaultKeybinds();
+    return defaults.value(name).toString();
 }
 
 QVariantList KeybindsModel::query(const QString& searchText) const {
