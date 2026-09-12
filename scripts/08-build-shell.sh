@@ -285,7 +285,7 @@ shell_release_tag() {
 # version binary) into $HOME/.local, and quickshell/caelestia/ (the shell QML
 # source with the install-time shell.qml patch) into $HOME/.config.
 try_download_prebuilt_shell() {
-    local arch qt_abi tag tmp_archive url checksum expected actual
+    local arch qt_abi tag tmp_archive url checksum expected actual asset candidate
     arch="$(uname -m)"
     [[ "$arch" == "x86_64" ]] || return 1
     [[ -f /etc/arch-release ]] || return 1
@@ -293,12 +293,23 @@ try_download_prebuilt_shell() {
     tag="$(shell_release_tag)"
     [[ -n "$qt_abi" && -n "$tag" ]] || return 1
 
+    # The asset is named after the project: caelestia-kde-<arch>-qt<abi>.tar.gz.
+    # Releases cut before that rename still carry the old caelestia-shell- name,
+    # so try the current one first and fall back rather than dropping those
+    # users onto a local compile.
     tmp_archive="$(mktemp --suffix=.tar.gz)"
-    url="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/caelestia-shell-${arch}-qt${qt_abi}.tar.gz"
+    url=""
     info "Downloading prebuilt shell artifacts (${tag}, Qt ${qt_abi})..."
-    if ! curl -fL --connect-timeout 10 --progress-bar "$url" -o "$tmp_archive"; then
-        warn "Failed to download prebuilt shell artifacts from $url"
+    for asset in "caelestia-kde-${arch}-qt${qt_abi}.tar.gz" "caelestia-shell-${arch}-qt${qt_abi}.tar.gz"; do
+        candidate="https://github.com/ladybug-me/caelestia-dots-kde/releases/download/${tag}/${asset}"
+        if curl -fL --connect-timeout 10 --progress-bar "$candidate" -o "$tmp_archive"; then
+            url="$candidate"
+            break
+        fi
         rm -f "$tmp_archive"
+    done
+    if [[ -z "$url" ]]; then
+        warn "No prebuilt shell artifacts published for ${tag} (Qt ${qt_abi}) - falling back to a local build."
         return 1
     fi
 

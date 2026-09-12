@@ -545,6 +545,7 @@ download against the `.sha256` published beside it:
 |---|---|
 | `Prebuilt shell artifacts match the published checksum.` | Normal: the prebuilt archive is installed. |
 | `No published checksum for ... - extracting without verification.` | The release predates checksums. The install continues. |
+| `No prebuilt shell artifacts published for <tag> (Qt <abi>) - falling back to a local build.` | The release carries no archive for this Qt feature version. The step builds locally instead. |
 | `Checksum mismatch for ...` | The download was truncated or tampered with. The step falls back to building the shell locally. |
 
 A mismatch is not fatal: the installer builds from source instead, which takes longer but cannot
