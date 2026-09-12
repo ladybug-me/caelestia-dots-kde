@@ -36,3 +36,7 @@ cava/
 # is the source language, and the catalogue is thousands of empty entries.
 /shell/translations/caelestia_en.ts
 /shell/translations/caelestia_en.qm
+
+# caelestia-kde
+caelestia-kde-plugins/
+wallpaper-selector/

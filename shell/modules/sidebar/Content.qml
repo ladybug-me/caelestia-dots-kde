@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.controls
@@ -137,6 +138,7 @@ Item {
                                         fontStyle: Tokens.font.icon.small
                                         fill: tabBtn.active ? 1 : 0
 
+                                        Behavior on color { CAnim {} }
                                         Behavior on fill { Anim { type: Anim.DefaultEffects } }
                                     }
 
@@ -145,6 +147,8 @@ Item {
                                         text: tabBtn.modelData.label
                                         color: tabBtn.active ? Colours.palette.m3primary : stateLayer.containsMouse ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
                                         font: Tokens.font.label.medium
+
+                                        Behavior on color { CAnim {} }
                                     }
                                 }
                             }

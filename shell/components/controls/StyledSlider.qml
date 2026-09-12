@@ -163,7 +163,7 @@ Slider {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-
+        cursorShape: Qt.PointingHandCursor
         preventStealing: true
         implicitHeight: handle.implicitHeight
 

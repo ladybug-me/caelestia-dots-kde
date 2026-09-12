@@ -18,11 +18,11 @@ Item {
         anchors.fill: parent
         radius: Tokens.rounding.medium
         color: Colours.palette.m3onSurface
-        opacity: catRoot.selected ? 0.10 : (catHover.containsMouse ? 0.05 : 0)
+        opacity: catRoot.selected ? 0.10 : 0
 
         Behavior on opacity {
             Anim {
-                type: Anim.StandardSmall
+                type: Anim.DefaultEffects
             }
         }
     }

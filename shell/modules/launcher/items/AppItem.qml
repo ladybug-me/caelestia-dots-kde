@@ -3,6 +3,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
+import Caelestia
 import Caelestia.Config
 import qs.components
 import qs.components.containers
@@ -78,14 +79,16 @@ Item {
             }
         }
 
-        MouseArea {
+        StateLayer {
             id: hideIcon
 
-            width: 32
-            height: 32
+            anchors.fill: undefined
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            hoverEnabled: true
+            width: 32
+            height: 32
+            radius: Tokens.rounding.full
+
             onClicked: {
                 const appId = root.modelData?.id;
                 if (!appId)
@@ -105,18 +108,24 @@ Item {
                 anchors.centerIn: parent
                 text: Strings.testRegexList(GlobalConfig.launcher.hiddenApps, root.modelData?.id) ? "visibility_off" : "visibility"
                 color: hideIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
         }
 
-        MouseArea {
+        StateLayer {
             id: favIcon
 
-            width: 32
-            height: 32
+            anchors.fill: undefined
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: hideIcon.left
             anchors.rightMargin: Tokens.padding.small
-            hoverEnabled: true
+            width: 32
+            height: 32
+            radius: Tokens.rounding.full
+
             onClicked: {
                 const appId = root.modelData?.id;
                 if (!appId)
@@ -137,36 +146,31 @@ Item {
                 text: Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData?.id) ? "favorite" : "favorite_border"
                 fill: Strings.testRegexList(GlobalConfig.launcher.favouriteApps, root.modelData?.id) ? 1 : 0
                 color: favIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
         }
 
-        MouseArea {
+        StateLayer {
             id: pinIcon
-
-            width: 32
-            height: 32
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.right: favIcon.left
-            anchors.rightMargin: Tokens.padding.small
-            hoverEnabled: true
 
             property bool isPinned: false
 
-            Process {
-                id: checkPinnedProc
-
-                command: ["sh", "-c", "test -f ~/Desktop/\"$1\" || test -f ~/Desktop/\"$1.desktop\"", "--", root.modelData?.id ?? ""]
-                running: true
-                onExited: code => {
-                    pinIcon.isPinned = (code === 0);
-                }
-            }
+            anchors.fill: undefined
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: favIcon.left
+            anchors.rightMargin: Tokens.padding.small
+            width: 32
+            height: 32
+            radius: Tokens.rounding.full
 
             onClicked: {
                 const appId = root.modelData?.id;
                 if (!appId)
                     return;
-                
+
                 if (isPinned) {
                     Quickshell.execDetached([
                         "sh", "-c", 
@@ -184,11 +188,25 @@ Item {
                 }
             }
 
+            Process {
+                id: checkPinnedProc
+
+                command: ["sh", "-c", "test -f ~/Desktop/\"$1\" || test -f ~/Desktop/\"$1.desktop\"", "--", root.modelData?.id ?? ""]
+                running: true
+                onExited: code => {
+                    pinIcon.isPinned = (code === 0);
+                }
+            }
+
             MaterialIcon {
                 anchors.centerIn: parent
                 text: "push_pin"
                 fill: pinIcon.isPinned ? 1 : 0
                 color: pinIcon.isPinned ? Colours.palette.m3primary : (pinIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant)
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
         }
     }

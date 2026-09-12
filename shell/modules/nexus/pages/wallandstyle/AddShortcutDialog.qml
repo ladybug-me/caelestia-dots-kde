@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -10,6 +12,8 @@ import qs.services
 Popup {
     id: root
 
+    property var targetItem: null
+
     signal saved(string label, string cmd, string icon)
 
     width: 300
@@ -18,8 +22,6 @@ Popup {
     modal: true
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-
-    property var targetItem: null
     parent: Overlay.overlay
 
     x: targetItem && parent ? Math.min(parent.width - width - 16, Math.max(16, targetItem.mapToItem(parent, targetItem.width - width, targetItem.height + 8).x)) : (parent ? Math.round((parent.width - width) / 2) : 0)
@@ -58,7 +60,7 @@ Popup {
 
         Text {
             text: qsTr("Add Custom Shortcut")
-            font: Tokens.fonts.bodyLarge
+            font: Tokens.font.body.large
             color: Colours.palette.m3onSurface
             Layout.fillWidth: true
             Layout.bottomMargin: 8

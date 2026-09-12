@@ -234,8 +234,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#e53935")
                         }
                     }
@@ -257,8 +258,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#1e88e5")
                         }
                     }
@@ -280,8 +282,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#43a047")
                         }
                     }
@@ -303,8 +306,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#fdd835")
                         }
                     }
@@ -326,8 +330,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#8e24aa")
                         }
                     }
@@ -349,8 +354,9 @@ PageBase {
                             border.color: Colours.palette.m3onSurface
                         }
 
-                        MouseArea {
+                        StateLayer {
                             anchors.fill: parent
+                            radius: parent.radius
                             onClicked: root.toggleSortColor("#fb8c00")
                         }
                     }

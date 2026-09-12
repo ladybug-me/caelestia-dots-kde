@@ -12,9 +12,12 @@ Item {
     implicitWidth: Math.round(Tokens.font.body.large.pointSize * 1.2)
     implicitHeight: Math.round(Tokens.font.body.large.pointSize * 1.2)
 
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+    StateLayer {
+        anchors.fill: undefined
+        anchors.centerIn: parent
+        implicitWidth: root.implicitWidth + Tokens.padding.medium
+        implicitHeight: root.implicitHeight + Tokens.padding.medium
+        radius: Tokens.rounding.full
         onClicked: {
             const visibilities = Visibilities.getForActive();
             visibilities.launcher = !visibilities.launcher;

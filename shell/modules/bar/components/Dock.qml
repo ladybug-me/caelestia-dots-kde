@@ -444,15 +444,24 @@ Item {
                     Drag.source: delegateItem
                     Drag.hotSpot.x: width / 2
                     Drag.hotSpot.y: height / 2
+                    StyledRect {
+                        anchors.fill: parent
+                        radius: Tokens.rounding.medium
+                        color: Colours.palette.m3onSurface
+                        opacity: delegateItem.isActive ? 0.1 : 0
+
+                        Behavior on opacity {
+                            Anim {
+                                type: Anim.DefaultEffects
+                            }
+                        }
+                    }
+
                     StateLayer {
                         id: stateLayer
 
                         anchors.fill: parent
                         radius: Tokens.rounding.medium
-
-                        color: delegateItem.isActive ? Colours.palette.m3onSurface : "transparent"
-                        opacity: delegateItem.isActive ? 0.1 : 0
-
                         acceptedButtons: Qt.NoButton
 
                         onEntered: {

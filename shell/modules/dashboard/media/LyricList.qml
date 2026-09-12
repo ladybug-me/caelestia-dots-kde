@@ -1,8 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
+import QtQuick.Effects
+import Caelestia
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
@@ -302,11 +303,14 @@ Item {
             }
 
             MouseArea {
+                id: mouse
+
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (Players.active) {
-                        let time = Lyrics.timeForIndex(index);
+                        const time = Lyrics.timeForIndex(lyric.index);
                         if (time >= 0) {
                             Players.active.position = time + Lyrics.offset + 0.01;
                         }
@@ -314,22 +318,13 @@ Item {
                 }
             }
 
+            Behavior on color {
+                CAnim {}
+            }
+
             Behavior on effectScale {
                 Anim {
                     type: Anim.SlowEffects
-                }
-            }
-
-            MouseArea {
-                id: mouse
-
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                hoverEnabled: true
-                onClicked: {
-                    const p = Players.active;
-                    if (p)
-                        p.position = Lyrics.timeForIndex(lyric.index);
                 }
             }
         }

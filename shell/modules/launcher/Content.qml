@@ -378,18 +378,10 @@ Item {
             anchors.rightMargin: Tokens.spacing.small
 
             width: (root.isClipboardMode && Clipboard.items.length > 0) ? implicitWidth : implicitWidth / 2
-            opacity: {
-                if (!root.isClipboardMode || Clipboard.items.length === 0)
-                    return 0;
-                if (clipboardMouse.pressed)
-                    return 0.7;
-                if (clipboardMouse.containsMouse)
-                    return 0.8;
-                return 1;
-            }
+            opacity: (root.isClipboardMode && Clipboard.items.length > 0) ? 1 : 0
 
             text: "delete"
-            color: Colours.palette.m3onSurfaceVariant
+            color: clipboardMouse.containsMouse ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
 
             MouseArea {
                 id: clipboardMouse
@@ -407,6 +399,10 @@ Item {
                     else
                         root.clearClipboardHistory();
                 }
+            }
+
+            Behavior on color {
+                CAnim {}
             }
 
             Behavior on width {
@@ -430,18 +426,10 @@ Item {
             anchors.rightMargin: root.padding
 
             width: search.text ? implicitWidth : implicitWidth / 2
-            opacity: {
-                if (!search.text)
-                    return 0;
-                if (mouse.pressed)
-                    return 0.7;
-                if (mouse.containsMouse)
-                    return 0.8;
-                return 1;
-            }
+            opacity: search.text ? 1 : 0
 
             text: "close"
-            color: Colours.palette.m3onSurfaceVariant
+            color: mouse.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
 
             MouseArea {
                 id: mouse
@@ -451,6 +439,10 @@ Item {
                 cursorShape: search.text ? Qt.PointingHandCursor : undefined
 
                 onClicked: search.text = ""
+            }
+
+            Behavior on color {
+                CAnim {}
             }
 
             Behavior on width {

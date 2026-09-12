@@ -210,14 +210,10 @@ Item {
                 implicitHeight: col.implicitHeight + Tokens.padding.medium * 2
                 radius: Tokens.rounding.medium
                 
-                color: ma.containsMouse ? root.cBgHighest : root.cBgHigh
+                color: root.cBgHigh
 
-                MouseArea {
-                    id: ma
-
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
+                StateLayer {
+                    radius: parent.radius
                     onClicked: Qt.openUrlExternally(delegateItem.link)
                 }
 

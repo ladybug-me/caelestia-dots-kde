@@ -75,11 +75,11 @@ PageBase {
         // the text binding above, so without this a failed save would keep
         // showing a key that never reached the keyring.
         Connections {
-            target: root
-
-            onKeyringRevisionChanged: {
+            function onKeyringRevisionChanged(): void {
                 keyInput.text = keyField.value;
             }
+
+            target: root
         }
     }
 
@@ -811,6 +811,10 @@ PageBase {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: accRect.isDefault ? root.logoutDefault() : root.removeAccount(accRect.modelData.id)
+                        }
+
+                        Behavior on color {
+                            CAnim {}
                         }
                     }
                 }

@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
-import QtQuick.Layouts
+import Caelestia
 import Caelestia.Config
 import Caelestia.Services
 import qs.components
@@ -142,6 +143,10 @@ ConnectedRect {
                                     root.keybindEdited(parts.join("; "))
                                 }
                             }
+
+                            Behavior on color {
+                                CAnim {}
+                            }
                         }
                     }
                 }
@@ -163,6 +168,10 @@ ConnectedRect {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.addClicked(addIcon)
                 }
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
 
             MaterialIcon {
@@ -179,6 +188,10 @@ ConnectedRect {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.resetClicked()
+                }
+
+                Behavior on color {
+                    CAnim {}
                 }
             }
         }

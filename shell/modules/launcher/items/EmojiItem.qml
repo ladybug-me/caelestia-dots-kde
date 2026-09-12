@@ -62,14 +62,18 @@ Item {
             elide: Text.ElideRight
         }
 
-        MouseArea {
+        StateLayer {
             id: favIcon
 
-            width: 32
-            height: 32
+            readonly property bool isFav: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.ch)
+
+            anchors.fill: undefined
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            hoverEnabled: true
+            width: 32
+            height: 32
+            radius: Tokens.rounding.full
+
             onClicked: {
                 const emojiChar = root.modelData?.ch;
                 if (!emojiChar)
@@ -85,13 +89,15 @@ Item {
                 GlobalConfig.launcher.favouriteEmojis = favEmojis;
             }
 
-            readonly property bool isFav: GlobalConfig.launcher.favouriteEmojis && GlobalConfig.launcher.favouriteEmojis.includes(root.modelData?.ch)
-
             MaterialIcon {
                 anchors.centerIn: parent
                 text: favIcon.isFav ? "favorite" : "favorite_border"
                 fill: favIcon.isFav ? 1 : 0
                 color: favIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
         }
     }

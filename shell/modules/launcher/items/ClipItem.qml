@@ -53,6 +53,9 @@ Item {
             imagePreview.imagePath = "";
         }
     }
+    implicitHeight: (root.modelData?.isImage ?? false) ? Tokens.sizes.launcher.itemHeight * 2 : Tokens.sizes.launcher.itemHeight
+    anchors.left: parent?.left
+    anchors.right: parent?.right
 
     onModelDataChanged: updateImage()
     Component.onCompleted: updateImage()
@@ -60,19 +63,13 @@ Item {
     /// Listen for the imageReady signal from the C++ backend (forwarded via Clipboard singleton).
     /// This fires as soon as the decoded file is fully written — no timers needed.
     Connections {
-        target: Clipboard
-
         function onImageReady(id: int, path: string): void {
             if (root.modelData?.isImage && id === root.modelData.id)
                 imagePreview.imagePath = path;
         }
+
+        target: Clipboard
     }
-
-    implicitHeight: (root.modelData?.isImage ?? false) ? Tokens.sizes.launcher.itemHeight * 2 : Tokens.sizes.launcher.itemHeight
-
-    anchors.left: parent?.left
-
-    anchors.right: parent?.right
 
     StateLayer {
         radius: Tokens.rounding.large
@@ -126,14 +123,16 @@ Item {
             visible: !(root.modelData?.isImage ?? false)
         }
 
-        MouseArea {
+        StateLayer {
             id: pinIcon
 
-            width: 32
-            height: 32
+            anchors.fill: undefined
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            hoverEnabled: true
+            width: 32
+            height: 32
+            radius: Tokens.rounding.full
+
             onClicked: {
                 if (!root.modelData)
                     return;
@@ -148,6 +147,10 @@ Item {
                 text: root.isPinned ? "keep" : "keep_off"
                 fill: root.isPinned ? 1 : 0
                 color: pinIcon.containsMouse ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+
+                Behavior on color {
+                    CAnim {}
+                }
             }
         }
     }

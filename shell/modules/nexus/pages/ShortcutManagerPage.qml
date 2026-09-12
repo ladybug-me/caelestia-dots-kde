@@ -6,13 +6,12 @@ import Caelestia.Config
 import Caelestia.Services
 import qs.components
 import qs.components.controls
+import qs.services
 import qs.utils
 import qs.modules.nexus.common
 
 PageBase {
     id: root
-
-    title: qsTr("Shortcuts")
 
     property var shellShortcuts: []
 
@@ -35,7 +34,7 @@ PageBase {
         return searchable.includes(query);
     }
 
-    function updateLists() {
+    function updateLists(): void {
         let all = KeybindsModel.query("")
         let shell = []
         let apps = []
@@ -72,15 +71,16 @@ PageBase {
         tilingShortcuts = tiling
     }
 
-    onShortcutQueryChanged: updateLists()
-
-    function openCaptureDialog(name: string, currentKey: string, targetItem: var) {
+    function openCaptureDialog(name: string, currentKey: string, targetItem: var): void {
         dialogLoader.active = true
         dialogLoader.item.shortcutName = name
         dialogLoader.item.currentKey = currentKey
         dialogLoader.item.targetItem = targetItem
         dialogLoader.item.open()
     }
+
+    title: qsTr("Shortcuts")
+    onShortcutQueryChanged: updateLists()
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -91,11 +91,11 @@ PageBase {
         Component.onCompleted: updateLists()
 
         Connections {
-            target: KeybindsModel
-
-            function onKeybindsChanged() {
+            function onKeybindsChanged(): void {
                 updateLists()
             }
+
+            target: KeybindsModel
         }
 
         Loader {

@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -15,12 +17,11 @@ Popup {
     property string shortcutName: ""
     property string currentKey: ""
     property string capturedKey: ""
+    property var targetItem: null
 
     signal confirm(string name, string newKey)
     signal clear(string name)
     signal unblocked()
-
-    property var targetItem: null
 
     width: 320
     padding: 24
@@ -66,28 +67,6 @@ Popup {
         }
     }
 
-    Timer {
-        id: focusTimer
-
-        interval: 10
-        onTriggered: focusScope.forceActiveFocus()
-    }
-
-    Process {
-        id: blockShortcutsProc
-
-        command: ["bash", "-c", "gdbus call --session --dest=org.kde.kglobalaccel --object-path=/kglobalaccel --method=org.kde.KGlobalAccel.blockGlobalShortcuts 'true'"]
-    }
-
-    Process {
-        id: unblockShortcutsProc
-
-        command: ["bash", "-c", "gdbus call --session --dest=org.kde.kglobalaccel --object-path=/kglobalaccel --method=org.kde.KGlobalAccel.blockGlobalShortcuts 'false'"]
-        onExited: {
-            root.unblocked()
-        }
-    }
-
     onOpened: {
         capturedKey = ""
         blockShortcutsProc.running = true
@@ -111,23 +90,9 @@ Popup {
 
         FocusScope {
             id: focusScope
+
             Layout.fillWidth: true
             Layout.preferredHeight: 64
-
-            Rectangle {
-                anchors.fill: parent
-                color: focusScope.activeFocus ? Colours.palette.m3primaryContainer : Colours.palette.m3surfaceVariant
-                radius: Tokens.radius.medium
-                border.width: focusScope.activeFocus ? 2 : 1
-                border.color: focusScope.activeFocus ? Colours.palette.m3primary : Colours.palette.m3outline
-
-                StyledText {
-                    anchors.centerIn: parent
-                    text: root.capturedKey === "" ? qsTr("Press keys now...") : root.capturedKey
-                    font: Tokens.font.body.large
-                    color: focusScope.activeFocus ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurfaceVariant
-                }
-            }
 
             Keys.onPressed: (event) => {
                 let modifiers = ""
@@ -176,6 +141,21 @@ Popup {
                 }
                 event.accepted = true
             }
+
+            Rectangle {
+                anchors.fill: parent
+                color: focusScope.activeFocus ? Colours.palette.m3primaryContainer : Colours.palette.m3surfaceVariant
+                radius: Tokens.rounding.medium
+                border.width: focusScope.activeFocus ? 2 : 1
+                border.color: focusScope.activeFocus ? Colours.palette.m3primary : Colours.palette.m3outline
+
+                StyledText {
+                    anchors.centerIn: parent
+                    text: root.capturedKey === "" ? qsTr("Press keys now...") : root.capturedKey
+                    font: Tokens.font.body.large
+                    color: focusScope.activeFocus ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurfaceVariant
+                }
+            }
         }
 
         RowLayout {
@@ -201,6 +181,28 @@ Popup {
                     root.close()
                 }
             }
+        }
+    }
+
+    Timer {
+        id: focusTimer
+
+        interval: 10
+        onTriggered: focusScope.forceActiveFocus()
+    }
+
+    Process {
+        id: blockShortcutsProc
+
+        command: ["bash", "-c", "gdbus call --session --dest=org.kde.kglobalaccel --object-path=/kglobalaccel --method=org.kde.KGlobalAccel.blockGlobalShortcuts 'true'"]
+    }
+
+    Process {
+        id: unblockShortcutsProc
+
+        command: ["bash", "-c", "gdbus call --session --dest=org.kde.kglobalaccel --object-path=/kglobalaccel --method=org.kde.KGlobalAccel.blockGlobalShortcuts 'false'"]
+        onExited: {
+            root.unblocked()
         }
     }
 }

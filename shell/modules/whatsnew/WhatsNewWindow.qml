@@ -546,32 +546,10 @@ FloatingWindow {
                         Layout.fillWidth: true
                         spacing: Tokens.spacing.medium
 
-                        StyledRect {
-                            Layout.preferredWidth: 48
-                            Layout.preferredHeight: 48
-                            radius: Tokens.rounding.full
-                            color: backLayer.containsMouse ? Colours.palette.m3surfaceVariant : "transparent"
-
-                            Behavior on color { CAnim {} }
-
-                            StateLayer {
-                                id: backLayer
-
-                                anchors.fill: parent
-                                topLeftRadius: parent.radius
-                                topRightRadius: parent.radius
-                                bottomLeftRadius: parent.radius
-                                bottomRightRadius: parent.radius
-
-                                onClicked: stackView.pop()
-                            }
-
-                            MaterialIcon {
-                                anchors.centerIn: parent
-                                text: "arrow_back"
-                                color: Colours.palette.m3onSurface
-                                fontStyle: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
-                            }
+                        IconButton {
+                            icon: "arrow_back"
+                            type: IconButton.Standard
+                            onClicked: stackView.pop()
                         }
 
                         StyledText {

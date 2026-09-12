@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.components
+import qs.services
 import qs.utils
 
 // Round connect/disconnect button shared by the bar popouts. Callers declare
