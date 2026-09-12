@@ -149,22 +149,6 @@ jobs:
               --latest
           fi
 
-      - name: Update README Contributor Stats
-        run: |
-          set -euo pipefail
-
-          python3 .github/scripts/contributors.py --update-readme
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          if git diff --cached --quiet; then
-            echo "No contributor changes to commit."
-          else
-            git commit -m "[skip ci] Update contributor stats for $VERSION"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
-
       - name: Open Sync PR to dev
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -177,7 +161,7 @@ jobs:
             --base dev \
             --head main \
             --title "chore: sync main back to dev after $VERSION" \
-            --body "This is an automated PR to sync the newly updated contributor stats and release tags from \`main\` back into \`dev\`." || true
+            --body "This is an automated PR to sync the new release tags from \`main\` back into \`dev\`." || true
 
   # ═══════════════════════════════════════════════════════════
   # Precompile the Caelestia shell (the C++ QML plugin modules and
