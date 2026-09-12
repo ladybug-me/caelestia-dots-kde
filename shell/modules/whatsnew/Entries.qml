@@ -7,7 +7,9 @@ import Quickshell
 // entry above them. Never renumber or reorder an entry that has already
 // shipped: an entry's revision is how the shell records that a user has
 // acknowledged it, so changing one either re-shows the entry to everybody or
-// hides it from them. See the authoring notes in ../../assets/whatsnew/README.md.
+// hides it from them. Pruning old entries is fine, but their revisions stay
+// used up, which is why this list does not start at 1. See the authoring notes
+// in ../../assets/whatsnew/README.md.
 QtObject {
     // Bare media names are resolved against this directory; "root:" addresses a
     // shared shell asset, matching the convention used by GlobalConfig paths.
@@ -15,67 +17,53 @@ QtObject {
 
     readonly property var list: [
         {
-            "id": "welcome_intro",
-            "revision": 1,
-            "icon": "celebration",
-            "title": qsTr("Welcome to Caelestia Updates"),
-            "description": qsTr("Whenever we introduce exciting new features, they will appear here so you never miss out. Enjoy the refined aesthetic and improved functionality!"),
-            "mediaUrl": "root:/assets/kurukuru.gif"
+            "id": "window_switcher_addons",
+            "revision": 9,
+            "icon": "tab",
+            "title": qsTr("Window Switcher Add-ons"),
+            "description": qsTr("The window switcher now runs on a KWin-native backend, and window previews are cached so they appear instantly. Its own page under Settings -> Panels -> Window Switcher adds filtering by current desktop, minimized windows, windows from all screens, a live preview on the workspace, and a switch to turn it off entirely.")
         },
         {
-            "id": "update_indicator",
-            "revision": 2,
-            "icon": "system_update",
-            "title": qsTr("Taskbar Update Indicator"),
-            "description": qsTr("Caelestia can now be updated from the system tray. Hover to show available options, left click to open the Update page and right click to check for updates. Can be enabled from Settings -> Panels -> Taskbar -> Toggle & rearrange -> Updates."),
-            "mediaUrl": "update_indicator_9b5fa56.png"
+            "id": "notification_monitor_fullscreen",
+            "revision": 10,
+            "icon": "notifications",
+            "title": qsTr("Notifications on Any Screen"),
+            "description": qsTr("Notification popups can now follow the screen they belong to instead of always using the focused one, and the shell can stay quiet while a fullscreen app is focused. Both live in Settings -> Services -> Notifications, as 'Display on screen' and 'Show in fullscreen'.")
         },
         {
-            "id": "permanent_shell",
-            "revision": 3,
-            "icon": "keyboard_return",
-            "title": qsTr("Integrated more than ever"),
-            "description": qsTr("1. Alt+F4 no longer closes the shell. 2. Whenever you open and close any drawer, it will seamlessly return focus to the window you were previously using! 3. KWin native protocols are used to interact with windows, creating a much faster experience!")
+            "id": "gif_recording",
+            "revision": 11,
+            "icon": "gif_box",
+            "title": qsTr("GIF Recording"),
+            "description": qsTr("The screen recorder can capture a region straight to an animated GIF. Choose Record GIF from the recorder menu - it is enabled by default and can be switched off under Settings -> Utilities -> Utilities panel.")
         },
         {
-            "id": "text_recognition",
-            "revision": 4,
-            "icon": "text_fields",
-            "title": qsTr("Text Recognition (OCR)"),
-            "description": qsTr("Extract text from any image or region on your screen instantly. Use the new Meta+Shift+D shortcut to select an area, and the recognized text will be automatically copied to your clipboard."),
-            "mediaUrl": "text_recognition_512.png"
+            "id": "sddm_theme_default",
+            "revision": 12,
+            "icon": "login",
+            "title": qsTr("SDDM Theme Out of the Box"),
+            "description": qsTr("The Material You login screen, with wallpaper and color sync, is now installed by default, so the greeter matches your desktop from the first boot. It remains optional in the installer for anyone who prefers the stock theme.")
         },
         {
-            "id": "window_region_selector",
-            "revision": 5,
-            "icon": "desktop_windows",
-            "title": qsTr("Window Region Selector"),
-            "description": qsTr("Capture specific application windows effortlessly. Toggle 'Window Selector' mode in the screenshot toolbar to automatically crop individual windows for screenshots / Google Search / text recognition. Hover over windows to preview them, then click to capture cleanly without manual cropping."),
-            "mediaUrl": "window_region_selector_516.mp4"
+            "id": "audio_reactive_desktop_shapes",
+            "revision": 13,
+            "icon": "graphic_eq",
+            "title": qsTr("Audio-Reactive Desktop Shapes"),
+            "description": qsTr("The media visualiser is now a set of audio-reactive material shapes, and it can live on the wallpaper as well as in the dashboard. Turn on 'Desktop media shapes' under Settings -> Desktop -> Desktop Addons and let it auto-hide while a window is open.")
         },
         {
-            "id": "plugin_system",
-            "revision": 6,
-            "icon": "extension",
-            "title": qsTr("Plugin System"),
-            "description": qsTr("Caelestia now supports a plugin ecosystem for expanding the shell without touching core files. Browse community plugins, install them directly, and manage everything from the built-in plugin system to personalize your desktop experience."),
-            "mediaUrl": "plugin_system_546.png"
+            "id": "chinese_translations",
+            "revision": 14,
+            "icon": "translate",
+            "title": qsTr("Chinese Translations"),
+            "description": qsTr("The shell now ships Simplified and Traditional Chinese catalogues, so the interface follows your language instead of staying English. Pick one from Settings -> Language & region.")
         },
         {
-            "id": "lockscreen_greeter",
-            "revision": 7,
-            "icon": "lock",
-            "title": qsTr("Lockscreen Greeter"),
-            "description": qsTr("The Caelestia lock screen brings the modern Quickshell lockscreen design into native KDE Plasma 6"),
-            "mediaUrl": "lockscreen_greeter_600.png"
-        },
-        {
-            "id": "greeter_addons",
-            "revision": 8,
-            "icon": "face",
-            "title": qsTr("Greeter Add-ons"),
-            "description": qsTr("Add more fun elements to the greeter, such as a Slideshow mode, you can also change the media files and text, right click on the greeter widget to explore all the options!"),
-            "mediaUrl": "greeter_addons_682.png"
+            "id": "caelestia_kde_identity",
+            "revision": 15,
+            "icon": "auto_awesome",
+            "title": qsTr("A New Name and Look"),
+            "description": qsTr("The project is now caelestia-kde. The repository, its references and the artwork have been renamed and brought onto one palette and one logo. Your configuration and settings are untouched.")
         }
     ]
 

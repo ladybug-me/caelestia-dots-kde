@@ -11,7 +11,7 @@ Append an object to the end of `list` in `Entries.qml`:
 ```qml
 {
     "id": "some_short_handle",
-    "revision": 9,
+    "revision": 16,
     "icon": "extension",
     "title": qsTr("A headline"),
     "description": qsTr("The full text, shown when the entry is opened."),
@@ -19,11 +19,12 @@ Append an object to the end of `list` in `Entries.qml`:
 }
 ```
 
-- `id` - a stable handle. It is also what the one-time import uses to recognise
-  entries a user saw before revisions existed, so never reuse or rename one.
+- `id` - a stable handle. Never reuse or rename one.
 - `revision` - higher than every entry above it. Revisions are what the shell
   records acknowledgement against, so changing one either re-shows the entry to
   everybody or hides it from them. Never renumber or reorder a shipped entry.
+  Pruning entries from the list is fine; acknowledged revisions that no longer
+  match an entry are ignored.
 - `icon` - a Material icon name. Optional.
 - `title`, `description` - wrapped in `qsTr()` so lupdate can extract them.
 - `mediaUrl` - a filename in this directory, or `root:/assets/...` to point at a
@@ -42,11 +43,10 @@ does not exist.
 Acknowledgement is stored in `~/.local/state/caelestia/whatsnew.json`:
 
 ```json
-{ "schemaVersion": 1, "acknowledged": [1, 2, 3] }
+{ "schemaVersion": 1, "acknowledged": [9, 10, 11] }
 ```
 
 Opening an entry adds its revision to that list. Closing the window changes
-nothing. On the first run after upgrading from a build that used
-`~/.local/share/caelestia/state/seen_features.txt`, the ids in that file are
-mapped onto revisions and imported as acknowledged; the old file itself is left
-alone.
+nothing. Revisions that no longer match an entry are ignored, so pruning an old
+entry neither re-shows nor hides anything for a user who already acknowledged
+it.

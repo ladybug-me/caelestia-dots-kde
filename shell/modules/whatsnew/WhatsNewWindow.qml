@@ -29,23 +29,8 @@ FloatingWindow {
     readonly property var history: entriesModel.list.slice().sort((a, b) => b.revision - a.revision)
     readonly property int unreadCount: entriesModel.list.filter(entry => !root.acknowledged.includes(entry.revision)).length
 
-    // Ids used by the pre-revision seen_features.txt. Delete once no user can
-    // still have that file.
-    readonly property var legacyEntryIds: ({
-        "welcome_widget_intro#491": "welcome_intro",
-        "update_indicator_9b5fa56": "update_indicator",
-        "permanent_shell_#495": "permanent_shell",
-        "text_recognition#512": "text_recognition",
-        "window_region_selector#516": "window_region_selector",
-        "plugin_system#546": "plugin_system",
-        "lockscreen-greeter#600": "lockscreen_greeter",
-        "greeter-addons#682": "greeter_addons"
-    })
-
     property var acknowledged: []
-    property var legacyIds: []
     property bool stateResolved: false
-    property bool legacyResolved: false
     property bool resolved: false
     property bool loaded: false
     property bool shown: false
@@ -88,30 +73,10 @@ FloatingWindow {
         }));
     }
 
-    // The old file recorded one seen id per line; translate the ids we still
-    // know about into the revisions they became.
-    function importLegacyIds(ids: var): var {
-        const revisions = [];
-        for (const legacyId of ids) {
-            const entryId = root.legacyEntryIds[legacyId];
-            if (!entryId)
-                continue;
-            const entry = root.entries.find(candidate => candidate.id === entryId);
-            if (entry && !revisions.includes(entry.revision))
-                revisions.push(entry.revision);
-        }
-        return revisions;
-    }
-
-    // The two state files load independently, and only once both are known can
-    // the one-time import be decided.
     function resolveState(): void {
-        if (root.resolved || !root.stateResolved || !root.legacyResolved)
+        if (root.resolved || !root.stateResolved)
             return;
         root.resolved = true;
-
-        if (stateFile.missing)
-            root.acknowledged = root.importLegacyIds(root.legacyIds);
 
         root.loaded = true;
         if (root.unreadCount > 0)
@@ -170,8 +135,6 @@ FloatingWindow {
     FileView {
         id: stateFile
 
-        property bool missing: false
-
         printErrors: false
         path: `${Paths.state}/whatsnew.json`
 
@@ -190,28 +153,7 @@ FloatingWindow {
         onLoadFailed: err => {
             if (err !== FileViewError.FileNotFound)
                 console.warn("WhatsNewWindow: could not read state: " + err);
-            stateFile.missing = true;
             root.stateResolved = true;
-            root.resolveState();
-        }
-    }
-
-    FileView {
-        id: legacyStateFile
-
-        printErrors: false
-        path: `${Paths.data}/state/seen_features.txt`
-
-        onLoaded: {
-            root.legacyIds = text().split("\n").map(line => line.trim()).filter(line => line.length > 0);
-            root.legacyResolved = true;
-            root.resolveState();
-        }
-
-        onLoadFailed: err => {
-            if (err !== FileViewError.FileNotFound)
-                console.warn("WhatsNewWindow: could not read the legacy seen list: " + err);
-            root.legacyResolved = true;
             root.resolveState();
         }
     }
