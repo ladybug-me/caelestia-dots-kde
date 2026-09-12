@@ -96,7 +96,7 @@ needed.
 ### For translation changes
 
 ```bash
-tools/update-translations.sh          # refresh every catalogue
+tools/update-translations.sh          # refresh every catalog
 tools/update-translations.sh es       # start a new one (Spanish here)
 ```
 
@@ -143,7 +143,6 @@ Head to [caelestia-kde-plugins](https://github.com/ladybug-me/caelestia-kde-plug
 
 - [Brand rules](../docs/brand.md) - the name, palette, logo and voice every user-facing change must follow
 - [KWin port architecture](../docs/architecture/kwin_port_architecture.md) - C++ plugin design and QML APIs
-- [Installer configuration](../docs/installer_config.md) - theme.json and menu.json reference
 - [Lock screen architecture](../docs/architecture/lockscreen_architecture.md) - native Plasma 6 greeter design and component structure
 - [Translations](../docs/translations.md) - i18n pipeline and how to add a language
 

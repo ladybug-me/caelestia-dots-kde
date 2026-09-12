@@ -9,7 +9,7 @@ Validates cross-cutting concerns:
   - Submodules are properly initialized
   - Workflow files are valid YAML
   - No duplicate script step names in Runner.cpp
-  - Git-tracked docs/ files referenced in installer_config.md exist
+  - Git-tracked docs/ files referenced in .github/CONTRIBUTING.md exist
 """
 
 import re
@@ -119,7 +119,7 @@ class ShellSurfaceTests(unittest.TestCase):
     """Invariants for shell QML surfaces that CI cannot execute.
 
     There is no Qt/Quickshell toolchain in this job, so the checks here pin the
-    specific behaviour the reports describe as silent - a surface that claims
+    specific behavior the reports describe as silent - a surface that claims
     success while doing nothing.
     """
 
@@ -158,7 +158,7 @@ class ShellSurfaceTests(unittest.TestCase):
 
         The shortcut manager renders `GlobalShortcut.description` verbatim, and
         lupdate can only extract `qsTr()` calls with a literal argument. A bare
-        literal is therefore invisible to the catalogue and stays English no
+        literal is therefore invisible to the catalog and stays English no
         matter which locale is active. This checks the source is extractable;
         it cannot check that a translation exists, which is Crowdin's job.
         """
@@ -482,7 +482,7 @@ class ShellSurfaceTests(unittest.TestCase):
         The background window was created black, while the wallpaper is loaded
         asynchronously and only starts loading a couple of event loop turns later,
         so a starting shell showed a black desktop for as long as the image took to
-        decode. The fallback colour now waits for the wallpaper to report that it
+        decode. The fallback color now waits for the wallpaper to report that it
         has something to show, and until then the desktop the compositor already
         has keeps showing through.
         """
@@ -566,7 +566,7 @@ class ShellSurfaceTests(unittest.TestCase):
         """KMY reads the wallpaper and the current scheme out of the running Plasma session.
 
         Started before plasmashell exists it can see neither and applies a
-        built-in default, which leaves the whole desktop on the wrong colours
+        built-in default, which leaves the whole desktop on the wrong colors
         until the service is restarted by hand once the session has settled.
         Ordering against the plasmashell unit is what removes that restart, and
         Restart=always covers KMY giving up early and exiting cleanly, which
@@ -596,7 +596,7 @@ class ShellSurfaceTests(unittest.TestCase):
         )
 
     def test_a_startup_reseed_takes_the_scheme_from_the_wallpaper(self) -> None:
-        """The CLI derives dynamic colours from the wallpaper it was last told about.
+        """The CLI derives dynamic colors from the wallpaper it was last told about.
 
         path.txt is written directly by the deploy script and by the wallpaper
         picker's still-frame path, so the CLI can be left without a wallpaper.
@@ -631,7 +631,7 @@ class ShellSurfaceTests(unittest.TestCase):
         self.assertIn(
             "caelestia wallpaper -f",
             script,
-            "the CLI needs the wallpaper before it can derive dynamic colours",
+            "the CLI needs the wallpaper before it can derive dynamic colors",
         )
 
 
@@ -973,20 +973,6 @@ class DocsReferenceTests(unittest.TestCase):
             self.assertTrue(
                 (ROOT / ref).is_file(),
                 f"CONTRIBUTING.md references '{ref}' which does not exist"
-            )
-
-    def test_installer_config_references_valid_links(self) -> None:
-        """docs/installer_config.md should reference existing source files."""
-        config_doc = ROOT / "docs" / "installer_config.md"
-        if not config_doc.is_file():
-            return
-
-        text = config_doc.read_text(encoding="utf-8")
-        # Check that Runner.cpp is referenced and exists
-        if "Runner.cpp" in text:
-            self.assertTrue(
-                (ROOT / "installer" / "tui" / "Runner.cpp").is_file(),
-                "installer_config.md references Runner.cpp which doesn't exist"
             )
 
 
