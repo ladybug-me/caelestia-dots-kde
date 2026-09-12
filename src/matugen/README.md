@@ -1,10 +1,10 @@
-# Matugen as the colour pipeline
+# Matugen as the color pipeline
 
 Draft, first step on the ticket [Owning the color pipeline](../../docs/wayfinder/parity/tickets/owning-the-color-pipeline.md). Nothing calls these files yet: they are the shape we are testing before the command gives up its hand-off to the upstream CLI.
 
 ## Why matugen
 
-It generates Material You palettes from an image or a single colour, using the same specification upstream's `python-materialyoucolor` implements, and it writes files through a template engine. That covers generation and, when the templates are written, the theming fan-out to terminals, GTK, Qt and the rest, which today lives in the upstream CLI's `theme.py`.
+It generates Material You palettes from an image or a single color, using the same specification upstream's `python-materialyoucolor` implements, and it writes files through a template engine. That covers generation and, when the templates are written, the theming fan-out to terminals, GTK, Qt and the rest, which today lives in the upstream CLI's `theme.py`.
 
 It is packaged in Arch's `extra`, and it is GPL-2.0-or-later, which combines with our GPL-3.0-or-later. Carrying the upstream CLI instead would force this package to `GPL-3.0-only`.
 
@@ -17,16 +17,25 @@ It is packaged in Arch's `extra`, and it is GPL-2.0-or-later, which combines wit
 - a value is the hex digits only. `Colours.qml` prepends the `#` itself, which is why the template asks for `hex_stripped` and not `hex`;
 - a key that is absent leaves the shell's built-in default in place, so the template can grow instead of landing complete.
 
-## What is verified and what is not
+## Verified on Arch, matugen 4.2.0
 
-Verified: the template syntax `{{ colors.<role>.<mode>.<format> }}` with `default`, `light` and `dark` as modes and `hex_stripped` as the format; per-template `type`, `input_path`, `output_path` and hooks; `--import-json` and `import_json_files` for custom keywords.
+Rendered against a real wallpaper on the CachyOS VM, end to end, with no errors:
 
-Not verified, and the first thing to do before wiring this up:
+- the role keywords are snake_case, 50 of them. This template uses 49, and every one renders;
+- `{{ colors.<role>.default.hex_stripped }}` gives hex without the `#`, which is what the shell wants. Every value in the rendered file is exactly six characters;
+- `{{ mode }}` renders `light` or `dark`, so the mode comes from matugen rather than from the command;
+- `{{ base16.base00.default.hex_stripped }}` through `base0f` render the 16 `term` colors, so the terminals come from the same run;
+- `--import-json-string '{"name":"dynamic","flavour":"default","variant":"tonalspot"}'` makes `{{ name }}`, `{{ flavour }}` and `{{ variant }}` resolve. The command supplies the metadata, matugen supplies the colors;
+- the rendered file parses and carries 65 color keys: 49 roles plus 16 terminals.
 
-1. the exact snake_case spelling of every role in the template. Run `matugen image <wallpaper> --json` (or `--show-colors`) once on an Arch box and trim the template to the names that actually exist, because an unknown keyword fails the whole render;
-2. the reference syntax for the imported `name`, `flavour` and `variant` strings. If imported JSON cannot be referenced as plain strings, the command writes those three fields itself and the template emits the colour map only;
-3. whether `{{ mode }}` is a keyword, so light and dark come from matugen rather than from the command;
-4. base16 output for `term0` to `term15`. If it is not reachable from the same run, the terms need a second pass or a mapping from the M3 roles.
+One correction the run forced: the five `*_paletteKeyColor` roles the shell declares are not in matugen's role list, and nothing in the QML reads them, so the template omits them and they keep their built-in values.
+
+## Still open
+
+- the named catalogue, which becomes our own data;
+- the fan-out templates from matugen-themes, vendored with the MIT notice;
+- the command side: who writes the matugen config, where `--config` points, and the table that maps our variant names to matugen's, since `fruitsalad` is `scheme-fruit-salad` there;
+- a palette diff against the current pipeline. The VM has neither the CLI nor the shell installed, so the comparison has not been made.
 
 ## Two roles are not Material You
 
@@ -38,4 +47,4 @@ On an Arch box, with a wallpaper to hand:
 
     matugen image /path/to/wallpaper.jpg --config src/matugen/config.toml --dry-run
 
-`--dry-run` shows the rendered output without writing it. Compare the result against a `scheme.json` produced by the current CLI, role by role, before trusting it.
+`--dry-run` shows the rendered output without writing it. Compare the result against a `scheme.json` produced by the current CLI, role by role, before trusting it. That comparison is still outstanding: the VM has neither the CLI nor the shell installed.
