@@ -146,7 +146,11 @@ Item {
                 color: Colours.palette.m3onSurface
                 opacity: entry.hovered && entry.isClickable ? 0.07 : 0.0
 
-                Behavior on opacity { NumberAnimation { duration: 100 } }
+                Behavior on opacity {
+                    Anim {
+                        type: Anim.FastEffects
+                    }
+                }
             }
 
             // Glow for current version dot
@@ -206,9 +210,17 @@ Item {
                 }
                 border.width: (entry.isAvailable && !entry.isSelected) ? 2 : 0
 
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on color {
+                    CAnim {}
+                }
+                Behavior on opacity {
+                    Anim {
+                        type: Anim.FastEffects
+                    }
+                }
+                Behavior on border.color {
+                    CAnim {}
+                }
             }
 
             // Subject first, then the identifiers. A reader scanning the dev
@@ -251,7 +263,9 @@ Item {
                         }
                         elide: Text.ElideRight
 
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color {
+                            CAnim {}
+                        }
                     }
 
                     // Conventional-commit type chip (feat/fix/chore/…) — quick

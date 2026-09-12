@@ -85,7 +85,7 @@ StyledRect {
 
     Behavior on radius {
         Anim {
-            type: Anim.FastSpatial
+            type: Anim.DefaultEffects
         }
     }
 

@@ -94,17 +94,17 @@ StyledWindow {
 
         SequentialAnimation {
             ParallelAnimation {
-                Anim { target: dialogContainer; property: "opacity"; to: 1; duration: Tokens.anim.durations.small }
-                Anim { target: dialogContainer; property: "scale"; to: 1; type: Anim.Emphasized; duration: 400 }
+                Anim { target: dialogContainer; property: "opacity"; to: 1; type: Anim.FastEffects }
+                Anim { target: dialogContainer; property: "scale"; to: 1; type: Anim.Emphasized }
             }
             // Delegate size expansion to Behaviors so they constantly evaluate layout recalculations
             PropertyAction { target: dialogContainer; property: "isExpanded"; value: true }
             ParallelAnimation {
-                Anim { target: lockIcon; property: "scale"; to: 0; type: Anim.Emphasized; duration: 400 }
-                Anim { type: Anim.DefaultEffects; target: lockIcon; property: "opacity"; to: 0; duration: 250 }
-                Anim { type: Anim.DefaultEffects; target: dialogContent; property: "opacity"; to: 1; duration: 500 }
-                Anim { target: dialogContent; property: "scale"; to: 1; type: Anim.Emphasized; duration: 500 }
-                Anim { target: dialogBg; property: "radius"; to: Tokens.rounding.large; duration: 500 }
+                Anim { target: lockIcon; property: "scale"; to: 0; type: Anim.Emphasized }
+                Anim { type: Anim.FastEffects; target: lockIcon; property: "opacity"; to: 0 }
+                Anim { type: Anim.DefaultEffects; target: dialogContent; property: "opacity"; to: 1 }
+                Anim { target: dialogContent; property: "scale"; to: 1; type: Anim.EmphasizedLarge }
+                Anim { target: dialogBg; property: "radius"; to: Tokens.rounding.large; type: Anim.EmphasizedLarge }
             }
         }
     }
@@ -157,8 +157,8 @@ StyledWindow {
         scale: 0
 
         // This prevents the snapshotting issue by persistently interpolating dynamically updating bindings
-        Behavior on implicitWidth { Anim { type: Anim.Emphasized; duration: 500 } }
-        Behavior on implicitHeight { Anim { type: Anim.Emphasized; duration: 500 } }
+        Behavior on implicitWidth { Anim { type: Anim.EmphasizedLarge } }
+        Behavior on implicitHeight { Anim { type: Anim.EmphasizedLarge } }
 
         StyledRect {
             id: dialogBg

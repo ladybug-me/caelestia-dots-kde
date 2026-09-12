@@ -53,7 +53,8 @@ StyledListView {
 
     add: Transition {
         Anim {
-            properties: "opacity,scale"
+            type: Anim.DefaultEffects
+            property: "opacity"
             from: 0
             to: 1
         }
@@ -61,7 +62,8 @@ StyledListView {
 
     remove: Transition {
         Anim {
-            properties: "opacity,scale"
+            type: Anim.DefaultEffects
+            property: "opacity"
             from: 1
             to: 0
         }
