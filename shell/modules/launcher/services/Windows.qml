@@ -11,12 +11,6 @@ QtObject {
     property var items: []
     property int selectedIndex: 0
 
-    onSelectedIndexChanged: {
-        if (GlobalConfig.tabSwitch?.previewOnDesktop && selectedIndex >= 0 && selectedIndex < items.length) {
-            KWinActiveWindowBridge.highlightWindow(items[selectedIndex].address);
-        }
-    }
-
     function triggerCycleNext(): void {
         if (items.length === 0) return;
         selectedIndex = (selectedIndex + 1) % items.length;
@@ -165,6 +159,12 @@ QtObject {
 
     function closeWindow(address: string): void {
         KWinActiveWindowBridge.closeWindow(address);
+    }
+
+    onSelectedIndexChanged: {
+        if (GlobalConfig.tabSwitch?.previewOnDesktop && selectedIndex >= 0 && selectedIndex < items.length) {
+            KWinActiveWindowBridge.highlightWindow(items[selectedIndex].address);
+        }
     }
 
     Component.onCompleted: {

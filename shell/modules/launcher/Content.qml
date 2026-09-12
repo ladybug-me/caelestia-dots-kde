@@ -356,7 +356,6 @@ Item {
             }
 
             Connections {
-                target: CUtils
                 function onModifierReleased(): void {
                     if (root.visibilities.launcher && search.text.startsWith(`${GlobalConfig.launcher.actionPrefix}windows `)) {
                         const switcherKey = (typeof KeybindsModel !== "undefined" && KeybindsModel.getKey("windowSwitcher")) || "Alt+Tab";
@@ -366,6 +365,8 @@ Item {
                         }
                     }
                 }
+
+                target: CUtils
             }
         }
 

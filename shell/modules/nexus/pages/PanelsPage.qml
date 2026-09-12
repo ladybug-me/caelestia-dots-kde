@@ -54,7 +54,7 @@ PageBase {
             last: true
             icon: "view_array"
             label: qsTr("Window Switcher")
-            status: Config.tabSwitch.currentDesktopOnly ? qsTr("Current desktop only") : qsTr("All desktops")
+            status: !Config.tabSwitch.enabled ? qsTr("Disabled") : (Config.tabSwitch.currentDesktopOnly ? qsTr("Current desktop only") : qsTr("All desktops"))
             onClicked: root.nState.openSubPage(18)
         }
     }

@@ -212,8 +212,8 @@ Scope {
             visibilities.launcher = true;
         }
     }
+
     Connections {
-        target: CUtils
         function onModifierReleased(): void {
             const visibilities = Visibilities.getForActive();
             if (visibilities.launcher && root.lastAction === "windows") {
@@ -225,13 +225,17 @@ Scope {
                 }
             }
         }
+
+        target: CUtils
     }
+
 
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "windowSwitcher"
         description: qsTr("Open window switcher")
+        enabled: Config.tabSwitch.enabled
         onPressed: {
             const visibilities = Visibilities.getForActive();
             // Check if launcher is already open and in windows mode
@@ -252,6 +256,7 @@ Scope {
         // qmllint enable unresolved-type
         name: "windowSwitcherReverse"
         description: qsTr("Open window switcher (reverse)")
+        enabled: Config.tabSwitch.enabled
         onPressed: {
             const visibilities = Visibilities.getForActive();
             if (visibilities.launcher && root.lastAction === "windows") {

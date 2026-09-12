@@ -9,11 +9,12 @@ Loader {
     property string name: ""
     property string description: ""
     property string key: ""
+    property bool enabled: true
 
     signal pressed()
     signal released()
 
-    active: true
+    active: root.enabled
 
     sourceComponent: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") ? hyprShortcut : kdeShortcut
 

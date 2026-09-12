@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
+import Caelestia.Services
 import qs.components
 import qs.components.controls
 import qs.services
@@ -14,41 +15,21 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
+    property string switcherKeybind: KeybindsModel.getKey("windowSwitcher")
+    property string switcherReverseKeybind: KeybindsModel.getKey("windowSwitcherReverse")
+    readonly property bool isSwitcherOverridden: root.switcherKeybind !== "Alt+Tab"
+    readonly property bool isSwitcherReverseOverridden: root.switcherReverseKeybind !== "Alt+Shift+Tab"
+
+    function openCaptureDialog(name: string, currentKey: string, targetItem: var): void {
+        dialogLoader.active = true;
+        dialogLoader.item.shortcutName = name;
+        dialogLoader.item.currentKey = currentKey;
+        dialogLoader.item.targetItem = targetItem;
+        dialogLoader.item.open();
+    }
+
     title: qsTr("Window Switcher")
     isSubPage: true
-
-    readonly property list<MenuItem> layoutItems: [
-        MenuItem {
-            property string value: "caelestia"
-
-            text: qsTr("Caelestia (Material 3)")
-        },
-        MenuItem {
-            property string value: "compact"
-
-            text: qsTr("Compact")
-        },
-        MenuItem {
-            property string value: "sidebar"
-
-            text: qsTr("Sidebar")
-        },
-        MenuItem {
-            property string value: "big_icons"
-
-            text: qsTr("Big Icons")
-        },
-        MenuItem {
-            property string value: "coverswitch"
-
-            text: qsTr("Cover Switch")
-        },
-        MenuItem {
-            property string value: "flipswitch"
-
-            text: qsTr("Flip Switch")
-        }
-    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -56,9 +37,77 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
-        // Behavior Section
+        Connections {
+            function onKeybindsChanged(): void {
+                root.switcherKeybind = KeybindsModel.getKey("windowSwitcher");
+                root.switcherReverseKeybind = KeybindsModel.getKey("windowSwitcherReverse");
+            }
+
+            target: KeybindsModel
+        }
+
+        Loader {
+            id: dialogLoader
+
+            active: false
+            sourceComponent: KeyCaptureDialog {
+                onConfirm: (name, newKey) => {
+                    KeybindsModel.setKey(name, newKey);
+                }
+                onClear: (name) => {
+                    KeybindsModel.setKey(name, "");
+                }
+                onUnblocked: {
+                    dialogLoader.active = false;
+                }
+            }
+        }
+
+        // General Section
         SectionHeader {
             first: true
+            text: qsTr("General")
+        }
+
+        ToggleRow {
+            first: true
+            last: !Config.tabSwitch.enabled
+            text: qsTr("Enable Window Switcher")
+            subtext: qsTr("Use Caelestia's window switcher for Alt+Tab")
+            checked: Config.tabSwitch.enabled
+            onToggled: {
+                GlobalConfig.tabSwitch.enabled = checked;
+                GlobalConfig.save();
+            }
+        }
+
+        ShortcutRow {
+            visible: Config.tabSwitch.enabled
+            actionName: "windowSwitcher"
+            label: qsTr("Forward")
+            keybind: root.switcherKeybind
+            isOverridden: root.isSwitcherOverridden
+            isShell: true
+            onAddClicked: target => root.openCaptureDialog("windowSwitcher", root.switcherKeybind, target)
+            onKeybindEdited: newKey => KeybindsModel.setKey("windowSwitcher", newKey)
+            onResetClicked: KeybindsModel.resetKey("windowSwitcher")
+        }
+
+        ShortcutRow {
+            visible: Config.tabSwitch.enabled
+            last: true
+            actionName: "windowSwitcherReverse"
+            label: qsTr("Backward")
+            keybind: root.switcherReverseKeybind
+            isOverridden: root.isSwitcherReverseOverridden
+            isShell: true
+            onAddClicked: target => root.openCaptureDialog("windowSwitcherReverse", root.switcherReverseKeybind, target)
+            onKeybindEdited: newKey => KeybindsModel.setKey("windowSwitcherReverse", newKey)
+            onResetClicked: KeybindsModel.resetKey("windowSwitcherReverse")
+        }
+
+        // Behavior Section
+        SectionHeader {
             text: qsTr("Behavior")
         }
 
@@ -113,6 +162,7 @@ PageBase {
         }
 
         ToggleRow {
+            last: true
             text: qsTr("Show windows from all screens")
             subtext: qsTr("Include windows from all connected monitors")
             checked: Config.tabSwitch.allScreens
@@ -125,27 +175,6 @@ PageBase {
                 `]);
             }
         }
-
-        SelectRow {
-            last: true
-            label: qsTr("KWin Switcher Layout")
-            subtext: qsTr("Choose the visual layout used for native Alt+Tab")
-            menuItems: root.layoutItems
-            active: {
-                const cur = Config.tabSwitch.layout || "caelestia";
-                for (let i = 0; i < root.layoutItems.length; ++i) {
-                    if (root.layoutItems[i].value === cur) return i;
-                }
-                return 0;
-            }
-            onSelected: item => {
-                GlobalConfig.tabSwitch.layout = item.value;
-                GlobalConfig.save();
-                Quickshell.execDetached(["bash", "-c", `
-                    kwriteconfig6 --file kwinrc --group "TabBox" --key "LayoutName" "${item.value}"
-                    qdbus6 org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
-                `]);
-            }
-        }
     }
 }
+

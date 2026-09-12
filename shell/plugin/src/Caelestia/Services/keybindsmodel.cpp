@@ -1,7 +1,4 @@
 #include "keybindsmodel.hpp"
-#include "../Config/rootnodes.hpp"
-#include "../Config/generalconfig.hpp"
-#include "../Config/keybindsdefaults.hpp"
 
 #include <KGlobalAccel>
 #include <KGlobalShortcutInfo>
@@ -13,6 +10,10 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLoggingCategory>
+
+#include "../Config/generalconfig.hpp"
+#include "../Config/keybindsdefaults.hpp"
+#include "../Config/rootnodes.hpp"
 
 Q_LOGGING_CATEGORY(lcKeybinds, "caelestia.services.keybindsmodel", QtInfoMsg)
 
