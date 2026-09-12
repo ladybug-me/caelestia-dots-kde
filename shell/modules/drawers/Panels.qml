@@ -219,6 +219,7 @@ Item {
         readonly property real _pushOffset: shouldPush ? (popoutsWrapper.implicitHeight + Tokens.spacing.extraLarge) : 0
 
         visibilities: root.visibilities
+        screen: root.screen
         sidebarPanel: sidebar
         osdPanel: osdWrapper
         sessionPanel: sessionWrapper
