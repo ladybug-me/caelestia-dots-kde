@@ -59,7 +59,7 @@ CORE_PACKAGES=(
     wl-clipboard cliphist inotify-tools wireplumber trash-cli jq yq libc6
 
     # Audio, Sensors & Hardware
-    libaubio-dev aubio-tools lm-sensors libsensors-dev libpipewire-0.3-dev pipewire
+    libaubio-dev aubio-tools lm-sensors libsensors-dev libpipewire-0.3-dev pipewire libfftw3-dev
 
     # Qt6 Framework & Tools
     qt6-base-dev qt6-base-private-dev qt6-declarative-dev qml6-module-qtquick qt6-wayland qt6-wayland-dev

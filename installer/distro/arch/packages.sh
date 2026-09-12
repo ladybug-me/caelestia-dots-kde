@@ -40,7 +40,7 @@ CORE_PACKAGES=(
     wl-clipboard cliphist wl-clip-persist inotify-tools app2unit wireplumber trash-cli jq
 
     # Audio, Sensors & Hardware
-    aubio lm_sensors libpipewire pulseaudio-qt libpulse
+    aubio lm_sensors libpipewire pulseaudio-qt libpulse fftw
 
     # Qt6 Framework & Tools
     qt6-base qt6-declarative qt6-wayland qt6-shadertools
