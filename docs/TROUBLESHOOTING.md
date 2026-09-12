@@ -399,13 +399,22 @@ On CachyOS, the installer uses the native `cachyos-rate-mirrors` command, which 
 
 ### 6.2 Git / Submodule Failures
 
-The submodule `src/dots` is critical. If `git submodule update --init --recursive` fails:
+The submodule `src/dots` is critical. If it cannot be fetched:
 
 ```text
-[ERR] Missing src/dots content. Run: git submodule update --init --recursive src/dots
+[ERR] src/dots is still empty, and the installer cannot deploy without it.
 ```
 
-This is a **hard failure** — the installer cannot proceed past config deployment.
+Step 02a checks the submodule has content and fetches it again by other means before reporting this: a normal update, then a sync of the recorded URL followed by another update, then a forced update, and finally a plain clone of the URL `.gitmodules` records. So this message means all four were attempted and every one failed, which is usually a network that cannot reach GitHub or a checkout that cannot be written to.
+
+This is a **hard failure** - the installer cannot proceed past config deployment. Fetch it by hand and re-run the step:
+
+```bash
+git -C ~/caelestia-kde submodule update --init --recursive src/dots
+bash ~/caelestia-kde/scripts/02a-submodules.sh
+```
+
+The shared folder mounted at `/mnt/hgfs/` is read-only, so an install run from there cannot fetch anything: clone the repository to a writable directory first.
 
 **Behind a proxy?**
 ```bash
