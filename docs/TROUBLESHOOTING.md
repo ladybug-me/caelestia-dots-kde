@@ -1,8 +1,8 @@
 # TROUBLESHOOTING
 
-## Caelestia KDE Port — Troubleshooting Guide
+## Troubleshooting guide
 
-This document catalogs known failure modes, error conditions, and edge cases discovered through analysis of the installer, shell build system, scripts, documentation, and runtime architecture of the Caelestia KDE port.
+This document catalogs known failure modes, error conditions, and edge cases discovered through analysis of the installer, shell build system, scripts, documentation, and runtime architecture of this port.
 
 ---
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export PATH="$HOME/.local/bin:$PATH"
 # ==============================================================
-#   Caelestia KDE Port - Unified Updater
+#   Caelestia - updater
 # ==============================================================
 
 set -uo pipefail
@@ -142,7 +142,7 @@ trap 'caelestia_stop_sudo_keepalive' EXIT
 # hyprctl binary is involved.
 bash "$BUNDLE_DIR/scripts/03-deploy-configs.sh" || die "Config deployment failed."
 
-info "Building Caelestia Shell UI..."
+info "Building the Caelestia shell UI..."
 bash "$BUNDLE_DIR/scripts/08-build-shell.sh" || die "Shell build failed."
 
 # Re-apply idempotent system tweaks (KDE settings, CLI patches, etc.)

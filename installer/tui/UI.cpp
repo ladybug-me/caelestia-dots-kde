@@ -146,7 +146,7 @@ bool setup_sudo_environment(const string& pw) {
     pid = fork();
     if (pid == 0) {
         execlp("systemd-inhibit", "systemd-inhibit", "--what=idle:sleep",
-               "--who=Caelestia Installer", "--why=Installation in progress",
+               "--who=Caelestia installer", "--why=Installation in progress",
                "bash", "-c", "while :; do sleep 600; done",
                static_cast<char*>(nullptr));
         _exit(127);
@@ -163,7 +163,7 @@ bool setup_sudo_environment(const string& pw) {
             dup2(cookie_fd, STDOUT_FILENO);
         execlp("qdbus6", "qdbus6", "org.freedesktop.ScreenSaver",
                "/ScreenSaver", "org.freedesktop.ScreenSaver.Inhibit",
-               "Caelestia Installer", "Installation in progress",
+               "Caelestia installer", "Installation in progress",
                static_cast<char*>(nullptr));
         _exit(127);
     }
@@ -243,7 +243,7 @@ namespace UI {
                 art.push_back(line.get<string>());
             }
         }
-        if (art.empty()) art.push_back("Caelestia Installer");
+        if (art.empty()) art.push_back("Caelestia installer");
 
         int art_width = 0;
         for (const auto& line : art) {
@@ -273,7 +273,7 @@ namespace UI {
             int h = g_term_height - 2;
 
             if (w < 30 || h < 12) {
-                Draw::text_center(g_term_height / 2 - 1, "Caelestia Installer", "primary");
+                Draw::text_center(g_term_height / 2 - 1, "Caelestia installer", "primary");
                 Draw::text_center(g_term_height / 2, "Press Enter to continue (Esc to quit)...", "muted");
                 cout << Draw::sync_end() << flush;
                 string key = Input::wait_key();
@@ -298,7 +298,7 @@ namespace UI {
             int ty = top + art_height + 1;
             Draw::text_center(ty, author, "muted");
             Draw::text_center(ty + 1, co_author, "muted");
-            Draw::text_center(ty + 3, "Caelestia KDE installer", "primary");
+            Draw::text_center(ty + 3, "Caelestia installer", "primary");
             Draw::text_center(ty + 6, "Detected distribution: " + distro_label(g_base_distro), "secondary");
 
             // Startup problems sit under the distribution line, but only when

@@ -133,20 +133,17 @@ jobs:
             else
               echo "- Maintenance release for $VERSION."
             fi
-
-            echo
-            echo "*May your desktop always reflect the stars.*"
           } > release_notes.md
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
             gh release edit "$VERSION" \
-              --title "Caelestia KDE $VERSION" \
+              --title "Caelestia $VERSION" \
               --notes-file release_notes.md \
               --prerelease=false \
               --latest
           else
             gh release create "$VERSION" \
-              --title "Caelestia KDE $VERSION" \
+              --title "Caelestia $VERSION" \
               --notes-file release_notes.md \
               --prerelease=false \
               --latest

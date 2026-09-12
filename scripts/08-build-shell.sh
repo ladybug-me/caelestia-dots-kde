@@ -250,7 +250,7 @@ fi
 
 # UPDATER ONLY BLOCK END
 
-info "Building Caelestia Shell..."
+info "Building the Caelestia shell..."
 
 if [ ! -d "$SHELL_DIR" ]; then
     err "Shell directory not found at $SHELL_DIR!"

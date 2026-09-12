@@ -21,7 +21,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/privileges.sh"
 
 echo
 echo ""
-echo "  caelestia KDE  Live System Tweaks"
+echo "  Caelestia  Live System Tweaks"
 echo ""
 
 #

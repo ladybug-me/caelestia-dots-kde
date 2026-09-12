@@ -1,4 +1,4 @@
-# Caelestia KDE - developer entry points.
+# Caelestia - developer entry points.
 #
 # Installing and updating stays with the shell entry points at the repo root
 # (install.sh, update.sh, uninstall.sh) so the published `curl | sh` one-liner
