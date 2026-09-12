@@ -161,7 +161,7 @@ Item {
         anchors.margins: root.padding
         anchors.bottomMargin: CUtils.clamp(root.padding - Config.border.thickness, 0, root.padding)
 
-        implicitHeight: Math.max(searchIcon.implicitHeight, search.implicitHeight, clearClipboardIcon.implicitHeight, clearIcon.implicitHeight)
+        implicitHeight: Math.max(searchIcon.implicitHeight, search.implicitHeight, clearClipboardIcon.implicitHeight, clearIcon.implicitHeight, commandsBtn.implicitHeight)
 
         MaterialIcon {
             id: searchIcon
@@ -375,9 +375,9 @@ Item {
 
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: clearIcon.left
-            anchors.rightMargin: Tokens.spacing.small
+            anchors.rightMargin: (root.isClipboardMode && Clipboard.items.length > 0) ? Tokens.spacing.small : 0
 
-            width: (root.isClipboardMode && Clipboard.items.length > 0) ? implicitWidth : implicitWidth / 2
+            width: (root.isClipboardMode && Clipboard.items.length > 0) ? implicitWidth : 0
             opacity: (root.isClipboardMode && Clipboard.items.length > 0) ? 1 : 0
 
             text: "delete"
@@ -422,10 +422,10 @@ Item {
             id: clearIcon
 
             anchors.verticalCenter: parent.verticalCenter
-            anchors.right: parent.right
-            anchors.rightMargin: root.padding
+            anchors.right: commandsBtn.left
+            anchors.rightMargin: search.text ? Tokens.spacing.small : 0
 
-            width: search.text ? implicitWidth : implicitWidth / 2
+            width: search.text ? implicitWidth : 0
             opacity: search.text ? 1 : 0
 
             text: "close"
@@ -455,6 +455,33 @@ Item {
                 Anim {
                     type: Anim.StandardSmall
                 }
+            }
+        }
+
+        IconButton {
+            id: commandsBtn
+
+            isToggle: true
+            type: IconButton.Text
+            implicitWidth: 32
+            implicitHeight: 32
+            radius: Tokens.rounding.full
+            radiusMorph: false
+            icon: "menu"
+
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.rightMargin: root.padding
+            checked: search.text.startsWith(GlobalConfig.launcher.actionPrefix)
+
+            onClicked: {
+                if (search.text.startsWith(GlobalConfig.launcher.actionPrefix)) {
+                    search.text = "";
+                } else {
+                    search.text = GlobalConfig.launcher.actionPrefix;
+                }
+                search.forceActiveFocus();
+                search.cursorPosition = search.text.length;
             }
         }
     }
