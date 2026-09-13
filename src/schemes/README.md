@@ -23,7 +23,7 @@ instead.
 
 ## The format
 
-One `role hex` pair per line, with the hex digits and no `#`. 109 keys in the files that ship
+One `role hex` pair per line, with the hex digits and no `#`. 110 keys in the files that ship
 today: the Material You roles in the casing this port speaks (`surfaceContainer`, not
 `surface_container`), the 16 terminal colors as `term0` to `term15`, the Catppuccin names, the
 `k` colors the KDE side uses, and `success` with its three companions.
