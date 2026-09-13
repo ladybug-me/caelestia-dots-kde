@@ -104,10 +104,6 @@ done
 if [[ -z "$CAELESTIA_BIN" ]]; then
     CAELESTIA_BIN="$(command -v caelestia 2>/dev/null || true)"
 fi
-            break
-        fi
-    done
-fi
 
 # Whether the wallpaper a dynamic scheme was derived from is still there. The
 # deploy script writes the path itself, so a state that names a wallpaper the
