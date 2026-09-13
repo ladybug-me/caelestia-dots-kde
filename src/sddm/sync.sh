@@ -94,11 +94,16 @@ THEME_DIR="/usr/share/sddm/themes/caelestia"
 # on neither root's PATH nor the minimal one sudo hands to -u. Resolve it here
 # and use the absolute path, or the sync silently reports that it cannot read
 # the scheme.
-CAELESTIA_BIN="$(command -v caelestia 2>/dev/null || true)"
+CAELESTIA_BIN=""
+for candidate in "$REAL_HOME/.local/bin/caelestia" /usr/local/bin/caelestia /usr/bin/caelestia; do
+    if [[ -x "$candidate" ]]; then
+        CAELESTIA_BIN="$candidate"
+        break
+    fi
+done
 if [[ -z "$CAELESTIA_BIN" ]]; then
-    for candidate in "$REAL_HOME/.local/bin/caelestia" /usr/local/bin/caelestia /usr/bin/caelestia; do
-        if [[ -x "$candidate" ]]; then
-            CAELESTIA_BIN="$candidate"
+    CAELESTIA_BIN="$(command -v caelestia 2>/dev/null || true)"
+fi
             break
         fi
     done
