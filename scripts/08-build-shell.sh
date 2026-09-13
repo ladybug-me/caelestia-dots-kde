@@ -588,9 +588,37 @@ install -m 755 "$BUNDLE_DIR/src/bin/caelestia-record" ~/.local/bin/caelestia-rec
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia-screenshot" ~/.local/bin/caelestia-screenshot
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia-shell-ipc" ~/.local/bin/caelestia-shell-ipc
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia" ~/.local/bin/caelestia
+install -m 755 "$BUNDLE_DIR/src/bin/caelestia-color" ~/.local/bin/caelestia-color
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia-update" ~/.local/bin/caelestia-update
 install -m 755 "$BUNDLE_DIR/src/bin/caelestia-check-updates" ~/.local/bin/caelestia-check-updates
 ok "Caelestia bin wrappers installed to ~/.local/bin"
+
+# `caelestia wallpaper` and `caelestia scheme` generate the palette themselves.
+# The templates and the named schemes they read live under CAELESTIA_LIB_DIR,
+# which is the directory already set aside for this checkout's libraries and is
+# what `caelestia-color` looks in first.
+CAELESTIA_SHARE="$HOME/.local/lib/caelestia"
+if [[ -d "$BUNDLE_DIR/src/matugen" && -d "$BUNDLE_DIR/src/schemes" ]]; then
+    info "Installing the color pipeline data..."
+    rm -rf "$CAELESTIA_SHARE/matugen.old"
+    [[ -d "$CAELESTIA_SHARE/matugen" ]] && mv "$CAELESTIA_SHARE/matugen" "$CAELESTIA_SHARE/matugen.old"
+    mkdir -p "$CAELESTIA_SHARE"
+    cp -r "$BUNDLE_DIR/src/matugen" "$CAELESTIA_SHARE/matugen"
+    rm -rf "$CAELESTIA_SHARE/schemes"
+    cp -r "$BUNDLE_DIR/src/schemes" "$CAELESTIA_SHARE/schemes"
+    rm -rf "$CAELESTIA_SHARE/matugen.old"
+    find "$CAELESTIA_SHARE/matugen" "$CAELESTIA_SHARE/schemes" -type d -exec chmod 755 {} +
+    find "$CAELESTIA_SHARE/matugen" "$CAELESTIA_SHARE/schemes" -type f -exec chmod 644 {} +
+    ok "Color pipeline data installed to $CAELESTIA_SHARE"
+else
+    warn "Color pipeline data missing from the checkout; wallpaper and scheme will not work."
+fi
+
+# `caelestia version` reports this, so an installed shell can say which release
+# it is without a checkout to read.
+if [[ -f "$BUNDLE_DIR/.github/version.env" ]]; then
+    install -Dm 644 "$BUNDLE_DIR/.github/version.env" "$HOME/.config/quickshell/caelestia/version.env"
+fi
 
 
 # Copying mono icon theme

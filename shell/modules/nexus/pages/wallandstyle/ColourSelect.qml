@@ -67,11 +67,11 @@ PageBase {
             StateLayer {
                 radius: parent.radius
                 onClicked: {
-                    // The CLI derives dynamic colours from the wallpaper it was
-                    // last told about (caelestia wallpaper). On a fresh install
-                    // the deploy script writes path.txt directly, so the CLI has
-                    // no wallpaper yet and `scheme set -n dynamic` fails silently.
-                    // Seed the wallpaper first, then switch to dynamic.
+                    // caelestia derives dynamic colours from the wallpaper it was
+                    // last told about. On a fresh install the deploy script
+                    // writes path.txt directly, so there is nothing derived yet
+                    // and a bare `scheme set -n dynamic` fails. Seed the
+                    // wallpaper first, then switch to dynamic.
                     const wall = Wallpapers.actualCurrent || Wallpapers.fallback;
                     Quickshell.execDetached(["sh", "-c",
                         'caelestia wallpaper -f "$1" >/dev/null 2>&1; caelestia scheme set -n dynamic',
@@ -314,7 +314,7 @@ PageBase {
         Process {
             id: schemeListProc
 
-            command: ["python3", Quickshell.shellPath("scripts/scheme-list.py")]
+            command: ["caelestia", "scheme", "list", "--flat"]
             stdout: StdioCollector {
                 onStreamFinished: root.parseSchemeList(text)
             }

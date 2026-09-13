@@ -217,7 +217,6 @@ Singleton {
         if (!isPreview) {
             root.schemeLoaded = true;
             root.schemeRetryCount = 0;
-            Qt.callLater(root.syncKMYC);
         }
     }
 
@@ -234,32 +233,11 @@ Singleton {
         Quickshell.execDetached(["caelestia", "scheme", "set", "--notify", "-m", mode]);
     }
 
-    function syncKMYC(): void {
-        const variantMap = {
-            "content": 0,
-            "expressive": 1,
-            "fidelity": 2,
-            "monochrome": 3,
-            "neutral": 4,
-            "tonal-spot": 5,
-            "vibrant": 6,
-            "rainbow": 7,
-            "fruit-salad": 8
-        };
-        const varNum = variantMap[root.variant] ?? 5;
-        const color = String(root.palette.m3primary_paletteKeyColor);
-        const lightMode = root.currentLight ? "True" : "False";
-
-        const scriptPath = Quickshell.shellPath("scripts/sync-kmyc.sh");
-        Quickshell.execDetached(["bash", scriptPath, color, varNum, lightMode]);
-    }
-
-    // The CLI derives dynamic colours from the wallpaper it was last told
+    // caelestia derives dynamic colours from the wallpaper it was last told
     // about, and a scheme it cannot derive leaves the palette on the built-in
-    // default, which is then pushed into kde-material-you-colors and keeps the
-    // whole desktop on it. Re-derive from the wallpaper on screen once per
-    // start. Delivery is the scheme.json write the loader already watches, so
-    // nothing here waits for the result.
+    // default, which keeps the whole desktop on it. Re-derive from the
+    // wallpaper on screen once per start. Delivery is the scheme.json write the
+    // loader already watches, so nothing here waits for the result.
     function reseedScheme(): void {
         Quickshell.execDetached(["bash", Quickshell.shellPath("scripts/reseed-scheme.sh")]);
     }
@@ -316,10 +294,10 @@ Singleton {
         onLoaded: root.load(text(), false)
     }
 
-    // The external caelestia CLI rewrites scheme.json atomically (os.replace),
-    // which the FileView's watcher can miss after the first replacement. The
-    // C++ SchemeLoader re-arms its own watcher for exactly this case, so reload
-    // the palette from its signal as the authoritative trigger.
+    // scheme.json is rewritten atomically (the command replaces it, it does not
+    // truncate it), which the FileView's watcher can miss after the first
+    // replacement. The C++ SchemeLoader re-arms its own watcher for exactly this
+    // case, so reload the palette from its signal as the authoritative trigger.
     Connections {
         target: SchemeLoader
 

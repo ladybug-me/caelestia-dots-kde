@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 10-autostart.sh  Set up autostart entries for Quickshell and kde-material-you-colors.
+# 10-autostart.sh  Set up autostart entries for Quickshell, and retire the
+#                  daemon that used to apply the palette.
 # Idempotent: overwrites .desktop files with correct content each run.
 
 set -euo pipefail
@@ -39,11 +40,18 @@ else
 fi
 
 # Caelestia Shell autostart
-# Launch the shell built by 08-build-shell.sh directly. This avoids depending
-# on the distro's caelestia-cli version or its config-directory resolution.
+# Launch the shell built by 08-build-shell.sh directly, rather than through a
+# wrapper that would have to guess where the build ended up.
 echo "  Creating Caelestia Shell autostart entry..."
 cat > "$HOME/.local/bin/caelestia-autostart.sh" << EOF
 #!/bin/bash
+# The shell and the widgets it runs call `caelestia` by name, and 08-build-shell.sh
+# installs it into ~/.local/bin. A session started by the display manager does
+# not necessarily have that directory on PATH (this script is reached by
+# absolute path, so finding it proves nothing), which is what leaves the
+# wallpaper picker unable to change anything and the palette stuck on the
+# built-in default. Put it there first, for everything the shell spawns.
+export PATH="\$HOME/.local/bin:\$PATH"
 export QML2_IMPORT_PATH="\$HOME/.local/lib/qt6/qml:\$HOME/.config/quickshell/caelestia"
 export CAELESTIA_LIB_DIR="\$HOME/.local/lib/caelestia"
 export QS_NO_RELOAD_POPUP=1
@@ -130,57 +138,29 @@ elif command -v kbuildsycoca5 >/dev/null 2>&1; then
 fi
 ok "Quickshell Wayland interface declaration created."
 
-#  kde-material-you-colors systemd service
-# Creates and enables a systemd user service for kde-material-you-colors.
-echo "  Deploying systemd service for KDE Material You Colors..."
+#  Retired: kde-material-you-colors
+#
+# The palette is generated and applied by `caelestia-color` now, so nothing
+# here starts that daemon. An install that predates the change still has its
+# unit enabled, and it would keep applying a scheme of its own on top of the
+# one we apply - whichever runs last wins - so the unit is stopped here.
+echo "  Retiring the KDE Material You Colors service..."
+rm -f "$AUTOSTART_DIR/kde-material-you-colors.desktop" 2>/dev/null || true
 
-if [[ "${APPLY_MATERIAL_YOU:-true}" == "true" ]]; then
-    # Clean up old desktop autostart entry if it exists
-    rm -f "$AUTOSTART_DIR/kde-material-you-colors.desktop" 2>/dev/null || true
-
-    # Clean up old Material You color schemes to prevent them from multiplying
-    rm -f "$HOME/.local/share/color-schemes/MaterialYou"*.colors 2>/dev/null || true
-
-    mkdir -p "$HOME/.config/systemd/user"
-    # Determine the path of kde-material-you-colors
-    if command -v kde-material-you-colors >/dev/null 2>&1; then
-        KMYC_PATH=$(command -v kde-material-you-colors)
-    elif [ -f "$HOME/.local/bin/kde-material-you-colors" ]; then
-        KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
-    elif [ -f "/usr/bin/kde-material-you-colors" ]; then
-        KMYC_PATH="/usr/bin/kde-material-you-colors"
-    else
-        KMYC_PATH="$HOME/.local/bin/kde-material-you-colors"
-    fi
-
-    cat > "$HOME/.config/systemd/user/kde-material-you-colors.service" << EOF
-[Unit]
-Description=KDE Material You Colors
-PartOf=graphical-session.target
-After=graphical-session.target plasma-plasmashell.service
-
-[Service]
-Type=simple
-ExecStart=$KMYC_PATH
-# KMY reads the wallpaper and the current color scheme out of the running
-# Plasma session. Started before plasmashell exists it can see neither and
-# applies a built-in default, which is what used to leave the desktop on the
-# wrong colors until the service was restarted by hand once the session had
-# settled. Restart=always, not on-failure, because it can also give up early
-# and exit cleanly.
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=graphical-session.target
-EOF
-
+KMY_UNIT="$HOME/.config/systemd/user/kde-material-you-colors.service"
+if [[ -e "$KMY_UNIT" ]]; then
+    systemctl --user disable --now kde-material-you-colors.service >/dev/null 2>&1 || true
+    rm -f "$KMY_UNIT"
     systemctl --user daemon-reload
-    systemctl --user enable --now kde-material-you-colors.service 2>/dev/null || true
-    ok "kde-material-you-colors systemd service enabled."
+    ok "kde-material-you-colors no longer applies the scheme; its service was removed."
 else
-    skip "Skipping kde-material-you-colors systemd service."
+    skip "kde-material-you-colors service is not installed."
 fi
+
+# KMY wrote two schemes per change to work around plasma-apply-colorscheme
+# refusing the name already in effect. Ours rotates between two names of its
+# own, and the ones it left behind would only be duplicates in System Settings.
+rm -f "$HOME/.local/share/color-schemes/MaterialYou"*.colors 2>/dev/null || true
 
 # Live window thumbnails.
 #

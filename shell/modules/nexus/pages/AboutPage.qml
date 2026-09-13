@@ -35,14 +35,14 @@ PageBase {
             }
         }
 
-        // Parsed from the caelestia CLI's package listing; the sh wrapper avoids a
-        // warning when the (optional) CLI isn't installed
+        // The `caelestia` command this shell ships, which also owns the color
+        // pipeline. The sh wrapper avoids a warning when it is not on PATH yet
         Process {
             running: true
             command: ["sh", "-c", "caelestia --version 2>/dev/null"]
             stdout: StdioCollector {
                 onStreamFinished: {
-                    const m = text.match(/caelestia-cli\S*\s+(\d+(?:\.\d+)*)/);
+                    const m = text.match(/^caelestia\s+(\S+)/);
                     root.cliVersion = m ? m[1] : "";
                 }
             }

@@ -43,8 +43,11 @@ echo ""
 mkdir -p "$BACKUP_DIR"
 mkdir -p "$DEPLOYED_DIR"
 
+# 02a-submodules.sh checks this too and tries to repair it; reaching this point
+# without content means that step was skipped or its repair failed, so send the
+# user back to it rather than to git.
 if [[ ! -d "$DOTS_DIR" ]] || [[ -z "$(ls -A "$DOTS_DIR" 2>/dev/null)" ]]; then
-    die "Missing src/dots content. Run: git submodule update --init --recursive src/dots"
+    die "Missing src/dots content. Run: bash \"$BUNDLE_DIR/scripts/02a-submodules.sh\""
 fi
 
 info "Recording previous login shell..."

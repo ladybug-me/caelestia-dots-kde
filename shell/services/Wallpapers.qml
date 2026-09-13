@@ -82,9 +82,9 @@ Searcher {
     }
 
     function setRandom(): void {
-        // caelestia-cli's wallpaper command has no random ("-r") support for
-        // live/video wallpapers, so pick randomly ourselves and set it via the
-        // same path (setWallpaper) used for a specific wallpaper, which does.
+        // `caelestia wallpaper` takes a still image, so a live or video
+        // wallpaper is put in place through the same path as any other
+        // (setWallpaper); pick the random one here rather than passing -r.
         if (!root.list || root.list.length === 0) return;
         let idx = Math.floor(Math.random() * root.list.length);
         if (root.list.length > 1 && root.list[idx].path === actualCurrent)

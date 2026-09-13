@@ -1,0 +1,3 @@
+{
+<* for name, palette in palettes *>    "{{ name }}": {<* for shade, color in palette *>"{{ shade }}": "{{ color.hex_stripped }}"<* if {{ loop.last }} *><* else *>, <* endif *><* endfor *>}<* if {{ loop.last }} *><* else *>,<* endif *>
+<* endfor *>}
